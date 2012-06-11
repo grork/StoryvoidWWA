@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+  <Identity Name="75649025-5099-4c32-9f57-084461404ddf" Version="1.0.0.0" Publisher="CN=Dominic" />
+  <Properties>
+    <DisplayName>ArticleVoid</DisplayName>
+    <Description>ArticleVoid</Description>
+    <PublisherDisplayName>Dominic</PublisherDisplayName>
+    <Logo>images\storelogo.png</Logo>
+  </Properties>
+  <Prerequisites>
+    <OSMinVersion>6.2</OSMinVersion>
+    <OSMaxVersionTested>6.2</OSMaxVersionTested>
+  </Prerequisites>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" StartPage="default.html">
+      <VisualElements DisplayName="ArticleVoid" Logo="images\logo.png" SmallLogo="images\smalllogo.png" Description="ArticleVoid" ForegroundText="light" BackgroundColor="#000000">
+        <DefaultTile ShowName="allLogos" />
+        <SplashScreen Image="images\splashscreen.png" />
+      </VisualElements>
+      <ApplicationContentUriRules>
+        <Rule Match="https://api.twitter.com" Type="include" />
+      </ApplicationContentUriRules>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+  </Capabilities>
+</Package>
