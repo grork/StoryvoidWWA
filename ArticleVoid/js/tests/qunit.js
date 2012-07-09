@@ -10,10 +10,10 @@
 
 (function( window ) {
 
-var QUnit,
-	config,
-	testId = 0,
-	fileName = (sourceFromStacktrace( 0 ) || "" ).replace(/(:\d+)+\)?/, "").replace(/.+\//, ""),
+    var QUnit,
+        config,
+        testId = 0,
+        fileName = "qunit.js";
 	toString = Object.prototype.toString,
 	hasOwn = Object.prototype.hasOwnProperty,
 	defined = {
@@ -334,7 +334,6 @@ QUnit = {
 			callback: callback,
 			module: config.currentModule,
 			moduleTestEnvironment: config.currentModuleTestEnviroment,
-			stack: sourceFromStacktrace( 2 )
 		});
 
 		if ( !validTest( test ) ) {

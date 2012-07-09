@@ -128,6 +128,7 @@
         })
     }
 
+    var dbId = 0;
     function after() {
         var done = false;
         if (currentServer) {
@@ -137,17 +138,20 @@
             }
             currentServer = null;
         }
+
+        var reqId = dbId++;
         var req = indexedDB.deleteDatabase(dbName);
         req.onsuccess = function () {
+            console.log("deleted db: " + reqId);
             done = true;
         };
 
         req.onerror = function () {
-            console.log('failed to delete db', arguments);
+            console.log("failed to delete db: " + reqId + " ", arguments);
         };
 
         req.onblocked = function () {
-            console.log('db blocked', arguments);
+            console.log("db blocked: " + reqId + " ", arguments);
         };
 
         return waitFor(function () {
@@ -173,6 +177,19 @@
             return currentServer;
         }).then(function () {
             ok(currentServer, "Current server was never set");
+        });
+    }
+
+    function closeClearsCache() {
+        return db.open({
+            server: dbName,
+            version: 1
+        }).then(function (s) {
+            currentServer = s;
+            currentServer.close();
+        }).then(function () {
+            var cache = db._getCache();
+            strictEqual(cache[dbName], undefined, "DB Was still in the cache");
         });
     }
 
@@ -216,12 +233,142 @@
                 return done;
             });
         });
+    }
 
+    function failsWhenMissingKeyPathOnSchema() {
+        var server;
 
+        return db.open({
+            server: dbName,
+            version: 1,
+            schema: {
+                test: {
+                    key: "notReal"
+                }
+            }
+        }).then(function (s) {
+            ok(false, "should have failed");
+            server = s;
+        }, function (e) {
+            ok(true, "Failed badly");
+        });
+    }
+
+    function callsUpgradeOnCreate() {
+        var server;
+        var upgradeWasCalled = false;
+        var upgradeHadServerObject = false;
+
+        var upgradeCalled = function upgradeCalled(server, e) {
+            upgradeWasCalled = true;
+            upgradeHadServerObject = !!server;
+        };
+
+        db.open({
+            server: dbName,
+            version: 1,
+            schema: {
+                test: {
+                    key: {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    }
+                }
+            }
+        }, upgradeCalled).done(function (s) {
+            server = s;
+        });
+
+        return waitFor(function () {
+            return server;
+        }).then(function () {
+            ok(upgradeWasCalled, "Upgrade wasn't called");
+            ok(upgradeHadServerObject, "Upgrade wasn't passed a server object");
+            ok(server, "no database returned");
+            server.close();
+            var done = false;
+
+            var req = indexedDB.open(dbName);
+            req.onsuccess = function (e) {
+                var db = e.target.result;
+
+                strictEqual(db.objectStoreNames.length, 1, "Didn't find expected store names");
+                strictEqual(db.objectStoreNames[0], "test", "Expected store name to match");
+
+                db.close();
+                done = true;
+            };
+
+            return waitFor(function () {
+                return done;
+            });
+        });
+    }
+
+    function canUseExistingTransactionForOperations() {
+        var server;
+        var upgradeDone;
+
+        var upgradeCalled = function (server, e) {
+            server.add("test", { name: "bob" }).done(function () {
+                upgradeDone = true;
+            });
+        };
+
+        db.open({
+            server: dbName,
+            version: 1,
+            schema: {
+                test: {
+                    key: {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    }
+                }
+            }
+        }, upgradeCalled).done(function(s) {
+            server = s;
+        });
+
+        return waitFor(function () {
+            return server;
+        }).then(function() {
+            return server.query("test").execute();
+        }).then(function(results) {
+            ok(true, "expected results");
+            strictEqual(results.length, 1, "Didn't find right number of results");
+            strictEqual(results[0].name, "bob", "data wasn't correct");
+            server.close();
+            return true;
+        });
+    }
+
+    function canDeleteDb() {
+        return db.open({
+            server: dbName,
+            version: 1
+        }).then(function (s) {
+            currentServer = s;
+            currentServer.close();
+        }).then(function () {
+            var cache = db._getCache();
+            strictEqual(cache[dbName], undefined, "DB Was still in the cache");
+
+            return db.deleteDb(dbName);
+        }).then(function deleted(e) {
+            ok(true, "DB wasn't deleted");
+        }, function errored(e) {
+            ok(false, "DB failed to be deleted");
+        });
     }
 
     test("openDbSuccessfully", dbTestWrapper(openDbSuccessfully));
+    test("closeClearsCache", dbTestWrapper(closeClearsCache));
     test("usesProvidedSchema", dbTestWrapper(usesProvidedSchema));
+    test("failsWhenMissingKeyPathOnSchema", dbTestWrapper(failsWhenMissingKeyPathOnSchema));
+    test("callsUpgradeOnCreate", dbTestWrapper(callsUpgradeOnCreate));
+    test("canUseExistingTransactionForOperations", dbTestWrapper(canUseExistingTransactionForOperations));
+    test("canDeleteDb", dbTestWrapper(canDeleteDb));
 
     module("dbaseAddData");
 
@@ -296,8 +443,94 @@
         });
     }
 
+    function canInsertItemWithPutIntoStore() {
+        ok(currentServer, "need current server");
+        var item = { firstName: "Aaron", lastName: "Powell" };
+
+        currentServer.put("test", item).done(function (records) {
+            ok(records, "Didn't get any records back");
+            strictEqual(records.length, 1, "Got more than one record back");
+            item = records[0];
+        });
+
+        return waitFor(function () {
+            return item.id;
+        }).then(function () {
+            strictEqual(item.id, 1, "Item wasn't the first ID, or didn't have one");
+        });
+    }
+
+    function canInsertMultipleItemsWithPutIntoStore() {
+        ok(currentServer, "need current server");
+        var item1 = {
+            firstName: "Aaron",
+            lastName: "Powell"
+        };
+        var item2 = {
+            firstName: "John",
+            lastName: "Smith"
+        };
+
+        currentServer.put("test", [item1, item2]).done(function (items) {
+            ok(items, "no items returned");
+            strictEqual(items.length, 2, "incorrect number of items returned");
+
+            item1.id = items[0].id;
+            item2.id = items[1].id;
+        });
+
+        return waitFor(function () {
+            return item1.id;
+        }).then(function () {
+            strictEqual(item1.id, 1, "item 1 had incorrect id");
+            strictEqual(item2.id, 2, "item 2 had incorrect id");
+        });
+    }
+
+    function canUpdateMultipleItemsWithPutIntoStore() {
+        ok(currentServer, "need current server");
+        var item1 = {
+            firstName: "Aaron",
+            lastName: "Powell"
+        };
+        var item2 = {
+            firstName: "John",
+            lastName: "Smith"
+        };
+
+        currentServer.put("test", [item1, item2]).done(function (items) {
+            ok(items, "no items returned");
+            strictEqual(items.length, 2, "incorrect number of items returned");
+
+            item1.id = items[0].id;
+            item2.id = items[1].id;
+        });
+
+        return waitFor(function () {
+            return item1.id;
+        }).then(function () {
+            strictEqual(item1.id, 1, "item 1 had incorrect id");
+            strictEqual(item2.id, 2, "item 2 had incorrect id");
+        }).then(function () {
+            item1.firstName = "Erin";
+            item2.firstName = "Jon";
+            return currentServer.put("test", [item1, item2]);
+        }).then(function () {
+            return currentServer.query("test").execute();
+        }).then(function (results) {
+            ok(results, "Didn't get any query results");
+            strictEqual(results.length, 2, "Got unexpected number of results");
+
+            strictEqual(results[0].firstName, "Erin", "Name didn't match the updated value");
+            strictEqual(results[1].firstName, "Jon", "Name didn't match updated value");
+        });
+    }
+
     test("canInsertItemIntoStore", dbTestWrapperCreateDb(canInsertItemIntoStore));
     test("canInsertMultipleItemsIntoStore", dbTestWrapperCreateDb(canInsertMultipleItemsIntoStore));
+    test("canInsertItemWithPutIntoStore", dbTestWrapperCreateDb(canInsertItemWithPutIntoStore));
+    test("canInsertMultipleItemsWithPutIntoStore", dbTestWrapperCreateDb(canInsertMultipleItemsWithPutIntoStore));
+    test("canUpdateMultipleItemsWithPutIntoStore", dbTestWrapperCreateDb(canUpdateMultipleItemsWithPutIntoStore));
 
     module("dbaseRemove");
 

@@ -61,9 +61,11 @@
     <Content Include="css\tests\qunit.css" />
     <Content Include="js\db.js" />
     <Content Include="js\InstapaperApi.js" />
+    <Content Include="js\InstapaperDB.js" />
     <Content Include="js\OAuth.js" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
+    <Content Include="js\tests\InstapaperDB_tests.js" />
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
