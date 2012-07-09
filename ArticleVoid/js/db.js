@@ -20,14 +20,14 @@
         throw 'IndexedDB required';
     }
 
-    var Server = function Server_Constructor(db, name) {
+    var Server = function Server_Constructor(db, existingTransaction) {
         var that = this,
             closed = false;
-        this.add = function Server_Add(table, records) {
+        var addOrPut = function Server_AddOrPut(table, records, usePut) {
             if (closed) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction(table, transactionModes.readwrite);
+            var transaction = existingTransaction || db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
 
             if (records.constructor !== Array) {
@@ -37,7 +37,13 @@
             var signal = new Signal();
 
             records.forEach(function Server_Add_RecordsForEach(record) {
-                var req = store.add(record);
+                var req;
+                if (!usePut) {
+                    req = store.add(record);
+                } else {
+                    req = store.put(record);
+                }
+
                 req.onsuccess = function Server_Add_RecordsForEach_Success(e) {
                     var target = e.target;
                     record[target.source.keyPath] = target.result;
@@ -60,11 +66,19 @@
             return signal.promise;
         };
 
+        this.add = function Server_Add(table, records) {
+            return addOrPut(table, records, false);
+        };
+
+        this.put = function Server_Put(table, records) {
+            return addOrPut(table, records, true);
+        };
+
         this.remove = function Server_Remove(table, key) {
             if (closed) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction(table, transactionModes.readwrite);
+            var transaction = existingTransaction || db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
 
             store.delete (key);
@@ -79,15 +93,26 @@
 
         this.close = function Server_Close() {
             if (closed) {
-                throw 'Database has been closed';
+                return;
             }
-            db.close();
+            var f = db.close();
             closed = true;
-            delete dbCache[name];
+
+            var name;
+            for (var cachedName in dbCache) {
+                if (dbCache[cachedName] === db) {
+                    name = cachedName;
+                    break;
+                }
+            }
+
+            if (name) {
+                delete dbCache[name];
+            }
         };
 
         this.get = function Server_Get(table, id) {
-            var transaction = db.transaction(table),
+            var transaction = existingTransaction || db.transaction(table),
                 store = transaction.objectStore(table),
                 signal = new Signal();
 
@@ -226,6 +251,11 @@
                 continue;
             }
 
+            if (!table.key || !table.key.keyPath) {
+                e.target.transaction.abort();
+                return;
+            }
+
             var store = db.createObjectStore(tableName, table.key);
 
             for (var indexKey in table.indexes) {
@@ -238,19 +268,22 @@
     var dbCache = {};
 
     window.db = {
-        open: function open(options) {
+        open: function open(options, upgradeCallback) {
             var db = dbCache[options.server];
             var request;
             var complete;
             var signal;
             if (db) {
-                complete = WinJS.Promise.as(new Server(db, options.server));
+                complete = WinJS.Promise.as(new Server(db));
             } else {
                 request = indexedDB.open(options.server, options.version);
                 signal = new Signal();
                 complete = signal.promise;
+                var server;
                 request.onsuccess = function open_success(e) {
-                    var server = new Server(e.target.result, options.server);
+                    if (!server) {
+                        server = new Server(e.target.result);
+                    }
                     dbCache[options.server] = e.target.result;
                     signal.complete(server);
                 };
@@ -261,10 +294,41 @@
 
                 request.onupgradeneeded = function open_upgrade(e) {
                     createSchema(e, options.schema, e.target.result);
+                    if (upgradeCallback) {
+                        upgradeCallback(new Server(e.target.result, e.target.transaction), e);
+                    }
                 };
             }
 
             return complete;
         },
+        deleteDb: function deleteDb(name) {
+            var database = dbCache[name];
+            if (database) {
+                delete dbCache[name];
+            }
+
+            var req = indexedDB.deleteDatabase(name);
+            var signal = new Signal();
+
+            req.onsuccess = function () {
+                signal.complete();
+            };
+
+            req.onerror = function (e) {
+                console.log('error deleting db', arguments);
+                signal.error(e);
+            };
+
+            req.onblocked = function (e) {
+                console.log('db blocked on delete', arguments);
+                signal.progress(e);
+            };
+
+            return signal.promise;
+        },
+        _getCache: function _getCache() {
+            return dbCache;
+        }
     };
 })(window);
