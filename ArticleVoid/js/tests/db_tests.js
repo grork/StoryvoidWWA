@@ -547,9 +547,9 @@
         return waitFor(function () {
             return item.id;
         }).then(function () {
+            return currentServer.remove("test", item.id);
+        }).then(function () {
             var done = false;
-            currentServer.remove("test", item.id);
-
             currentServer.get("test", item.id).done(function (removed) {
                 strictEqual(removed, undefined, "Expected item to be removed");
                 done = true;
@@ -561,7 +561,27 @@
         });
     }
 
+    function removingNonExistantItemDoesntError() {
+        ok(currentServer, "need current server");
+        var item = { firstName: "Aaron", lastName: "Powell" };
+
+        currentServer.add("test", item).done(function (records) {
+            ok(records, "Didn't get any records back");
+            strictEqual(records.length, 1, "Got more than one record back");
+            item = records[0];
+        });
+
+        return waitFor(function () {
+            return item.id;
+        }).then(function () {
+            return currentServer.remove("test", "xxx");
+        }).then(function (data) {
+            ok(!data, "Expected no data");
+        });
+    }
+
     test("canRemoveAddedItem", dbTestWrapperCreateDb(canRemoveAddedItem));
+    test("removingNonExistantItemDoesntError", dbTestWrapperCreateDb(removingNonExistantItemDoesntError));
 
     module("dbaseQuery");
 
