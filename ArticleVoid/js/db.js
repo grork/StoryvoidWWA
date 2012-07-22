@@ -80,8 +80,18 @@
             }
             var transaction = existingTransaction || db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
+            var signal = new Signal();
 
-            store.delete (key);
+            var req = store.delete (key);
+            req.onsuccess = function Server_Remove_Success(e) {
+                signal.complete(e.target.result);
+            };
+
+            req.onerror = function Server_Remove_Error(e) {
+                signal.error(e);
+            };
+
+            return signal.promise;
         };
 
         this.query = function Server_Query(table) {

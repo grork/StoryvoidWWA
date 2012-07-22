@@ -691,7 +691,7 @@ extend( QUnit, {
 				return "null";
 		}
 
-		var type = toString.call( obj ).match(/^\[object\s(.*)\]$/)[1] || "";
+		var type = Object.prototype.toString.call( obj ).match(/^\[object\s(.*)\]$/)[1] || "";
 
 		switch ( type ) {
 			case "Number":
@@ -941,6 +941,8 @@ window.onerror = function( message, file, line ) {
 			QUnit.pushFailure( message, file + ":" + line );
 		});
 	}
+
+	return true;
 };
 
 function done() {
@@ -1494,7 +1496,7 @@ QUnit.jsDump = (function() {
 					type = "node";
 				} else if (
 					// native arrays
-					toString.call( obj ) === "[object Array]" ||
+					Array.isArray( obj ) ||
 					// NodeList objects
 					( typeof obj.length === "number" && typeof obj.item !== "undefined" && ( obj.length ? obj.item(0) === obj[0] : ( obj.item( 0 ) === null && typeof obj[0] === "undefined" ) ) )
 				) {
