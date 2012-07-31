@@ -49,7 +49,7 @@
     <TargetPlatformVersion>8.0</TargetPlatformVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
     <PackageCertificateKeyFile>ArticleVoid_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>F60E03EAA7E230F61F846A9A8DE19EE3966CDAF5</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>5A07CA97892FBD08491C1EEE6595599866451D37</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>$(USERPROFILE)\Desktop\TempProjects\$(MSBuildProjectName)\bin\$(Configuration)</OutputPath>
@@ -82,7 +82,7 @@
     <Content Include="css\default.css" />
   </ItemGroup>
   <ItemGroup>
-    <SDKReference Include="Microsoft.WinJS.1.0.RC, Version=1.0" />
+    <SDKReference Include="Microsoft.WinJS.1.0, Version=1.0" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
