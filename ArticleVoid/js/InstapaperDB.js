@@ -17,6 +17,16 @@
         return dataArray[0];
     }
 
+    function checkDb(func) {
+        return function checkDbWrapper() {
+            if (!this._db) {
+                return noDbError();
+            }
+
+            return func.apply(this, arguments);
+        }
+    }
+
     WinJS.Namespace.define("Codevoid.ArticleVoid.DB", {
         InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor(clientInformation) {
             this._clientInformation = clientInformation;
@@ -36,10 +46,25 @@
             },
             initialize: function initialize() {
                 var schema = {};
-                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBBoomarksTable] = {
+                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable] = {
+                    key: {
+                        keyPath: "bookmark_id",
+                        autoIncrement: false
+                    },
+                    indexes: {
+                        folder_id: {},
+                        url: {},
+                        type: {},
+                    }
+                };
+
+                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable] = {
                     key: {
                         keyPath: "id",
                         autoIncrement: true
+                    },
+                    indexes: {
+                        bookmark_id: {}
                     }
                 };
 
@@ -179,7 +204,7 @@
                         }
 
                         var pendingEdit = {
-                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingEditTypes.DELETE,
+                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.DELETE,
                             removedFolderId: folderBeingRemoved.folder_id,
                             title: folderBeingRemoved.title,
                         };
@@ -205,7 +230,7 @@
                 }
 
                 var pendingEdit = {
-                    type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingEditTypes.ADD,
+                    type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.ADD,
                     folderTableId: folderEditToPend.id,
                     title: folderEditToPend.title,
                 };
@@ -221,6 +246,52 @@
 
                 return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, id);
             },
+            getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits() {
+                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable).execute();
+            }),
+            listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
+                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable).execute();
+            }),
+            addBookmark: checkDb(function addBookmark(bookmark, fromServer) {
+                return this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
+            }),
+            addUrl: checkDb(function addUrl(bookmarkToAdd) {
+                return this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, {
+                    url: bookmarkToAdd.url,
+                    title: bookmarkToAdd.title,
+                    type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.ADD
+                }).then(extractFirstItemInArray);
+            }),
+            _deletePendingBookmarkEdit: checkDb(function check_deletePendingBookmarkedit(id) {
+                return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, id);
+            }),
+            removeBookmark: checkDb(function removeBookmarl(bookmark_id, fromServer) {
+                return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id).then(function () {
+                    // Hide the result of the DB operation
+                });
+            }),
+            updateBookmark: checkDb(function updateBookmark(bookmark) {
+                return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark);
+            }),
+            likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
+                return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                    if (!bookmark) {
+                        var error = new Error();
+                        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        return WinJS.Promise.wrapError(error);
+                    }
+
+                    if (bookmark.starred === 1) {
+                        return WinJS.Promise.as(bookmark);
+                    }
+
+                    bookmark.starred = 1;
+                    return this.updateBookmark(bookmark);
+                }.bind(this));
+            }),
+            getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
+                return this._db.get(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id);
+            }),
             dispose: function dispose() {
                 if (this._server) {
                     this._server.close();
@@ -247,6 +318,10 @@
                 writable: false,
                 value: "bookmarks",
             },
+            DBBookmarkUpdatesTable: {
+                writable: false,
+                value: "bookmarkUpdates"
+            },
             DBFoldersTable: {
                 writable: false,
                 value: "folders"
@@ -259,8 +334,18 @@
                 NODB: 1,
                 NOCLIENTINFORMATION: 2,
                 FOLDER_DUPLICATE_TITLE: 3,
+                BOOKMARK_NOT_FOUND: 4,
             },
-            PendingEditTypes: {
+            PendingFolderEditTypes: {
+                ADD: "add",
+                DELETE: "delete",
+            },
+            PendingBookmarkEditTypes: {
+                STAR: "star",
+                UNSTAR: "unstar",
+                ARCHIVE: "archive",
+                UNARCHIVE: "unarchive",
+                MOVE: "move",
                 ADD: "add",
                 DELETE: "delete",
             }
