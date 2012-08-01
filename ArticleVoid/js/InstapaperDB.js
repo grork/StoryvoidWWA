@@ -54,7 +54,6 @@
                     indexes: {
                         folder_id: {},
                         url: {},
-                        type: {},
                     }
                 };
 
@@ -64,7 +63,8 @@
                         autoIncrement: true
                     },
                     indexes: {
-                        bookmark_id: {}
+                        bookmark_id: {},
+                        type: {}
                     }
                 };
 
@@ -86,6 +86,7 @@
                     indexes: {
                         title: {},
                         folderTableId: {},
+                        type: {},
                     }
                 };
 
@@ -252,7 +253,7 @@
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
                 return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable).execute();
             }),
-            addBookmark: checkDb(function addBookmark(bookmark, fromServer) {
+            addBookmark: checkDb(function addBookmark(bookmark) {
                 return this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
             }),
             addUrl: checkDb(function addUrl(bookmarkToAdd) {
@@ -266,7 +267,22 @@
                 return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, id);
             }),
             removeBookmark: checkDb(function removeBookmarl(bookmark_id, fromServer) {
-                return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id).then(function () {
+                var removedPromise = this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id)
+                
+                // If it's not an edit from the server we need to add a pending
+                // delete that we can later sync to the server.
+                if (!fromServer) {
+                    removedPromise = removedPromise.then(function () {
+                        var edit = {
+                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.DELETE,
+                            bookmark_id: bookmark_id,
+                        };
+
+                        this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                    }.bind(this));
+                }
+
+                return removedPromise.then(function () {
                     // Hide the result of the DB operation
                 });
             }),
@@ -274,7 +290,7 @@
                 return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark);
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
-                return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                var likedComplete = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
                         var error = new Error();
                         error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
@@ -286,6 +302,35 @@
                     }
 
                     bookmark.starred = 1;
+                    return this.updateBookmark(bookmark);
+                }.bind(this));
+
+                if (!dontAddPendingUpdate) {
+                    likedComplete = likedComplete.then(function() {
+                        var edit = {
+                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.STAR,
+                            bookmark_id: bookmark_id,
+                        };
+
+                        return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                    }.bind(this));
+                }
+
+                return likedComplete;
+            }),
+            unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
+                return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                    if (!bookmark) {
+                        var error = new Error();
+                        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        return WinJS.Promise.wrapError(error);
+                    }
+
+                    if (bookmark.starred === 0) {
+                        return WinJS.Promise.as(bookmark);
+                    }
+
+                    bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
                 }.bind(this));
             }),
@@ -312,7 +357,7 @@
             },
             DBVersion: {
                 writable: false,
-                value: 1
+                value: 1,
             },
             DBBookmarksTable: {
                 writable: false,
@@ -320,15 +365,15 @@
             },
             DBBookmarkUpdatesTable: {
                 writable: false,
-                value: "bookmarkUpdates"
+                value: "bookmarkUpdates",
             },
             DBFoldersTable: {
                 writable: false,
-                value: "folders"
+                value: "folders",
             },
             DBFolderUpdatesTable: {
                 writable: false,
-                value: "folderUpdates"
+                value: "folderUpdates",
             },
             ErrorCodes: {
                 NODB: 1,
@@ -341,13 +386,13 @@
                 DELETE: "delete",
             },
             PendingBookmarkEditTypes: {
+                ADD: "add",
+                DELETE: "delete",
+                MOVE: "move",
                 STAR: "star",
                 UNSTAR: "unstar",
                 ARCHIVE: "archive",
                 UNARCHIVE: "unarchive",
-                MOVE: "move",
-                ADD: "add",
-                DELETE: "delete",
             }
         }),
     });

@@ -1,14 +1,6 @@
 ﻿(function () {
     "use strict";
 
-    var clientID = "PLACEHOLDER";
-    var clientSecret = "PLACEHOLDER";
-
-    var token = "PLACEHOLDER";
-    var secret = "PLACEHOLDER";
-
-    var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
-
     var defaultFolderIds = ["unread", "starred", "archive"];
 
     function startOnSuccessOfPromise() {
@@ -334,26 +326,6 @@
         });
     }
 
-    function multipleEditsOnSameFolderFunction() {
-        /*
-        If you add a deleted folder, then theres no id from the server
-        to ID it. However, the server will barf on similar titles.
-        Should we key off the title too? Maybe?
-        Does that mean we want an index? Infact, given that it's
-        a requirement we should check on adding multiple folders.
-
-        Assuming we enforce that, how can we check to make sure if
-        we re-add the same named folder, what we do? Do we just
-        resurrect the folder from the deleted hole because we
-        left the folder name in there and can use that? Probably.
-
-        What about bookmarks when we're deleting folders?
-        Well, we should probably just manually move all the bookmarks
-        into the unread folder.
-        */
-        ok(true);
-    }
-
     promiseTest("deleteDb", deleteDb);
     promiseTest("hasDefaultFolders", hasDefaultFolders);
     promiseTest("canEnumerateDefaultFolders", canEnumerateDefaultFolders);
@@ -366,50 +338,6 @@
     promiseTest("canRemoveFolderWithPendingEdit", canRemoveFolderWithPendingEdit);
     promiseTest("deletingUnsyncedAddededFolderNoOps", deletingUnsyncedAddededFolderNoOps);
     promiseTest("addingDeletedFolderWithoutSyncBringsBackFolderId", addingDeletedFolderWithoutSyncBringsBackFolderId);
-
-    module("InstapaperDBFoldersSync");
-
-    function addDefaultRemoteData() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-
-        return folders.add("sampleFolder1").then(function (folder) {
-            return bookmarks.add({
-                url: "http://www.codevoid.net/articlevoidtest/TestPage1.html",
-                folder_id: folder.folder_id
-            });
-        }).then(function () {
-            return folders.add("sampleFolder2");
-        }).then(function (folder) {
-            return bookmarks.add({
-                url: "http://www.codevoid.net/articlevoidtest/TestPage2.html",
-                folder_id: folder.folder_id,     
-            });
-        }).then(function () {
-            return bookmarks.add({
-                url: "http://www.codevoid.net/articlevoidtest/TestPage3.html"
-            });
-        }).then(function (addedBookmark) {
-            return bookmarks.archive(addedBookmark.bookmark_id);
-        }).then(function () {
-            return bookmarks.add({
-                url: "http://www.codevoid.net/articlevoidtest/TestPage4.html"
-            });
-        }).then(function (addedBookmark) {
-            return bookmarks.star(addedBookmark.bookmark_id);
-        }).then(function () {
-            ok(true, "it went very very wrong");
-        });
-    }
-
-    //promiseTest("destroyRemoteAccountDataCleanUpFirst", destroyRemoteAccountData);
-    //promiseTest("addDefaultRemoteData", addDefaultRemoteData);
-
-    function addsFoldersOnFirstSight() {
-        ok(true);
-    }
-
-    //promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight);
 
     module("InstapaperDBBookmarks");
 
@@ -433,7 +361,7 @@
 
         return new InstapaperDB().initialize().then(function (idb) {
             instapaperDB = idb;
-            return idb.addBookmark(bookmark, true);
+            return idb.addBookmark(bookmark);
         }).then(function (addedBookmark) {
             ok(addedBookmark, "Didn't get bookmark back");
             strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
@@ -473,25 +401,6 @@
         });
     }
 
-    function canRemoveBookmarkNoPendingEdit() {
-        var instapaperDB;
-        var bookmark_id = "local_id";
-
-        return new InstapaperDB().initialize().then(function (idb) {
-            instapaperDB = idb;
-            return idb.removeBookmark(bookmark_id, true);
-        }).then(function (addedBookmark) {
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(instapaperDB);
-        }).then(function () {
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            ok(currentBookmarks, "no bookmarks returned");
-            strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
-        });
-    }
-
     function addingNewUrlDoesntShowUpInBookmarks() {
         var instapaperDB;
         var pendingId;
@@ -513,7 +422,7 @@
             strictEqual(pendingEdit.url, "http://www.microsoft.com", "Incorrect pended URL");
             strictEqual(pendingEdit.title, "Microsoft", "incorrect pended title");
             strictEqual(pendingEdit.type, Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.ADD, "Wrong pended edit type");
-        }).then(function() {
+
             return instapaperDB.listCurrentBookmarks();
         }).then(function(currentBookmarks) {
             ok(currentBookmarks, "Expected bookmarks result set");
@@ -546,15 +455,14 @@
         }).then(function () {
             return WinJS.Promise.join([instapaperDB.likeBookmark(bookmark.bookmark_id, true), WinJS.Promise.timeout()]);
         }).then(function () {
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            ok(currentBookmarks, "no folders returned");
-            strictEqual(currentBookmarks.length, 1, "Only expected 1 bookmark");
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            ok(bookmark, "no bookmark returned");
 
-            strictEqual(currentBookmarks[0].bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
-            strictEqual(currentBookmarks[0].folder_id, bookmark.folder_id, "Folder ID didn't match");
-            strictEqual(currentBookmarks[0].title, bookmark.title, "Folder ID didn't match");
-            strictEqual(currentBookmarks[0].starred, 1, "Didn't get starred");
+            strictEqual(newBookmark.bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
+            strictEqual(newBookmark.folder_id, bookmark.folder_id, "Folder ID didn't match");
+            strictEqual(newBookmark.title, bookmark.title, "Folder ID didn't match");
+            strictEqual(newBookmark.starred, 1, "Didn't get starred");
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }
@@ -570,6 +478,45 @@
         });
     }
 
+    function canUnlikeBookmarkNoPendingEdit() {
+        var instapaperDB;
+
+        return new InstapaperDB().initialize().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getBookmarkByBookmarkId("local_id");
+        }).then(function (bookmark) {
+            ok(bookmark, "Didn't get bookmark");
+            ok(bookmark.starred, 1, "Bookmark needs to be liked to unlike it");
+
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id", true), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id")
+        }).then(function (unlikedBookmark) {
+            ok(unlikedBookmark, "no bookmark found");
+
+            strictEqual(unlikedBookmark.starred, 0, "Bookmark was still liked");
+        });
+    }
+
+    function canRemoveBookmarkNoPendingEdit() {
+        var instapaperDB;
+        var bookmark_id = "local_id";
+
+        return new InstapaperDB().initialize().then(function (idb) {
+            instapaperDB = idb;
+            return idb.removeBookmark(bookmark_id, true);
+        }).then(function (addedBookmark) {
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks, "no bookmarks returned");
+            strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
+        });
+    }
+
     promiseTest("emptyUnreadBookmarksTableReturnsEmptyData", emptyUnreadBookmarksTableReturnsEmptyData);
     promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
     promiseTest("canUpdateBookmarkInformationNoPendingEdits", canUpdateBookmarkInformationNoPendingEdits);
@@ -577,52 +524,81 @@
     promiseTest("addingNewUrlDoesntShowUpInBookmarks", addingNewUrlDoesntShowUpInBookmarks);
     promiseTest("canLikeBookmarkNoPendingEdit", canLikeBookmarkNoPendingEdit);
     promiseTest("likeingNonExistantBookmarkErrors", likeingNonExistantBookmarkErrors);
+    promiseTest("canUnlikeBookmarkNoPendingEdit", canUnlikeBookmarkNoPendingEdit);
 
+    // Remove the just futzed with bookmark
+    promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
 
-    module("InstapaperDBdestroyRemoteAccountData")
+    // Re-add a bookmark to work with
+    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
 
-    function deleteAllRemoteBookmarks(bookmarksToDelete) {
-        var client = this;
-        var deletePromises = [];
-        bookmarksToDelete.forEach(function (bookmark) {
-            client.deleteBookmark(bookmark.bookmark_id);
-        });
+    function removingBookmarkLeavesPendingEdit() {
+        var instapaperDB;
+        var pendingEditId;
 
-        return WinJS.Promise.join(deletePromises);
-    }
-
-    function destroyRemoteAccountData() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-
-        return folders.list().then(function (serverFolders) {
-            var deletedFoldersPromises = [];
-            serverFolders.forEach(function (folder) {
-                // We can't delete the default folders, so skip them
-                switch (folder.folder_id) {
-                    case "unread":
-                    case "starred":
-                    case "archive":
-                        return;
-
-                    default:
-                        break;
-                }
-
-                deletedFoldersPromises.push(folders.deleteFolder(folder.folder_id));
-            });
-
-            return WinJS.Promise.join(deletedFoldersPromises);
+        return new InstapaperDB().initialize().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([instapaperDB.removeBookmark("local_id"), WinJS.Promise.timeout()]);
         }).then(function () {
-            return bookmarks.list({ folder_id: "unread" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks, "Didn't get any pending bookmarks");
+
+            strictEqual(currentBookmarks.length, 0, "Only expected to find one DB");
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+            
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.DELETE, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
         }).then(function () {
-            return bookmarks.list({ folder_id: "starred" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
+            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
-            return bookmarks.list({ folder_id: "archive" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
-        }).then(function () {
-            ok(true, "It went very very wrong");
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }
 
-    //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
+    promiseTest("removingBookmarkLeavesPendingEdit", removingBookmarkLeavesPendingEdit);
+    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
+
+    function likingBookmarkAddsPendingEdit() {
+        var instapaperDB;
+        var pendingEditId;
+
+        return new InstapaperDB().initialize().then(function (idb) {
+            instapaperDB = idb;
+            
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            ok(newBookmark, "no bookmark returned");
+
+            strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            strictEqual(newBookmark.starred, 1, "Didn't get starred");
+
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.STAR, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }
+
+    promiseTest("likingBookmarkAddsPendingEdit", likingBookmarkAddsPendingEdit);
 })();
