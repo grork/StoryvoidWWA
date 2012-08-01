@@ -319,7 +319,7 @@
                 return likedComplete;
             }),
             unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
-                return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                var unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
                         var error = new Error();
                         error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
@@ -333,6 +333,19 @@
                     bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
                 }.bind(this));
+
+                if (!dontAddPendingUpdate) {
+                    unlikedBookmark = unlikedBookmark.then(function () {
+                        var edit = {
+                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.UNSTAR,
+                            bookmark_id: bookmark_id,
+                        };
+
+                        this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                    }.bind(this));
+                }
+
+                return unlikedBookmark;
             }),
             getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
                 return this._db.get(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id);
