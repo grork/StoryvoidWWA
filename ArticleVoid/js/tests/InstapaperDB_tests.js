@@ -33,7 +33,7 @@
         });
     }
 
-    var InstapaperDB = Codevoid.ArticleVoid.DB.InstapaperDB;
+    var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
 
     module("InstapaperDBFolders");
 
@@ -147,7 +147,7 @@
         }).then(function () {
             ok(false, "Should have failed");
         }, function (error) {
-            strictEqual(error.code, Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
+            strictEqual(error.code, Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
             ok(true, "Should fail here");
         }).then(function (folders) {
             return expectNoPendingFolderEdits(instapaperDB);
@@ -220,7 +220,7 @@
             }
 
             var pendingEdit = pendingEdits[0];
-            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.ADD, "Expected to be ADD edit type");
+            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD, "Expected to be ADD edit type");
             strictEqual(pendingEdit.folderTableId, addFolderResult.id, "Pending edit wasn't for the folder we added");
 
             return instapaperDB._deletePendingFolderEdit(pendingEdit.id);
@@ -264,7 +264,7 @@
             }
 
             var pendingEdit = pendingEdits[0];
-            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.DELETE, "Expected to be DELETE edit type");
+            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.DELETE, "Expected to be DELETE edit type");
             strictEqual(pendingEdit.removedFolderId, folderToRemove.folder_id, "Pending edit wasn't for the folder we added");
             strictEqual(pendingEdit.title, folderToRemove.title, "Didn't didn't match");
 
@@ -421,7 +421,7 @@
             var pendingEdit = pendingEdits[0];
             strictEqual(pendingEdit.url, "http://www.microsoft.com", "Incorrect pended URL");
             strictEqual(pendingEdit.title, "Microsoft", "incorrect pended title");
-            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.ADD, "Wrong pended edit type");
+            strictEqual(pendingEdit.type, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ADD, "Wrong pended edit type");
 
             return instapaperDB.listCurrentBookmarks();
         }).then(function(currentBookmarks) {
@@ -474,7 +474,7 @@
             ok(false, "shouldn't have succeeded");
         }, function (error) {
             ok(error, "didn't get error object");
-            strictEqual(error.code, Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
+            strictEqual(error.code, Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
         });
     }
 
@@ -675,11 +675,11 @@
         }).then(function (unlikedBookmark) {
             ok(unlikedBookmark, "Expected a bookmark");
             strictEqual(unlikedBookmark.bookmark_id, "local_id");
-            strictEqual(unlikedBooimark.starred, 0, "Shouldn't have been liked");
+            strictEqual(unlikedBookmark.starred, 0, "Shouldn't have been liked");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }
 
-    //promiseTest("unlikingBookmarkWithPendingEditLeavesNoPendingEdit", unlikingBookmarkWithPendingEditLeavesNoPendingEdit);
+    promiseTest("unlikingBookmarkWithPendingEditLeavesNoPendingEdit", unlikingBookmarkWithPendingEditLeavesNoPendingEdit);
 })();

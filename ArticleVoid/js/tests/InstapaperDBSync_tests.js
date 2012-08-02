@@ -41,7 +41,7 @@
         });
     }
 
-    var InstapaperDB = Codevoid.ArticleVoid.DB.InstapaperDB;
+    var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
 
     function multipleEditsOnSameFolderFunction() {
         /*
