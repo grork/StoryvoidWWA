@@ -272,6 +272,8 @@
                 return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark);
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
+                var wasUnsyncedEdit = false;
+
                 var likedComplete = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
                         var error = new Error();
@@ -285,10 +287,24 @@
 
                     bookmark.starred = 1;
                     return this.updateBookmark(bookmark);
+                }.bind(this)).then(function () {
+                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNSTAR);
+                }.bind(this)).then(function (pendingEdit) {
+                    if (!pendingEdit) {
+                        return;
+                    }
+
+                    wasUnsyncedEdit = true;
+
+                    return this._deletePendingBookmarkEdit(pendingEdit.id);
                 }.bind(this));
 
                 if (!dontAddPendingUpdate) {
-                    likedComplete = likedComplete.then(function() {
+                    likedComplete = likedComplete.then(function () {
+                        if (wasUnsyncedEdit) {
+                            return;
+                        }
+
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR,
                             bookmark_id: bookmark_id,
@@ -301,7 +317,7 @@
                 return likedComplete;
             }),
             unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
-                var wasUsyncedEdit = false;
+                var wasUnsyncedEdit = false;
 
                 var unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
@@ -323,14 +339,14 @@
                         return;
                     }
 
-                    wasUsyncedEdit = true;
+                    wasUnsyncedEdit = true;
                     
                     return this._deletePendingBookmarkEdit(pendingEdit.id);
                 }.bind(this));
 
                 if (!dontAddPendingUpdate) {
                     unlikedBookmark = unlikedBookmark.then(function () {
-                        if (wasUsyncedEdit) {
+                        if (wasUnsyncedEdit) {
                             return;
                         }
 
@@ -349,18 +365,23 @@
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
             }),
             dispose: function dispose() {
-                if (this._server) {
-                    this._server.close();
+                if (this._db) {
+                    this._db.close();
                 }
             }
         }, {
             createDefaultData: function createDefaultData(server) {
                 // Create Folders
                 server.add("folders", [
-                    { folder_id: "unread", title: "unread" },
-                    { folder_id: "starred", title: "liked" },
-                    { folder_id: "archive", title: "archive" }
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread, title: "unread" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked, title: "liked" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive, title: "archive" }
                 ]);
+            },
+            CommonFolderIds: {
+                Unread: "unread",
+                Liked: "starred",
+                Archive: "archive",
             },
             DBName: {
                 writable: false,
