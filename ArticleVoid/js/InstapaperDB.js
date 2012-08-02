@@ -3,13 +3,13 @@
 
     function noDbError() {
         var error = new Error("Not connected to the server");
-        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.NODB;
+        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.NODB;
         return WinJS.Promise.wrapError(error);
     }
 
     function noClientInformationError() {
         var error = new Error("No client informaton");
-        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.NOCLIENTINFORMATION;
+        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.NOCLIENTINFORMATION;
         return WinJS.Promise.wrapError(error);
     }
 
@@ -27,7 +27,7 @@
         }
     }
 
-    WinJS.Namespace.define("Codevoid.ArticleVoid.DB", {
+    WinJS.Namespace.define("Codevoid.ArticleVoid", {
         InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor(clientInformation) {
             this._clientInformation = clientInformation;
         }, {
@@ -46,7 +46,7 @@
             },
             initialize: function initialize() {
                 var schema = {};
-                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable] = {
+                schema[Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable] = {
                     key: {
                         keyPath: "bookmark_id",
                         autoIncrement: false
@@ -57,7 +57,7 @@
                     }
                 };
 
-                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable] = {
+                schema[Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable] = {
                     key: {
                         keyPath: "id",
                         autoIncrement: true
@@ -68,7 +68,7 @@
                     }
                 };
 
-                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable] = {
+                schema[Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable] = {
                     key: {
                         keyPath: "id",
                         autoIncrement: true
@@ -78,7 +78,7 @@
                     }
                 };
 
-                schema[Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable] = {
+                schema[Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable] = {
                     key: {
                         keyPath: "id",
                         autoIncrement: true
@@ -91,42 +91,34 @@
                 };
 
                 return db.open({
-                    server: Codevoid.ArticleVoid.DB.InstapaperDB.DBName,
-                    version: Codevoid.ArticleVoid.DB.InstapaperDB.DBVersion,
+                    server: Codevoid.ArticleVoid.InstapaperDB.DBName,
+                    version: Codevoid.ArticleVoid.InstapaperDB.DBVersion,
                     schema: schema,
-                }, Codevoid.ArticleVoid.DB.InstapaperDB.createDefaultData).then(function saveDbDuringInit(db) {
+                }, Codevoid.ArticleVoid.InstapaperDB.createDefaultData).then(function saveDbDuringInit(db) {
                     this._db = db;
                 }.bind(this)).then(function returnSelfToChain() {
                     return this;
                 }.bind(this));
             },
-            listCurrentFolders: function listCurrentFolders() {
+            listCurrentFolders: checkDb(function listCurrentFolders() {
                 /// <summary>
                 /// Returns a snap-shotted state of the current folders. This is
                 /// not a live collection, and thus doesn't refect changes
                 /// </summary>
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable).execute()
-            },
-            addFolder: function addFolder(name, dontAddPendingEdit) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.index(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable, "title").only(name).then(function addProcessResults(results) {
+                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable).execute()
+            }),
+            addFolder: checkDb(function addFolder(name, dontAddPendingEdit) {
+                return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "title").only(name).then(function addProcessResults(results) {
                     if (!results || !results.length) {
                         return;
                     }
 
                     var error = new Error("Folder with the name '" + name + "' already present");
-                    error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE;
+                    error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE;
 
                     return WinJS.Promise.wrapError(error);
                 }).then(function actuallyAddFolder() {
-                    return this._db.index(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, "title").only(name).then(extractFirstItemInArray);
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "title").only(name).then(extractFirstItemInArray);
                 }.bind(this)).then(function resultOfInspectingPendingData(pendingItem) {
                     if (!pendingItem) {
                         return null;
@@ -137,14 +129,14 @@
                         title: pendingItem.title,
                     };
 
-                    return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, pendingItem.id).then(function () {
+                    return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingItem.id).then(function () {
                         return WinJS.Binding.as(dataToResurrect);
                     });
                 }.bind(this)).then(function (existingFolderData) {
                     var folderData = existingFolderData || {};
                     folderData.title = name;
 
-                    var completedPromise = this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable,
+                    var completedPromise = this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable,
                                                         folderData).then(extractFirstItemInArray);
 
                     if (!dontAddPendingEdit && !existingFolderData) {
@@ -153,40 +145,28 @@
 
                     return completedPromise;
                 }.bind(this));
-            },
-            getFolderByDbId: function getFolderByDbId(folderId) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.get(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable, folderId);
-            },
-            updateFolder: function updateFolder(folderDetails) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable, folderDetails);
-            },
-            removeFolder: function removeFolder(folderId, dontAddPendingEdit) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
+            }),
+            getFolderByDbId: checkDb(function getFolderByDbId(folderId) {
+                return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId);
+            }),
+            updateFolder: checkDb(function updateFolder(folderDetails) {
+                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderDetails);
+            }),
+            removeFolder: checkDb(function removeFolder(folderId, dontAddPendingEdit) {
                 var completePromise = WinJS.Promise.as();
                 var wasUnsyncedEdit = false;
 
                 var folderBeingRemoved;
                 if (!dontAddPendingEdit) {
-                    completePromise = this._db.get(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable, folderId).then(function gotFolderToPerformPendingEdit(folder) {
+                    completePromise = this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId).then(function gotFolderToPerformPendingEdit(folder) {
                         folderBeingRemoved = folder;
                     });
                 }
 
                 completePromise = completePromise.then(function actuallyRemoveFolder() {
-                    return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBFoldersTable, folderId);
+                    return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId);
                 }.bind(this)).then(function cleanupPendingAddsOnRemove() {
-                    return this._db.index(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, "folderTableId").only(folderId);
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "folderTableId").only(folderId);
                 }.bind(this)).then(function checkForExistingUpdate(results) {
                     if (!results || !results.length) {
                         return;
@@ -194,7 +174,7 @@
                     wasUnsyncedEdit = true;
                     appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
 
-                    return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, results[0].id);
+                    return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, results[0].id);
                 }.bind(this));
 
 
@@ -205,11 +185,11 @@
                         }
 
                         var pendingEdit = {
-                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.DELETE,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.DELETE,
                             removedFolderId: folderBeingRemoved.folder_id,
                             title: folderBeingRemoved.title,
                         };
-                        return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, pendingEdit)
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingEdit)
                     }.bind(this));
                 }
 
@@ -217,68 +197,70 @@
                     // Stop the pending edit making it to the caller.
                     return;
                 });
-            },
-            getPendingFolderEdits: function getPendingFolderEdits() {
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable).execute();
-            },
-            _addPendingFolderEdit: function _addPendingFolderEdit(folderEditToPend) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
+            }),
+            getPendingFolderEdits: checkDb(function getPendingFolderEdits() {
+                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable).execute();
+            }),
+            _addPendingFolderEdit: checkDb(function _addPendingFolderEdit(folderEditToPend) {
                 var pendingEdit = {
-                    type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingFolderEditTypes.ADD,
+                    type: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD,
                     folderTableId: folderEditToPend.id,
                     title: folderEditToPend.title,
                 };
 
-                return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, pendingEdit).then(function returnOriginalFolderOnPend() {
+                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingEdit).then(function returnOriginalFolderOnPend() {
                     return folderEditToPend;
                 });
-            },
-            _deletePendingFolderEdit: function _deletePendingFolderEdit(id) {
-                if (!this._db) {
-                    return noDbError();
-                }
-
-                return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBFolderUpdatesTable, id);
-            },
+            }),
+            _deletePendingFolderEdit: checkDb(function _deletePendingFolderEdit(id) {
+                return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, id);
+            }),
             getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits() {
-                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable).execute();
+                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
             }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
-                return this._db.query(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable).execute();
+                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable).execute();
             }),
             addBookmark: checkDb(function addBookmark(bookmark) {
-                return this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
+                return this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
             }),
             addUrl: checkDb(function addUrl(bookmarkToAdd) {
-                return this._db.add(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, {
+                return this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, {
                     url: bookmarkToAdd.url,
                     title: bookmarkToAdd.title,
-                    type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.ADD
+                    type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ADD
                 }).then(extractFirstItemInArray);
             }),
             _deletePendingBookmarkEdit: checkDb(function check_deletePendingBookmarkedit(id) {
-                return this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, id);
+                return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, id);
+            }),
+            _getPendingEditForBookmarkAndType: checkDb(function _getPendingEditForBookmarkAndType(bookmark, type) {
+                return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "bookmark_id").only(bookmark).then(function (results) {
+                    if(!results || !results.length) {
+                        return null;
+                    }
+
+                    var resultsOfType = results.filter(function (item) {
+                        return (item.type === type);
+                    });
+
+                    appassert(resultsOfType.length === 1, "Should have only found one edit of specified type");
+                    return resultsOfType[0];
+                });
             }),
             removeBookmark: checkDb(function removeBookmarl(bookmark_id, fromServer) {
-                var removedPromise = this._db.remove(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id)
+                var removedPromise = this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id)
                 
                 // If it's not an edit from the server we need to add a pending
                 // delete that we can later sync to the server.
                 if (!fromServer) {
                     removedPromise = removedPromise.then(function () {
                         var edit = {
-                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.DELETE,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.DELETE,
                             bookmark_id: bookmark_id,
                         };
 
-                        this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                        this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
                     }.bind(this));
                 }
 
@@ -287,13 +269,13 @@
                 });
             }),
             updateBookmark: checkDb(function updateBookmark(bookmark) {
-                return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark);
+                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark);
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var likedComplete = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
                         var error = new Error();
-                        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
                         return WinJS.Promise.wrapError(error);
                     }
 
@@ -308,21 +290,23 @@
                 if (!dontAddPendingUpdate) {
                     likedComplete = likedComplete.then(function() {
                         var edit = {
-                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.STAR,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR,
                             bookmark_id: bookmark_id,
                         };
 
-                        return this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
                     }.bind(this));
                 }
 
                 return likedComplete;
             }),
             unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
+                var wasUsyncedEdit = false;
+
                 var unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
                         var error = new Error();
-                        error.code = Codevoid.ArticleVoid.DB.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
                         return WinJS.Promise.wrapError(error);
                     }
 
@@ -332,23 +316,37 @@
 
                     bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
+                }.bind(this)).then(function () {
+                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR);
+                }.bind(this)).then(function (pendingEdit) {
+                    if (!pendingEdit) {
+                        return;
+                    }
+
+                    wasUsyncedEdit = true;
+                    
+                    return this._deletePendingBookmarkEdit(pendingEdit.id);
                 }.bind(this));
 
                 if (!dontAddPendingUpdate) {
                     unlikedBookmark = unlikedBookmark.then(function () {
+                        if (wasUsyncedEdit) {
+                            return;
+                        }
+
                         var edit = {
-                            type: Codevoid.ArticleVoid.DB.InstapaperDB.PendingBookmarkEditTypes.UNSTAR,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNSTAR,
                             bookmark_id: bookmark_id,
                         };
 
-                        this._db.put(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                        this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
                     }.bind(this));
                 }
 
                 return unlikedBookmark;
             }),
             getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
-                return this._db.get(Codevoid.ArticleVoid.DB.InstapaperDB.DBBookmarksTable, bookmark_id);
+                return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
             }),
             dispose: function dispose() {
                 if (this._server) {
