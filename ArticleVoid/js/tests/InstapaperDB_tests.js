@@ -764,8 +764,60 @@
         folder_id: "Folder2",
     }];
 
+    var sampleBookmarks = [{
+        title: "Unread1",
+        url: "http://unread1.com",
+        folder_id: InstapaperDB.CommonFolderIds.Unread,
+        bookmark_id: "1"
+    }, {
+        title: "Unread2",
+        url: "http://unread2.com",
+        folder_id: InstapaperDB.CommonFolderIds.Unread,
+        bookmark_id: "2"
+    }, {
+        title: "Unread3",
+        url: "http://unread3.com",
+        folder_id: InstapaperDB.CommonFolderIds.Unread,
+        bookmark_id: "3"
+    }, {
+        title: "Archived1",
+        url: "http://archive1.com",
+        folder_id: InstapaperDB.CommonFolderIds.Archive,
+        bookmark_id: "4"
+    }, {
+        title: "Archived2",
+        url: "http://archive2.com",
+        folder_id: InstapaperDB.CommonFolderIds.Archive,
+        bookmark_id: "5"
+    }, {
+        title: "InFolder1-1",
+        url: "http://infolder1-1.com",
+        folder_id: sampleFolders[0].folder_id,
+        bookmark_id: "6"
+    }, {
+        title: "InFolder1-2",
+        url: "http://infolder1-2.com",
+        folder_id: sampleFolders[0].folder_id,
+        bookmark_id: "7"
+    }, {
+        title: "InFolder2-1",
+        url: "http://InFolder2-1.com",
+        folder_id: sampleFolders[1].folder_id,
+        bookmark_id: "8"
+    }, {
+        title: "InFolder2-2",
+        url: "http://InFolder2-2.com",
+        folder_id: sampleFolders[1].folder_id,
+        bookmark_id: "9"
+    }, {
+        title: "Unread4",
+        url: "http://unread4.com",
+        folder_id: InstapaperDB.CommonFolderIds.Unread,
+        bookmark_id: "10"
+    }];
 
-    function addSampleFolders() {
+
+    function addSampleData() {
         var instapaperDB;
         var expectedFolderIds = defaultFolderIds.concat([]);
 
@@ -778,6 +830,7 @@
             sampleFolders.forEach(function (folder) {
                 addedFolders.push(idb.addFolder(folder.title, true).then(function (addedFolder) {
                     addedFolder.folder_id = folder.folder_id;
+                    folder.id = addedFolder.id;
                     expectedFolderIds.push(folder.folder_id);
                     return idb.updateFolder(addedFolder);
                 }));
@@ -796,8 +849,191 @@
             });
 
             strictEqual(notFoundFolders.length, 0, "Didn't expect to find unmatched folders");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            var addedBookmarks = [];
+            sampleBookmarks.forEach(function (bookmark) {
+                addedBookmarks.push(instapaperDB.addBookmark(bookmark));
+            });
+
+            addedBookmarks.push(WinJS.Promise.timeout());
+
+            return WinJS.Promise.join(addedBookmarks).then(function () {
+                return instapaperDB.listCurrentBookmarks();
+            });
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks, "didn't find any bookmarks");
+            strictEqual(currentBookmarks.length, sampleBookmarks.length, "Didn't find expected bookmarks");
         });
     }
 
-    promiseTest("addSampleFolders", addSampleFolders);
+    promiseTest("addSampleData", addSampleData);
+
+    /// <summary>
+    /// this expects the "this" pointer to be bound to the
+    /// instapaper db wrapper
+    /// </summary>
+    function moveAndValidate(bookmark, destinationFolder, fromServer) {
+        return this.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (originalBookmark) {
+            ok(originalBookmark, "Didn't find original bookmark");
+            notStrictEqual(originalBookmark.folderdb_id, destinationFolder.id, "Bookmark is already in destination folder");
+            return this.moveBookmark(bookmark.bookmark_id, destinationFolder.id, fromServer);
+        }.bind(this)).then(function (movedBookmark) {
+            ok(movedBookmark, "no moved bookmark");
+            strictEqual(movedBookmark.folder_dbid, destinationFolder.id, "Not in destination folder");
+            strictEqual(movedBookmark.folder_id, destinationFolder.folder_id, "Not in destination folder");
+
+            bookmark.folder_id = destinationFolder.folder_id;
+            bookmark.folderdb_id = destinationFolder.id;
+        });
+    }
+
+    function validatePendingEdits(edits, bookmark_id, folder) {
+        ok(edits, "Expected pending edits");
+        strictEqual(edits.length, 1, "Expected single pending edit");
+
+        var pendingEdit = edits[0];
+        strictEqual(pendingEdit.type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "Not a move edit");
+        strictEqual(pendingEdit.bookmark_id, bookmark_id, "not correct bookmark");
+        strictEqual(pendingEdit.destinationfolder_dbid, folder.id, "Incorrect folder DB id");
+    }
+
+    function cleanupPendingEdits() {
+        return this.getPendingBookmarkEdits().then(function (edits) {
+            var deletes = [];
+            edits.forEach(function (edit) {
+                deletes.push(this._deletePendingBookmarkEdit(edit.id));
+            }.bind(this));
+
+            return WinJS.Promise.join(deletes);
+        }.bind(this));
+    }
+
+    function movingBookmarkLeavesNoPendingEdit() {
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return moveAndValidate.bind(idb)(sampleBookmarks[0], sampleFolders[0], true);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }
+
+    promiseTest("movingBookmarkLeavesNoPendingEdit", movingBookmarkLeavesNoPendingEdit);
+
+    function movingBookmarkLeavesPendingEdit() {
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return moveAndValidate.bind(idb)(sampleBookmarks[1], sampleFolders[1]);
+        }).then(function() {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            validatePendingEdits(pendingEdits, sampleBookmarks[1].bookmark_id, sampleFolders[1]);
+            return instapaperDB._deletePendingBookmarkEdit(pendingEdits[0].id);
+        });
+    }
+
+    promiseTest("movingBookmarkLeavesPendingEdit", movingBookmarkLeavesPendingEdit);
+
+    function multipleMovesLeavesOnlyOnePendingEdit() {
+
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return moveAndValidate.bind(idb)(sampleBookmarks[2], sampleFolders[1]);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            validatePendingEdits(pendingEdits, sampleBookmarks[2].bookmark_id, sampleFolders[1]);
+        }).then(function () {
+            return moveAndValidate.bind(instapaperDB)(sampleBookmarks[2], sampleFolders[0]);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            validatePendingEdits(pendingEdits, sampleBookmarks[2].bookmark_id, sampleFolders[0]);
+            return cleanupPendingEdits.bind(instapaperDB)();
+        });
+    }
+
+    promiseTest("multipleMovesLeavesOnlyOnePendingEdit", multipleMovesLeavesOnlyOnePendingEdit);
+
+    function likingThenMovingLeavesCorrectPendingEdits() {
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.likeBookmark(sampleBookmarks[1].bookmark_id);
+        }).then(function() {
+            return moveAndValidate.bind(instapaperDB)(sampleBookmarks[1], sampleFolders[0]);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            ok(pendingEdits, "No pending edits");
+            strictEqual(pendingEdits.length, 2, "Unexpected number of edits");
+            var moveEdit, likeEdit;
+
+            pendingEdits.forEach(function (edit) {
+                switch (edit.type) {
+                    case InstapaperDB.PendingBookmarkEditTypes.MOVE:
+                        moveEdit = edit;
+                        break;
+
+                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                        likeEdit = edit;
+                        break;
+
+                    default:
+                        ok(false, "Unexpected edit type: " + edit.type);
+                        break;
+                }
+            });
+
+            ok(moveEdit && likeEdit, "Edits weren't the expected pair");
+
+            strictEqual(moveEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Wrong bookmark id");
+            strictEqual(moveEdit.destinationfolder_dbid, sampleFolders[0].id, "Wrong Folder");
+
+            strictEqual(likeEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Wrong like bookmark");
+        }).then(function () {
+            return cleanupPendingEdits.bind(instapaperDB)();
+        });
+    }
+
+    promiseTest("likingThenMovingLeavesCorrectPendingEdits", likingThenMovingLeavesCorrectPendingEdits);
 })();
+
+/*
+    * Note, archive is a sepecialized move, which is marked in the DB as a archive
+    * Can't move to the starred folder (special folder)
+    * Archiving w/ flag doesn't leave pending edit
+    * Archiving w/o flag leaves pending edit
+    * archiving, unarchiving leaves no pending edit (if already set to arhive)
+    * unarchiving, archiving leaves no pending edit (if already set to unarchive)
+    * Moving a folder out of archive automatically unarchives it.
+    * Moving a folder that has pending archive, removes archive pending notification
+
+    * requesting starred folder does "Special" query
+    * deleting a bookmark cleans up any other pending data, except liking
+        * Likes are important, so don't throw them away before a delete
+*/
+
+/*
+
+What to do about moving to a folder that isn't currently sync'd?
+Allow them to do that? If you let them "move" the bookmark to another folder, you have to either only deal with 
+db ID's on the items, and fix the properties up later when the changes come down.
+
+Thats gonna be kinda confusing actually. Although we can get bookmarks by ID, so maybe not so much.
+
+Ah ha.
+
+How about:
+* store the DB id of the folder in the pending Edit
+* Sync all the folder changes first (this is the key)
+* Then, when you go to sync the bookmark changes, you can get the real folder id then
+* When you pull DOWN the changes, you'll just do it by folder, and use the change not ifications in "have"
+ to push the changes into the actual items, and some how update the itmes 
+
+
+*/
