@@ -53,6 +53,7 @@
                     },
                     indexes: {
                         folder_id: {},
+                        folder_dbid: {},
                         url: {},
                     }
                 };
@@ -75,6 +76,7 @@
                     },
                     indexes: {
                         title: {},
+                        folder_id: {},
                     }
                 };
 
@@ -248,7 +250,7 @@
                     return resultsOfType[0];
                 });
             }),
-            removeBookmark: checkDb(function removeBookmarl(bookmark_id, fromServer) {
+            removeBookmark: checkDb(function removeBookmark(bookmark_id, fromServer) {
                 var removedPromise = this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id)
                 
                 // If it's not an edit from the server we need to add a pending
@@ -269,7 +271,68 @@
                 });
             }),
             updateBookmark: checkDb(function updateBookmark(bookmark) {
-                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark);
+                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
+            }),
+            moveBookmark: checkDb(function moveBookmark(bookmark_id, destinationFolderDbId, fromServer) {
+                var data = {
+                    bookmark: this.getBookmarkByBookmarkId(bookmark_id),
+                    folder: this.getFolderByDbId(destinationFolderDbId),
+                };
+
+                var movedBookmark = WinJS.Promise.join(data).then(function (data) {
+                    if (!data.folder) {
+                        var error = new Error();
+                        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.FOLDER_NOT_FOUND;
+                        return WinJS.Promise.wrapError(error);
+                    }
+
+                    if (data.folder.folder_id) {
+                        data.bookmark.folder_id = data.folder.folder_id;
+                    } else {
+                        data.bookmark.folder_id = null;
+                    }
+
+                    data.bookmark.folder_dbid = data.folder.id;
+
+                    return this.updateBookmark(data.bookmark);
+                }.bind(this));
+
+                if (!fromServer) {
+                    movedBookmark = movedBookmark.then(function (movedBookmark) {
+                        var completedData = {
+                            bookmark: movedBookmark,
+                            folder: data.folder,
+                        };
+
+                        return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable,
+                                        "bookmark_id").
+                            only(movedBookmark.bookmark_id).
+                            then(function (pendingEditsForBookmark) {
+                                var removedEdits = [];
+                                pendingEditsForBookmark.filter(function (item) {
+                                    return item.type === Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE;
+                                }).forEach(function(existingMove) {
+                                    removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingMove.id));
+                                }.bind(this));
+
+                                return WinJS.Promise.join(removedEdits);
+                            }.bind(this)).then(function() {
+                                return WinJS.Promise.join(completedData);
+                            });
+                    }.bind(this)).then(function(data) {
+                        var pendingEdit = {
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE,
+                            bookmark_id: data.bookmark.bookmark_id,
+                            destinationfolder_dbid: data.folder.id,
+                        };
+
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, pendingEdit).then(function () {
+                            return data.bookmark;
+                        });
+                    }.bind(this));
+                }
+
+                return movedBookmark;
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var wasUnsyncedEdit = false;
@@ -412,6 +475,7 @@
                 NOCLIENTINFORMATION: 2,
                 FOLDER_DUPLICATE_TITLE: 3,
                 BOOKMARK_NOT_FOUND: 4,
+                FOLDER_NOT_FOUND: 5
             },
             PendingFolderEditTypes: {
                 ADD: "add",
