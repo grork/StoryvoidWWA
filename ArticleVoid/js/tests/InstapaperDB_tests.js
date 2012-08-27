@@ -525,6 +525,26 @@
         });
     }
 
+    function updatingReadProgressLeavesNoPendingEdit() {
+        var instapaperDB;
+        var targetProgress = 0.452;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.getBookmarkByBookmarkId("local_id");
+        }).then(function (bookmark) {
+            notStrictEqual(bookmark.progress, targetProgress, "Bookmark already had the target progress");
+            return WinJS.Promise.join({
+                bookmark: instapaperDB.updateReadProgress(bookmark.bookmark_id, targetProgress),
+                timeout: WinJS.Promise.timeout(),
+            });
+        }).then(function (updatedBookmark) {
+            strictEqual(updatedBookmark.bookmark.progress, targetProgress, "progress wasn't updated");
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }
+
     function canRemoveBookmarkNoPendingEdit() {
         var instapaperDB;
         var bookmark_id = "local_id";
@@ -552,6 +572,7 @@
     promiseTest("canLikeBookmarkNoPendingEdit", canLikeBookmarkNoPendingEdit);
     promiseTest("likeingNonExistantBookmarkErrors", likeingNonExistantBookmarkErrors);
     promiseTest("canUnlikeBookmarkNoPendingEdit", canUnlikeBookmarkNoPendingEdit);
+    promiseTest("updatingReadProgressLeavesNoPendingEdit", updatingReadProgressLeavesNoPendingEdit);
 
     // Remove the just futzed with bookmark
     promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
