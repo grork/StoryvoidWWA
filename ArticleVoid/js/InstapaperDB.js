@@ -424,6 +424,19 @@
 
                 return unlikedBookmark;
             }),
+            updateReadProgress: checkDb(function updateReadProgress(bookmark_id, progress) {
+                return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                    if (!bookmark) {
+                        var error = new Error();
+                        error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        return WinJS.Promise.wrapError(error);
+                    }
+
+                    bookmark.progress = progress;
+
+                    return this.updateBookmark(bookmark);
+                }.bind(this));
+            }),
             getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
             }),
