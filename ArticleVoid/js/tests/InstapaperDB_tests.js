@@ -1021,23 +1021,80 @@
         });
     }
 
+    function likingThenMovingLeavesCorrectPendingEdits() {
+        var instapaperDB;
+        var destinationFolder = sampleFolders[1];
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.likeBookmark(sampleBookmarks[1].bookmark_id);
+        }).then(function () {
+            return moveAndValidate.bind(instapaperDB)(sampleBookmarks[1], destinationFolder);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            ok(pendingEdits, "No pending edits");
+            strictEqual(pendingEdits.length, 2, "Unexpected number of edits");
+            var moveEdit, likeEdit;
+
+            pendingEdits.forEach(function (edit) {
+                switch (edit.type) {
+                    case InstapaperDB.PendingBookmarkEditTypes.MOVE:
+                        moveEdit = edit;
+                        break;
+
+                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                        likeEdit = edit;
+                        break;
+
+                    default:
+                        ok(false, "Unexpected edit type: " + edit.type);
+                        break;
+                }
+            });
+
+            ok(moveEdit && likeEdit, "Edits weren't the expected pair");
+
+            strictEqual(moveEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Move had wrong bookmark id");
+            strictEqual(moveEdit.destinationfolder_dbid, destinationFolder.id, "Move was to the wrong Folder");
+
+            strictEqual(likeEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Like had wrong like bookmark");
+
+            return WinJS.Promise.join([instapaperDB.removeBookmark(sampleBookmarks[1].bookmark_id), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            var likeEdit;
+            var deleteEdit;
+
+            ok(pendingEdits, "Didn't get any pending edits");
+            strictEqual(pendingEdits.length, 2, "Expected only two pending edits;");
+
+            pendingEdits.forEach(function (edit) {
+                switch (edit.type) {
+                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                        likeEdit = edit;
+                        break;
+
+                    case InstapaperDB.PendingBookmarkEditTypes.DELETE:
+                        deleteEdit = edit;
+                        break;
+
+                    default:
+                        ok(false, "Unexpected edit");
+                }
+            });
+
+            ok(likeEdit && deleteEdit, "Didn't get correct edits");
+
+            strictEqual(deleteEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Delete had wrong bookmark ID");
+            strictEqual(likeEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "like had wrong bookmark ID");
+        }).then(function () {
+            return cleanupPendingEdits.bind(instapaperDB)();
+        });
+    }
+
     promiseTest("likingThenMovingLeavesCorrectPendingEdits", likingThenMovingLeavesCorrectPendingEdits);
 })();
-
-/*
-    * Note, archive is a sepecialized move, which is marked in the DB as a archive
-    * Can't move to the starred folder (special folder)
-    * Archiving w/ flag doesn't leave pending edit
-    * Archiving w/o flag leaves pending edit
-    * archiving, unarchiving leaves no pending edit (if already set to arhive)
-    * unarchiving, archiving leaves no pending edit (if already set to unarchive)
-    * Moving a folder out of archive automatically unarchives it.
-    * Moving a folder that has pending archive, removes archive pending notification
-
-    * requesting starred folder does "Special" query
-    * deleting a bookmark cleans up any other pending data, except liking
-        * Likes are important, so don't throw them away before a delete
-*/
 
 /*
 

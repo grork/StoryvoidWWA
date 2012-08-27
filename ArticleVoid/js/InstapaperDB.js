@@ -35,7 +35,7 @@
             _clientInformation: null,
             _remoteClients: null,
             _initRemoteClients: function _initRemoteClients() {
-                if(!this._clientInformation) {
+                if (!this._clientInformation) {
                     return;
                 }
 
@@ -251,7 +251,7 @@
             }),
             _getPendingEditForBookmarkAndType: checkDb(function _getPendingEditForBookmarkAndType(bookmark, type) {
                 return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "bookmark_id").only(bookmark).then(function (results) {
-                    if(!results || !results.length) {
+                    if (!results || !results.length) {
                         return null;
                     }
 
@@ -264,8 +264,28 @@
                 });
             }),
             removeBookmark: checkDb(function removeBookmark(bookmark_id, fromServer) {
-                var removedPromise = this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id)
-                
+                var removedPromise = WinJS.Promise.join([
+                    this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id),
+                    this._db.index(
+                        Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable,
+                        "bookmark_id").
+                        only(bookmark_id).
+                        then(function (pendingEditsForBookmark) {
+                            var removedEdits = [];
+
+                            // Find all the pending edits that aren't "likes" and
+                            // remove them. Likes are special, and should still be
+                            // left for syncing (before any other changes).
+                            pendingEditsForBookmark.filter(function (item) {
+                                return item.type !== Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR;
+                            }).forEach(function (existingPendingEdit) {
+                                removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingPendingEdit.id));
+                            }.bind(this));
+
+                            return WinJS.Promise.join(removedEdits);
+                        }.bind(this))
+                ]);
+
                 // If it's not an edit from the server we need to add a pending
                 // delete that we can later sync to the server.
                 if (!fromServer) {
@@ -332,7 +352,7 @@
                                 // with only one.
                                 pendingEditsForBookmark.filter(function (item) {
                                     return item.type === Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE;
-                                }).forEach(function(existingMove) {
+                                }).forEach(function (existingMove) {
                                     removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingMove.id));
                                 }.bind(this));
 
@@ -343,7 +363,7 @@
                                 // this function to behave cleanly.
                                 return WinJS.Promise.join(completedData);
                             });
-                    }.bind(this)).then(function(data) {
+                    }.bind(this)).then(function (data) {
                         var pendingEdit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE,
                             bookmark_id: data.bookmark.bookmark_id,
@@ -427,7 +447,7 @@
                     }
 
                     wasUnsyncedEdit = true;
-                    
+
                     return this._deletePendingBookmarkEdit(pendingEdit.id);
                 }.bind(this));
 
