@@ -110,27 +110,40 @@
                 return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable).execute()
             }),
             addFolder: checkDb(function addFolder(name, dontAddPendingEdit) {
+                /// <summary>
+                /// Adds a folder to the database, and optionally adds a pending edit.
+                ///
+                /// If the folder is already marked for deletion, it will merely drop
+                /// the pending "delete" if there is one.
+                /// </summary>
                 return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "title").only(name).then(function addProcessResults(results) {
                     if (!results || !results.length) {
                         return;
                     }
 
+                    // Since we found an existing folder, we're going to error.
                     var error = new Error("Folder with the name '" + name + "' already present");
                     error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE;
 
                     return WinJS.Promise.wrapError(error);
                 }).then(function actuallyAddFolder() {
+                    // Look for the pending edit for a folder named liked this
                     return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "title").only(name).then(extractFirstItemInArray);
                 }.bind(this)).then(function resultOfInspectingPendingData(pendingItem) {
                     if (!pendingItem) {
+                        // There wasn't a pending edit so just move on
                         return null;
                     }
 
+                    // The old data from the DB, which we'll return to allow
+                    // the folder to come back.
                     var dataToResurrect = {
                         folder_id: pendingItem.removedFolderId,
                         title: pendingItem.title,
                     };
 
+                    // Throw away the pending edit now that we got the data on it. This means it looks like
+                    // the folder had never been removed.
                     return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingItem.id).then(function () {
                         return WinJS.Binding.as(dataToResurrect);
                     });
@@ -286,6 +299,10 @@
                         return WinJS.Promise.wrapError(error);
                     }
 
+                    // If we've got an existing folder ID, set it to that
+                    // otherwise, just leave it blank, and we'll get it fixed
+                    // up later when we actually do a proper sync and update
+                    // the folder id's correctly.
                     if (data.folder.folder_id) {
                         data.bookmark.folder_id = data.folder.folder_id;
                     } else {
@@ -309,6 +326,10 @@
                             only(movedBookmark.bookmark_id).
                             then(function (pendingEditsForBookmark) {
                                 var removedEdits = [];
+
+                                // Find all the pending edits that are moves
+                                // and remove any pending edits so that we can end up
+                                // with only one.
                                 pendingEditsForBookmark.filter(function (item) {
                                     return item.type === Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE;
                                 }).forEach(function(existingMove) {
@@ -316,7 +337,10 @@
                                 }.bind(this));
 
                                 return WinJS.Promise.join(removedEdits);
-                            }.bind(this)).then(function() {
+                            }.bind(this)).then(function () {
+                                // Cheat and return the already completed promise
+                                // with the data we actually want. Allows the rest of
+                                // this function to behave cleanly.
                                 return WinJS.Promise.join(completedData);
                             });
                     }.bind(this)).then(function(data) {
