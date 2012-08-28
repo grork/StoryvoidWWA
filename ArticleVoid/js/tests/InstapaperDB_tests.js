@@ -639,7 +639,7 @@
             var edit = currentPendingEdits[0];
             pendingEditId = edit.id;
 
-            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.STAR, "Expected Delete type");
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Expected Delete type");
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
         }).then(function () {
             return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
@@ -677,7 +677,7 @@
             var edit = currentPendingEdits[0];
             pendingEditId = edit.id;
 
-            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNSTAR, "Expected Delete type");
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Expected Delete type");
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
         }).then(function () {
             return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
@@ -712,7 +712,7 @@
 
             var edit = currentPendingEdits[0];
 
-            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.STAR, "Expected Delete type");
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Expected Delete type");
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
         }).then(function () {
             return instapaperDB.unlikeBookmark("local_id");
@@ -754,7 +754,7 @@
 
             var edit = currentPendingEdits[0];
 
-            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNSTAR, "Expected Delete type");
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Expected Delete type");
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
         }).then(function () {
             return instapaperDB.likeBookmark("local_id");
@@ -777,68 +777,74 @@
     // a clean slate.
     promiseTest("deleteDb", deleteDb);
 
-    var sampleFolders = [{
-        title: "Folder1",
-        folder_id: "Folder1",
-    }, {
-        title: "Folder2",
-        folder_id: "Folder2",
-    }];
 
-    var sampleBookmarks = [{
-        title: "Unread1",
-        url: "http://unread1.com",
-        folder_id: InstapaperDB.CommonFolderIds.Unread,
-        bookmark_id: "1"
-    }, {
-        title: "Unread2",
-        url: "http://unread2.com",
-        folder_id: InstapaperDB.CommonFolderIds.Unread,
-        bookmark_id: "2"
-    }, {
-        title: "Unread3",
-        url: "http://unread3.com",
-        folder_id: InstapaperDB.CommonFolderIds.Unread,
-        bookmark_id: "3"
-    }, {
-        title: "Archived1",
-        url: "http://archive1.com",
-        folder_id: InstapaperDB.CommonFolderIds.Archive,
-        bookmark_id: "4"
-    }, {
-        title: "Archived2",
-        url: "http://archive2.com",
-        folder_id: InstapaperDB.CommonFolderIds.Archive,
-        bookmark_id: "5"
-    }, {
-        title: "InFolder1-1",
-        url: "http://infolder1-1.com",
-        folder_id: sampleFolders[0].folder_id,
-        bookmark_id: "6"
-    }, {
-        title: "InFolder1-2",
-        url: "http://infolder1-2.com",
-        folder_id: sampleFolders[0].folder_id,
-        bookmark_id: "7"
-    }, {
-        title: "InFolder2-1",
-        url: "http://InFolder2-1.com",
-        folder_id: sampleFolders[1].folder_id,
-        bookmark_id: "8"
-    }, {
-        title: "InFolder2-2",
-        url: "http://InFolder2-2.com",
-        folder_id: sampleFolders[1].folder_id,
-        bookmark_id: "9"
-    }, {
-        title: "Unread4",
-        url: "http://unread4.com",
-        folder_id: InstapaperDB.CommonFolderIds.Unread,
-        bookmark_id: "10"
-    }];
+    var sampleFolders;
+    var sampleBookmarks;
 
+    function setSampleData() {
+        sampleFolders = [{
+            title: "Folder1",
+            folder_id: "Folder1",
+        }, {
+            title: "Folder2",
+            folder_id: "Folder2",
+        }];
+
+        sampleBookmarks = [{
+            title: "Unread1",
+            url: "http://unread1.com",
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            bookmark_id: "1"
+        }, {
+            title: "Unread2",
+            url: "http://unread2.com",
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            bookmark_id: "2"
+        }, {
+            title: "Unread3",
+            url: "http://unread3.com",
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            bookmark_id: "3"
+        }, {
+            title: "Archived1",
+            url: "http://archive1.com",
+            folder_id: InstapaperDB.CommonFolderIds.Archive,
+            bookmark_id: "4"
+        }, {
+            title: "Archived2",
+            url: "http://archive2.com",
+            folder_id: InstapaperDB.CommonFolderIds.Archive,
+            bookmark_id: "5"
+        }, {
+            title: "InFolder1-1",
+            url: "http://infolder1-1.com",
+            folder_id: sampleFolders[0].folder_id,
+            bookmark_id: "6"
+        }, {
+            title: "InFolder1-2",
+            url: "http://infolder1-2.com",
+            folder_id: sampleFolders[0].folder_id,
+            bookmark_id: "7"
+        }, {
+            title: "InFolder2-1",
+            url: "http://InFolder2-1.com",
+            folder_id: sampleFolders[1].folder_id,
+            bookmark_id: "8"
+        }, {
+            title: "InFolder2-2",
+            url: "http://InFolder2-2.com",
+            folder_id: sampleFolders[1].folder_id,
+            bookmark_id: "9"
+        }, {
+            title: "Unread4",
+            url: "http://unread4.com",
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            bookmark_id: "10"
+        }];
+    }
 
     function addSampleData() {
+        setSampleData();
         var instapaperDB;
         var expectedFolderIds = defaultFolderIds.concat([]);
 
@@ -948,7 +954,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
             return moveAndValidate.bind(idb)(sampleBookmarks[1], sampleFolders[1]);
-        }).then(function() {
+        }).then(function () {
             return instapaperDB.getPendingBookmarkEdits();
         }).then(function (pendingEdits) {
             validatePendingEdits(pendingEdits, sampleBookmarks[1].bookmark_id, sampleFolders[1]);
@@ -985,7 +991,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
             return idb.likeBookmark(sampleBookmarks[1].bookmark_id);
-        }).then(function() {
+        }).then(function () {
             return moveAndValidate.bind(instapaperDB)(sampleBookmarks[1], sampleFolders[0]);
         }).then(function () {
             return instapaperDB.getPendingBookmarkEdits();
@@ -1000,7 +1006,7 @@
                         moveEdit = edit;
                         break;
 
-                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                    case InstapaperDB.PendingBookmarkEditTypes.LIKE:
                         likeEdit = edit;
                         break;
 
@@ -1024,11 +1030,13 @@
     function likingThenMovingThenDeletingLeavesCorrectPendingEdits() {
         var instapaperDB;
         var destinationFolder = sampleFolders[1];
+        var targetBookmark = sampleBookmarks[2];
+
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.likeBookmark(sampleBookmarks[1].bookmark_id);
+            return idb.likeBookmark(targetBookmark.bookmark_id);
         }).then(function () {
-            return moveAndValidate.bind(instapaperDB)(sampleBookmarks[1], destinationFolder);
+            return moveAndValidate.bind(instapaperDB)(targetBookmark, destinationFolder);
         }).then(function () {
             return instapaperDB.getPendingBookmarkEdits();
         }).then(function (pendingEdits) {
@@ -1042,7 +1050,7 @@
                         moveEdit = edit;
                         break;
 
-                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                    case InstapaperDB.PendingBookmarkEditTypes.LIKE:
                         likeEdit = edit;
                         break;
 
@@ -1054,12 +1062,12 @@
 
             ok(moveEdit && likeEdit, "Edits weren't the expected pair");
 
-            strictEqual(moveEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Move had wrong bookmark id");
+            strictEqual(moveEdit.bookmark_id, targetBookmark.bookmark_id, "Move had wrong bookmark id");
             strictEqual(moveEdit.destinationfolder_dbid, destinationFolder.id, "Move was to the wrong Folder");
 
-            strictEqual(likeEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Like had wrong like bookmark");
+            strictEqual(likeEdit.bookmark_id, targetBookmark.bookmark_id, "Like had wrong like bookmark");
 
-            return WinJS.Promise.join([instapaperDB.removeBookmark(sampleBookmarks[1].bookmark_id), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.removeBookmark(targetBookmark.bookmark_id), WinJS.Promise.timeout()]);
         }).then(function () {
             return instapaperDB.getPendingBookmarkEdits();
         }).then(function (pendingEdits) {
@@ -1071,7 +1079,7 @@
 
             pendingEdits.forEach(function (edit) {
                 switch (edit.type) {
-                    case InstapaperDB.PendingBookmarkEditTypes.STAR:
+                    case InstapaperDB.PendingBookmarkEditTypes.LIKE:
                         likeEdit = edit;
                         break;
 
@@ -1086,8 +1094,8 @@
 
             ok(likeEdit && deleteEdit, "Didn't get correct edits");
 
-            strictEqual(deleteEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "Delete had wrong bookmark ID");
-            strictEqual(likeEdit.bookmark_id, sampleBookmarks[1].bookmark_id, "like had wrong bookmark ID");
+            strictEqual(deleteEdit.bookmark_id, targetBookmark.bookmark_id, "Delete had wrong bookmark ID");
+            strictEqual(likeEdit.bookmark_id, targetBookmark.bookmark_id, "like had wrong bookmark ID");
         }).then(function () {
             return cleanupPendingEdits.bind(instapaperDB)();
         });
@@ -1095,6 +1103,130 @@
 
     promiseTest("likingThenMovingLeavesCorrectPendingEdits", likingThenMovingLeavesCorrectPendingEdits);
     promiseTest("likingThenMovingThenDeletingLeavesCorrectPendingEdits", likingThenMovingThenDeletingLeavesCorrectPendingEdits);
+
+    promiseTest("updateSampleBookmarks", function () {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            var gets = [];
+
+            sampleBookmarks.reduce(function (bucket, bookmark, index) {
+                bucket.push(idb.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (dbBookmark) {
+                    sampleBookmarks[index] = dbBookmark;
+                }));
+
+                return bucket;
+            }, gets);
+
+            strictEqual(gets.length, sampleBookmarks.length);
+            return WinJS.Promise.join(gets);
+        });
+    });
+
+    promiseTest("deleteDb", deleteDb);
+    promiseTest("addSampleData", addSampleData);
+
+    function queryingForUnreadFolderReturnsOnlyUnreadItems() {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
+        }).then(function (unreadBookmarks) {
+            ok(unreadBookmarks, "Didn't get list of unread bookmarks");
+
+            strictEqual(unreadBookmarks.length, 4, "Incorrect number of bookmarks");
+
+            unreadBookmarks = unreadBookmarks.sort(function (a, b) {
+                var aId = parseInt(a.bookmark_id);
+                var bId = parseInt(b.bookmark_id);
+
+                if (aId === bId) {
+                    return 0;
+                } else if (aId < bId) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
+
+            strictEqual(unreadBookmarks[0].bookmark_id, sampleBookmarks[0].bookmark_id, "Bookmark 1 not found");
+            strictEqual(unreadBookmarks[0].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 1 not found in unread folder");
+
+            strictEqual(unreadBookmarks[1].bookmark_id, sampleBookmarks[1].bookmark_id, "Bookmark 2 not found");
+            strictEqual(unreadBookmarks[1].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 2 not found in unread folder");
+
+            strictEqual(unreadBookmarks[2].bookmark_id, sampleBookmarks[2].bookmark_id, "Bookmark 3 not found");
+            strictEqual(unreadBookmarks[2].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 3 not found in unread folder");
+
+            strictEqual(unreadBookmarks[3].bookmark_id, sampleBookmarks[9].bookmark_id, "Bookmark 4 not found");
+            strictEqual(unreadBookmarks[3].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 4 not found in unread folder");
+        });
+    }
+
+    function queryingForFolderContentsReturnsOnlyFolderItems() {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentBookmarks(sampleFolders[0].folder_id);
+        }).then(function (folderBookmarks) {
+            ok(folderBookmarks, "Didn't get list of folder bookmarks");
+
+            strictEqual(folderBookmarks.length, 2, "Incorrect number of bookmarks");
+
+            folderBookmarks = folderBookmarks.sort(function (a, b) {
+                var aId = parseInt(a.bookmark_id);
+                var bId = parseInt(b.bookmark_id);
+
+                if (aId === bId) {
+                    return 0;
+                } else if (aId < bId) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
+
+            strictEqual(folderBookmarks[0].bookmark_id, sampleBookmarks[5].bookmark_id, "Bookmark 1 not found");
+            strictEqual(folderBookmarks[0].folder_id, sampleFolders[0].folder_id, "Bookmark 1 not found in unread folder");
+
+            strictEqual(folderBookmarks[1].bookmark_id, sampleBookmarks[6].bookmark_id, "Bookmark 2 not found");
+            strictEqual(folderBookmarks[1].folder_id, sampleFolders[0].folder_id, "Bookmark 2 not found in unread folder");
+        });
+    }
+
+    promiseTest("queryingForUnreadFolderReturnsOnlyUnreadItems", queryingForUnreadFolderReturnsOnlyUnreadItems);
+    promiseTest("queryingForFolderContentsReturnsOnlyFolderItems", queryingForFolderContentsReturnsOnlyFolderItems);
+
+    function queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders() {
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([
+                idb.likeBookmark(sampleBookmarks[5].bookmark_id, true),
+                idb.likeBookmark(sampleBookmarks[7].bookmark_id, true),
+                WinJS.Promise.timeout()
+            ]);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Liked);
+        }).then(function (likedBookmarks) {
+            var folderHash = {};
+
+            ok(likedBookmarks, "No book marks returned");
+            strictEqual(likedBookmarks.length, 2, "Incorrect number of bookmarks returned");
+
+            likedBookmarks.reduce(function (hash, bookmark) {
+                hash[bookmark.folder_id] = 1;
+                strictEqual(bookmark.starred, 1, "Bookmark wasn't liked");
+
+                return hash;
+            }, folderHash);
+
+            var folders = Object.keys(folderHash);
+            strictEqual(folders.length, 2, "Expected different fodlers for each bookmark");
+        });
+    }
+
+    promiseTest("queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders", queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders);
 })();
 
 /*
