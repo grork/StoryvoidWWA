@@ -1021,7 +1021,7 @@
         });
     }
 
-    function likingThenMovingLeavesCorrectPendingEdits() {
+    function likingThenMovingThenDeletingLeavesCorrectPendingEdits() {
         var instapaperDB;
         var destinationFolder = sampleFolders[1];
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1094,6 +1094,7 @@
     }
 
     promiseTest("likingThenMovingLeavesCorrectPendingEdits", likingThenMovingLeavesCorrectPendingEdits);
+    promiseTest("likingThenMovingThenDeletingLeavesCorrectPendingEdits", likingThenMovingThenDeletingLeavesCorrectPendingEdits);
 })();
 
 /*
