@@ -54,6 +54,7 @@
                     indexes: {
                         folder_id: {},
                         folder_dbid: {},
+                        starred: {},
                         url: {},
                     }
                 };
@@ -234,7 +235,13 @@
                 return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
             }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
-                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable).execute();
+                if (folder_id && (folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "starred").only(1);
+                } else if (folder_id && (folder_id !== Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "folder_id").only(folder_id);
+                } else {
+                    return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable).execute();
+                }
             }),
             addBookmark: checkDb(function addBookmark(bookmark) {
                 return this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray);
@@ -277,7 +284,7 @@
                             // remove them. Likes are special, and should still be
                             // left for syncing (before any other changes).
                             pendingEditsForBookmark.filter(function (item) {
-                                return item.type !== Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR;
+                                return item.type !== Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE;
                             }).forEach(function (existingPendingEdit) {
                                 removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingPendingEdit.id));
                             }.bind(this));
@@ -395,7 +402,7 @@
                     bookmark.starred = 1;
                     return this.updateBookmark(bookmark);
                 }.bind(this)).then(function () {
-                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNSTAR);
+                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE);
                 }.bind(this)).then(function (pendingEdit) {
                     if (!pendingEdit) {
                         return;
@@ -413,7 +420,7 @@
                         }
 
                         var edit = {
-                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE,
                             bookmark_id: bookmark_id,
                         };
 
@@ -440,7 +447,7 @@
                     bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
                 }.bind(this)).then(function () {
-                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.STAR);
+                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE);
                 }.bind(this)).then(function (pendingEdit) {
                     if (!pendingEdit) {
                         return;
@@ -458,7 +465,7 @@
                         }
 
                         var edit = {
-                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNSTAR,
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE,
                             bookmark_id: bookmark_id,
                         };
 
@@ -542,8 +549,8 @@
                 ADD: "add",
                 DELETE: "delete",
                 MOVE: "move",
-                STAR: "star",
-                UNSTAR: "unstar",
+                LIKE: "star",
+                UNLIKE: "unstar",
                 ARCHIVE: "archive",
                 UNARCHIVE: "unarchive",
             }
