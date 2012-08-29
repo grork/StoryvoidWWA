@@ -34,6 +34,7 @@
             _db: null,
             _clientInformation: null,
             _remoteClients: null,
+            _archiveFolderDbId: null,
             _initRemoteClients: function _initRemoteClients() {
                 if (!this._clientInformation) {
                     return;
@@ -510,6 +511,34 @@
             }),
             getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
+            }),
+            archiveBookmark: checkDb(function archiveBookmark(bookmark_id, dontAddPendingUpdate) {
+                var archiveDbId;
+                if (this._archiveFolderDbId) {
+                    archiveDbId = WinJS.Promise.as(this._archiveFolderDbId);
+                } else {
+                    archiveDbId = this.getFolderDbIdFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive).then(function (id) {
+                        this._archiveFolderDbId = id;
+                        return id;
+                    }.bind(this));
+                }
+
+                return WinJS.Promise.join({
+                    bookmark: this.getBookmarkByBookmarkId(bookmark_id),
+                    archiveFolderDbId: archiveDbId
+                }).then(function (data) {
+                    var bookmarkToArchive = data.bookmark;
+
+                    if (bookmarkToArchive
+                     && (bookmarkToArchive.folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive)) {
+                        return bookmarkToArchive;
+                    }
+
+                    bookmarkToArchive.folder_id = Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive;
+                    bookmarkToArchive.folder_dbid = data.archiveFolderDbId;
+
+                    return this.updateBookmark(bookmarkToArchive);
+                }.bind(this));
             }),
             dispose: function dispose() {
                 if (this._db) {
