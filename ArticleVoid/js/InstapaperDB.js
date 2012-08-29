@@ -165,6 +165,16 @@
             getFolderByDbId: checkDb(function getFolderByDbId(folderId) {
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId);
             }),
+            getFolderDbIdFromFolderId: checkDb(function getFolderDbIdFromFolderId(folderId) {
+                return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "folder_id").
+                    only(folderId).
+                    then(extractFirstItemInArray).
+                    then(function (folder) {
+                        if (folder) {
+                            return folder.id;
+                        }
+                    });
+            }),
             updateFolder: checkDb(function updateFolder(folderDetails) {
                 return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderDetails);
             }),
@@ -336,6 +346,16 @@
                         data.bookmark.folder_id = null;
                     }
 
+                    switch (data.folder.folder_id) {
+                        case Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive:
+                        case Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked:
+                            var invalidDestinationFolder = new Error();
+                            invalidDestinationFolder.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.INVALID_DESTINATION_FOLDER;
+                            return WinJS.Promise.wrapError(invalidDestinationFolder);
+
+                        default:
+                            break;
+                    }
                     data.bookmark.folder_dbid = data.folder.id;
 
                     return this.updateBookmark(data.bookmark);
@@ -539,7 +559,8 @@
                 NOCLIENTINFORMATION: 2,
                 FOLDER_DUPLICATE_TITLE: 3,
                 BOOKMARK_NOT_FOUND: 4,
-                FOLDER_NOT_FOUND: 5
+                FOLDER_NOT_FOUND: 5,
+                INVALID_DESTINATION_FOLDER: 6,
             },
             PendingFolderEditTypes: {
                 ADD: "add",

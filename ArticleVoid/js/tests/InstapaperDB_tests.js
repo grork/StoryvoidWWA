@@ -164,6 +164,22 @@
         });
     }
 
+    function canGetFolderDbIdFromFolderId() {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getFolderDbIdFromFolderId("xxx");
+        }).then(function (folderDbId) {
+            strictEqual(folderDbId, addedFolderDbId, "incorrect folder DB ID");
+        });
+    }
+
+    function cantGetFolderDbIdFromInvalidFolderId() {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getFolderDbIdFromFolderId("yyy");
+        }).then(function (folderDbId) {
+            strictEqual(folderDbId, undefined, "should get 'undefined' for folder db id if it's not in the DB");
+        });
+    }
+
     function addExistingFolderNameFailsAndLeavesNoPendingEdit() {
         var instapaperDB;
         var folderName = "LocalFolder"
@@ -358,6 +374,8 @@
     promiseTest("canAddFolderNoPendingEdit", canAddFolderNoPendingEdit);
     promiseTest("canGetAddedFolderByDbId", canGetAddedFolderByDbId);
     promiseTest("canUpdateFolder", canUpdateFolder);
+    promiseTest("canGetFolderDbIdFromFolderId", canGetFolderDbIdFromFolderId);
+    promiseTest("cantGetFolderDbIdFromInvalidFolderId", cantGetFolderDbIdFromInvalidFolderId);
     promiseTest("addExistingFolderNameFailsAndLeavesNoPendingEdit", addExistingFolderNameFailsAndLeavesNoPendingEdit);
     promiseTest("canRemoveFolderNoPendingEdit", canRemoveFolderNoPendingEdit);
     promiseTest("canAddFolderWithPendingEdit", canAddFolderWithPendingEdit);
@@ -936,6 +954,40 @@
             return WinJS.Promise.join(deletes);
         }.bind(this));
     }
+
+    function movingToArchiveErrors() {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Archive);
+        }).then(function (archiveDbId) {
+            return instapaperDB.moveBookmark(sampleBookmarks[0].bookmark_id, archiveDbId);
+        }).then(function () {
+            ok(false, "shouldn't be able to successfully move to archive folder");
+        }, function (error) {
+            strictEqual(error.code, InstapaperDB.ErrorCodes.INVALID_DESTINATION_FOLDER, "incorrect error code");
+        });
+    }
+
+    promiseTest("movingToArchiveErrors", movingToArchiveErrors);
+
+    function movingToLikedErrors() {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Liked);
+        }).then(function (likeDbId) {
+            return instapaperDB.moveBookmark(sampleBookmarks[0].bookmark_id, likeDbId);
+        }).then(function () {
+            ok(false, "shouldn't be able to successfully move to liked folder");
+        }, function (error) {
+            strictEqual(error.code, InstapaperDB.ErrorCodes.INVALID_DESTINATION_FOLDER, "incorrect error code");
+        });
+    }
+
+    promiseTest("movingToLikedErrors", movingToLikedErrors);
 
     function movingBookmarkLeavesNoPendingEdit() {
         var instapaperDB;
