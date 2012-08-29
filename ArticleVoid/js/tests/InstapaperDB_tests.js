@@ -1279,6 +1279,39 @@
     }
 
     promiseTest("queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders", queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders);
+
+    function archivingBookmarkLeavesNoPendingEdit() {
+        var targetBookmark = sampleBookmarks[0];
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                bookmark: idb.archiveBookmark(targetBookmark.bookmark_id, true),
+                archiveDbId: idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Archive),
+            });
+        }).then(function (result) {
+            var archivedBookmark = result.bookmark;
+
+            ok(archivedBookmark, "Expected archived bookmark");
+
+            strictEqual(archivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(archivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Archive, "Folder not archived");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(targetBookmark.bookmark_id);
+        }).then(function (archivedBookmark) {
+            ok(archivedBookmark, "Expected archived bookmark");
+
+            strictEqual(archivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(archivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Archive, "Folder not archived");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }
+
+    promiseTest("archivingBookmarkLeavesNoPendingEdit", archivingBookmarkLeavesNoPendingEdit);
 })();
 
 /*
