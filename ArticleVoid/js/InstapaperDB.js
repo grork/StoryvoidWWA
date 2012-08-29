@@ -523,7 +523,8 @@
                     }.bind(this));
                 }
 
-                return WinJS.Promise.join({
+                var alreadyArchived = false;
+                var archivedBookmark = WinJS.Promise.join({
                     bookmark: this.getBookmarkByBookmarkId(bookmark_id),
                     archiveFolderDbId: archiveDbId
                 }).then(function (data) {
@@ -531,6 +532,7 @@
 
                     if (bookmarkToArchive
                      && (bookmarkToArchive.folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive)) {
+                        alreadyArchived = true;
                         return bookmarkToArchive;
                     }
 
@@ -539,6 +541,21 @@
 
                     return this.updateBookmark(bookmarkToArchive);
                 }.bind(this));
+
+                if (!dontAddPendingUpdate && !alreadyArchived) {
+                    archivedBookmark = archivedBookmark.then(function (bookmark) {
+                        var edit = {
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ARCHIVE,
+                            bookmark_id: bookmark.bookmark_id,
+                        };
+
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit).then(function () {
+                            return bookmark;
+                        });
+                    }.bind(this));
+                }
+
+                return archivedBookmark;
             }),
             dispose: function dispose() {
                 if (this._db) {
