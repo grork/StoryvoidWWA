@@ -1297,6 +1297,7 @@
 
             strictEqual(archivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
             strictEqual(archivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Archive, "Folder not archived");
+            strictEqual(archivedBookmark.folder_dbid, result.archiveDbId, "Incorrect folder DB id");
 
             return WinJS.Promise.timeout();
         }).then(function () {
@@ -1331,6 +1332,7 @@
 
             strictEqual(archivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
             strictEqual(archivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Archive, "Folder not archived");
+            strictEqual(archivedBookmark.folder_dbid, result.archiveDbId, "Incorrect folder DB id");
 
             return WinJS.Promise.timeout();
         }).then(function () {
@@ -1357,6 +1359,86 @@
     }
 
     promiseTest("archivingBookmarkLeavesPendingEdit", archivingBookmarkLeavesPendingEdit);
+
+    function unarchivingBookmarkLeavesNoPendingEdit() {
+        var targetBookmark = sampleBookmarks[0];
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                bookmark: idb.unarchiveBookmark(targetBookmark.bookmark_id, true),
+                unreadDbId: idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Unread),
+            });
+        }).then(function (result) {
+            var unarchivedBookmark = result.bookmark;
+
+            ok(unarchivedBookmark, "Expected unarchived bookmark");
+
+            strictEqual(unarchivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(unarchivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Folder not unarchived");
+            strictEqual(unarchivedBookmark.folder_dbid, result.unreadDbId, "Incorrect folder DB id");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(targetBookmark.bookmark_id);
+        }).then(function (unarchivedBookmark) {
+            ok(unarchivedBookmark, "Expected unarchived bookmark");
+
+            strictEqual(unarchivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(unarchivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Folder not unarchived");
+
+            sampleBookmarks[0] = unarchivedBookmark;
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }
+
+    promiseTest("unarchivingBookmarkLeavesNoPendingEdit", unarchivingBookmarkLeavesNoPendingEdit);
+
+    function unarchivingBookmarkLeavesPendingEdit() {
+        var targetBookmark = sampleBookmarks[1];
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                bookmark: idb.unarchiveBookmark(targetBookmark.bookmark_id),
+                unreadDbId: idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Unread),
+            });
+        }).then(function (result) {
+            var unarchivedBookmark = result.bookmark;
+
+            ok(unarchivedBookmark, "Expected unarchived bookmark");
+
+            strictEqual(unarchivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(unarchivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Folder not archived");
+            strictEqual(unarchivedBookmark.folder_dbid, result.unreadDbId, "Incorrect folder DB id");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(targetBookmark.bookmark_id);
+        }).then(function (unarchivedBookmark) {
+            ok(unarchivedBookmark, "Expected archived bookmark");
+
+            strictEqual(unarchivedBookmark.bookmark_id, targetBookmark.bookmark_id, "Incorrect bookmark ID");
+            strictEqual(unarchivedBookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Folder not archived");
+
+            sampleBookmarks[1] = unarchivedBookmark;
+
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            ok(pendingEdits, "Didn't get pending edits");
+            strictEqual(pendingEdits.length, 1, "only expected one pending edit");
+
+            var edit = pendingEdits[0];
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNARCHIVE, "Wasn't archive edit");
+            strictEqual(edit.bookmark_id, targetBookmark.bookmark_id, "Edit was for the wrong bookmark");
+
+            return cleanupPendingEdits.bind(instapaperDB)();
+        });
+    }
+
+    promiseTest("unarchivingBookmarkLeavesPendingEdit", unarchivingBookmarkLeavesPendingEdit);
 })();
 
 /*

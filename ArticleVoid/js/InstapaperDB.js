@@ -35,6 +35,7 @@
             _clientInformation: null,
             _remoteClients: null,
             _archiveFolderDbId: null,
+            _unreadFolderDbId: null,
             _initRemoteClients: function _initRemoteClients() {
                 if (!this._clientInformation) {
                     return;
@@ -513,17 +514,16 @@
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
             }),
             archiveBookmark: checkDb(function archiveBookmark(bookmark_id, dontAddPendingUpdate) {
-                var archiveDbId;
-                if (this._archiveFolderDbId) {
-                    archiveDbId = WinJS.Promise.as(this._archiveFolderDbId);
-                } else {
+                var archiveDbId = WinJS.Promise.as(this._archiveFolderDbId);
+                
+                if (!this._archiveFolderDbId) {
                     archiveDbId = this.getFolderDbIdFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive).then(function (id) {
                         this._archiveFolderDbId = id;
                         return id;
                     }.bind(this));
                 }
 
-                var alreadyArchived = false;
+                var alreadyArchived;
                 var archivedBookmark = WinJS.Promise.join({
                     bookmark: this.getBookmarkByBookmarkId(bookmark_id),
                     archiveFolderDbId: archiveDbId
@@ -542,8 +542,12 @@
                     return this.updateBookmark(bookmarkToArchive);
                 }.bind(this));
 
-                if (!dontAddPendingUpdate && !alreadyArchived) {
+                if (!dontAddPendingUpdate) {
                     archivedBookmark = archivedBookmark.then(function (bookmark) {
+                        if (alreadyArchived) {
+                            return bookmark;
+                        }
+
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ARCHIVE,
                             bookmark_id: bookmark.bookmark_id,
@@ -556,6 +560,53 @@
                 }
 
                 return archivedBookmark;
+            }),
+            unarchiveBookmark: checkDb(function unarchiveBookmark(bookmark_id, dontAddPendingUpdate) {
+                var unreadDbId = WinJS.Promise.as(this._unreadFolderDbId);
+                if (!this._unreadFolderDbId) {
+                    unreadDbId = this.getFolderDbIdFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread).then(function (id) {
+                        this._unreadFolderDbId = id;
+                        return id;
+                    }.bind(this));
+                }
+
+                var alreadyUnarchived;
+                var unarchivedBookmark = WinJS.Promise.join({
+                    bookmark: this.getBookmarkByBookmarkId(bookmark_id),
+                    unreadFolderDbId: unreadDbId,
+                }).then(function (data) {
+                    var bookmarkToUnarchive = data.bookmark;
+                    
+                    if (bookmarkToUnarchive.folder_id !== Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive) {
+                        alreadyArchived = true;
+                        return bookmarkToUnarchive;
+                    }
+
+                    bookmarkToUnarchive.folder_id = Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread;
+                    bookmarkToUnarchive.folder_dbid = data.unreadFolderDbId;
+
+                    return this.updateBookmark(bookmarkToUnarchive);
+                }.bind(this));
+
+                if (!dontAddPendingUpdate) {
+                    unarchivedBookmark = unarchivedBookmark.then(function (bookmark) {
+                        if (alreadyUnarchived) {
+                            return bookmark;
+                        }
+
+                        var edit = {
+                            type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNARCHIVE,
+                            bookmark_id: bookmark.bookmark_id,
+                        };
+
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit).then(function () {
+                            return bookmark;
+                        });
+                    }.bind(this));
+                }
+
+
+                return unarchivedBookmark;
             }),
             dispose: function dispose() {
                 if (this._db) {
