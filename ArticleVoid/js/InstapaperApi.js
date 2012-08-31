@@ -13,6 +13,7 @@
         list: baseUrl + "bookmarks/list",
         add: baseUrl + "bookmarks/add",
         deleteBookmark: baseUrl + "bookmarks/delete",
+        move: baseUrl + "bookmarks/move",
         updateReadProgress: baseUrl + "bookmarks/update_read_progress",
         star: baseUrl + "bookmarks/star",
         unstar: baseUrl + "bookmarks/unstar",
@@ -39,7 +40,7 @@
 
         if (objectData.length === 1) {
             if (objectData[0].type === "error") {
-                throw new Codevoid.ArticleVoid.InstapaperApi.InstapaperApiException(objectData[0].error_code, objectData[0].message);
+                return new Codevoid.ArticleVoid.InstapaperApi.InstapaperApiException(objectData[0].error_code, objectData[0].message);
             }
 
             if (reduceSingleItemToObject) {
@@ -175,6 +176,25 @@
                 var data = [{ key: "bookmark_id", value: bookmark_id }];
                 var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.deleteBookmark);
                 request.data = data;
+                return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            },
+            move: function move(parameters) {
+                if (!parameters.bookmark_id) {
+                    throw new Error("Requires Bookmark ID");
+                }
+
+                if (!parameters.destination) {
+                    throw new Error("Requires destination folder");
+                }
+
+                var data = [
+                    { key: "bookmark_id", value: parameters.bookmark_id },
+                    { key: "folder_id", value: parameters.destination },
+                ];
+
+                var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.move);
+                request.data = data;
+
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
             },
             updateReadProgress: function updateReadProgress(parameters) {
