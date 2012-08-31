@@ -9,7 +9,15 @@
 
     var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
     function failedPromiseHandler(req) {
-        ok(false, "request failed: " + req.responseText);
+        var message;
+        if(req.error) {
+            message = "Code: " + req.error + ", Message: " + req.message;
+        } else if (req.responseText) {
+            message = req.responseText;
+        } else {
+            message = req;
+        }
+        ok(false, "request failed: " + message);
         start();
     }
 
@@ -472,7 +480,6 @@
 
     var bookmarkAddedToFolderId;
     function addToFolder() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage3.html";
@@ -492,20 +499,72 @@
         stop();
     }
 
+    var bookmarkAddedToFolderId2;
+    function moveBookmarkIntoFolder() {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+
+        bookmarks.add({ url: urlToAdd }).then(function (data) {
+            strictEqual(data.type, "bookmark");
+            strictEqual(data.url, urlToAdd, "url wasn't the same");
+            strictEqual(data.title, "TestPage4", "title wasn't expected");
+            strictEqual(data.starred, "0");
+            strictEqual(data.progress, 0);
+
+            bookmarkAddedToFolderId2 = data.bookmark_id;
+
+            return bookmarks.move({ bookmark_id: data.bookmark_id, destination: addedFolderId });
+        }).done(function (bookmark) {
+            strictEqual(bookmark.type, "bookmark");
+            strictEqual(bookmark.url, urlToAdd, "url wasn't the same");
+            strictEqual(bookmark.title, "TestPage4", "title wasn't expected");
+            strictEqual(bookmark.starred, "0");
+            strictEqual(bookmark.progress, 0);
+            strictEqual(bookmark.bookmark_id, bookmarkAddedToFolderId2, "Incorrect bookmark returned from move");
+
+            start();
+        }, failedPromiseHandler);
+
+        stop();
+    }
+
     function listContentsOfAFolder() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: addedFolderId }).done(function (data) {
             ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 1, "Didn't expect any pre-existing data");
+            strictEqual(data.length, 2, "Didn't expect any pre-existing data");
 
             // Validate the only bookmark
             var bookmarkData = data[0];
             strictEqual(bookmarkData.type, "bookmark");
-            strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
-            strictEqual(bookmarkData.title, "TestPage3", "title wasn't expected");
-            strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+            strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
+            strictEqual(bookmarkData.title, "TestPage4", "title wasn't expected");
+            strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
+
+            var bookmarkData2 = data[1];
+            strictEqual(bookmarkData2.type, "bookmark");
+            strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
+            strictEqual(bookmarkData2.title, "TestPage3", "title wasn't expected");
+            strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+
+            start();
+        }, failedPromiseHandler);
+    }
+
+    function moveBookmarkOutOfArchive() {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        stop();
+
+        bookmarks.archive(bookmarkAddedToFolderId2).then(function() {
+            return bookmarks.move({ bookmark_id: bookmarkAddedToFolderId2, destination: addedFolderId }).then(function () {
+                return bookmarks.list({ folder_id: "archive" });
+            });
+        }).done(function (archivedBookmarks) {
+            ok(archivedBookmarks, "Expected archived bookmarks");
+            strictEqual(archivedBookmarks.length, 0, "Didn't expect to find any bookmarks");
 
             start();
         }, failedPromiseHandler);
@@ -518,6 +577,8 @@
         // delete book mark 'cause it ends up in the archieve folder
         stop();
         bookmarks.deleteBookmark(bookmarkAddedToFolderId).then(function () {
+            return bookmarks.deleteBookmark(bookmarkAddedToFolderId2);
+        }).then(function() {
             return folders.deleteFolder(addedFolderId);
         }).then(function (data) {
             ok(Array.isArray(data), "no data returned");
@@ -533,6 +594,8 @@
     test("addnewFolder", addNewFolder);
     test("listWithAddedFolders", listWithAddedFolders);
     test("addToFolder", addToFolder);
+    test("moveBookmarkIntoFolder", moveBookmarkIntoFolder);
     test("listContentsOfAFolder", listContentsOfAFolder);
+    test("moveBookmarkOutOfArchive", moveBookmarkOutOfArchive);
     test("deleteFolder", deleteFolder);
 })();
