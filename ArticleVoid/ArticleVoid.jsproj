@@ -62,11 +62,13 @@
     <Content Include="js\db.js" />
     <Content Include="js\InstapaperApi.js" />
     <Content Include="js\InstapaperDB.js" />
+    <Content Include="js\InstapaperSync.js" />
     <Content Include="js\OAuth.js" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
     <Content Include="js\tests\InstapaperDBSync_tests.js" />
     <Content Include="js\tests\InstapaperDB_tests.js" />
+    <Content Include="js\tests\InstapaperTests_Utilities.js" />
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
