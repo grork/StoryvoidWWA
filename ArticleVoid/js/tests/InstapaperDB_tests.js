@@ -1,73 +1,18 @@
 ﻿(function () {
     "use strict";
+
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive];
 
-    function cleanUpOpenDbs() {
-        pendingDbs.forEach(function (idb) {
-            idb.dispose();
-        });
-
-        pendingDbs = [];
-    }
-
-    function getNewInstapaperDBAndInit() {
-        return new InstapaperDB().initialize().then(function (idb) {
-            pendingDbs.push(idb);
-
-            return idb;
-        });
-    }
-
-    function startOnSuccessOfPromise() {
-        cleanUpOpenDbs();
-        start();
-    }
-
-    function startOnFailureOfPromise(error) {
-        debugger;
-        ok(false, "Failed: " + error.toString() + "\n" + error.stack);
-        cleanUpOpenDbs();
-        start();
-    }
-
-    function promiseTest(name, func) {
-        asyncTest(name, function () {
-            WinJS.Promise.as(func()).done(startOnSuccessOfPromise, startOnFailureOfPromise);
-        });
-    }
-
-    function expectNoPendingFolderEdits(idb) {
-        return idb.getPendingFolderEdits().then(function (pendingEdits) {
-            ok(pendingEdits, "Expected valid pending edits structure");
-            strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
-        });
-    }
-
-    function expectNoPendingBookmarkEdits(idb) {
-        return idb.getPendingBookmarkEdits().then(function (pendingEdits) {
-            ok(pendingEdits, "Expected valid pending edits structure");
-            strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
-        });
-    }
-
-    var pendingDbs = [];
+    var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
+    var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
+    var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
+    var promiseTest = InstapaperTestUtilities.promiseTest;
+    var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
+    var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
+    var deleteDb = InstapaperTestUtilities.deleteDb;
 
     module("InstapaperDBFolders");
-
-    function deleteDb() {
-        pendingDbs.forEach(function (idb) {
-            idb.dispose();
-        });
-
-        pendingDbs = [];
-
-        return WinJS.Promise.timeout().then(function () {
-            return db.deleteDb(InstapaperDB.DBName);
-        }).then(function () {
-            ok(true);
-        });
-    }
 
     function hasDefaultFolders() {
         var idb = new InstapaperDB();
@@ -388,7 +333,6 @@
 
     function emptyUnreadBookmarksTableReturnsEmptyData() {
         return getNewInstapaperDBAndInit().then(function (idb) {
-            pendingDbs.push(idb);
             return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
         }).then(function (results) {
             ok(results, "expected result array"),
@@ -750,8 +694,7 @@
     function likingBookmarkWithPendingEditLeavesNoPendingEdit() {
         var instapaperDB;
 
-        return new InstapaperDB().initialize().then(function (idb) {
-            pendingDbs.push(idb);
+        return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
 
             return expectNoPendingBookmarkEdits(instapaperDB);
@@ -1262,7 +1205,7 @@
     }
 
     promiseTest("queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders", queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders);
-
+    promiseTest("deleteDb", deleteDb);
 })();
 
 /*

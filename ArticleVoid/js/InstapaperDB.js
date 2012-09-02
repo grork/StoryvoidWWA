@@ -32,18 +32,6 @@
             this._clientInformation = clientInformation;
         }, {
             _db: null,
-            _clientInformation: null,
-            _remoteClients: null,
-            _initRemoteClients: function _initRemoteClients() {
-                if (!this._clientInformation) {
-                    return;
-                }
-
-                this._remoteClients = {
-                    bookmarks: new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation),
-                    folders: new Codevoid.ArticleVoid.InstapaperApi.Folders(this._clientInformation),
-                };
-            },
             initialize: function initialize() {
                 var schema = {};
                 schema[Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable] = {
