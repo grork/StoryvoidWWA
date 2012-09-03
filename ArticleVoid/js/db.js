@@ -105,7 +105,9 @@
             if (closed) {
                 return;
             }
-            var f = db.close();
+
+            db.close();
+
             closed = true;
 
             var name;
