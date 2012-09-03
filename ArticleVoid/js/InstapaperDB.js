@@ -28,8 +28,7 @@
     }
 
     WinJS.Namespace.define("Codevoid.ArticleVoid", {
-        InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor(clientInformation) {
-            this._clientInformation = clientInformation;
+        InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor() {
         }, {
             _db: null,
             initialize: function initialize() {
@@ -98,26 +97,26 @@
                 /// </summary>
                 return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable).execute()
             }),
-            addFolder: checkDb(function addFolder(name, dontAddPendingEdit) {
+            addFolder: checkDb(function addFolder(folder, dontAddPendingEdit) {
                 /// <summary>
                 /// Adds a folder to the database, and optionally adds a pending edit.
                 ///
                 /// If the folder is already marked for deletion, it will merely drop
                 /// the pending "delete" if there is one.
                 /// </summary>
-                return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "title").only(name).then(function addProcessResults(results) {
+                return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "title").only(folder.title).then(function addProcessResults(results) {
                     if (!results || !results.length) {
                         return;
                     }
 
                     // Since we found an existing folder, we're going to error.
-                    var error = new Error("Folder with the name '" + name + "' already present");
+                    var error = new Error("Folder with the title '" + folder.title + "' already present");
                     error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE;
 
                     return WinJS.Promise.wrapError(error);
                 }).then(function actuallyAddFolder() {
-                    // Look for the pending edit for a folder named liked this
-                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "title").only(name).then(extractFirstItemInArray);
+                    // Look for the pending edit for a folder titled liked this
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "title").only(folder.title).then(extractFirstItemInArray);
                 }.bind(this)).then(function resultOfInspectingPendingData(pendingItem) {
                     if (!pendingItem) {
                         // There wasn't a pending edit so just move on
@@ -137,8 +136,7 @@
                         return WinJS.Binding.as(dataToResurrect);
                     });
                 }.bind(this)).then(function (existingFolderData) {
-                    var folderData = existingFolderData || {};
-                    folderData.title = name;
+                    var folderData = existingFolderData || folder;
 
                     var completedPromise = this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable,
                                                         folderData).then(extractFirstItemInArray);
@@ -150,16 +148,16 @@
                     return completedPromise;
                 }.bind(this));
             }),
-            getFolderByDbId: checkDb(function getFolderByDbId(folderId) {
-                return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId);
+            getFolderByDbId: checkDb(function getFolderByDbId(folderDbId) {
+                return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderDbId);
             }),
-            getFolderDbIdFromFolderId: checkDb(function getFolderDbIdFromFolderId(folderId) {
+            getFolderFromFolderId: checkDb(function getFolderDbIdFromFolderId(folderId) {
                 return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, "folder_id").
                     only(folderId).
                     then(extractFirstItemInArray).
                     then(function (folder) {
                         if (folder) {
-                            return folder.id;
+                            return folder;
                         }
                     });
             }),

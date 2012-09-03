@@ -55,7 +55,7 @@
         var folderName = "LocalFolder"
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.addFolder(folderName, true);
+            return idb.addFolder({ title: folderName }, true);
         }).then(function (createdFolder) {
             addedFolderDbId = createdFolder.id;
             return WinJS.Promise.timeout();
@@ -109,19 +109,19 @@
         });
     }
 
-    function canGetFolderDbIdFromFolderId() {
+    function canGetFolderFromFolderId() {
         return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.getFolderDbIdFromFolderId("xxx");
-        }).then(function (folderDbId) {
-            strictEqual(folderDbId, addedFolderDbId, "incorrect folder DB ID");
+            return idb.getFolderFromFolderId("xxx");
+        }).then(function (folder) {
+            strictEqual(folder.id, addedFolderDbId, "incorrect folder DB ID");
         });
     }
 
     function cantGetFolderDbIdFromInvalidFolderId() {
         return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.getFolderDbIdFromFolderId("yyy");
-        }).then(function (folderDbId) {
-            strictEqual(folderDbId, undefined, "should get 'undefined' for folder db id if it's not in the DB");
+            return idb.getFolderFromFolderId("yyy");
+        }).then(function (folder) {
+            strictEqual(folder, undefined, "should get 'undefined' for folder db id if it's not in the DB");
         });
     }
 
@@ -130,7 +130,7 @@
         var folderName = "LocalFolder"
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.addFolder(folderName, true);
+            return idb.addFolder({ title: folderName }, true);
         }).then(function () {
             ok(false, "Should have failed");
         }, function (error) {
@@ -179,7 +179,7 @@
         var addFolderResult;
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.addFolder(folderName);
+            return idb.addFolder({ title: folderName });
         }).then(function (createdFolder) {
             addFolderResult = createdFolder;
         }).then(function () {
@@ -264,7 +264,7 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return instapaperDB.addFolder("shouldntBeSyncd");
+            return instapaperDB.addFolder({ title: "shouldntBeSyncd" });
         }).then(function (addedFolder) {
             return WinJS.Promise.join({
                 timeout: WinJS.Promise.timeout(),
@@ -284,7 +284,7 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return instapaperDB.addFolder(folderTitle, true);
+            return instapaperDB.addFolder({ title: folderTitle }, true);
         }).then(function (folder) {
             addedFolder = folder;
             return WinJS.Promise.timeout();
@@ -303,7 +303,7 @@
             ok(!data, "Didn't expect any data");
 
             return WinJS.Promise.join({
-                folder: instapaperDB.addFolder(folderTitle),
+                folder: instapaperDB.addFolder({ title: folderTitle }),
                 timeout: WinJS.Promise.timeout(),
             });
         }).then(function (data) {
@@ -319,7 +319,7 @@
     promiseTest("canAddFolderNoPendingEdit", canAddFolderNoPendingEdit);
     promiseTest("canGetAddedFolderByDbId", canGetAddedFolderByDbId);
     promiseTest("canUpdateFolder", canUpdateFolder);
-    promiseTest("canGetFolderDbIdFromFolderId", canGetFolderDbIdFromFolderId);
+    promiseTest("canGetFolderFromFolderId", canGetFolderFromFolderId);
     promiseTest("cantGetFolderDbIdFromInvalidFolderId", cantGetFolderDbIdFromInvalidFolderId);
     promiseTest("addExistingFolderNameFailsAndLeavesNoPendingEdit", addExistingFolderNameFailsAndLeavesNoPendingEdit);
     promiseTest("canRemoveFolderNoPendingEdit", canRemoveFolderNoPendingEdit);
@@ -816,7 +816,7 @@
 
             var addedFolders = [];
             sampleFolders.forEach(function (folder) {
-                addedFolders.push(idb.addFolder(folder.title, true).then(function (addedFolder) {
+                addedFolders.push(idb.addFolder({ title: folder.title }, true).then(function (addedFolder) {
                     addedFolder.folder_id = folder.folder_id;
                     folder.id = addedFolder.id;
                     expectedFolderIds.push(folder.folder_id);
@@ -903,9 +903,9 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.getFolderDbIdFromFolderId(InstapaperDB.CommonFolderIds.Liked);
-        }).then(function (likeDbId) {
-            return instapaperDB.moveBookmark(sampleBookmarks[0].bookmark_id, likeDbId);
+            return idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked);
+        }).then(function (likeFolder) {
+            return instapaperDB.moveBookmark(sampleBookmarks[0].bookmark_id, likeFolder.id);
         }).then(function () {
             ok(false, "shouldn't be able to successfully move to liked folder");
         }, function (error) {
