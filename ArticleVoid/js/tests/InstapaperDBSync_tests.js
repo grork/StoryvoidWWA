@@ -160,5 +160,91 @@
     }
 
     promiseTest("differentFolderTitleOnServerIsSyncedToDB", differentFolderTitleOnServerIsSyncedToDB);
+
+    function removedFolderOnServerIsDeletedLocallyOnSync() {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var fakeFolder = {
+            title: "foo",
+            folder_id: "foo_1",
+        };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                folder: instapaperDB.addFolder(fakeFolder, true),
+                timeout: WinJS.Promise.timeout(),
+            }).then(function () {
+                return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
+            }).then(function (addedFolder) {
+                ok(addedFolder, "Didn't get added folder");
+                strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
+                ok(!!addedFolder.id, "Folder didn't have DB id");
+
+                return WinJS.Promise.join([sync.sync(), WinJS.Promise.timeout()]);
+            }).then(function () {
+                return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
+            }).then(function (addedFolder) {
+                ok(!addedFolder, "Shouldn't have gotten the folder. It should have been removed");
+
+                return expectNoPendingFolderEdits(instapaperDB);
+            });
+        });
+    }
+
+    promiseTest("removedFolderOnServerIsDeletedLocallyOnSync", removedFolderOnServerIsDeletedLocallyOnSync);
+
+    function removedAndAddedFoldersOnServerAreCorrectlySynced() {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var fakeFolder = {
+            title: "foo",
+            folder_id: "foo_1",
+        };
+
+        var newRemoteFolder = {
+            title: Date.now() + "", // now() is an integer. It comes back as a string, Just make it a damn string
+        };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                folder: instapaperDB.addFolder(fakeFolder, true),
+                timeout: WinJS.Promise.timeout(),
+            }).then(function () {
+                return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
+            }).then(function (addedFolder) {
+                ok(addedFolder, "Didn't get added folder");
+                strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
+                ok(!!addedFolder.id, "Folder didn't have DB id");
+
+                var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+                
+                // Add a non-local folder to syncdown at the same time.
+                return folders.add(newRemoteFolder.title);
+            }).then(function (addedRemoteFolder) {
+                // Save the ID for later user.
+                newRemoteFolder.folder_id = addedRemoteFolder.folder_id;
+
+                return WinJS.Promise.join([sync.sync(), WinJS.Promise.timeout()]);
+            }).then(function () {
+                return WinJS.Promise.join({
+                    deleted: instapaperDB.getFolderFromFolderId(fakeFolder.folder_id),
+                    added: instapaperDB.getFolderFromFolderId(newRemoteFolder.folder_id),
+                });
+            }).then(function (folders) {
+                ok(!folders.deleted, "Shouldn't have gotten the folder. It should have been removed");
+                
+                ok(folders.added, "Didn't find added folder");
+                strictEqual(folders.added.folder_id, newRemoteFolder.folder_id, "Not correct folder ID");
+                strictEqual(folders.added.title, newRemoteFolder.title, "Incorrect title");
+
+                return expectNoPendingFolderEdits(instapaperDB);
+            });
+        });
+    }
+
+    promiseTest("removedAndAddedFoldersOnServerAreCorrectlySynced", removedAndAddedFoldersOnServerAreCorrectlySynced);
+
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
