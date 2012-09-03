@@ -24,6 +24,10 @@
         { title: "sampleFolder3", },
     ];
 
+    function getNewSyncEngine() {
+        return new Codevoid.ArticleVoid.InstapaperSync(clientInformation);
+    }
+
     function deleteAllRemoteBookmarks(bookmarksToDelete) {
         var client = this;
         var deletePromises = [];
@@ -70,6 +74,7 @@
     }
 
     promiseTest("destoryRemoteDataOnStart", destroyRemoteAccountData);
+    promiseTest("deleteDbOnStart", deleteDb);
 
     function addDefaultRemoteFolders() {
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
@@ -90,10 +95,41 @@
     promiseTest("addDefaultRemoteFolders", addDefaultRemoteFolders);
 
     function addsFoldersOnFirstSight() {
-        
-        
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        return  sync.sync().then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            ok(folders, "Didn't get folder list");
+            
+            strictEqual(folders.length, 6, "Unexpected number of folders");
+
+            folders.forEach(function (folder) {
+                switch (folder.folder_id) {
+                    case InstapaperDB.CommonFolderIds.Unread:
+                    case InstapaperDB.CommonFolderIds.Archive:
+                    case InstapaperDB.CommonFolderIds.Liked:
+                        return;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                var wasInSyncedSet = addedRemoteFolders.some(function (f) {
+                    return f.folder_id === folder.folder_id;
+                });
+
+                ok(wasInSyncedSet, "Folder: " + folder.folder_id + ", " + folder.title + " wasn't expected to be found");
+            });
+
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
     }
 
-    //promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight);
+    promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight);
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
