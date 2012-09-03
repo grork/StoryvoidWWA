@@ -97,7 +97,7 @@
     function addsFoldersOnFirstSight() {
         var sync = getNewSyncEngine();
         var instapaperDB;
-        return  sync.sync().then(function () {
+        return sync.sync().then(function () {
             return getNewInstapaperDBAndInit();
         }).then(function (idb) {
             instapaperDB = idb;
@@ -131,5 +131,34 @@
     }
 
     promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight);
+
+    function differentFolderTitleOnServerIsSyncedToDB() {
+        var sync = getNewSyncEngine();
+        var targetRemoteFolder = addedRemoteFolders[0];
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getFolderFromFolderId(targetRemoteFolder.folder_id);
+        }).then(function (localFolder) {
+            localFolder.title = Date.now();
+            return WinJS.Promise.join({
+                updatedFolder: instapaperDB.updateFolder(localFolder),
+                timeout: WinJS.Promise.timeout(),
+            });
+        }).then(function (data) {
+            ok(data.updatedFolder, "Didn't get updated folder");
+            notStrictEqual(data.updatedFolder.title, targetRemoteFolder.title, "Title didn't change");
+
+            return sync.sync();
+        }).then(function () {
+            return instapaperDB.getFolderFromFolderId(targetRemoteFolder.folder_id);
+        }).then(function (localFolder) {
+            strictEqual(localFolder.title, targetRemoteFolder.title, "Title did not correctly sync");
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
+    }
+
+    promiseTest("differentFolderTitleOnServerIsSyncedToDB", differentFolderTitleOnServerIsSyncedToDB);
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
