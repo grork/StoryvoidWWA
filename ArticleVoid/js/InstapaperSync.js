@@ -41,14 +41,77 @@
                     return this._bookmarksStorage;
                 }
             },
+            _addFolderPendingEdit: function _addFolderPendingEdit(edit, db) {
+                return WinJS.Promise.join({
+                    local: db.getFolderByDbId(edit.folderTableId),
+                    remote: this._folders.add(edit.title).then(null, function (error) {
+                        // Error 1251 is the error that the folder with that name
+                        // is already on the server. If it's not that then theres
+                        // something else we'll need to do.
+                        if (error.error !== 1251) {
+                            return WinJS.Promise.wrapError(error);
+                        }
+
+                        // It was 1251, so lets find the folder on the server
+                        // (which requires the full list since theres no other
+                        // way to get a specific folder), and then return *that*
+                        // folders information to that the values of this promise
+                        // can complete and let us sync all the data.
+                        return this._folders.list().then(function (remoteFolders) {
+                            // reduce it down to the folder that was already there. note
+                            // that if we dont find it -- which we should -- all
+                            // hell is gonna break loose here.
+                            return remoteFolders.reduce(function (result, folder) {
+                                if (result) {
+                                    return result;
+                                }
+
+                                if (folder.title === edit.title) {
+                                    return folder;
+                                }
+
+                                return null;
+                            }, null);
+                        });
+                    }.bind(this)),
+                }).then(function (data) {
+                    Object.keys(data.remote).forEach(function (key) {
+                        data.local[key] = data.remote[key];
+                    });
+
+                    return db.updateFolder(data.local);
+                });
+            },
             sync: function sync() {
                 var db = new InstapaperDB();
                 var f = this._folders;
-                var remoteFoldersPromise = f.list();
 
-                return db.initialize().then(function () {
+                return db.initialize().then(function startSync() {
+                    return db.getPendingFolderEdits();
+                }).then(function processPendingEdits(pendingEdits) {
+                    var syncs = [];
+                    
+                    pendingEdits.forEach(function (edit) {
+                        switch (edit.type) {
+                            case InstapaperDB.PendingFolderEditTypes.ADD:
+                                syncs.push(this._addFolderPendingEdit(edit, db).then(function() {
+                                    return db._deletePendingFolderEdit(edit.id);
+                                }));
+                                break;
+
+                            case InstapaperDB.PendingFolderEditTypes.DELETE:
+                                break;
+
+                            default:
+                                appassert(false, "Shouldn't see other edit types");
+                                break;
+                        }
+                    }.bind(this));
+
+                    return WinJS.Promise.join(syncs);
+                }.bind(this)).then(function () {
                     return WinJS.Promise.join({
-                        remoteFolders: remoteFoldersPromise,
+                        remoteFolders: f.list(),
                         localFolders: db.listCurrentFolders(),
                     });
                 }).then(function (data) {

@@ -14,7 +14,7 @@
     var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
     var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
     var promiseTest = InstapaperTestUtilities.promiseTest;
-    var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
+    var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
     var deleteDb = InstapaperTestUtilities.deleteDb;
 
@@ -245,6 +245,95 @@
     }
 
     promiseTest("removedAndAddedFoldersOnServerAreCorrectlySynced", removedAndAddedFoldersOnServerAreCorrectlySynced);
+
+    promiseTest("pendedAddsAreUploaded", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+
+        var newFolder = { title: Date.now() + "", };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder(newFolder);
+        }).then(function (addedFolder) {
+            ok(!!addedFolder.id, "need folder id to find it later");
+            newFolder = addedFolder;
+
+            return sync.sync();
+        }).then(function () {
+            return (new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation)).list();
+        }).then(function (remoteFolders) {
+            var localFolderWasSynced = remoteFolders.some(function (item) {
+                return item.title === newFolder.title;
+            });
+
+            ok(localFolderWasSynced, "Local folder was not found on the server");
+
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("foldersGetUpdatedFolderIdsWhenUploaded", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+
+        var newFolder = { title: Date.now() + "", };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder(newFolder);
+        }).then(function (addedFolder) {
+            ok(!!addedFolder.id);
+            strictEqual(addedFolder.folder_id, undefined, "Shouldn't have had a folder id yet.");
+            newFolder = addedFolder;
+
+            return instapaperDB.getPendingFolderEdits();
+        }).then(function (pendingEdits) {
+            strictEqual(pendingEdits.length, 1, "Only expected one pending edit");
+
+            return sync.sync();
+        }).then(function () {
+            return instapaperDB.getFolderByDbId(newFolder.id);
+        }).then(function (syncedFolder) {
+            ok(!!syncedFolder.folder_id, "Didn't find a folder ID");
+
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("sameFolderRemoteAndLocalButUnsynced", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+
+        var local = {
+            title: Date.now() + "",
+            cookie: true,
+        };
+
+        var remote = { title: local.title }; // make sure the remote is the same
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                local: idb.addFolder(local),
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation)).add(remote.title),
+            }).then(function (data) {
+                local = data.local;
+                remote = data.remote;
+
+                return sync.sync();
+            }).then(function () {
+                return expectNoPendingFolderEdits(instapaperDB);
+            }).then(function () {
+                return instapaperDB.getFolderByDbId(local.id);
+            }).then(function (localFolder) {
+                ok(localFolder, "Didn't find the local folder");
+                strictEqual(localFolder.folder_id, remote.folder_id, "Folder ID didn't match the local folder");
+                strictEqual(localFolder.title, remote.title, "Folder title didn't match");
+                ok(localFolder.cookie, "Cookie was not present on the DB folder. Data Squashed?");
+            });
+        });
+    });
 
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

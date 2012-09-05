@@ -8,7 +8,7 @@
     var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
     var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
     var promiseTest = InstapaperTestUtilities.promiseTest;
-    var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
+    var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
     var deleteDb = InstapaperTestUtilities.deleteDb;
 
