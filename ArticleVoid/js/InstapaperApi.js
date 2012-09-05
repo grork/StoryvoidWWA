@@ -313,7 +313,13 @@
 
                 var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.add);
                 request.data = [{ key: "title", value: title }];
-                return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+                return request.send().then(extractSingleItemFromJSONArray).then(function (data) {
+                    if (!data.folder_id) {
+                        return WinJS.Promise.wrapError(new Codevoid.ArticleVoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
+                    }
+
+                    return data;
+                });
             },
             deleteFolder: function deleteFolder(folder_id) {
                 if (!folder_id) {

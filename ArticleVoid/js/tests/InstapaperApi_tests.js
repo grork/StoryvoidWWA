@@ -464,6 +464,24 @@
             start();
         }, failedPromiseHandler);
     }
+    
+    function addDuplicateFolderReturnsError() {
+        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+
+        stop();
+
+        var title = Date.now() + "";
+
+        folders.add(title).then(function () {
+            return folders.add(title);
+        }).done(function (data) {
+            ok(false, "Shouldn't have been able to add the folder");
+            start();
+        }, function (error) {
+            strictEqual(error.error, 1251, "Incorrect error code");
+            start();
+        });
+    }
 
     function listWithAddedFolders() {
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
@@ -592,6 +610,7 @@
 
     test("listDefaultShouldBeEmpty", listDefaultShouldBeEmpty);
     test("addnewFolder", addNewFolder);
+    test("addDuplicateFolderReturnsError", addDuplicateFolderReturnsError);
     test("listWithAddedFolders", listWithAddedFolders);
     test("addToFolder", addToFolder);
     test("moveBookmarkIntoFolder", moveBookmarkIntoFolder);

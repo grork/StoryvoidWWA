@@ -132,7 +132,7 @@
 
                     // Throw away the pending edit now that we got the data on it. This means it looks like
                     // the folder had never been removed.
-                    return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingItem.id).then(function () {
+                    return this._deletePendingFolderEdit(pendingItem.id).then(function () {
                         return WinJS.Binding.as(dataToResurrect);
                     });
                 }.bind(this)).then(function (existingFolderData) {
@@ -186,7 +186,7 @@
                     wasUnsyncedEdit = true;
                     appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
 
-                    return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, results[0].id);
+                    return this._deletePendingFolderEdit(results[0].id);
                 }.bind(this));
 
 
@@ -196,6 +196,9 @@
                             return;
                         }
 
+                        // Deletes are a little different, so lets not use
+                        // the _addPendingFolderEdit method here to ensure that we dont
+                        // end up specialcasing that function up the wazoo.
                         var pendingEdit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.DELETE,
                             removedFolderId: folderBeingRemoved.folder_id,
