@@ -82,6 +82,9 @@
                     return db.updateFolder(data.local);
                 });
             },
+            _removeFolderPendingEdit: function _removeFolderPendingEdit(edit, db) {
+                return this._folders.deleteFolder(edit.removedFolderId);
+            },
             sync: function sync() {
                 var db = new InstapaperDB();
                 var f = this._folders;
@@ -92,19 +95,25 @@
                     var syncs = [];
                     
                     pendingEdits.forEach(function (edit) {
+                        var syncPromise;
                         switch (edit.type) {
                             case InstapaperDB.PendingFolderEditTypes.ADD:
-                                syncs.push(this._addFolderPendingEdit(edit, db).then(function() {
-                                    return db._deletePendingFolderEdit(edit.id);
-                                }));
+                                syncPromise = this._addFolderPendingEdit(edit, db);
                                 break;
 
                             case InstapaperDB.PendingFolderEditTypes.DELETE:
+                                syncPromise = this._removeFolderPendingEdit(edit, db);
                                 break;
 
                             default:
                                 appassert(false, "Shouldn't see other edit types");
                                 break;
+                        }
+
+                        if (syncPromise) {
+                            syncs.push(syncPromise.then(function () {
+                                return db._deletePendingFolderEdit(edit.id);
+                            }));
                         }
                     }.bind(this));
 
