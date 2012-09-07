@@ -84,6 +84,8 @@
             },
             _removeFolderPendingEdit: function _removeFolderPendingEdit(edit, db) {
                 return this._folders.deleteFolder(edit.removedFolderId).then(null, function (error) {
+                    // Folder isn't present on the server, and since we're trying
+                    // to delete the thing anyway, this is ok.
                     if (error && (error.error === 1242)) {
                         return;
                     }
