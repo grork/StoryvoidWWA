@@ -257,7 +257,6 @@
             return idb.addFolder(newFolder);
         }).then(function (addedFolder) {
             ok(!!addedFolder.id, "need folder id to find it later");
-            addedRemoteFolders.push(addedFolder);
             newFolder = addedFolder;
 
             return sync.sync();
@@ -368,6 +367,93 @@
             }), "Item shouldn't have been found remotely");
 
             ok(!data.localFolder, "Local folder should be missing");
+
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("deletedLocallyAndRemotelySyncsSuccessfully", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var targetFolder = addedRemoteFolders.pop();
+        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                local: idb.getFolderFromFolderId(targetFolder.folder_id),
+                remoteFolders: folders.list(),
+            });
+        }).then(function (data) {
+            ok(!!data.local.id, "need folder id to delete");
+            ok(data.remoteFolders.some(function (item) {
+                return item.folder_id === data.local.folder_id;
+            }), "Folder to delete wasn't present remotely");
+
+            return WinJS.Promise.join({
+                local: instapaperDB.removeFolder(data.local.id),
+                remote: folders.deleteFolder(data.local.folder_id),
+            });
+        }).then(function () {
+            return sync.sync();
+        }).then(function () {
+            return WinJS.Promise.join({
+                remoteFolders: folders.list(),
+                localFolder: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
+            });
+        }).then(function (data) {
+            ok(!data.remoteFolders.some(function (item) {
+                return item.folder_id === targetFolder.folder_id;
+            }), "Item shouldn't have been found remotely");
+
+            ok(!data.localFolder, "Local folder should be missing");
+
+            return expectNoPendingFolderEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("pendedDeletesAndAddsSyncUp", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var targetFolder = addedRemoteFolders.pop();
+        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var newFolder = { title: Date.now() + "" };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                toRemove: idb.getFolderFromFolderId(targetFolder.folder_id),
+                toAdd: idb.addFolder(newFolder),
+                remoteFolders: folders.list(),
+            });
+        }).then(function (data) {
+            ok(!!data.toRemove.id, "need folder id to delete");
+            ok(data.remoteFolders.some(function (item) {
+                return item.folder_id === data.toRemove.folder_id;
+            }), "Folder to delete wasn't present remotely");
+
+            ok(data.toAdd, "Didn't get added folder");
+            ok(data.toAdd.id, "Didn't have an ID");
+            newFolder = data.toAdd;
+
+            return instapaperDB.removeFolder(data.toRemove.id);
+        }).then(function () {
+            return sync.sync();
+        }).then(function () {
+            return WinJS.Promise.join({
+                remoteFolders: folders.list(),
+                removed: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
+                added: instapaperDB.getFolderByDbId(newFolder.id),
+            });
+        }).then(function (data) {
+            ok(!data.remoteFolders.some(function (item) {
+                return item.folder_id === targetFolder.folder_id;
+            }), "Item shouldn't have been found remotely");
+
+            ok(!data.removed, "Local folder should be missing");
+
+            ok(data.added, "Didn't get added folder. It got lost");
+            addedRemoteFolders.push(data.added);
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
