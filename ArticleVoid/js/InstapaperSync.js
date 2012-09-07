@@ -83,7 +83,13 @@
                 });
             },
             _removeFolderPendingEdit: function _removeFolderPendingEdit(edit, db) {
-                return this._folders.deleteFolder(edit.removedFolderId);
+                return this._folders.deleteFolder(edit.removedFolderId).then(null, function (error) {
+                    if (error && (error.error === 1242)) {
+                        return;
+                    }
+
+                    return WinJS.Promise.wrapError(error);
+                });
             },
             sync: function sync() {
                 var db = new InstapaperDB();
