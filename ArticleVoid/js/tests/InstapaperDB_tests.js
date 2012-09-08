@@ -596,7 +596,7 @@
             return instapaperDB.getPendingBookmarkEdits();
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
-            ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+            strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
 
             var edit = currentPendingEdits[0];
             pendingEditId = edit.id;
@@ -611,6 +611,54 @@
     }
 
     promiseTest("likingBookmarkAddsPendingEdit", likingBookmarkAddsPendingEdit);
+
+    promiseTest("likingBookmarkWithPendingLikeEditLeavesSinglePendingEdit", function () {
+        var instapaperDB;
+        var pendingEditId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            ok(newBookmark, "no bookmark returned");
+
+            strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            strictEqual(newBookmark.starred, 1, "Didn't get starred");
+
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+
+            return instapaperDB.likeBookmark("local_id");
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+
+            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
 
     function unlikingBookmarkLeavesPendingEdit() {
         var instapaperDB;
@@ -641,7 +689,7 @@
 
             strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Expected Delete type");
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-        }).then(function () {
+
             return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
@@ -650,7 +698,56 @@
 
     promiseTest("unlikingBookmarkLeavesPendingEdit", unlikingBookmarkLeavesPendingEdit);
 
-    function unlikingBookmarkWithPendingEditLeavesNoPendingEdit() {
+    promiseTest("unlikingBookmarkWithPendingUnlikeEditLeavesSinglePendingEdit", function () {
+        var instapaperDB;
+        var pendingEditId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id", true), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            ok(newBookmark, "no bookmark returned");
+
+            strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
+
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (currentPendingEdits) {
+            ok(currentPendingEdits, "Didn't find any pending edits");
+            strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            strictEqual(edit.type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Expected Delete type");
+            strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+
+            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    function unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit() {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -689,9 +786,9 @@
         });
     }
 
-    promiseTest("unlikingBookmarkWithPendingEditLeavesNoPendingEdit", unlikingBookmarkWithPendingEditLeavesNoPendingEdit);
+    promiseTest("unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit", unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit);
 
-    function likingBookmarkWithPendingEditLeavesNoPendingEdit() {
+    function likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit() {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -732,7 +829,7 @@
         });
     }
 
-    promiseTest("likingBookmarkWithPendingEditLeavesNoPendingEdit", likingBookmarkWithPendingEditLeavesNoPendingEdit);
+    promiseTest("likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit", likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit);
 
     // We're about to do the folder test, so we want to make sure we've got
     // a clean slate.
