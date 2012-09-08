@@ -2,9 +2,30 @@
     "use strict";
 
     if (!window.alert) {
-        window.alert = function (message) {
-            (new Windows.UI.Popups.MessageDialog(message)).showAsync();
-        };
+        (function () {
+            var alertsToShow = [];
+            var dialogVisible = false;
+
+            function showPendingAlerts() {
+                if (dialogVisible || !alertsToShow.length) {
+                    return;
+                }
+
+                dialogVisible = true;
+                (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync().done(function () {
+                    dialogVisible = false;
+                    showPendingAlerts();
+                })
+            }
+            window.alert = function (message) {
+                if (window.console && window.console.log) {
+                    window.console.log(message);
+                }
+
+                alertsToShow.push(message);
+                showPendingAlerts();
+            }
+        })();
     }
 
     if (!window.appassert) {

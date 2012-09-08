@@ -53,7 +53,8 @@
                     },
                     indexes: {
                         bookmark_id: {},
-                        type: {}
+                        type: {},
+                        sourcefolder_dbid: {},
                     }
                 };
 
@@ -265,32 +266,37 @@
                         return (item.type === type);
                     });
 
-                    appassert(resultsOfType.length === 1, "Should have only found one edit of specified type");
+                    appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
                     return resultsOfType[0];
                 });
             }),
             removeBookmark: checkDb(function removeBookmark(bookmark_id, fromServer) {
-                var removedPromise = WinJS.Promise.join([
-                    this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id),
-                    this._db.index(
-                        Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable,
-                        "bookmark_id").
-                        only(bookmark_id).
-                        then(function (pendingEditsForBookmark) {
-                            var removedEdits = [];
+                var sourcefolder_dbid;
 
-                            // Find all the pending edits that aren't "likes" and
-                            // remove them. Likes are special, and should still be
-                            // left for syncing (before any other changes).
-                            pendingEditsForBookmark.filter(function (item) {
-                                return item.type !== Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE;
-                            }).forEach(function (existingPendingEdit) {
-                                removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingPendingEdit.id));
-                            }.bind(this));
+                var removedPromise = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
+                    sourcefolder_dbid = bookmark.folder_dbid;
+                    return WinJS.Promise.join([
+                        this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id),
+                        this._db.index(
+                            Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable,
+                            "bookmark_id").
+                            only(bookmark_id).
+                            then(function (pendingEditsForBookmark) {
+                                var removedEdits = [];
 
-                            return WinJS.Promise.join(removedEdits);
-                        }.bind(this))
-                ]);
+                                // Find all the pending edits that aren't "likes" and
+                                // remove them. Likes are special, and should still be
+                                // left for syncing (before any other changes).
+                                pendingEditsForBookmark.filter(function (item) {
+                                    return item.type !== Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE;
+                                }).forEach(function (existingPendingEdit) {
+                                    removedEdits.push(this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, existingPendingEdit.id));
+                                }.bind(this));
+
+                                return WinJS.Promise.join(removedEdits);
+                            }.bind(this))
+                    ]);
+                }.bind(this));
 
                 // If it's not an edit from the server we need to add a pending
                 // delete that we can later sync to the server.
@@ -299,6 +305,7 @@
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.DELETE,
                             bookmark_id: bookmark_id,
+                            sourceFolderId: sourcefolder_dbid,
                         };
 
                         this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
@@ -317,6 +324,8 @@
                     bookmark: this.getBookmarkByBookmarkId(bookmark_id),
                     folder: this.getFolderByDbId(destinationFolderDbId),
                 };
+
+                var sourcefolder_dbid;
 
                 var movedBookmark = WinJS.Promise.join(data).then(function (data) {
                     if (!data.folder) {
@@ -344,6 +353,7 @@
                         default:
                             break;
                     }
+                    sourcefolder_dbid = data.bookmark.folder_dbid;
                     data.bookmark.folder_dbid = data.folder.id;
 
                     return this.updateBookmark(data.bookmark);
@@ -383,6 +393,7 @@
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE,
                             bookmark_id: data.bookmark.bookmark_id,
                             destinationfolder_dbid: data.folder.id,
+                            sourcefolder_dbid: sourcefolder_dbid,
                         };
 
                         return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, pendingEdit).then(function () {
@@ -395,6 +406,8 @@
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var wasUnsyncedEdit = false;
+                var sourcefolder_dbid;
+                var updatedBookmark;
 
                 var likedComplete = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
@@ -406,20 +419,34 @@
                     if (bookmark.starred === 1) {
                         return WinJS.Promise.as(bookmark);
                     }
-
+                    sourcefolder_dbid = bookmark.folder_dbid;
                     bookmark.starred = 1;
                     return this.updateBookmark(bookmark);
-                }.bind(this)).then(function () {
-                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE);
-                }.bind(this)).then(function (pendingEdit) {
-                    if (!pendingEdit) {
+                }.bind(this)).then(function (bookmark) {
+                    updatedBookmark = bookmark;
+
+                    return WinJS.Promise.join({
+                        unlike: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE),
+                        like: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE),
+                    });
+                }.bind(this)).then(function (pendingEdits) {
+                    if (!pendingEdits.unlike && !pendingEdits.like) {
                         return;
                     }
 
                     wasUnsyncedEdit = true;
 
-                    return this._deletePendingBookmarkEdit(pendingEdit.id);
-                }.bind(this));
+                    // If it's already a like, then theres nothing else for us to do here
+                    // so lets just move on.
+                    if (pendingEdits.like) {
+                        return;
+                    }
+
+                    return this._deletePendingBookmarkEdit(pendingEdits.unlike.id);
+                }.bind(this)).then(function () {
+                    // Mark sure we dont return the edited bookmark to the caller.
+                    return updatedBookmark;
+                });
 
                 if (!dontAddPendingUpdate) {
                     likedComplete = likedComplete.then(function () {
@@ -433,13 +460,17 @@
                         };
 
                         return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
-                    }.bind(this));
+                    }.bind(this)).then(function () {
+                        // Make sure we return the edited bookmark to the caller
+                        return updatedBookmark;
+                    });
                 }
 
                 return likedComplete;
             }),
             unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var wasUnsyncedEdit = false;
+                var sourcefolder_dbid;
 
                 var unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
@@ -452,18 +483,26 @@
                         return WinJS.Promise.as(bookmark);
                     }
 
+                    sourcefolder_dbid = bookmark.folder_dbid;
                     bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
                 }.bind(this)).then(function () {
-                    return this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE);
-                }.bind(this)).then(function (pendingEdit) {
-                    if (!pendingEdit) {
+                    return WinJS.Promise.join({
+                        like: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE),
+                        unlike: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE),
+                    });
+                }.bind(this)).then(function (pendingEdits) {
+                    if (!pendingEdits.like && !pendingEdits.unlike) {
                         return;
                     }
 
                     wasUnsyncedEdit = true;
 
-                    return this._deletePendingBookmarkEdit(pendingEdit.id);
+                    if (pendingEdits.unlike) {
+                        return;
+                    }
+
+                    return this._deletePendingBookmarkEdit(pendingEdits.like.id);
                 }.bind(this));
 
                 if (!dontAddPendingUpdate) {
@@ -475,6 +514,7 @@
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE,
                             bookmark_id: bookmark_id,
+                            sourcefolder_dbid: sourcefolder_dbid,
                         };
 
                         this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
