@@ -305,7 +305,7 @@
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.DELETE,
                             bookmark_id: bookmark_id,
-                            sourceFolderId: sourcefolder_dbid,
+                            sourcefolder_dbid: sourcefolder_dbid,
                         };
 
                         this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
@@ -457,6 +457,7 @@
                         var edit = {
                             type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE,
                             bookmark_id: bookmark_id,
+                            sourcefolder_dbid: sourcefolder_dbid,
                         };
 
                         return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
