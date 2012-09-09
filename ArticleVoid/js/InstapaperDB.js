@@ -231,8 +231,12 @@
             _deletePendingFolderEdit: checkDb(function _deletePendingFolderEdit(id) {
                 return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, id);
             }),
-            getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits() {
-                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
+            getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits(folder) {
+                if (!folder) {
+                    return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
+                } else {
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "sourcefolder_dbid").only(folder);
+                }
             }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
                 if (folder_id && (folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
