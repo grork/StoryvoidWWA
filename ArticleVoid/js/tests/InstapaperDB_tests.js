@@ -11,6 +11,7 @@
     var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
     var deleteDb = InstapaperTestUtilities.deleteDb;
+    var colludePendingBookmarkEdits = InstapaperTestUtilities.colludePendingBookmarkEdits;
 
     module("InstapaperDBFolders");
 
@@ -402,7 +403,7 @@
             }), WinJS.Promise.timeout()]);
         }).then(function (result) {
             pendingId = result[0].id;
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             ok(pendingEdits, "Expected some pending edits");
             ok(pendingEdits.length, 1, "Expected only 1 pending edit");
@@ -559,7 +560,7 @@
             ok(currentBookmarks, "Didn't get any pending bookmarks");
 
             strictEqual(currentBookmarks.length, 0, "Only expected to find one DB");
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -600,7 +601,7 @@
             strictEqual(newBookmark.starred, 1, "Didn't get starred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -640,7 +641,7 @@
             strictEqual(newBookmark.starred, 1, "Didn't get starred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -654,7 +655,7 @@
 
             return instapaperDB.likeBookmark("local_id");
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -693,7 +694,7 @@
             strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -734,7 +735,7 @@
             strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -748,7 +749,7 @@
 
             return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -785,7 +786,7 @@
             strictEqual(newBookmark.starred, 1, "Didn't get starred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -830,7 +831,7 @@
             strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
             folder_dbid = newBookmark.folder_dbid;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (currentPendingEdits) {
             ok(currentPendingEdits, "Didn't find any pending edits");
             ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
@@ -1020,7 +1021,7 @@
     }
 
     function cleanupPendingEdits() {
-        return this.getPendingBookmarkEdits().then(function (edits) {
+        return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then(function (edits) {
             var deletes = [];
             edits.forEach(function (edit) {
                 deletes.push(this._deletePendingBookmarkEdit(edit.id));
@@ -1068,7 +1069,7 @@
             instapaperDB = idb;
             return moveAndValidate.bind(idb)(targetBookmark, sampleFolders[1]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             validatePendingEdits(pendingEdits, targetBookmark.bookmark_id, sampleFolders[1], sourcefolder_dbid);
             return instapaperDB._deletePendingBookmarkEdit(pendingEdits[0].id);
@@ -1086,13 +1087,13 @@
             instapaperDB = idb;
             return moveAndValidate.bind(idb)(targetBookmark, sampleFolders[1]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             validatePendingEdits(pendingEdits, targetBookmark.bookmark_id, sampleFolders[1], sourcefolder_dbid);
         }).then(function () {
             return moveAndValidate.bind(instapaperDB)(targetBookmark, sampleFolders[0]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             validatePendingEdits(pendingEdits, targetBookmark.bookmark_id, sampleFolders[0], sampleFolders[1].id);
             return cleanupPendingEdits.bind(instapaperDB)();
@@ -1112,7 +1113,7 @@
             sourcefolder_dbid = likedBookmark.folder_dbid;
             return moveAndValidate.bind(instapaperDB)(sampleBookmarks[1], sampleFolders[0]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             ok(pendingEdits, "No pending edits");
             strictEqual(pendingEdits.length, 2, "Unexpected number of edits");
@@ -1159,7 +1160,7 @@
         }).then(function (likedBookmark) {
             return moveAndValidate.bind(instapaperDB)(targetBookmark, destinationFolder);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             ok(pendingEdits, "No pending edits");
             strictEqual(pendingEdits.length, 2, "Unexpected number of edits");
@@ -1191,7 +1192,7 @@
 
             return WinJS.Promise.join([instapaperDB.removeBookmark(targetBookmark.bookmark_id), WinJS.Promise.timeout()]);
         }).then(function () {
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             var likeEdit;
             var deleteEdit;
@@ -1373,12 +1374,12 @@
             sampleBookmarks[6] = data.like1;
             sampleBookmarks[7] = data.like2;
 
-            return instapaperDB.getPendingBookmarkEdits();
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             ok(pendingEdits, "Didn't get pending edits");
             strictEqual(pendingEdits.length, 3, "incorrect number of pending edits");
 
-            return instapaperDB.getPendingBookmarkEdits(targetFolder.id);
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits(targetFolder.id));
         }).then(function (scopedPendingEdits) {
             ok(scopedPendingEdits, "didn't get any pending edits");
             strictEqual(scopedPendingEdits.length, 2, "incorrect number of pending edits");
