@@ -46,7 +46,7 @@
     }
 
     function expectNoPendingBookmarkEdits(idb) {
-        return idb.getPendingBookmarkEdits().then(function (pendingEdits) {
+        return colludePendingBookmarkEdits(idb.getPendingBookmarkEdits()).then(function (pendingEdits) {
             ok(pendingEdits, "Expected valid pending edits structure");
             strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
@@ -65,6 +65,47 @@
             ok(true);
         });
     }
+    
+    function colludePendingBookmarkEdits(pendingEditPromise) {
+        return pendingEditPromise.then(function (edits) {
+            if (Array.isArray(edits)) {
+                return edits;
+            }
+
+            var colluded = [];
+            if (edits.adds && edits.adds.length) {
+                colluded = colluded.concat(edits.adds);
+            }
+
+            if (edits.deletes && edits.deletes.length) {
+                colluded = colluded.concat(edits.deletes);
+            }
+
+            if (edits.moves && edits.moves.length) {
+                colluded = colluded.concat(edits.moves);
+            }
+
+            if (edits.likes && edits.likes.length) {
+                colluded = colluded.concat(edits.likes);
+            }
+
+            if (edits.unlikes && edits.unlikes.length) {
+                colluded = colluded.concat(edits.unlikes);
+            }
+
+            colluded.sort(function (a, b) {
+                if (a.id === b.id) {
+                    return 0;
+                } else if (a.id < b.id) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
+
+            return colluded;
+        });
+    }
 
     WinJS.Namespace.define("InstapaperTestUtilities", {
         getNewInstapaperDBAndInit: getNewInstapaperDBAndInit,
@@ -74,5 +115,6 @@
         expectNoPendingFolderEdits: expectNoPendingFolderEdits,
         expectNoPendingBookmarkEdits: expectNoPendingBookmarkEdits,
         deleteDb: deleteDb,
+        colludePendingBookmarkEdits: colludePendingBookmarkEdits,
     });
 })();

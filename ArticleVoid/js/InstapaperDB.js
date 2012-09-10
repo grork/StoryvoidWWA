@@ -232,11 +232,73 @@
                 return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, id);
             }),
             getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits(folder) {
+                var edits;
                 if (!folder) {
-                    return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
+                    edits = this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
                 } else {
-                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "sourcefolder_dbid").only(folder);
+                    edits = this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "sourcefolder_dbid").only(folder);
                 }
+
+                edits = edits.then(function (pendingEdits) {
+                    var adds = [];
+                    var deletes = [];
+                    var moves = [];
+                    var likes = [];
+                    var unlikes = [];
+
+                    pendingEdits.forEach(function (pendingEdit) {
+                        switch (pendingEdit.type) {
+                            case Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ADD:
+                                appassert(!folder, "Don't support folder specific adds");
+                                adds.push(pendingEdit);
+                                break;
+                            case Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.DELETE:
+                                deletes.push(pendingEdit);
+                                break;
+
+                            case Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.MOVE:
+                                moves.push(pendingEdit);
+                                break;
+
+                            case Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE:
+                                likes.push(pendingEdit);
+                                break;
+
+                            case Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE:
+                                unlikes.push(pendingEdit);
+                                break;
+
+                            default:
+                                appassert(false, "Unsupported edit type");
+                                break;
+                        }
+                    });
+
+                    var result = {};
+
+                    if (adds.length) {
+                        result.adds = adds;
+                    }
+                    
+                    if (deletes.length) {
+                        result.deletes = deletes;
+                    }
+
+                    if (moves.length) {
+                        result.moves = moves;
+                    }
+
+                    if (likes.length) {
+                        result.likes = likes;
+                    }
+
+                    if (unlikes.length) {
+                        result.unlikes = unlikes;
+                    }
+
+                    return result;
+                });
+                return edits;
             }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
                 if (folder_id && (folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
