@@ -1401,6 +1401,47 @@
     });
 
     promiseTest("deleteDb", deleteDb);
+
+    promiseTest("gettingPendingBookmarkAddsWithEmptyDbReturnsUndefined", function () {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getPendingBookmarkAdds();
+        }).then(function (adds) {
+            strictEqual(adds, undefined, "Didn't expect any results");
+        });
+    });
+
+    promiseTest("canGetAllPendingAdds", function () {
+        var instapaperDB;
+        
+        // Reinitalize the sample data.
+        setSampleData();
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            var addPromises = sampleBookmarks.reduce(function (data, bookmark) {
+                data.push(idb.addUrl({ url: bookmark.url, title: bookmark.title }));
+                return data;
+            }, []);
+
+            addPromises.push(WinJS.Promise.timeout());
+            return WinJS.Promise.join(addPromises);
+        }).then(function () {
+            return instapaperDB.getPendingBookmarkEdits();
+        }).then(function (pendingEdits) {
+            ok(pendingEdits, "Expected pending edits");
+            strictEqual(pendingEdits.adds.length, sampleBookmarks.length, "Didn't find enough pending edits");
+
+            return instapaperDB.getPendingBookmarkAdds();
+        }).then(function (pendingAdds) {
+            ok(pendingAdds, "Didn't get any pending adds");
+            ok(pendingAdds.length, sampleBookmarks.length, "Didn't find enough pending adds");
+
+            return cleanupPendingEdits.bind(instapaperDB)();
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
 })();
 
 /*

@@ -300,6 +300,11 @@
                 });
                 return edits;
             }),
+            getPendingBookmarkAdds: checkDb(function getPendingBookmarkAdds() {
+                return this.getPendingBookmarkEdits().then(function (data) {
+                    return data.adds;
+                });
+            }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
                 if (folder_id && (folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
                     return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "starred").only(1);
