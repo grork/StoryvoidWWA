@@ -120,7 +120,7 @@
 
                         if (syncPromise) {
                             syncs.push(syncPromise.then(function () {
-                                return db._deletePendingFolderEdit(edit.id);
+                                return db.deletePendingFolderEdit(edit.id);
                             }));
                         }
                     }.bind(this));

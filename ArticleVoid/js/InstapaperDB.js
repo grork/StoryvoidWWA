@@ -133,7 +133,7 @@
 
                     // Throw away the pending edit now that we got the data on it. This means it looks like
                     // the folder had never been removed.
-                    return this._deletePendingFolderEdit(pendingItem.id).then(function () {
+                    return this.deletePendingFolderEdit(pendingItem.id).then(function () {
                         return WinJS.Binding.as(dataToResurrect);
                     });
                 }.bind(this)).then(function (existingFolderData) {
@@ -187,7 +187,7 @@
                     wasUnsyncedEdit = true;
                     appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
 
-                    return this._deletePendingFolderEdit(results[0].id);
+                    return this.deletePendingFolderEdit(results[0].id);
                 }.bind(this));
 
 
@@ -228,7 +228,7 @@
                     return folderEditToPend;
                 });
             }),
-            _deletePendingFolderEdit: checkDb(function _deletePendingFolderEdit(id) {
+            deletePendingFolderEdit: checkDb(function deletePendingFolderEdit(id) {
                 return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, id);
             }),
             getPendingBookmarkEdits: checkDb(function getPendingBookmarkEdits(folder) {
@@ -324,7 +324,7 @@
                     type: Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.ADD
                 }).then(extractFirstItemInArray);
             }),
-            _deletePendingBookmarkEdit: checkDb(function check_deletePendingBookmarkedit(id) {
+            deletePendingBookmarkEdit: checkDb(function checkdeletePendingBookmarkEdit(id) {
                 return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, id);
             }),
             _getPendingEditForBookmarkAndType: checkDb(function _getPendingEditForBookmarkAndType(bookmark, type) {
@@ -513,7 +513,7 @@
                         return;
                     }
 
-                    return this._deletePendingBookmarkEdit(pendingEdits.unlike.id);
+                    return this.deletePendingBookmarkEdit(pendingEdits.unlike.id);
                 }.bind(this)).then(function () {
                     // Mark sure we dont return the edited bookmark to the caller.
                     return updatedBookmark;
@@ -574,7 +574,7 @@
                         return;
                     }
 
-                    return this._deletePendingBookmarkEdit(pendingEdits.like.id);
+                    return this.deletePendingBookmarkEdit(pendingEdits.like.id);
                 }.bind(this));
 
                 if (!dontAddPendingUpdate) {

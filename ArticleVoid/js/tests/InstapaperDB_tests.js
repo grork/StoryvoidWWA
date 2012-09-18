@@ -211,7 +211,7 @@
             strictEqual(pendingEdit.type, Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD, "Expected to be ADD edit type");
             strictEqual(pendingEdit.folderTableId, addFolderResult.id, "Pending edit wasn't for the folder we added");
 
-            return instapaperDB._deletePendingFolderEdit(pendingEdit.id);
+            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
         });
     }
 
@@ -256,7 +256,7 @@
             strictEqual(pendingEdit.removedFolderId, folderToRemove.folder_id, "Pending edit wasn't for the folder we added");
             strictEqual(pendingEdit.title, folderToRemove.title, "Didn't didn't match");
 
-            return instapaperDB._deletePendingFolderEdit(pendingEdit.id);
+            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
         });
     }
 
@@ -420,7 +420,7 @@
 
             return WinJS.Promise.timeout();
         }).then(function () {
-            return instapaperDB._deletePendingBookmarkEdit(pendingId);
+            return instapaperDB.deletePendingBookmarkEdit(pendingId);
         });
     }
 
@@ -572,7 +572,7 @@
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
             strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
         }).then(function () {
-            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -613,7 +613,7 @@
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
             strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked for the correct folder");
         }).then(function () {
-            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -667,7 +667,7 @@
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
             strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
 
-            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -706,7 +706,7 @@
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
             strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked with correct source folder");
 
-            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -761,7 +761,7 @@
             strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
             strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
 
-            return WinJS.Promise.join([instapaperDB._deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1024,7 +1024,7 @@
         return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then(function (edits) {
             var deletes = [];
             edits.forEach(function (edit) {
-                deletes.push(this._deletePendingBookmarkEdit(edit.id));
+                deletes.push(this.deletePendingBookmarkEdit(edit.id));
             }.bind(this));
 
             return WinJS.Promise.join(deletes);
@@ -1072,7 +1072,7 @@
             return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
         }).then(function (pendingEdits) {
             validatePendingEdits(pendingEdits, targetBookmark.bookmark_id, sampleFolders[1], sourcefolder_dbid);
-            return instapaperDB._deletePendingBookmarkEdit(pendingEdits[0].id);
+            return instapaperDB.deletePendingBookmarkEdit(pendingEdits[0].id);
         });
     }
 
@@ -1440,6 +1440,67 @@
             return cleanupPendingEdits.bind(instapaperDB)();
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("addSampleData", addSampleData);
+    promiseTest("pendingEditsAreCorrectlyBucketed", function () {
+        var instapaperDB;
+        var unreadFolderDbId;
+        var archiveFolderDbId;
+        
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return WinJS.Promise.join({
+                like: idb.likeBookmark(sampleBookmarks[0].bookmark_id, true),
+                unreadFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Unread),
+                archiveFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Archive),
+            });
+        }).then(function (data) {
+            unreadFolderDbId = data.unreadFolder.id;
+            archiveFolderDbId = data.archiveFolder.id;
+
+            var operations = [
+                instapaperDB.unlikeBookmark(sampleBookmarks[0].bookmark_id),
+                instapaperDB.likeBookmark(sampleBookmarks[1].bookmark_id),
+                instapaperDB.moveBookmark(sampleBookmarks[2].bookmark_id, sampleFolders[0].id),
+                instapaperDB.removeBookmark(sampleBookmarks[3].bookmark_id),
+                WinJS.Promise.timeout(),
+            ];
+
+            return WinJS.Promise.join(operations);
+        }).then(function () {
+            return WinJS.Promise.join({
+                unread: instapaperDB.getPendingBookmarkEdits(unreadFolderDbId),
+                archive: instapaperDB.getPendingBookmarkEdits(archiveFolderDbId),
+            });
+        }).then(function (data) {
+            ok(data.unread, "No unread info");
+            ok(data.archive, "No archive info");
+
+            ok(!data.unread.adds, "Didn't expect any adds");
+
+            ok(data.unread.unlikes, "Didn't get any unlikes");
+            strictEqual(data.unread.unlikes.length, 1, "Only expected one like edit");
+            strictEqual(data.unread.unlikes[0].bookmark_id, sampleBookmarks[0].bookmark_id, "Incorrect bookmark");
+            strictEqual(data.unread.unlikes[0].type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Not correct edit type");
+
+            ok(data.unread.likes, "Didn't get any unlikes");
+            ok(data.unread.likes.length, 1, "Didn't get enough likes");
+            ok(data.unread.likes[0].bookmark_id, sampleBookmarks[1].bookmark_id, "Incorrect bookmark ID");
+            ok(data.unread.likes[0].type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Incorrect edit type");
+
+            ok(data.unread.moves, "Didn't get any unlikes");
+            ok(data.unread.moves.length, 1, "Didn't get enough likes");
+            ok(data.unread.moves[0].bookmark_id, sampleBookmarks[2].bookmark_id, "Incorrect bookmark ID");
+            ok(data.unread.moves[0].type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "Incorrect edit type");
+            ok(data.unread.moves[0].destinationfolder_dbid, sampleFolders[0].id, "Wrong destination folder");
+
+            ok(data.archive.deletes, "Didn't get any unlikes");
+            ok(data.archive.deletes.length, 1, "Didn't get enough likes");
+            ok(data.archive.deletes[0].bookmark_id, sampleBookmarks[3].bookmark_id, "Incorrect bookmark ID");
+            ok(data.archive.deletes[0].type, InstapaperDB.PendingBookmarkEditTypes.DELETE, "Incorrect edit type");
         });
     });
 })();
