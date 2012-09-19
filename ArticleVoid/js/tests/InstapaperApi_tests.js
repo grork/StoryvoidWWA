@@ -108,8 +108,11 @@
         stop();
 
         bookmarks.list().done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 0, "Didn't expect any pre-existing data");
+            ok(data.meta, "Didn't get a meta object");
+            ok(data.user, "Didn't get user object");
+            ok(data.bookmarks, "Didn't get any bookmark data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             start();
         }, failedPromiseHandler);
     }
@@ -159,11 +162,11 @@
         stop();
 
         bookmarks.list().done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 1, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
             // Validate the only bookmark
-            var bookmarkData = data[0];
+            var bookmarkData = data.bookmarks[0];
             strictEqual(bookmarkData.type, "bookmark");
             strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
             strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
@@ -187,8 +190,8 @@
                 hash: justAddedBookmark.hash,
             }]
         }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 0, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
 
             start();
         }, failedPromiseHandler);
@@ -220,10 +223,10 @@
                 progressLastChanged: Date.now()
             }]
         }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 1, "Expected updated item");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 1, "Expected updated item");
 
-            var updatedBookmark = data[0];
+            var updatedBookmark = data.bookmarks[0];
             equal(updatedBookmark.progress, 0.5, "progress wasn't updated");
             notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
 
@@ -256,8 +259,8 @@
         stop();
 
         bookmarks.list({ folder_id: "starred" }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 0, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             start();
         }, failedPromiseHandler);
     }
@@ -277,11 +280,11 @@
         stop();
 
         bookmarks.list({ folder_id: "starred" }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 1, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
             // Validate the only bookmark
-            var bookmarkData = data[0];
+            var bookmarkData = data.bookmarks[0];
             strictEqual(bookmarkData.type, "bookmark");
             strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
             strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
@@ -306,8 +309,8 @@
         stop();
 
         bookmarks.list({ folder_id: "archive" }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 0, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             start();
         }, failedPromiseHandler);
     }
@@ -331,11 +334,11 @@
         stop();
 
         bookmarks.list({ folder_id: "archive" }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 1, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
             // Validate the only bookmark
-            var bookmarkData = data[0];
+            var bookmarkData = data.bookmarks[0];
             strictEqual(bookmarkData.type, "bookmark");
             strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
             strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
@@ -489,7 +492,7 @@
         stop();
         folders.list().done(function (folders) {
             ok(Array.isArray(folders), "Folders should have been an array");
-            strictEqual(folders.length, 1, "Shouldn't have found any folders");
+            strictEqual(folders.length, 2, "Shouldn't have found any folders");
 
             strictEqual(folders[0].title, "folder", "folder title was incorrect");
             start();
@@ -552,17 +555,17 @@
         stop();
 
         bookmarks.list({ folder_id: addedFolderId }).done(function (data) {
-            ok(Array.isArray(data), "Expected an array of data")
-            strictEqual(data.length, 2, "Didn't expect any pre-existing data");
+            ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            strictEqual(data.bookmarks.length, 2, "Didn't expect any pre-existing data");
 
             // Validate the only bookmark
-            var bookmarkData = data[0];
+            var bookmarkData = data.bookmarks[0];
             strictEqual(bookmarkData.type, "bookmark");
             strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
             strictEqual(bookmarkData.title, "TestPage4", "title wasn't expected");
             strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
 
-            var bookmarkData2 = data[1];
+            var bookmarkData2 = data.bookmarks[1];
             strictEqual(bookmarkData2.type, "bookmark");
             strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
             strictEqual(bookmarkData2.title, "TestPage3", "title wasn't expected");
@@ -581,8 +584,8 @@
                 return bookmarks.list({ folder_id: "archive" });
             });
         }).done(function (archivedBookmarks) {
-            ok(archivedBookmarks, "Expected archived bookmarks");
-            strictEqual(archivedBookmarks.length, 0, "Didn't expect to find any bookmarks");
+            ok(archivedBookmarks.bookmarks, "Expected archived bookmarks");
+            strictEqual(archivedBookmarks.bookmarks.length, 0, "Didn't expect to find any bookmarks");
 
             start();
         }, failedPromiseHandler);
