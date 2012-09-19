@@ -31,7 +31,7 @@
     function deleteAllRemoteBookmarks(bookmarksToDelete) {
         var client = this;
         var deletePromises = [];
-        bookmarksToDelete.forEach(function (bookmark) {
+        bookmarksToDelete.bookmarks.forEach(function (bookmark) {
             client.deleteBookmark(bookmark.bookmark_id);
         });
 

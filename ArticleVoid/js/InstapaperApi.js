@@ -138,11 +138,12 @@
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError).then(function stripMetaAndUserObject(data) {
                     appassert(Array.isArray(data), "Expected array for data");
                     appassert(data.length > 1, "expected at least 2 objects");
-                    // Dump the meta object...
-                    data.shift();
-                    // .. and the user object.
-                    data.shift();
-                    return data;
+
+                    return {
+                        meta: data.shift(),
+                        user: data.shift(),
+                        bookmarks: data,
+                    };
                 });
             },
             add: function add(parameters) {
