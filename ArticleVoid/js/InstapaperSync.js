@@ -96,6 +96,8 @@
             sync: function sync() {
                 var db = new InstapaperDB();
                 var f = this._folders;
+                var b = this._bookmarks;
+                var currentFolderId = InstapaperDB.CommonFolderIds.Unread;
 
                 return db.initialize().then(function startSync() {
                     return db.getPendingFolderEdits();
@@ -177,7 +179,36 @@
 
                     syncs = syncs.concat(removedFolderPromises);
 
-                    return WinJS.Promise.join(syncs);
+                    // TO THE BOOKMARKS I SAY. TO. THE. BOOKMARKS.
+                    return db.listCurrentBookmarks(currentFolderId);
+                }).then(function (localBookmarks) {
+                    var haves = [];
+                    localBookmarks.reduce(function (data, bookmark) {
+                        data.push({
+                            id: bookmark.bookmark_id,
+                            hash: bookmark.hash,
+                            progress: bookmark.progress,
+                            progresLastChanged: bookmark.progressLastChanged,
+                        });
+
+                        return data;
+                    }, haves);
+
+                    return b.list({
+                        folder_id: currentFolderId,
+                        haves: haves,
+                    });
+                }).then(function (result) {
+                    var rb = result.bookmarks;
+                    var localAdds = [];
+                    rb.reduce(function (data, bookmark) {
+                        bookmark.folder_id = currentFolderId;
+                        bookmark.starred = parseInt(bookmark.starred, 10);
+                        data.push(db.addBookmark(bookmark, true));
+                        return data;
+                    }, localAdds);
+                    
+                    return WinJS.Promise.join(localAdds);
                 }).then(function () {
                     return WinJS.Promise.timeout();
                 });

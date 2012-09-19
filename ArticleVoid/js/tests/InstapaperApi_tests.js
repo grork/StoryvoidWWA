@@ -58,21 +58,21 @@
     module("instapaperApiBookmarksHaveConversion");
 
     function numberHaveReturnsString() {
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks._convertHaveObjectToString(12345);
+        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(12345);
 
         strictEqual(result, "12345", "Expected string back from function. Got something else");
     }
 
     function haveWithHashReturnsCorrectString() {
         var have = { id: 12345, hash: "OjMuzFp6" };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks._convertHaveObjectToString(have);
+        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "12345:OjMuzFp6", "Incorrect stringification of have value");
     }
 
     function haveWithProgressReturnsCorrectString() {
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5, progressLastChanged: 1288584076 };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks._convertHaveObjectToString(have);
+        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "12345:OjMuzFp6:0.5:1288584076", "Incorrect stringification of have value");
     }
@@ -81,7 +81,7 @@
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5 };
 
         raises(function () {
-            Codevoid.ArticleVoid.InstapaperApi.Bookmarks._convertHaveObjectToString(have);
+            Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
         }, null, "no exception was thrown");
     }
     test("numberHaveReturnsString", numberHaveReturnsString);

@@ -302,7 +302,7 @@
             }),
             getPendingBookmarkAdds: checkDb(function getPendingBookmarkAdds() {
                 return this.getPendingBookmarkEdits().then(function (data) {
-                    return data.adds;
+                    return data.adds || [];
                 });
             }),
             listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {

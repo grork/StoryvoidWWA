@@ -121,7 +121,7 @@
 
                         var haveStrings = [];
                         parameters.have.forEach(function (have) {
-                            haveStrings.push(Codevoid.ArticleVoid.InstapaperApi.Bookmarks._convertHaveObjectToString(have));
+                            haveStrings.push(Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have));
                         });
 
                         appassert(haveStrings.length > 0, "didn't get any have strings to send");
@@ -277,7 +277,7 @@
                 }, handleSingleItemJSONError);
             },
         }, {
-            _convertHaveObjectToString: function _convertHaveToString(have) {
+            haveToString: function _convertHaveToString(have) {
                 if (!isNaN(have)) {
                     return have.toString();
                 }

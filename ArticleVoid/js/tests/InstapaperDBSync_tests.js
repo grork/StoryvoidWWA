@@ -18,11 +18,30 @@
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
     var deleteDb = InstapaperTestUtilities.deleteDb;
 
-    var addedRemoteFolders = [
-        { title: "sampleFolder1", },
-        { title: "sampleFolder2", },
-        { title: "sampleFolder3", },
-    ];
+    var addedRemoteFolders;
+
+    function setSampleFolders() {
+        addedRemoteFolders = [
+            { title: "sampleFolder1", },
+            { title: "sampleFolder2", },
+            { title: "sampleFolder3", },
+        ];
+    }
+
+    var addedRemoteBookmarks;
+    function setSampleBookmarks() {
+        addedRemoteBookmarks = [
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
+        ];
+    }
 
     function getNewSyncEngine() {
         return new Codevoid.ArticleVoid.InstapaperSync(clientInformation);
@@ -77,6 +96,7 @@
     promiseTest("deleteDbOnStart", deleteDb);
 
     function addDefaultRemoteFolders() {
+        setSampleFolders();
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
 
         var addPromises = [];
@@ -104,7 +124,7 @@
             return idb.listCurrentFolders();
         }).then(function (folders) {
             ok(folders, "Didn't get folder list");
-            
+
             strictEqual(folders.length, 6, "Unexpected number of folders");
 
             folders.forEach(function (folder) {
@@ -219,7 +239,7 @@
                 ok(!!addedFolder.id, "Folder didn't have DB id");
 
                 var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
-                
+
                 // Add a non-local folder to syncdown at the same time.
                 return folders.add(newRemoteFolder.title);
             }).then(function (addedRemoteFolder) {
@@ -234,7 +254,7 @@
                 });
             }).then(function (folders) {
                 ok(!folders.deleted, "Shouldn't have gotten the folder. It should have been removed");
-                
+
                 ok(folders.added, "Didn't find added folder");
                 strictEqual(folders.added.folder_id, newRemoteFolder.folder_id, "Not correct folder ID");
                 strictEqual(folders.added.title, newRemoteFolder.title, "Incorrect title");
@@ -457,6 +477,66 @@
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
+    });
+
+    promiseTest("destoryRemoteDataBeforeBookmarks", destroyRemoteAccountData);
+    promiseTest("deleteDbBeforeBookmarks", deleteDb);
+    promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders);
+    promiseTest("addsFoldersOnFirstSightBeforeBookmarks", addsFoldersOnFirstSight);
+
+    promiseTest("addDefaultBookmarks", function () {
+        setSampleBookmarks();
+
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        var addedPromises = [];
+        addedRemoteBookmarks.forEach(function (toAdd, index) {
+            addedPromises.push(bookmarks.add(toAdd).then(function(added) {
+                addedRemoteBookmarks[index] = added;
+            }));
+        });
+
+        return WinJS.Promise.join(addedPromises).then(function () {
+            ok(true, "bookmarks weren't added");
+        });
+    });
+
+    promiseTest("bookmarksAddedOnFirstSight", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+
+        return sync.sync().then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
+        }).then(function (bookmarks) {
+            ok(bookmarks, "Didn't get any bookmarks");
+            strictEqual(bookmarks.length, 9, "Didn't get enough bookmarks");
+
+            var expectedBookmarks = [];
+            for (var i = 1; i < 10; i++) {
+                expectedBookmarks.push("http://www.codevoid.net/articlevoidtest/TestPage" + i + ".html");
+            }
+
+            ok(expectedBookmarks.length, "Should have added some test pages to check");
+
+            var allInUnread = bookmarks.every(function (item) {
+                var expectedBookmarkIndex = expectedBookmarks.indexOf(item.url);
+                if (expectedBookmarkIndex > -1) {
+                    expectedBookmarks.splice(expectedBookmarkIndex, 1);
+                }
+
+                return item.folder_id === InstapaperDB.CommonFolderIds.Unread;
+            });
+
+            ok(allInUnread, "Some of the sync'd bookmarks were not in the unread folder");
+            strictEqual(expectedBookmarks.length, 0, "Some bookmarks were not found");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+
     });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
