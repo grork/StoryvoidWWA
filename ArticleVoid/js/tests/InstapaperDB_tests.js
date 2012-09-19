@@ -1406,7 +1406,8 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             return idb.getPendingBookmarkAdds();
         }).then(function (adds) {
-            strictEqual(adds, undefined, "Didn't expect any results");
+            ok(Array.isArray(adds), "Didn't get expected array");
+            strictEqual(adds.length, 0, "Shouldn't have had any pending edits");
         });
     });
 
@@ -1440,6 +1441,15 @@
             return cleanupPendingEdits.bind(instapaperDB)();
         }).then(function () {
             return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("gettingPendingAddsWithNoAddsReturnsEmptyArray", function () {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getPendingBookmarkAdds();
+        }).then(function (adds) {
+            ok(Array.isArray(adds), "Didn't get expected array");
+            strictEqual(adds.length, 0, "Shouldn't have had any pending edits");
         });
     });
 
