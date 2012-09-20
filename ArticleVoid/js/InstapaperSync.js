@@ -93,16 +93,8 @@
                     return WinJS.Promise.wrapError(error);
                 });
             },
-            sync: function sync() {
-                var db = new InstapaperDB();
-                var f = this._folders;
-                var b = this._bookmarks;
-                var currentFolderId;
-
-                return db.initialize().then(function startSync() {
-                    currentFolderId = db.commonFolderDbIds.unread;
-                    return db.getPendingFolderEdits();
-                }).then(function processPendingEdits(pendingEdits) {
+            _syncFolders: function _syncFolders(db, folders) {
+                return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
                     
                     pendingEdits.forEach(function (edit) {
@@ -131,10 +123,10 @@
                     return WinJS.Promise.join(syncs);
                 }.bind(this)).then(function () {
                     return WinJS.Promise.join({
-                        remoteFolders: f.list(),
+                        remoteFolders: this._folders.list(),
                         localFolders: db.listCurrentFolders(),
                     });
-                }).then(function (data) {
+                }.bind(this)).then(function (data) {
                     var syncs = [];
 
                     // Find all the changes from the remote server
@@ -180,9 +172,19 @@
 
                     syncs = syncs.concat(removedFolderPromises);
 
-                    // TO THE BOOKMARKS I SAY. TO. THE. BOOKMARKS.
-                    return db.listCurrentBookmarks(currentFolderId);
-                }).then(function (localBookmarks) {
+                    return WinJS.Promise.join(syncs);
+                });
+            },
+            _syncBookmarks: function _syncBookmarks(db, dbIdOfFolderToSync) {
+                var b = this._bookmarks;
+                var folderId;
+                
+                return WinJS.Promise.join({
+                    folder: db.getFolderByDbId(dbIdOfFolderToSync),
+                    localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
+                }).then(function (data) {
+                    folderId = data.folder.folder_id;
+                    var localBookmarks = data.localBookmarks;
                     var haves = [];
                     localBookmarks.reduce(function (data, bookmark) {
                         data.push({
@@ -196,21 +198,43 @@
                     }, haves);
 
                     return b.list({
-                        folder_id: currentFolderId,
+                        folder_id: folderId,
                         haves: haves,
                     });
                 }).then(function (result) {
                     var rb = result.bookmarks;
                     var localAdds = [];
                     rb.reduce(function (data, bookmark) {
-                        bookmark.folder_dbid = currentFolderId;
+                        bookmark.folder_dbid = dbIdOfFolderToSync;
+                        bookmark.folder_id = folderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
                         data.push(db.addBookmark(bookmark, true));
                         return data;
                     }, localAdds);
-                    
+
                     return WinJS.Promise.join(localAdds);
-                }).then(function () {
+                });
+            },
+            sync: function sync(options) {
+                options = options || { folders: true, bookmarks: true };
+                var syncFolders = (options.folders === undefined) ? true : options.folders;
+                var syncBookmarks = (options.bookmarks === undefined) ? true : options.bookmarks;
+
+                var db = new InstapaperDB();
+
+                return db.initialize().then(function startSync() {
+                    if (!syncFolders) {
+                        return;
+                    }
+
+                    return this._syncFolders(db);
+                }.bind(this)).then(function () {
+                    if (!syncBookmarks) {
+                        return;
+                    }
+
+                    return this._syncBookmarks(db, db.commonFolderDbIds.unread);
+                }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
                 });
             },
