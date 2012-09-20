@@ -111,7 +111,7 @@
     function addsFoldersOnFirstSight() {
         var sync = getNewSyncEngine();
         var instapaperDB;
-        return sync.sync().then(function () {
+        return sync.sync({ folders: true }).then(function () {
             return getNewInstapaperDBAndInit();
         }).then(function (idb) {
             instapaperDB = idb;
@@ -164,7 +164,7 @@
             ok(data.updatedFolder, "Didn't get updated folder");
             notStrictEqual(data.updatedFolder.title, targetRemoteFolder.title, "Title didn't change");
 
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return instapaperDB.getFolderFromFolderId(targetRemoteFolder.folder_id);
         }).then(function (localFolder) {
@@ -195,7 +195,7 @@
                 strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
                 ok(!!addedFolder.id, "Folder didn't have DB id");
 
-                return WinJS.Promise.join([sync.sync(), WinJS.Promise.timeout()]);
+                return WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
             }).then(function () {
                 return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
             }).then(function (addedFolder) {
@@ -240,7 +240,7 @@
                 // Save the ID for later user.
                 newRemoteFolder.folder_id = addedRemoteFolder.folder_id;
 
-                return WinJS.Promise.join([sync.sync(), WinJS.Promise.timeout()]);
+                return WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
             }).then(function () {
                 return WinJS.Promise.join({
                     deleted: instapaperDB.getFolderFromFolderId(fakeFolder.folder_id),
@@ -273,7 +273,7 @@
             ok(!!addedFolder.id, "need folder id to find it later");
             newFolder = addedFolder;
 
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return (new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation)).list();
         }).then(function (remoteFolders) {
@@ -305,7 +305,7 @@
         }).then(function (pendingEdits) {
             strictEqual(pendingEdits.length, 1, "Only expected one pending edit");
 
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return instapaperDB.getFolderByDbId(newFolder.id);
         }).then(function (syncedFolder) {
@@ -335,7 +335,7 @@
                 local = data.local;
                 remote = data.remote;
 
-                return sync.sync();
+                return sync.sync({ folders: true });
             }).then(function () {
                 return expectNoPendingFolderEdits(instapaperDB);
             }).then(function () {
@@ -369,7 +369,7 @@
 
             return instapaperDB.removeFolder(data.local.id);
         }).then(function () {
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return WinJS.Promise.join({
                 remoteFolders: folders.list(),
@@ -409,7 +409,7 @@
                 remote: folders.deleteFolder(data.local.folder_id),
             });
         }).then(function () {
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return WinJS.Promise.join({
                 remoteFolders: folders.list(),
@@ -452,7 +452,7 @@
 
             return instapaperDB.removeFolder(data.toRemove.id);
         }).then(function () {
-            return sync.sync();
+            return sync.sync({ folders: true });
         }).then(function () {
             return WinJS.Promise.join({
                 remoteFolders: folders.list(),
@@ -506,7 +506,7 @@
         var sync = getNewSyncEngine();
         var instapaperDB;
 
-        return sync.sync().then(function () {
+        return sync.sync({ bookmarks: true }).then(function () {
             return getNewInstapaperDBAndInit();
         }).then(function (idb) {
             instapaperDB = idb;
