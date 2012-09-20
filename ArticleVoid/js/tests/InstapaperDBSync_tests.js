@@ -34,12 +34,6 @@
             { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
             { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
             { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
         ];
     }
 
@@ -486,18 +480,25 @@
 
     promiseTest("addDefaultBookmarks", function () {
         setSampleBookmarks();
-
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarksToAdd = [].concat(addedRemoteBookmarks);
 
-        var addedPromises = [];
-        addedRemoteBookmarks.forEach(function (toAdd, index) {
-            addedPromises.push(bookmarks.add(toAdd).then(function(added) {
-                addedRemoteBookmarks[index] = added;
-            }));
-        });
+        function bookmarkAdded(added) {
+            addedRemoteBookmarks[(addedRemoteBookmarks.length - 1) - bookmarksToAdd.length] = added;
+            
+            var next = bookmarksToAdd.pop();
+            if(!next) {
+                ok(true, "Bookmarks added");
+                return;
+            }
 
-        return WinJS.Promise.join(addedPromises).then(function () {
-            ok(true, "bookmarks weren't added");
+            return WinJS.Promise.timeout(100).then(function() {
+                return bookmarks.add(next);
+            }).then(bookmarkAdded);
+        }
+
+        return WinJS.Promise.timeout(5000).then(function () {
+            return bookmarks.add(bookmarksToAdd.pop()).then(bookmarkAdded);
         });
     });
 
@@ -510,13 +511,13 @@
         }).then(function (idb) {
             instapaperDB = idb;
 
-            return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (bookmarks) {
             ok(bookmarks, "Didn't get any bookmarks");
-            strictEqual(bookmarks.length, 9, "Didn't get enough bookmarks");
+            strictEqual(bookmarks.length, addedRemoteBookmarks.length, "Didn't get enough bookmarks");
 
             var expectedBookmarks = [];
-            for (var i = 1; i < 10; i++) {
+            for (var i = 1; i < addedRemoteBookmarks.length + 1; i++) {
                 expectedBookmarks.push("http://www.codevoid.net/articlevoidtest/TestPage" + i + ".html");
             }
 
@@ -528,7 +529,7 @@
                     expectedBookmarks.splice(expectedBookmarkIndex, 1);
                 }
 
-                return item.folder_id === InstapaperDB.CommonFolderIds.Unread;
+                return item.folder_dbid === instapaperDB.commonFolderDbIds.unread;
             });
 
             ok(allInUnread, "Some of the sync'd bookmarks were not in the unread folder");

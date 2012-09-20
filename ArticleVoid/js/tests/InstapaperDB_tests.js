@@ -334,7 +334,7 @@
 
     function emptyUnreadBookmarksTableReturnsEmptyData() {
         return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (results) {
             ok(results, "expected result array"),
             strictEqual(results.length, 0, "Didn't expect to get any results");
@@ -1255,7 +1255,7 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Unread);
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (unreadBookmarks) {
             ok(unreadBookmarks, "Didn't get list of unread bookmarks");
 
@@ -1293,7 +1293,7 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.listCurrentBookmarks(sampleFolders[0].folder_id);
+            return idb.listCurrentBookmarks(sampleFolders[0].id);
         }).then(function (folderBookmarks) {
             ok(folderBookmarks, "Didn't get list of folder bookmarks");
 
@@ -1333,7 +1333,7 @@
                 WinJS.Promise.timeout()
             ]);
         }).then(function () {
-            return instapaperDB.listCurrentBookmarks(InstapaperDB.CommonFolderIds.Liked);
+            return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.liked);
         }).then(function (likedBookmarks) {
             var folderHash = {};
 
