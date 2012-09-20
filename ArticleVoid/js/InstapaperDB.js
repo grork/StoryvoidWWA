@@ -31,6 +31,7 @@
         InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor() {
         }, {
             _db: null,
+            commonFolderDbIds: null,
             initialize: function initialize() {
                 var schema = {};
                 schema[Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable] = {
@@ -87,7 +88,18 @@
                     schema: schema,
                 }, Codevoid.ArticleVoid.InstapaperDB.createDefaultData).then(function saveDbDuringInit(db) {
                     this._db = db;
-                }.bind(this)).then(function returnSelfToChain() {
+                }.bind(this)).then(function getDefaultFolderIds() {
+                    return WinJS.Promise.join({
+                        archive: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive),
+                        liked: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked),
+                        unread: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread),
+                    });
+                }.bind(this)).then(function returnSelfToChain(data) {
+                    this.commonFolderDbIds = {
+                        archive: data.archive.id,
+                        liked: data.liked.id,
+                        unread: data.unread.id,
+                    };
                     return this;
                 }.bind(this));
             },
@@ -305,11 +317,11 @@
                     return data.adds || [];
                 });
             }),
-            listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_id) {
-                if (folder_id && (folder_id === Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
+            listCurrentBookmarks: checkDb(function listCurrentBookmarks(folder_dbid) {
+                if (folder_dbid && (folder_dbid === this.commonFolderDbIds.liked)) {
                     return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "starred").only(1);
-                } else if (folder_id && (folder_id !== Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
-                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "folder_id").only(folder_id);
+                } else if (folder_dbid && (folder_dbid !== Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked)) {
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, "folder_dbid").only(folder_dbid);
                 } else {
                     return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable).execute();
                 }

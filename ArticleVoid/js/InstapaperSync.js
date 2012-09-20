@@ -97,9 +97,10 @@
                 var db = new InstapaperDB();
                 var f = this._folders;
                 var b = this._bookmarks;
-                var currentFolderId = InstapaperDB.CommonFolderIds.Unread;
+                var currentFolderId;
 
                 return db.initialize().then(function startSync() {
+                    currentFolderId = db.commonFolderDbIds.unread;
                     return db.getPendingFolderEdits();
                 }).then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
@@ -202,7 +203,7 @@
                     var rb = result.bookmarks;
                     var localAdds = [];
                     rb.reduce(function (data, bookmark) {
-                        bookmark.folder_id = currentFolderId;
+                        bookmark.folder_dbid = currentFolderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
                         data.push(db.addBookmark(bookmark, true));
                         return data;
