@@ -33,7 +33,6 @@
         addedRemoteBookmarks = [
             { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
             { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
         ];
     }
 
@@ -553,7 +552,7 @@
         
         return WinJS.Promise.join({
             folderAdd: f.add(addedFolderName),
-            bookmarkAdd: b.add({ url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" }),
+            bookmarkAdd: b.add({ url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" }),
             idb: getNewInstapaperDBAndInit(),
         }).then(function (data) {
             instapaperDB = data.idb;
@@ -634,6 +633,46 @@
             return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
         }).then(function (folder) {
             addedRemoteFolders.push(folder);
+        });
+    });
+
+    promiseTest("locallyAddedBookmarksGoUpToUnread", function () {
+        var instapaperDB;
+        var targetUrl = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+        var targetTitle = Date.now() + "";
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.addUrl({ url: targetUrl, title: targetTitle });
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remoteBookmarks: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                localBookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
+            });
+        }).then(function (data) {
+            var rb = data.remoteBookmarks;
+            var lb = data.localBookmarks;
+
+            var remoteBookmark = rb.bookmarks.filter(function (f) {
+                return f.url === targetUrl;
+            })[0];
+
+            ok(remoteBookmark, "Didn't find the remote bookmark added");
+            strictEqual(remoteBookmark.title, targetTitle, "Remote title was incorrect");
+
+            var addedBookmark = lb.filter(function (f) {
+                return f.url === targetUrl;
+            })[0];
+
+            ok(addedBookmark, "Didn't see the added folder locally");
+            strictEqual(addedBookmark.title, targetTitle, "Local title was incorrect");
+
+            addedRemoteBookmarks.push(addedBookmark);
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
     });
 
