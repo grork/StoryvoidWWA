@@ -152,8 +152,7 @@
 
                     // Find all the folders that are not on the server, that
                     // we have locally.
-                    var removedFolderPromises = []
-                    data.localFolders.reduce(function (promises, item) {
+                    var removedFolderPromises = data.localFolders.reduce(function (promises, item) {
                         // Default folders are ignored for any syncing behaviour
                         // since they're uneditable.
                         if (isDefaultFolder(item.folder_id)) {
@@ -168,7 +167,7 @@
                             promises.push(db.removeFolder(item.id, true));
                         }
                         return promises;
-                    }, removedFolderPromises);
+                    }, []);
 
                     syncs = syncs.concat(removedFolderPromises);
 
@@ -179,9 +178,24 @@
                 var b = this._bookmarks;
                 var folderId;
                 
-                return WinJS.Promise.join({
-                    folder: db.getFolderByDbId(dbIdOfFolderToSync),
-                    localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
+                return db.getPendingBookmarkAdds().then(function (pendingAdds) {
+                    var remoteAdds = pendingAdds.reduce(function (data, add) {
+                        var addPromise = b.add({
+                            url: add.url,
+                            title: add.title,
+                        }).then(function () {
+                            db.deletePendingBookmarkEdit(add.id);
+                        });
+
+                        data.push(addPromise);
+                        return data;
+                    }, []);
+
+                    return WinJS.Promise.join({
+                        remoteAdds: WinJS.Promise.join(remoteAdds),
+                        folder: db.getFolderByDbId(dbIdOfFolderToSync),
+                        localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
+                    });
                 }).then(function (data) {
                     folderId = data.folder.folder_id;
                     var localBookmarks = data.localBookmarks;
@@ -203,14 +217,13 @@
                     });
                 }).then(function (result) {
                     var rb = result.bookmarks;
-                    var localAdds = [];
-                    rb.reduce(function (data, bookmark) {
+                    var localAdds = rb.reduce(function (data, bookmark) {
                         bookmark.folder_dbid = dbIdOfFolderToSync;
                         bookmark.folder_id = folderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
                         data.push(db.addBookmark(bookmark, true));
                         return data;
-                    }, localAdds);
+                    }, []);
 
                     return WinJS.Promise.join(localAdds);
                 });
