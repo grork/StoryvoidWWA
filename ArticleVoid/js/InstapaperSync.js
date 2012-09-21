@@ -199,7 +199,7 @@
 
                     return b.list({
                         folder_id: folderId,
-                        haves: haves,
+                        have: haves,
                     });
                 }).then(function (result) {
                     var rb = result.bookmarks;
@@ -217,8 +217,8 @@
             },
             sync: function sync(options) {
                 options = options || { folders: true, bookmarks: true };
-                var syncFolders = (options.folders === undefined) ? true : options.folders;
-                var syncBookmarks = (options.bookmarks === undefined) ? true : options.bookmarks;
+                var syncFolders = options.folders;
+                var syncBookmarks = options.bookmarks;
 
                 var db = new InstapaperDB();
 

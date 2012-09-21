@@ -539,5 +539,104 @@
         });
 
     });
+
+    promiseTest("syncingOnlyFoldersOnlySyncsFolders", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var addedFolderName = Date.now() + "";
+        var addedFolder;
+        var currentBookmarkCount;
+        var currentFolderCount;
+
+        var f = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var b = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        
+        return WinJS.Promise.join({
+            folderAdd: f.add(addedFolderName),
+            bookmarkAdd: b.add({ url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" }),
+            idb: getNewInstapaperDBAndInit(),
+        }).then(function (data) {
+            instapaperDB = data.idb;
+            addedFolder = data.folderAdd;
+            addedRemoteBookmarks.push(data.bookmarkAdd);
+
+            return WinJS.Promise.join({
+                folders: data.idb.listCurrentFolders(),
+                bookmarks: data.idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            currentBookmarkCount = data.bookmarks.length;
+            currentFolderCount = data.folders.length;
+
+            return sync.sync({ folders: true, bookmarks: false });
+        }).then(function () {
+            return WinJS.Promise.join({
+                folders: instapaperDB.listCurrentFolders(),
+                bookmarks: instapaperDB.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            strictEqual(data.folders.length, currentFolderCount + 1, "Incorrect number of folders");
+
+            ok(data.folders.some(function (folder) {
+                return folder.title === addedFolderName;
+            }), "Didn't find the added folder locally");
+
+            strictEqual(data.bookmarks.length, currentBookmarkCount, "Incorrect number of bookmarks");
+
+            return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
+        }).then(function (folder) {
+            addedRemoteFolders.push(folder);
+        });
+    });
+
+    promiseTest("syncingOnlyBookmarksOnlySyncsBookmarks", function () {
+        var sync = getNewSyncEngine();
+        var instapaperDB;
+        var currentBookmarkCount;
+        var currentFolderCount;
+        var addedFolderName = Date.now() + "";
+        var addedFolder;
+
+        var f = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var b = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return WinJS.Promise.join({
+            folderAdd: f.add(addedFolderName),
+            idb: getNewInstapaperDBAndInit(),
+        }).then(function (data) {
+            instapaperDB = data.idb;
+            addedFolder = data.folderAdd;
+
+            return WinJS.Promise.join({
+                folders: data.idb.listCurrentFolders(),
+                bookmarks: data.idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            currentBookmarkCount = data.bookmarks.length;
+            currentFolderCount = data.folders.length;
+
+            return sync.sync({ folders: false, bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                folders: instapaperDB.listCurrentFolders(),
+                bookmarks: instapaperDB.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            strictEqual(data.folders.length, currentFolderCount, "Incorrect number of folders");
+            strictEqual(data.bookmarks.length, currentBookmarkCount + 1, "Incorrect number of bookmarks");
+
+            ok(data.bookmarks.some(function (bookmark) {
+                return bookmark.url === addedRemoteBookmarks[addedRemoteBookmarks.length - 1].url;
+            }), "Didn't find the expected bookmark");
+
+            return sync.sync();
+        }).then(function () {
+            return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
+        }).then(function (folder) {
+            addedRemoteFolders.push(folder);
+        });
+    });
+
+    
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
