@@ -199,17 +199,16 @@
                 }).then(function (data) {
                     folderId = data.folder.folder_id;
                     var localBookmarks = data.localBookmarks;
-                    var haves = [];
-                    localBookmarks.reduce(function (data, bookmark) {
+                    var haves = localBookmarks.reduce(function (data, bookmark) {
                         data.push({
                             id: bookmark.bookmark_id,
                             hash: bookmark.hash,
                             progress: bookmark.progress,
-                            progresLastChanged: bookmark.progressLastChanged,
+                            progressLastChanged: bookmark.progress_timestamp,
                         });
 
                         return data;
-                    }, haves);
+                    }, []);
 
                     return b.list({
                         folder_id: folderId,
@@ -221,11 +220,35 @@
                         bookmark.folder_dbid = dbIdOfFolderToSync;
                         bookmark.folder_id = folderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
-                        data.push(db.addBookmark(bookmark, true));
+                        data.push(db.updateBookmark(bookmark, true));
                         return data;
                     }, []);
 
                     return WinJS.Promise.join(localAdds);
+                });
+            },
+            _syncLikes: function _syncLikes(db) {
+                var b = this._bookmarks;
+                
+                return db.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked).then(function (folder) {
+                    return db.listCurrentBookmarks(folder.folder_dbid);
+                }).then(function (likes) {
+                    var haves = likes.reduce(function (data, like) {
+                        data.push({ id: like.bookmark_id });
+                        return data;
+                    }, []);
+
+                    return b.list({
+                        folder_id: InstapaperDB.CommonFolderIds.Liked,
+                        haves: haves,
+                    });
+                }).then(function (data) {
+                    var operations = data.bookmarks.reduce(function (data, bookmark) {
+                        data.push(db.likeBookmark(bookmark.bookmark_id, true));
+                        return data;
+                    }, []);
+
+                    return WinJS.Promise.join(operations);
                 });
             },
             sync: function sync(options) {
@@ -248,8 +271,10 @@
 
                     return this._syncBookmarks(db, db.commonFolderDbIds.unread);
                 }.bind(this)).then(function () {
+                    return this._syncLikes(db);
+                }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
-                });
+                }.bind(this));
             },
         }),
     });

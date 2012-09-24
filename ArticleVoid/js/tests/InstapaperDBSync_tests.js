@@ -515,6 +515,8 @@
             ok(bookmarks, "Didn't get any bookmarks");
             strictEqual(bookmarks.length, addedRemoteBookmarks.length, "Didn't get enough bookmarks");
 
+
+            // Check all the bookmarks are correctly present.
             var expectedBookmarks = [];
             for (var i = 1; i < addedRemoteBookmarks.length + 1; i++) {
                 expectedBookmarks.push("http://www.codevoid.net/articlevoidtest/TestPage" + i + ".html");
@@ -533,6 +535,25 @@
 
             ok(allInUnread, "Some of the sync'd bookmarks were not in the unread folder");
             strictEqual(expectedBookmarks.length, 0, "Some bookmarks were not found");
+
+            // Verify the other properties
+            addedRemoteBookmarks.forEach(function (b) {
+                var local;
+
+                // Find the local matching bookmark by URL
+                for (var i = 0; i < bookmarks.length; i++) {
+                    if (bookmarks[i].url === b.url) {
+                        local = bookmarks[i];
+                        break;
+                    }
+                }
+
+                ok(local, "Didn't find the URL locally. Should have done");
+
+                strictEqual(local.bookmark_id, b.bookmark_id, "Bookmark ID's didn't match");
+                strictEqual(local.title, b.title, "Title's didn't match");
+                strictEqual(local.hash, b.hash, "Hash didn't match");
+            });
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -676,6 +697,90 @@
         });
     });
 
+    promiseTest("syncingBookmarkThatIsAlreadyAvailableRemotelyDoesntDuplicate", function () {
+        var instapaperDB;
+        var targetUrl = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+        var targetTitle = Date.now() + "";
+        var localBookmarkCountBeforeSync;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return WinJS.Promise.join({
+                added: idb.addUrl({ url: targetUrl, title: targetTitle }),
+                localBookmarks: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
+            });
+        }).then(function (data) {
+            localBookmarkCountBeforeSync = data.localBookmarks.length;
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread);
+        }).then(function (lb) {
+            strictEqual(lb.length, localBookmarkCountBeforeSync, "Didn't expect any change in the bookmark counts");
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("remoteProgressChangesAreCorrectlySyncedLocally", function () {
+        var instapaperDB;
+        var updatedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            var bookmark = localBookmarks[0];
+            ok(bookmark, "Need a bookmark to work with");
+
+            notStrictEqual(bookmark.progress, 0.5, "Progress is already where we're going to set it");
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).updateReadProgress({
+                bookmark_id: bookmark.bookmark_id,
+                progress: 0.5,
+                progress_timestamp: Date.now(),
+            });
+        }).then(function (bookmark) {
+            updatedBookmark = bookmark;
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
+        }).then(function (bookmark) {
+            strictEqual(bookmark.progress, updatedBookmark.progress, "Progress did not match");
+            strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Wrong bookmark timestamp");
+            strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("likedRemoteBookmarkUpdatedLocallyAfterSync", function () {
+        var instapaperDB;
+        var updatedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            var bookmark = localBookmarks[0];
+            ok(bookmark, "Need a bookmark to work with");
+
+            notStrictEqual(bookmark.starred, 1, "Bookmark was already liked. We need  it to not be");
+
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).star(bookmark.bookmark_id);
+        }).then(function (bookmark) {
+            bookmark.starred = parseInt(bookmark.starred);
+            updatedBookmark = bookmark;
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
+        }).then(function (bookmark) {
+            strictEqual(bookmark.starred, updatedBookmark.starred, "Liked status did not match");
+            strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
     
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

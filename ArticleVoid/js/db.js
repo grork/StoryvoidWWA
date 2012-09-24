@@ -57,7 +57,7 @@
             };
 
             transaction.onerror = function Server_Add_Error(e) {
-                signal.error(records, e);
+                signal.error(e);
             };
 
             transaction.onabort = function Server_Add_Abort(e) {
