@@ -229,10 +229,12 @@
             },
             _syncLikes: function _syncLikes(db) {
                 var b = this._bookmarks;
+                var localLikesBeforeSync;
                 
                 return db.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked).then(function (folder) {
-                    return db.listCurrentBookmarks(folder.folder_dbid);
+                    return db.listCurrentBookmarks(folder.id);
                 }).then(function (likes) {
+                    localLikesBeforeSync = likes;
                     var haves = likes.reduce(function (data, like) {
                         data.push({ id: like.bookmark_id });
                         return data;
@@ -242,11 +244,23 @@
                         folder_id: InstapaperDB.CommonFolderIds.Liked,
                         haves: haves,
                     });
-                }).then(function (data) {
-                    var operations = data.bookmarks.reduce(function (data, bookmark) {
-                        data.push(db.likeBookmark(bookmark.bookmark_id, true));
+                }).then(function (remoteData) {
+                    var operations = localLikesBeforeSync.reduce(function (data, lb) {
+                        var isStillLiked = remoteData.bookmarks.some(function (rb) {
+                            return rb.bookmark_id === lb.bookmark_id;
+                        });
+
+                        if (!isStillLiked) {
+                            data.push(db.unlikeBookmark(lb.bookmark_id, true));
+                        }
+
                         return data;
                     }, []);
+
+                    operations = remoteData.bookmarks.reduce(function (data, bookmark) {
+                        data.push(db.likeBookmark(bookmark.bookmark_id, true));
+                        return data;
+                    }, operations);
 
                     return WinJS.Promise.join(operations);
                 });
