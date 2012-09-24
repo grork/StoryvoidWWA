@@ -616,6 +616,7 @@
                     }
 
                     bookmark.progress = progress;
+                    bookmark.progress_timestamp = Date.now();
 
                     return this.updateBookmark(bookmark);
                 }.bind(this));

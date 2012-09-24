@@ -288,12 +288,14 @@
                     haveString += ":" + have.hash;
                 }
 
-                if (have.progress) {
-                    if (!have.progressLastChanged) {
+                if (have.hasOwnProperty("progress")) {
+                    if (!have.progressLastChanged && have.progress) {
                         throw new Error("No progress last changed provided");
                     }
 
-                    haveString += ":" + have.progress + ":" + have.progressLastChanged;
+                    if (have.progressLastChanged) {
+                        haveString += ":" + have.progress + ":" + have.progressLastChanged;
+                    }
                 }
 
                 return haveString;

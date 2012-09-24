@@ -88,6 +88,19 @@
     test("haveWithHashReturnsCorrectString", haveWithHashReturnsCorrectString);
     test("haveWithProgressReturnsCorrectString", haveWithProgressReturnsCorrectString);
     test("haveWithProgressButNoProgressTimestampThrows", haveWithProgressButNoProgressTimestampThrows);
+    test("haveWithZeroProgressAndValidTimestampReturnsString", function () {
+        var have = { id: 1234, hash: "ABCDEF", progress: 0, progressLastChanged: 12344565 };
+        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+
+        strictEqual(result, "1234:ABCDEF:0:12344565", "incorrect stringification of value");
+    });
+
+    test("haveWithZeroProgressAndZeroTimestampHasNoProgressInformation", function () {
+        var have = { id: 1234, hash: "ABCDEF", progress: 0, progressLastChanged: 0 };
+        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+
+        strictEqual(result, "1234:ABCDEF", "incorrect stringification of value");
+    });
 
     module("instapaperApiBookmarks");
 
