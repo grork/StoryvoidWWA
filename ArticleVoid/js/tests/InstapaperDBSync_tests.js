@@ -775,8 +775,39 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
-            strictEqual(bookmark.starred, updatedBookmark.starred, "Liked status did not match");
-            strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
+            strictEqual(bookmark.starred, 1, "Liked status did not match");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("unlikedRemoteBookmarkUpdatedLocallyAfterSync", function () {
+        var instapaperDB;
+        var updatedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            var bookmark = localBookmarks[0];
+            var likePromise = WinJS.Promise.as();
+
+            ok(bookmark, "Need a bookmark to work with");
+
+            if (bookmark.starred === 0) {
+                return instapaperDB.likeBookmark(bookmark.bookmark_id, true);
+            }
+            
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).unstar(bookmark.bookmark_id);
+        }).then(function (bookmark) {
+            bookmark.starred = parseInt(bookmark.starred);
+            updatedBookmark = bookmark;
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
+        }).then(function (bookmark) {
+            strictEqual(bookmark.starred, 0, "Liked status did not match");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
