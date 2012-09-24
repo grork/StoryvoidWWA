@@ -781,6 +781,34 @@
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     });
+
+    promiseTest("remoteTitleAndDescriptionChangesComeDownLocally", function () {
+        var instapaperDB;
+        var updatedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (bookmarks) {
+            var bookmark = bookmarks[0];
+            ok(bookmark, "Need a bookmark to work with");
+
+            bookmark.title = "updatedTitle" + Date.now();
+            bookmark.description = "updatedDescription" + Date.now();
+
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).add(bookmark);
+        }).then(function (remoteBookmark) {
+            updatedBookmark = remoteBookmark;
+
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
+        }).then(function (localBookmark) {
+            strictEqual(localBookmark.title, updatedBookmark.title, "Incorrect title");
+            strictEqual(localBookmark.description, updatedBookmark.description);
+        });
+    });
     
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

@@ -161,7 +161,7 @@
                     data.push({ key: "description", value: parameters.description });
                 }
 
-                if (parameters.folder_id) {
+                if (parameters.folder_id && (parameters.folder_id.toLowerCase() != "unread")) {
                     data.push({ key: "folder_id", value: parameters.folder_id });
                 }
 
