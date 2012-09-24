@@ -34,7 +34,7 @@
     }
 
     function extractDataFromJSON(data, reduceSingleItemToObject) {
-        var objectData = JSON.parse(data);
+        var objectData = (data) ? JSON.parse(data) : "";
         appassert(objectData, "didn't parse object data");
         appassert(Array.isArray(objectData), "Wasn't an array");
 
