@@ -220,6 +220,7 @@
                         bookmark.folder_dbid = dbIdOfFolderToSync;
                         bookmark.folder_id = folderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
+                        bookmark.progress = parseFloat(bookmark.progress);
                         data.push(db.updateBookmark(bookmark, true));
                         return data;
                     }, []);

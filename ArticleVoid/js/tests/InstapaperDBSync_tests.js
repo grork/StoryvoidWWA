@@ -745,7 +745,7 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
-            strictEqual(bookmark.progress, updatedBookmark.progress, "Progress did not match");
+            equal(bookmark.progress, updatedBookmark.progress, "Progress did not match");
             strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Wrong bookmark timestamp");
             strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
 
@@ -838,6 +838,43 @@
         }).then(function (localBookmark) {
             strictEqual(localBookmark.title, updatedBookmark.title, "Incorrect title");
             strictEqual(localBookmark.description, updatedBookmark.description);
+        });
+    });
+
+    promiseTest("localReadProgressIsPushedUp", function () {
+        var instapaperDB;
+        var targetProgress = 0.3;
+        var updatedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            var localBookmark = localBookmarks[0];
+            ok(localBookmark, "need a bookmark to work with");
+
+            notStrictEqual(localBookmark.progress, targetProgress, "Progress is already at the target value");
+
+            return instapaperDB.updateReadProgress(localBookmark.bookmark_id, targetProgress);
+        }).then(function (progressChanged) {
+            updatedBookmark = progressChanged;
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remoteBookmarks: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                localBookmark: instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var bookmark = data.remoteBookmarks.bookmarks.filter(function (remote) {
+                return remote.bookmark_id === updatedBookmark.bookmark_id;
+            })[0];
+
+            ok(bookmark, "Didn't find the remote bookmark");
+
+            equal(bookmark.progress, updatedBookmark.progress, "Progress was unchanged");
+            strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Timestamp for last progress changed was incorrect");
+            strictEqual(bookmark.hash, data.localBookmark.hash, "Hash wasn't updated locally");
         });
     });
     
