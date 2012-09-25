@@ -33,8 +33,8 @@
             },
             _bookmarksStorage: null,
             _bookmarks: {
-                get: function() {
-                    if(!this._bookmarksStorage) {
+                get: function () {
+                    if (!this._bookmarksStorage) {
                         this._bookmarksStorage = new InstapaperApi.Bookmarks(this._clientInformation);
                     }
 
@@ -96,7 +96,7 @@
             _syncFolders: function _syncFolders(db, folders) {
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
-                    
+
                     pendingEdits.forEach(function (edit) {
                         var syncPromise;
                         switch (edit.type) {
@@ -174,10 +174,9 @@
                     return WinJS.Promise.join(syncs);
                 });
             },
-            _syncBookmarks: function _syncBookmarks(db, dbIdOfFolderToSync) {
+            _syncBookmarkPendingAdds: function _syncBookmarkPendingAdds(db) {
                 var b = this._bookmarks;
-                var folderId;
-                
+
                 return db.getPendingBookmarkAdds().then(function (pendingAdds) {
                     var remoteAdds = pendingAdds.reduce(function (data, add) {
                         var addPromise = b.add({
@@ -191,11 +190,16 @@
                         return data;
                     }, []);
 
-                    return WinJS.Promise.join({
-                        remoteAdds: WinJS.Promise.join(remoteAdds),
-                        folder: db.getFolderByDbId(dbIdOfFolderToSync),
-                        localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
-                    });
+                    return WinJS.Promise.join(remoteAdds);
+                });
+            },
+            _syncBookmarksForFolder: function _syncBookmarksForFolder(db, dbIdOfFolderToSync) {
+                var b = this._bookmarks;
+                var folderId;
+
+                return WinJS.Promise.join({
+                    folder: db.getFolderByDbId(dbIdOfFolderToSync),
+                    localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
                 }).then(function (data) {
                     folderId = data.folder.folder_id;
                     var localBookmarks = data.localBookmarks;
@@ -231,7 +235,7 @@
             _syncLikes: function _syncLikes(db) {
                 var b = this._bookmarks;
                 var localLikesBeforeSync;
-                
+
                 return db.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked).then(function (folder) {
                     return db.listCurrentBookmarks(folder.id);
                 }).then(function (likes) {
@@ -283,8 +287,9 @@
                     if (!syncBookmarks) {
                         return;
                     }
-
-                    return this._syncBookmarks(db, db.commonFolderDbIds.unread);
+                    return this._syncBookmarkPendingAdds(db).then(function () {
+                        return this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread);
+                    }.bind(this));
                 }.bind(this)).then(function () {
                     return this._syncLikes(db);
                 }.bind(this)).then(function () {
