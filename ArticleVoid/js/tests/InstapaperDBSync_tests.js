@@ -878,27 +878,27 @@
         });
     });
     
-    //promiseTest("archivesAreMovedToArchiveFolder", function () {
-    //    var instapaperDB;
-    //    var targetBookmark = addedRemoteBookmarks.pop();
+    promiseTest("archivesAreMovedToArchiveFolder", function () {
+        var instapaperDB;
+        var targetBookmark = addedRemoteBookmarks.pop();
 
-    //    return getNewInstapaperDBAndInit().then(function (idb) {
-    //        instapaperDB = idb;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
 
-    //        return idb.moveBookmark(targetBookmark.bookmark_id, idb.commonFolderDbIds.archive);
-    //    }).then(function () {
-    //        return getNewSyncEngine().sync();
-    //    }).then(function () {
-    //        return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ parameters: InstapaperDB.CommonFolderIds.Archive });
-    //    }).then(function (remoteBookmarks) {
-    //        var remote = remoteBookmarks.filter(function (bookmark) {
-    //            return bookmark.bookmark_id === targetBookmark.bookmark_id;
-    //        })[0];
+            return idb.moveBookmark(targetBookmark.bookmark_id, idb.commonFolderDbIds.archive);
+        }).then(function () {
+            return getNewSyncEngine().sync();
+        }).then(function () {
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+        }).then(function (remoteBookmarks) {
+            var remote = remoteBookmarks.bookmarks.filter(function (bookmark) {
+                return bookmark.bookmark_id === targetBookmark.bookmark_id;
+            })[0];
 
-    //        ok(remote, "Bookmark wasn't moved to archive remotely");
+            ok(remote, "Bookmark wasn't moved to archive remotely");
 
-    //        return expectNoPendingBookmarkEdits(instapaperDB);
-    //    });
-    //});
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

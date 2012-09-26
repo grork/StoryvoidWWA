@@ -174,6 +174,13 @@
                     return WinJS.Promise.join(syncs);
                 });
             },
+            _syncBookmarks: function _syncBookmarks(db) {
+                return this._syncBookmarkPendingAdds(db).then(function () {
+                    return this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread);
+                }.bind(this)).then(function () {
+                    return this._syncLikes(db);
+                }.bind(this));
+            },
             _syncBookmarkPendingAdds: function _syncBookmarkPendingAdds(db) {
                 var b = this._bookmarks;
 
@@ -197,9 +204,34 @@
                 var b = this._bookmarks;
                 var folderId;
 
-                return WinJS.Promise.join({
-                    folder: db.getFolderByDbId(dbIdOfFolderToSync),
-                    localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
+                return db.getPendingBookmarkEdits(dbIdOfFolderToSync).then(function (pendingEdits) {
+                    var operations = [];
+
+                    if(pendingEdits.moves) {
+                        pendingEdits.moves.forEach(function(move) {
+                            var operation;
+
+                            switch(move.destinationfolder_dbid) {
+                                case db.commonFolderDbIds.archive:
+                                    operation = b.archive(move.bookmark_id);
+                                    break;
+
+                                default:
+                                    break;
+                            }
+
+                            operations.push(operation.then(function () {
+                                db.deletePendingBookmarkEdit(move.id);
+                            }));
+                        });
+                    }
+
+
+                    return WinJS.Promise.join({
+                        remoteOperations: WinJS.Promise.join(operations),
+                        folder: db.getFolderByDbId(dbIdOfFolderToSync),
+                        localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
+                    });
                 }).then(function (data) {
                     folderId = data.folder.folder_id;
                     var localBookmarks = data.localBookmarks;
@@ -287,11 +319,8 @@
                     if (!syncBookmarks) {
                         return;
                     }
-                    return this._syncBookmarkPendingAdds(db).then(function () {
-                        return this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread);
-                    }.bind(this));
-                }.bind(this)).then(function () {
-                    return this._syncLikes(db);
+
+                    return this._syncBookmarks(db);
                 }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
                 }.bind(this));
