@@ -44,7 +44,7 @@
         var client = this;
         var deletePromises = [];
         bookmarksToDelete.bookmarks.forEach(function (bookmark) {
-            client.deleteBookmark(bookmark.bookmark_id);
+            deletePromises.push(client.deleteBookmark(bookmark.bookmark_id));
         });
 
         return WinJS.Promise.join(deletePromises);
@@ -890,6 +890,39 @@
             return getNewSyncEngine().sync();
         }).then(function () {
             return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+        }).then(function (remoteBookmarks) {
+            var remote = remoteBookmarks.bookmarks.filter(function (bookmark) {
+                return bookmark.bookmark_id === targetBookmark.bookmark_id;
+            })[0];
+
+            ok(remote, "Bookmark wasn't moved to archive remotely");
+            addedRemoteBookmarks.unshift(remote);
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("movesMoveToAppropriateFolder", function () {
+        var instapaperDB;
+        var targetBookmark = addedRemoteBookmarks.pop();
+        var newFolder;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            
+            return idb.addFolder({ title: Date.now() });
+        }).then(function (addedFolder) {
+            newFolder = addedFolder;
+            return instapaperDB.moveBookmark(targetBookmark.bookmark_id, newFolder.id);
+        }).then(function () {
+            return getNewSyncEngine().sync();
+        }).then(function () {
+            return instapaperDB.getFolderByDbId(newFolder.id);
+        }).then(function (folder) {
+            newFolder = folder;
+            addedRemoteFolders.push(newFolder);
+
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: newFolder.folder_id });
         }).then(function (remoteBookmarks) {
             var remote = remoteBookmarks.bookmarks.filter(function (bookmark) {
                 return bookmark.bookmark_id === targetBookmark.bookmark_id;
