@@ -796,7 +796,9 @@
             ok(bookmark, "Need a bookmark to work with");
 
             if (bookmark.starred === 0) {
-                return instapaperDB.likeBookmark(bookmark.bookmark_id, true);
+                return instapaperDB.likeBookmark(bookmark.bookmark_id, true).then(function () {
+                    return WinJS.Promise.timeout();
+                });
             }
             
             return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).unstar(bookmark.bookmark_id);
@@ -808,6 +810,84 @@
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
             strictEqual(bookmark.starred, 0, "Liked status did not match");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("localLikesAreSyncedToService", function () {
+        var instapaperDB;
+        var targetBookmark = addedRemoteBookmarks.pop();
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                local: idb.likeBookmark(targetBookmark.bookmark_id),
+                remoteLikes: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked }),
+            });
+        }).then(function (data) {
+            addedRemoteBookmarks.push(data.local);
+
+            var likedAlready = data.remoteLikes.bookmarks.some(function (bookmark) {
+                return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
+            });
+
+            ok(!likedAlready, "Bookmark was already liked on the service");
+
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+        }).then(function (data) {
+            var likedRemotely = data.bookmarks.some(function (bookmark) {
+                return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
+            });
+
+            ok(likedRemotely, "Item was not liked on the server");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("localunlikesAreSyncedToService", function () {
+        var instapaperDB;
+        var targetBookmark = addedRemoteBookmarks.pop();
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            var setupData = WinJS.Promise.as();
+            if (targetBookmark.starred === 0) {
+                setupData = WinJS.Promise.join({
+                    local: idb.likeBookmark(targetBookmark.bookmark_id, true),
+                    remote: bookmarks.star(targetBookmark.bookmark_id),
+                });
+            }
+
+            return setupData.then(function () {
+                return WinJS.Promise.join({
+                    local: idb.unlikeBookmark(targetBookmark.bookmark_id),
+                    remoteLikes: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked }),
+                });
+            });
+        }).then(function (data) {
+           addedRemoteBookmarks.push(data.local);
+
+            var likedAlready = data.remoteLikes.bookmarks.some(function (bookmark) {
+                return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
+            });
+
+            ok(likedAlready, "Bookmark wasnt already liked on the service");
+
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+        }).then(function (data) {
+            var likedRemotely = data.bookmarks.some(function (bookmark) {
+                return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
+            });
+
+            ok(!likedRemotely, "Item was liked on the server");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -827,6 +907,7 @@
 
             bookmark.title = "updatedTitle" + Date.now();
             bookmark.description = "updatedDescription" + Date.now();
+            ok(true, "Title: " + bookmark.title);
 
             return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).add(bookmark);
         }).then(function (remoteBookmark) {
@@ -880,7 +961,8 @@
     
     promiseTest("archivesAreMovedToArchiveFolder", function () {
         var instapaperDB;
-        var targetBookmark = addedRemoteBookmarks.pop();
+        var targetBookmark = {};
+        targetBookmark = addedRemoteBookmarks.pop();
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;

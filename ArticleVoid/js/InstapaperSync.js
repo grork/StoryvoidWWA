@@ -127,11 +127,9 @@
                         localFolders: db.listCurrentFolders(),
                     });
                 }.bind(this)).then(function (data) {
-                    var syncs = [];
-
                     // Find all the changes from the remote server
                     // that aren't locally for folders on the server
-                    data.remoteFolders.forEach(function (rf) {
+                    var syncs = data.remoteFolders.reduce(function (data, rf) {
                         var synced = db.getFolderFromFolderId(rf.folder_id).then(function (lf) {
                             var done = WinJS.Promise.as();
 
@@ -147,12 +145,13 @@
                             return done;
                         });
 
-                        syncs.push(synced);
-                    });
+                        data.push(synced);
+                        return data;
+                    }, []);
 
                     // Find all the folders that are not on the server, that
                     // we have locally.
-                    var removedFolderPromises = data.localFolders.reduce(function (promises, item) {
+                    syncs = data.localFolders.reduce(function (promises, item) {
                         // Default folders are ignored for any syncing behaviour
                         // since they're uneditable.
                         if (isDefaultFolder(item.folder_id)) {
@@ -167,16 +166,17 @@
                             promises.push(db.removeFolder(item.id, true));
                         }
                         return promises;
-                    }, []);
-
-                    syncs = syncs.concat(removedFolderPromises);
+                    }, syncs);
 
                     return WinJS.Promise.join(syncs);
                 });
             },
             _syncBookmarks: function _syncBookmarks(db) {
                 return this._syncBookmarkPendingAdds(db).then(function () {
-                    return this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread);
+                    return WinJS.Promise.join({
+                        sync: this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread),
+                        timeout: WinJS.Promise.timeout(),
+                    });
                 }.bind(this)).then(function () {
                     return this._syncLikes(db);
                 }.bind(this));
@@ -190,7 +190,7 @@
                             url: add.url,
                             title: add.title,
                         }).then(function () {
-                            db.deletePendingBookmarkEdit(add.id);
+                            return db.deletePendingBookmarkEdit(add.id);
                         });
 
                         data.push(addPromise);
@@ -224,7 +224,7 @@
                             }
 
                             operations.push(operation.then(function () {
-                                db.deletePendingBookmarkEdit(move.id);
+                                return db.deletePendingBookmarkEdit(move.id);
                             }));
                         });
                     }
@@ -260,7 +260,7 @@
                         bookmark.folder_id = folderId;
                         bookmark.starred = parseInt(bookmark.starred, 10);
                         bookmark.progress = parseFloat(bookmark.progress);
-                        data.push(db.updateBookmark(bookmark, true));
+                        data.push(db.updateBookmark(bookmark));
                         return data;
                     }, []);
 
@@ -271,18 +271,43 @@
                 var b = this._bookmarks;
                 var localLikesBeforeSync;
 
-                return db.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked).then(function (folder) {
-                    return db.listCurrentBookmarks(folder.id);
+                return db.getPendingBookmarkEdits().then(function (edits) {
+                    var operations = [];
+
+                    if (edits.likes && edits.likes.length) {
+                        operations = edits.likes.reduce(function (data, edit) {
+                            var operation = b.star(edit.bookmark_id).then(function () {
+                                return db.deletePendingBookmarkEdit(edit.id);
+                            });
+
+                            data.push(operation);
+                            return data;
+                        }, operations);
+                    }
+
+                    if (edits.unlikes && edits.unlikes.length) {
+                        operations = edits.unlikes.reduce(function (data, edit) {
+                            var operation = b.unstar(edit.bookmark_id).then(function () {
+                                return db.deletePendingBookmarkEdit(edit.id);
+                            });
+                            
+                            data.push(operation);
+
+                            return data;
+                        }, operations);
+                    }
+
+                    return WinJS.Promise.join(operations);
+                }).then(function() {
+                    return db.listCurrentBookmarks(db.commonFolderDbIds.liked);
                 }).then(function (likes) {
                     localLikesBeforeSync = likes;
-                    var haves = likes.reduce(function (data, like) {
-                        data.push({ id: like.bookmark_id });
-                        return data;
-                    }, []);
-
+                    
+                    // Don't sync the "have" information here
+                    // since this will screw with lots of other
+                    // state that we're syncing through other means
                     return b.list({
                         folder_id: InstapaperDB.CommonFolderIds.Liked,
-                        haves: haves,
                     });
                 }).then(function (remoteData) {
                     var operations = localLikesBeforeSync.reduce(function (data, lb) {

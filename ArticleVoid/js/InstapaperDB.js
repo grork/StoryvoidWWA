@@ -146,7 +146,7 @@
                     // Throw away the pending edit now that we got the data on it. This means it looks like
                     // the folder had never been removed.
                     return this.deletePendingFolderEdit(pendingItem.id).then(function () {
-                        return WinJS.Binding.as(dataToResurrect);
+                        return dataToResurrect;
                     });
                 }.bind(this)).then(function (existingFolderData) {
                     var folderData = existingFolderData || folder;
@@ -169,9 +169,7 @@
                     only(folderId).
                     then(extractFirstItemInArray).
                     then(function (folder) {
-                        if (folder) {
-                            return folder;
-                        }
+                        return folder;
                     });
             }),
             updateFolder: checkDb(function updateFolder(folderDetails) {
@@ -217,6 +215,7 @@
                             removedFolderId: folderBeingRemoved.folder_id,
                             title: folderBeingRemoved.title,
                         };
+
                         return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, pendingEdit)
                     }.bind(this));
                 }
@@ -391,7 +390,7 @@
                             sourcefolder_dbid: sourcefolder_dbid,
                         };
 
-                        this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
                     }.bind(this));
                 }
 
@@ -555,6 +554,7 @@
             unlikeBookmark: checkDb(function unlikeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var wasUnsyncedEdit = false;
                 var sourcefolder_dbid;
+                var updatedBookmark;
 
                 var unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
                     if (!bookmark) {
@@ -570,7 +570,8 @@
                     sourcefolder_dbid = bookmark.folder_dbid;
                     bookmark.starred = 0;
                     return this.updateBookmark(bookmark);
-                }.bind(this)).then(function () {
+                }.bind(this)).then(function (bookmark) {
+                    updatedBookmark = bookmark
                     return WinJS.Promise.join({
                         like: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.LIKE),
                         unlike: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.ArticleVoid.InstapaperDB.PendingBookmarkEditTypes.UNLIKE),
@@ -601,11 +602,13 @@
                             sourcefolder_dbid: sourcefolder_dbid,
                         };
 
-                        this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
+                        return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, edit);
                     }.bind(this));
                 }
 
-                return unlikedBookmark;
+                return unlikedBookmark.then(function () {
+                    return updatedBookmark;
+                });
             }),
             updateReadProgress: checkDb(function updateReadProgress(bookmark_id, progress) {
                 return this.getBookmarkByBookmarkId(bookmark_id).then(function (bookmark) {
