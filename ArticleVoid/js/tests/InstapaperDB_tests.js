@@ -479,7 +479,12 @@
             ok(bookmark.starred, 1, "Bookmark needs to be liked to unlike it");
 
             return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id", true), WinJS.Promise.timeout()]);
-        }).then(function () {
+        }).then(function (unlikedBookmark) {
+            unlikedBookmark = unlikedBookmark[0];
+            ok(unlikedBookmark, "no bookmark returned");
+            strictEqual(unlikedBookmark.bookmark_id, "local_id", "Wrong bookmark ID");
+            strictEqual(unlikedBookmark.starred, 0, "Bookmark shouldn't have been liked");
+
             return instapaperDB.getBookmarkByBookmarkId("local_id")
         }).then(function (unlikedBookmark) {
             ok(unlikedBookmark, "no bookmark found");
@@ -1374,18 +1379,28 @@
             sampleBookmarks[6] = data.like1;
             sampleBookmarks[7] = data.like2;
 
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+            return instapaperDB.getPendingBookmarkEdits();
         }).then(function (pendingEdits) {
             ok(pendingEdits, "Didn't get pending edits");
-            strictEqual(pendingEdits.length, 3, "incorrect number of pending edits");
+            
+            ok(pendingEdits.likes, "didn't get any likes");
+            strictEqual(pendingEdits.likes.length, 2, "Incorrect number of likes");
 
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits(targetFolder.id));
+            ok(pendingEdits.moves, "didn't get any moves");
+            strictEqual(pendingEdits.moves.length, 1, "incorrect number of move edits");
+
+            return instapaperDB.getPendingBookmarkEdits(targetFolder.id);
         }).then(function (scopedPendingEdits) {
             ok(scopedPendingEdits, "didn't get any pending edits");
-            strictEqual(scopedPendingEdits.length, 2, "incorrect number of pending edits");
+            
+            ok(scopedPendingEdits.likes, "Didn't get likes");
+            ok(scopedPendingEdits.moves, "Didn't get moves");
 
-            var moveEdit = scopedPendingEdits[0];
-            var likeEdit = scopedPendingEdits[1];
+            strictEqual(scopedPendingEdits.likes.length, 1, "Incorrect number of likes");
+            strictEqual(scopedPendingEdits.moves.length, 1, "incorrect number of moves");
+
+            var moveEdit = scopedPendingEdits.moves[0];
+            var likeEdit = scopedPendingEdits.likes[0];
 
             strictEqual(moveEdit.type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "incorrect move type");
             strictEqual(moveEdit.sourcefolder_dbid, targetFolder.id, "not the correct source folder");
