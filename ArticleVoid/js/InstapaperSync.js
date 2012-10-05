@@ -229,6 +229,13 @@
                         });
                     }
 
+                    if (pendingEdits.deletes) {
+                        pendingEdits.deletes.forEach(function (del) {
+                            var operation = b.deleteBookmark(del.bookmark_id).then(function () {
+                                return db.deletePendingBookmarkEdit(del.id);
+                            });
+                        });
+                    }
 
                     return WinJS.Promise.join({
                         remoteOperations: WinJS.Promise.join(operations),

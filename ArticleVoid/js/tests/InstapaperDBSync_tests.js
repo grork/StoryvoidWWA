@@ -1015,5 +1015,27 @@
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     });
+
+    promiseTest("localDeletesGoUpToTheServer", function () {
+        var instapaperDB;
+        var targetBookmark = addedRemoteBookmarks.pop();
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.removeBookmark(targetBookmark.bookmark_id);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+        }).then(function (data) {
+            var bookmarkFoundRemotely = data.bookmarks.some(function (bookmark) {
+                return bookmark.bookmark_id === targetBookmark.bookmark_id;
+            });
+
+            ok(!bookmarkFoundRemotely, "Found the bookmark remotely. It should have been deleted");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
