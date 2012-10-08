@@ -29,33 +29,39 @@
     }
 
     var addedRemoteBookmarks;
-    function setSampleBookmarks() {
-        addedRemoteBookmarks = [
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
-        ];
-    }
+    var sourceUrls = [
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
+        { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
+    ];
 
     function getNewSyncEngine() {
         return new Codevoid.ArticleVoid.InstapaperSync(clientInformation);
     }
 
-    function deleteAllRemoteBookmarks(bookmarksToDelete) {
-        var client = this;
-        var deletePromises = [];
-        bookmarksToDelete.bookmarks.forEach(function (bookmark) {
-            deletePromises.push(client.deleteBookmark(bookmark.bookmark_id));
-        });
-
-        return WinJS.Promise.join(deletePromises);
-    }
-
     module("InstapaperSync");
 
     function destroyRemoteAccountData() {
+        /// <summary>
+        /// Adds "cost" -- there is a limit of 120 per day -- so rather than
+        /// Always nuking them remotely and re-adding them, lets try and keep
+        /// what we have remotely and work with those. This involves blowing away
+        /// all the folders, an moving the ones left in archive to unread. Also
+        /// we need to make sure that we clean up the liked items so everything is
+        /// clean & happy.
+        /// Finally, we also need to reset the progress.
+        /// </summary>
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
+        // Remove all the folders. If there are any bookmarks in these folders
+        // when this happens, the back end will move them to "Archive".
         return folders.list().then(function (serverFolders) {
             var deletedFoldersPromises = [];
             serverFolders.forEach(function (folder) {
@@ -75,11 +81,43 @@
 
             return WinJS.Promise.join(deletedFoldersPromises);
         }).then(function () {
-            return bookmarks.list({ folder_id: "unread" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
+            // Find all the now-in-archive folders, and...
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+        }).then(function (archivedBookmarks) {
+            // ... unarchive them. This will put them in "unread"
+            var moves = [];
+            archivedBookmarks = archivedBookmarks.bookmarks;
+            archivedBookmarks.forEach(function (bookmark) {
+                moves.push(bookmarks.unarchive(bookmark.bookmark_id));
+            });
+
+            return WinJS.Promise.join(moves);
         }).then(function () {
-            return bookmarks.list({ folder_id: "starred" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
+            // Find anything that has a "like" on it...
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+        }).then(function (likes) {
+            likes = likes.bookmarks;
+            // ... and unlike it.
+            var unlikes = [];
+            likes.forEach(function (liked) {
+                unlikes.push(bookmarks.unstar(liked.bookmark_id));
+            });
+
+            return WinJS.Promise.join(unlikes);
         }).then(function () {
-            return bookmarks.list({ folder_id: "archive" }).then(deleteAllRemoteBookmarks.bind(bookmarks));
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+        }).then(function (remoteBookmarks) {
+            remoteBookmarks = remoteBookmarks.bookmarks;
+            var progressUpdates = [];
+            remoteBookmarks.forEach(function (rb) {
+                progressUpdates.push(bookmarks.updateReadProgress({
+                    bookmark_id: rb.bookmark_id,
+                    progress: 0.0,
+                    progress_timestamp: Date.now(),
+                }));
+            });
+
+            return WinJS.Promise.join(progressUpdates);
         }).then(function () {
             ok(true, "It went very very wrong");
         });
@@ -477,29 +515,63 @@
     promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders);
     promiseTest("addsFoldersOnFirstSightBeforeBookmarks", addsFoldersOnFirstSight);
 
-    promiseTest("addDefaultBookmarks", function () {
-        setSampleBookmarks();
+    function addDefaultBookmarks() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-        var bookmarksToAdd = [].concat(addedRemoteBookmarks);
+        var minNumberOfBookmarks = 2;
 
-        function bookmarkAdded(added) {
-            addedRemoteBookmarks[(addedRemoteBookmarks.length - 1) - bookmarksToAdd.length] = added;
-            
-            var next = bookmarksToAdd.pop();
-            if(!next) {
-                ok(true, "Bookmarks added");
-                return;
+        // Get the remote bookmarks so we can add, update, cache etc as needed
+        return bookmarks.list({
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+        }).then(function (remoteBookmarks) {
+            remoteBookmarks = remoteBookmarks.bookmarks;
+            // If we have remote bookmarks, we need to remove the urls
+            // that they have from the "source" URLs
+            if (remoteBookmarks && remoteBookmarks.length) {
+                // For the remote urls we have, find any in the local
+                // set and remove them from that table.
+                remoteBookmarks.forEach(function (rb) {
+                    var indexOfExistingUrl = -1;
+                    sourceUrls.forEach(function (sb, index) {
+                        if (rb.url === sb.url) {
+                            indexOfExistingUrl = index;
+                        }
+                    });
+
+                    if (indexOfExistingUrl != -1) {
+                        sourceUrls.splice(indexOfExistingUrl, 1);
+                    }
+                });
             }
 
-            return WinJS.Promise.timeout(100).then(function() {
-                return bookmarks.add(next);
-            }).then(bookmarkAdded);
-        }
+            // We have enough remote bookmarks to continue.
+            if (remoteBookmarks && remoteBookmarks.length >= minNumberOfBookmarks) {
+                return remoteBookmarks;
+            }
 
-        return WinJS.Promise.timeout(5000).then(function () {
-            return bookmarks.add(bookmarksToAdd.pop()).then(bookmarkAdded);
+            // We dont have enough remote Bookmarks, so lets add enough.
+            var needToAdd = minNumberOfBookmarks;
+            if (remoteBookmarks && remoteBookmarks.length) {
+                needToAdd -= remoteBookmarks.length;
+            };
+
+            var adds = [];
+
+            for (var i = 0; i < needToAdd; i++) {
+                adds.push(bookmarks.add(sourceUrls.shift()).then(function (added) {
+                    remoteBookmarks.push(added);
+                }));
+            }
+
+            return WinJS.Promise.join(adds).then(function () {
+                return remoteBookmarks;
+            });
+        }).then(function (currentRemoteBookmarks) {
+            ok(currentRemoteBookmarks, "Didn't get list of current remote bookmarks");
+            addedRemoteBookmarks = currentRemoteBookmarks;
         });
-    });
+    };
+
+    promiseTest("addDefaultBookmarks", addDefaultBookmarks);
 
     promiseTest("bookmarksAddedOnFirstSight", function () {
         var sync = getNewSyncEngine();
@@ -510,23 +582,29 @@
         }).then(function (idb) {
             instapaperDB = idb;
 
-            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
-        }).then(function (bookmarks) {
+            return WinJS.Promise.join({
+                local: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+            });
+        }).then(function (data) {
+            var bookmarks = data.local;
+            var expectedBookmarks = data.remote.bookmarks;
+
             ok(bookmarks, "Didn't get any bookmarks");
             strictEqual(bookmarks.length, addedRemoteBookmarks.length, "Didn't get enough bookmarks");
 
-
             // Check all the bookmarks are correctly present.
-            var expectedBookmarks = [];
-            for (var i = 1; i < addedRemoteBookmarks.length + 1; i++) {
-                expectedBookmarks.push("http://www.codevoid.net/articlevoidtest/TestPage" + i + ".html");
-            }
-
             ok(expectedBookmarks.length, "Should have added some test pages to check");
 
             var allInUnread = bookmarks.every(function (item) {
-                var expectedBookmarkIndex = expectedBookmarks.indexOf(item.url);
-                if (expectedBookmarkIndex > -1) {
+                var expectedBookmarkIndex = -1;
+                expectedBookmarks.forEach(function (bookmark, index) {
+                    if (bookmark.url === item.url) {
+                        expectedBookmarkIndex = index;
+                    }
+                });
+
+                if (expectedBookmarkIndex != -1) {
                     expectedBookmarks.splice(expectedBookmarkIndex, 1);
                 }
 
@@ -573,7 +651,7 @@
         
         return WinJS.Promise.join({
             folderAdd: f.add(addedFolderName),
-            bookmarkAdd: b.add({ url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" }),
+            bookmarkAdd: b.add(sourceUrls.shift()),
             idb: getNewInstapaperDBAndInit(),
         }).then(function (data) {
             instapaperDB = data.idb;
@@ -659,7 +737,7 @@
 
     promiseTest("locallyAddedBookmarksGoUpToUnread", function () {
         var instapaperDB;
-        var targetUrl = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+        var targetUrl = sourceUrls.shift().url;
         var targetTitle = Date.now() + "";
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -699,16 +777,20 @@
 
     promiseTest("syncingBookmarkThatIsAlreadyAvailableRemotelyDoesntDuplicate", function () {
         var instapaperDB;
-        var targetUrl = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+        var targetBookmark;
         var targetTitle = Date.now() + "";
         var localBookmarkCountBeforeSync;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (current) {
+            targetBookmark = current.shift();
 
             return WinJS.Promise.join({
-                added: idb.addUrl({ url: targetUrl, title: targetTitle }),
-                localBookmarks: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
+                added: instapaperDB.addUrl({ url: targetBookmark.url, title: targetTitle }),
+                localBookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
             });
         }).then(function (data) {
             localBookmarkCountBeforeSync = data.localBookmarks.length;
@@ -817,7 +899,7 @@
 
     promiseTest("localLikesAreSyncedToService", function () {
         var instapaperDB;
-        var targetBookmark = addedRemoteBookmarks.pop();
+        var targetBookmark = addedRemoteBookmarks.shift();
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -962,7 +1044,7 @@
     promiseTest("archivesAreMovedToArchiveFolder", function () {
         var instapaperDB;
         var targetBookmark = {};
-        targetBookmark = addedRemoteBookmarks.pop();
+        targetBookmark = addedRemoteBookmarks.shift();
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -978,7 +1060,7 @@
             })[0];
 
             ok(remote, "Bookmark wasn't moved to archive remotely");
-            addedRemoteBookmarks.unshift(remote);
+            addedRemoteBookmarks.push(remote);
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -986,7 +1068,7 @@
 
     promiseTest("movesMoveToAppropriateFolder", function () {
         var instapaperDB;
-        var targetBookmark = addedRemoteBookmarks.pop();
+        var targetBookmark = addedRemoteBookmarks.shift();
         var newFolder;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1010,6 +1092,8 @@
                 return bookmark.bookmark_id === targetBookmark.bookmark_id;
             })[0];
 
+            addedRemoteBookmarks.push(remote);
+
             ok(remote, "Bookmark wasn't moved to archive remotely");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
@@ -1018,7 +1102,7 @@
 
     promiseTest("localDeletesGoUpToTheServer", function () {
         var instapaperDB;
-        var targetBookmark = addedRemoteBookmarks.pop();
+        var targetBookmark = addedRemoteBookmarks.shift();
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -1033,8 +1117,58 @@
             });
 
             ok(!bookmarkFoundRemotely, "Found the bookmark remotely. It should have been deleted");
+            sourceUrls.push({ url: targetBookmark.url });
 
             return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    });
+
+    promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData);
+    promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks);
+    promiseTest("deleteLocalDbBeforeDeletes", deleteDb);
+    promiseTest("syncDefaultState", function () {
+        return getNewSyncEngine().sync().then(function () {
+            ok(true, "sync complete");
+        });
+    });
+
+    promiseTest("remoteDeletesAreRemovedLocally", function () {
+        var instapaperDB;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var targetBookmark1 = addedRemoteBookmarks.shift();
+        var targetBookmark2 = addedRemoteBookmarks.shift();
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (current) {
+            ok(current, "Didn't get any bookmarks");
+            ok(current.length > 1, "Didn't find enough bookmarks");
+
+            return WinJS.Promise.join({
+                delete1: bookmarks.deleteBookmark(targetBookmark1.bookmark_id),
+                delete2: bookmarks.deleteBookmark(targetBookmark2.bookmark_id),
+            });
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+        }).then(function () {
+            return WinJS.Promise.join({
+                bookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
+                bookmark1: instapaperDB.getBookmarkByBookmarkId(targetBookmark1.bookmark_id),
+                bookmark2: instapaperDB.getBookmarkByBookmarkId(targetBookmark2.bookmark_id),
+            });
+        }).then(function (data) {
+            var bookmark1NoLongerInUnread = data.bookmarks.some(function (bookmark) {
+                return bookmark.bookmark_id === targetBookmark1.bookmark_id;
+            });
+            ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
+
+            var bookmark2NoLongerInUnread = data.bookmarks.some(function (bookmark) {
+                return bookmark.bookmark_id === targetBookmark2.bookmark_id;
+            });
+
+            ok(!data.bookmark1, "Bookmark found when it shouldn't have been");
+            ok(!data.bookmark2, "Bookmark found when it shouldn't have been");
         });
     });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);

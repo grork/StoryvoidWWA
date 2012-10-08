@@ -105,6 +105,37 @@
         },
         {
             _clientInformation: null,
+            _updateDailyAddCount: function _updateDailyAddCount() {
+
+                var store = Windows.Storage.ApplicationData.current.roamingSettings;
+                var current = store.values[this._clientInformation.clientToken];
+                if (!current) {
+                    current = new Windows.Storage.ApplicationDataCompositeValue();
+                }
+                var currentTimeInNyc = new Date(Date.now() - (5 * 60 * 60 * 1000));
+                var previousStoredDateInInNyc = current["date"];
+                if (!previousStoredDateInInNyc) {
+                    previousStoredDateInInNyc = Date.now() - (24 * 60 * 60 * 1000);
+                }
+
+                current["date"] = currentTimeInNyc.getTime();
+
+                var previousTimeInNyc = new Date(previousStoredDateInInNyc);
+                
+                if ((currentTimeInNyc.getFullYear() === previousTimeInNyc.getFullYear())
+                 && (currentTimeInNyc.getMonth() === previousTimeInNyc.getMonth())
+                 && (currentTimeInNyc.getDate() === previousTimeInNyc.getDate())
+                 && current["count"]) {
+                    current["count"]++;
+                } else {
+                    current["count"] = 1;
+                }
+
+                store.values[this._clientInformation.clientToken] = current;
+
+                console.log("Current daily add count: " + current["count"]);
+                appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
+            },
             list: function list(parameters) {
                 var data = [];
                 if (parameters) {
@@ -167,6 +198,7 @@
 
                 var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.add);
                 request.data = data;
+                this._updateDailyAddCount();
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
             },
             deleteBookmark: function deleteBookmark(bookmark_id) {

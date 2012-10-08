@@ -262,16 +262,29 @@
                     });
                 }).then(function (result) {
                     var rb = result.bookmarks;
-                    var localAdds = rb.reduce(function (data, bookmark) {
-                        bookmark.folder_dbid = dbIdOfFolderToSync;
-                        bookmark.folder_id = folderId;
-                        bookmark.starred = parseInt(bookmark.starred, 10);
-                        bookmark.progress = parseFloat(bookmark.progress);
-                        data.push(db.updateBookmark(bookmark));
-                        return data;
-                    }, []);
+                    var rd = result.meta;
+                    var operations = [];
 
-                    return WinJS.Promise.join(localAdds);
+                    if (rb && rb.length) {
+                        operations = rb.reduce(function (data, bookmark) {
+                            bookmark.folder_dbid = dbIdOfFolderToSync;
+                            bookmark.folder_id = folderId;
+                            bookmark.starred = parseInt(bookmark.starred, 10);
+                            bookmark.progress = parseFloat(bookmark.progress);
+                            data.push(db.updateBookmark(bookmark));
+                            return data;
+                        }, operations);
+                    }
+
+                    if (rd.delete_ids) {
+                        operations = rd.delete_ids.split(",").reduce(function (data, bookmark) {
+                            var bookmark_id = parseInt(bookmark);
+                            data.push(db.removeBookmark(bookmark_id, true));
+                            return data;
+                        }, operations);
+                    }
+
+                    return WinJS.Promise.join(operations);
                 });
             },
             _syncLikes: function _syncLikes(db) {
