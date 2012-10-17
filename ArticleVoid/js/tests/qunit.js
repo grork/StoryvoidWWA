@@ -116,7 +116,8 @@ Test.prototype = {
 
 		var running = id( "qunit-testresult" );
 
-		if ( running ) {
+		if (running) {
+		    console.log("Running: " + this.testName);
 			running.innerHTML = "Running: <br/>" + this.name;
 		}
 
