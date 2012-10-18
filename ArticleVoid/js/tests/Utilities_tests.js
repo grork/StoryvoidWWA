@@ -1,6 +1,7 @@
 ﻿(function () {
     "use strict";
     var Signal = Codevoid.Utilities.Signal;
+    var promiseTest = InstapaperTestUtilities.promiseTest;
 
     module("utilitiesSignal");
 
@@ -148,4 +149,88 @@
     test("errorRaisedOnPromiseWithErrorInfo", errorRaisedOnPromiseWithErrorInfo);
     test("progressReported", progressReported);
     test("progressReportedWithData", progressReportedWithData);
+
+    module("UtilitiesPromiseSerializer");
+
+    promiseTest("handlerAppliedToAllPromises", function () {
+        var promisesCompleted = 0;
+        var data = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+        
+        var doWork = function doWork(item) {
+            promisesCompleted++;
+            return WinJS.Promise.timeout();
+        };
+
+
+        return Codevoid.Utilities.serialize(data, doWork).then(function () {
+            strictEqual(promisesCompleted, 10);
+        });
+    });
+
+    promiseTest("makeSureWeDontRunOutOfStackSpace", function () {
+        var promisesCompleted = 0;
+        var data = [];
+        for (var i = 0; i < 10000; i++) {
+            data.push(i);
+        }
+
+        var doWork = function doWork(item) {
+            promisesCompleted++;
+            return WinJS.Promise.timeout();
+        };
+
+        return Codevoid.Utilities.serialize(data, doWork).then(function () {
+            strictEqual(promisesCompleted, data.length);
+        });
+    });
+
+    promiseTest("workIsPerformedInSerial", function () {
+        var promiseExecuting = false;
+        var completedPromises = 0;
+        var data = [1, 2, 3, 4, 5, 6, 8, 9, 10];
+        var doWork = function () {
+            ok(!promiseExecuting, "A promise was already executing");
+            promiseExecuting = true;
+            return WinJS.Promise.timeout(10).then(function () {
+                promiseExecuting = false;
+                completedPromises++;
+            });
+        };
+
+        return Codevoid.Utilities.serialize(data, doWork).then(function () {
+            strictEqual(completedPromises, data.length);
+        });
+    });
+
+    promiseTest("stillCompletesIfOneErrors", function () {
+        var doWork = function (item) {
+            if (item === 5) {
+                throw "Failure!";
+            }
+
+            return WinJS.Promise.timeout();
+        };
+        var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        return Codevoid.Utilities.serialize(data, doWork).then(function () {
+            ok(false, "Shouldn't succeed");
+        }, function () {
+            ok(true, "should have gotten error");
+        });
+    });
+
+    promiseTest("getValuesAfterCompletion", function () {
+        var doWork = function (item) {
+            return WinJS.Promise.timeout().then(function () {
+                return item;
+            });
+        };
+        var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        return Codevoid.Utilities.serialize(data, doWork).then(function (values) {
+            values.forEach(function (value, index) {
+                strictEqual(value, data[index], "Values & Order didn't match at index: " + index);
+            });
+        });
+    });
 })();

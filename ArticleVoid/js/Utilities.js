@@ -71,5 +71,41 @@
                 this._progress(progressInfo);
             },
         }), WinJS.Utilities.eventMixin),
+        serialize: function serialize(items, work) {
+            var results = [];
+            var signals = [];
+
+            function doWork() {
+                // Start the "cascade"
+                if(!signals.length) {
+                    return;
+                }
+
+                var signal = signals.shift();
+                signal.complete();
+            }
+
+            // Set up all the signals so that as each one
+            // is signalled, the work it needs to do gets
+            // done.
+            items.forEach(function (item) {
+                var signal = new Codevoid.Utilities.Signal();
+                signals.push(signal);
+
+                results.push(signal.promise.then(function () {
+                    return WinJS.Promise.as(work(item));
+                }).then(function (value) {
+                    doWork();
+                    return value;
+                }, function (error) {
+                    doWork();
+                    return WinJS.Promise.wrapError(error);
+                }));
+            });
+
+            doWork();
+
+            return WinJS.Promise.join(results);
+        },
     });
 })();
