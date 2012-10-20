@@ -64,7 +64,7 @@
         // when this happens, the back end will move them to "Archive".
         return folders.list().then(function (serverFolders) {
             var deletedFoldersPromises = [];
-            serverFolders.forEach(function (folder) {
+            return Codevoid.Utilities.serialize(serverFolders, function (folder) {
                 // We can't delete the default folders, so skip them
                 switch (folder.folder_id) {
                     case InstapaperDB.CommonFolderIds.Unread:
@@ -76,48 +76,33 @@
                         break;
                 }
 
-                deletedFoldersPromises.push(folders.deleteFolder(folder.folder_id));
+                return folders.deleteFolder(folder.folder_id);
             });
-
-            return WinJS.Promise.join(deletedFoldersPromises);
         }).then(function () {
             // Find all the now-in-archive folders, and...
             return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
         }).then(function (archivedBookmarks) {
             // ... unarchive them. This will put them in "unread"
-            var moves = [];
-            archivedBookmarks = archivedBookmarks.bookmarks;
-            archivedBookmarks.forEach(function (bookmark) {
-                moves.push(bookmarks.unarchive(bookmark.bookmark_id));
+            return Codevoid.Utilities.serialize(archivedBookmarks.bookmarks, function (bookmark) {
+                return bookmarks.unarchive(bookmark.bookmark_id);
             });
-
-            return WinJS.Promise.join(moves);
         }).then(function () {
             // Find anything that has a "like" on it...
             return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
         }).then(function (likes) {
-            likes = likes.bookmarks;
-            // ... and unlike it.
-            var unlikes = [];
-            likes.forEach(function (liked) {
-                unlikes.push(bookmarks.unstar(liked.bookmark_id));
+            return Codevoid.Utilities.serialize(likes.bookmarks, function (liked) {
+                return bookmarks.unstar(liked.bookmark_id);
             });
-
-            return WinJS.Promise.join(unlikes);
         }).then(function () {
             return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
         }).then(function (remoteBookmarks) {
-            remoteBookmarks = remoteBookmarks.bookmarks;
-            var progressUpdates = [];
-            remoteBookmarks.forEach(function (rb) {
-                progressUpdates.push(bookmarks.updateReadProgress({
+            return Codevoid.Utilities.serialize(remoteBookmarks.bookmarks, function (rb) {
+                return bookmarks.updateReadProgress({
                     bookmark_id: rb.bookmark_id,
                     progress: 0.0,
                     progress_timestamp: Date.now(),
-                }));
+                });
             });
-
-            return WinJS.Promise.join(progressUpdates);
         }).then(function () {
             ok(true, "It went very very wrong");
         });
@@ -132,13 +117,11 @@
 
         var addPromises = [];
 
-        addedRemoteFolders.forEach(function (folder, index) {
-            addPromises.push(folders.add(folder.title).then(function (remoteFolder) {
+        return Codevoid.Utilities.serialize(addedRemoteFolders, function (folder, index) {
+            return folders.add(folder.title).then(function (remoteFolder) {
                 addedRemoteFolders[index] = remoteFolder;
-            }));
-        });
-
-        return WinJS.Promise.join(addPromises).then(function () {
+            });
+        }).then(function () {
             ok(true, "Folders added");
         });
     }
@@ -557,12 +540,14 @@
             var adds = [];
 
             for (var i = 0; i < needToAdd; i++) {
-                adds.push(bookmarks.add(sourceUrls.shift()).then(function (added) {
-                    remoteBookmarks.push(added);
-                }));
+                adds.push(sourceUrls.shift());
             }
 
-            return WinJS.Promise.join(adds).then(function () {
+            return Codevoid.Utilities.serialize(adds, function (url) {
+                return bookmarks.add(url).then(function (added) {
+                    remoteBookmarks.push(added);
+                });
+            }).then(function () {
                 return remoteBookmarks;
             });
         }).then(function (currentRemoteBookmarks) {
@@ -1145,9 +1130,11 @@
             ok(current, "Didn't get any bookmarks");
             ok(current.length > 1, "Didn't find enough bookmarks");
 
-            return WinJS.Promise.join({
-                delete1: bookmarks.deleteBookmark(targetBookmark1.bookmark_id),
-                delete2: bookmarks.deleteBookmark(targetBookmark2.bookmark_id),
+            return Codevoid.Utilities.serialize([
+                targetBookmark1.bookmark_id,
+                targetBookmark2.bookmark_id,
+            ], function (id) {
+                return bookmarks.deleteBookmark(id);
             });
         }).then(function () {
             return getNewSyncEngine().sync({ bookmarks: true, folders: false });

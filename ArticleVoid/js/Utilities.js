@@ -88,12 +88,12 @@
             // Set up all the signals so that as each one
             // is signalled, the work it needs to do gets
             // done.
-            items.forEach(function (item) {
+            items.forEach(function (item, index) {
                 var signal = new Codevoid.Utilities.Signal();
                 signals.push(signal);
 
                 results.push(signal.promise.then(function () {
-                    return WinJS.Promise.as(work(item));
+                    return WinJS.Promise.as(work(item, index));
                 }).then(function (value) {
                     doWork();
                     return value;
