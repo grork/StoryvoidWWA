@@ -171,7 +171,7 @@
                     return WinJS.Promise.join(syncs);
                 });
             },
-            _syncBookmarks: function _syncBookmarks(db) {
+            syncBookmarks: function syncBookmarks(db) {
                 return this._syncBookmarkPendingAdds(db).then(function () {
                     return WinJS.Promise.join({
                         sync: this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread),
@@ -204,9 +204,11 @@
                 var b = this._bookmarks;
                 var folderId;
 
+                // First get the pending edits to work on
                 return db.getPendingBookmarkEdits(dbIdOfFolderToSync).then(function (pendingEdits) {
                     var operations = [];
 
+                    // Moves
                     if(pendingEdits.moves) {
                         pendingEdits.moves.forEach(function(move) {
                             var operation;
@@ -229,6 +231,7 @@
                         });
                     }
 
+                    // *Remote* Deletes
                     if (pendingEdits.deletes) {
                         pendingEdits.deletes.forEach(function (del) {
                             var operation = b.deleteBookmark(del.bookmark_id).then(function () {
@@ -237,12 +240,18 @@
                         });
                     }
 
+                    // Wait for the operations to complete, and return the local data
+                    // so we can look for oprphaned bookmarks
                     return WinJS.Promise.join({
                         remoteOperations: WinJS.Promise.join(operations),
                         folder: db.getFolderByDbId(dbIdOfFolderToSync),
                         localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
                     });
                 }).then(function (data) {
+                    // Build the list of local "haves" for the folder we're
+                    // syncing, so that the server can update it's read progress
+                    // and tell us of any bookmarks that might have been removed
+                    // on the server, or also added.
                     folderId = data.folder.folder_id;
                     var localBookmarks = data.localBookmarks;
                     var haves = localBookmarks.reduce(function (data, bookmark) {
@@ -261,21 +270,35 @@
                         have: haves,
                     });
                 }).then(function (result) {
+                    // Now we've told the server what our local state is, and it's telling
+                    // us whats *different* from that state.
                     var rb = result.bookmarks;
                     var rd = result.meta;
                     var operations = [];
 
+                    // Process any existing bookmarks. Note that this can included bookmarks
+                    // in this folder we aren't currently aware of (e.g. added), and ones we
+                    // think are in another folder. This also includes updating read progress
+                    // and other details.
                     if (rb && rb.length) {
                         operations = rb.reduce(function (data, bookmark) {
                             bookmark.folder_dbid = dbIdOfFolderToSync;
                             bookmark.folder_id = folderId;
+
+                            // Since the server gave us the data in a non-typed format, lets
+                            // faff with it and get into something that looks typed.
                             bookmark.starred = parseInt(bookmark.starred, 10);
                             bookmark.progress = parseFloat(bookmark.progress);
+
+                            // Do the update
                             data.push(db.updateBookmark(bookmark));
                             return data;
                         }, operations);
                     }
 
+                    // The server returns any deletes in the folder as a string separated
+                    // by ,'s. So we need to split that apart for the bookmark_id's, and
+                    // then go remove them from the local database.
                     if (rd.delete_ids) {
                         operations = rd.delete_ids.split(",").reduce(function (data, bookmark) {
                             var bookmark_id = parseInt(bookmark);
@@ -289,12 +312,14 @@
             },
             _syncLikes: function _syncLikes(db) {
                 var b = this._bookmarks;
-                var localLikesBeforeSync;
 
+                // Get the pending edits
                 return db.getPendingBookmarkEdits().then(function (edits) {
                     var operations = [];
 
+                    // We're only looking at likes & unlikes here
                     if (edits.likes && edits.likes.length) {
+                        // Push the like edits remotely
                         operations = edits.likes.reduce(function (data, edit) {
                             var operation = b.star(edit.bookmark_id).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
@@ -306,6 +331,7 @@
                     }
 
                     if (edits.unlikes && edits.unlikes.length) {
+                        // push the unlike edits
                         operations = edits.unlikes.reduce(function (data, edit) {
                             var operation = b.unstar(edit.bookmark_id).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
@@ -318,18 +344,24 @@
                     }
 
                     return WinJS.Promise.join(operations);
-                }).then(function() {
-                    return db.listCurrentBookmarks(db.commonFolderDbIds.liked);
-                }).then(function (likes) {
-                    localLikesBeforeSync = likes;
-                    
+                }).then(function () {
                     // Don't sync the "have" information here
                     // since this will screw with lots of other
                     // state that we're syncing through other means
-                    return b.list({
-                        folder_id: InstapaperDB.CommonFolderIds.Liked,
+                    return WinJS.Promise.join({
+                        remoteBookmarks: b.list({
+                            folder_id: InstapaperDB.CommonFolderIds.Liked,
+                        }),
+                        localBookmarks: db.listCurrentBookmarks(db.commonFolderDbIds.liked),
                     });
-                }).then(function (remoteData) {
+                }).then(function (data) {
+                    var remoteData = data.remoteBookmarks;
+                    var localLikesBeforeSync = data.localBookmarks;
+
+                    // Since we didn't use the have functionality, we need
+                    // to manually look for the bookmarks in the liked folder
+                    // to see which need to be added as liked locally, and removed
+                    // as liked locally
                     var operations = localLikesBeforeSync.reduce(function (data, lb) {
                         var isStillLiked = remoteData.bookmarks.some(function (rb) {
                             return rb.bookmark_id === lb.bookmark_id;
@@ -342,6 +374,8 @@
                         return data;
                     }, []);
 
+                    // Since we're not going to leave a pending edit, we can just like the
+                    // remaining bookmarks irrespective of their existing state.
                     operations = remoteData.bookmarks.reduce(function (data, bookmark) {
                         data.push(db.likeBookmark(bookmark.bookmark_id, true));
                         return data;
@@ -368,7 +402,7 @@
                         return;
                     }
 
-                    return this._syncBookmarks(db);
+                    return this.syncBookmarks(db);
                 }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
                 }.bind(this));
