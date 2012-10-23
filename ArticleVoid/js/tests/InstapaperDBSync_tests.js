@@ -139,13 +139,14 @@
         }).then(function (folders) {
             ok(folders, "Didn't get folder list");
 
-            strictEqual(folders.length, 6, "Unexpected number of folders");
+            strictEqual(folders.length, 7, "Unexpected number of folders");
 
             folders.forEach(function (folder) {
                 switch (folder.folder_id) {
                     case InstapaperDB.CommonFolderIds.Unread:
                     case InstapaperDB.CommonFolderIds.Archive:
                     case InstapaperDB.CommonFolderIds.Liked:
+                    case InstapaperDB.CommonFolderIds.Orphaned:
                         return;
                         break;
 
@@ -1137,6 +1138,9 @@
                 return bookmarks.deleteBookmark(id);
             });
         }).then(function () {
+            sourceUrls.push({ url: targetBookmark1.url });
+            sourceUrls.push({ url: targetBookmark2.url });
+
             return getNewSyncEngine().sync({ bookmarks: true, folders: false });
         }).then(function () {
             return WinJS.Promise.join({
@@ -1154,8 +1158,34 @@
                 return bookmark.bookmark_id === targetBookmark2.bookmark_id;
             });
 
-            ok(!data.bookmark1, "Bookmark found when it shouldn't have been");
-            ok(!data.bookmark2, "Bookmark found when it shouldn't have been");
+            strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
+            strictEqual(data.bookmark1.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
+
+            strictEqual(data.bookmark2.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 2 not in orphaned folder");
+            strictEqual(data.bookmark2.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 2 not in orphaned folder");
+
+            return WinJS.Promise.join({
+                orphaned: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned),
+                bookmark1: data.bookmark1,
+                bookmark2: data.bookmark2,
+            });
+        }).then(function (data) {
+            var bookmark1Present = data.orphaned.some(function (item) {
+                return item.bookmark_id === data.bookmark1.bookmark_id;
+            });
+
+            ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
+            
+            var bookmark2Present = data.orphaned.some(function (item) {
+                return item.bookmark_id === data.bookmark2.bookmark_id;
+            });
+
+            ok(bookmark2Present, "Bookmark 2 wasn't present in the orphaned folder");
+
+            return WinJS.Promise.join({
+                bookmark1: instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true),
+                bookmark2: instapaperDB.removeBookmark(data.bookmark2.bookmark_id, true),
+            });
         });
     });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
