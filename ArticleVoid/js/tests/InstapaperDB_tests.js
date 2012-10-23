@@ -2,7 +2,7 @@
     "use strict";
 
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
-    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive];
+    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
 
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
     var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
@@ -28,11 +28,12 @@
             return rawServer.query(InstapaperDB.DBFoldersTable).execute();
         }).then(function (queryResult) {
             ok(queryResult, "Didn't get any results");
-            strictEqual(queryResult.length, 3, "Didn't get the folders expected");
+            strictEqual(queryResult.length, 4, "Didn't get the folders expected");
 
             notStrictEqual(defaultFolderIds.indexOf(queryResult[0].folder_id), -1, "Didn't find folder: " + queryResult[0].folder_id);
             notStrictEqual(defaultFolderIds.indexOf(queryResult[1].folder_id), -1, "Didn't find folder: " + queryResult[1].folder_id);
             notStrictEqual(defaultFolderIds.indexOf(queryResult[2].folder_id), -1, "Didn't find folder: " + queryResult[2].folder_id);
+            notStrictEqual(defaultFolderIds.indexOf(queryResult[3].folder_id), -1, "Didn't find folder: " + queryResult[3].folder_id);
         });
     }
 
@@ -41,11 +42,12 @@
             return idb.listCurrentFolders();
         }).then(function (folders) {
             ok(folders, "Didn't get any folders");
-            strictEqual(folders.length, 3, "Got unexpected number of folders");
+            strictEqual(folders.length, 4, "Got unexpected number of folders");
 
             notStrictEqual(defaultFolderIds.indexOf(folders[0].folder_id), -1, "Didn't find folder: " + folders[0].folder_id);
             notStrictEqual(defaultFolderIds.indexOf(folders[1].folder_id), -1, "Didn't find folder: " + folders[1].folder_id);
             notStrictEqual(defaultFolderIds.indexOf(folders[2].folder_id), -1, "Didn't find folder: " + folders[2].folder_id);
+            notStrictEqual(defaultFolderIds.indexOf(folders[3].folder_id), -1, "Didn't find folder: " + folders[3].folder_id);
         });
     }
 

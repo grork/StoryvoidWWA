@@ -9,6 +9,7 @@
             case InstapaperDB.CommonFolderIds.Archive:
             case InstapaperDB.CommonFolderIds.Liked:
             case InstapaperDB.CommonFolderIds.Unread:
+            case InstapaperDB.CommonFolderIds.Orphaned:
                 return true;
 
             default:
@@ -302,7 +303,7 @@
                     if (rd.delete_ids) {
                         operations = rd.delete_ids.split(",").reduce(function (data, bookmark) {
                             var bookmark_id = parseInt(bookmark);
-                            data.push(db.removeBookmark(bookmark_id, true));
+                            data.push(db.moveBookmark(bookmark_id, db.commonFolderDbIds.orphaned, true));
                             return data;
                         }, operations);
                     }

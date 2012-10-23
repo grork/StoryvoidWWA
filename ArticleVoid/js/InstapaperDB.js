@@ -93,12 +93,14 @@
                         archive: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive),
                         liked: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked),
                         unread: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread),
+                        orphaned: this.getFolderFromFolderId(Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Orphaned),
                     });
                 }.bind(this)).then(function returnSelfToChain(data) {
                     this.commonFolderDbIds = {
                         archive: data.archive.id,
                         liked: data.liked.id,
                         unread: data.unread.id,
+                        orphaned: data.orphaned.id,
                     };
                     return this;
                 }.bind(this));
@@ -290,7 +292,7 @@
                     if (adds.length) {
                         result.adds = adds;
                     }
-                    
+
                     if (deletes.length) {
                         result.deletes = deletes;
                     }
@@ -435,6 +437,7 @@
                         default:
                             break;
                     }
+
                     sourcefolder_dbid = data.bookmark.folder_dbid;
                     data.bookmark.folder_dbid = data.folder.id;
 
@@ -638,13 +641,15 @@
                 server.add("folders", [
                     { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread, title: "unread" },
                     { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked, title: "liked" },
-                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive, title: "archive" }
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive, title: "archive" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Orphaned, title: "orphaned", localOnly: true },
                 ]);
             },
             CommonFolderIds: {
                 Unread: "unread",
                 Liked: "starred",
                 Archive: "archive",
+                Orphaned: "orphaned",
             },
             DBName: {
                 writable: false,
