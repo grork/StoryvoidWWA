@@ -29,17 +29,23 @@
     }
 
     var addedRemoteBookmarks;
-    var sourceUrls = [
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
-        { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
-    ];
+    var sourceUrls;
+
+    function resetSourceUrls() {
+        sourceUrls = [
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
+            { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
+        ];
+    }
+
+    resetSourceUrls();
 
     function getNewSyncEngine() {
         return new Codevoid.ArticleVoid.InstapaperSync(clientInformation);
@@ -502,6 +508,7 @@
     function addDefaultBookmarks() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
         var minNumberOfBookmarks = 2;
+        resetSourceUrls();
 
         // Get the remote bookmarks so we can add, update, cache etc as needed
         return bookmarks.list({
@@ -1187,6 +1194,50 @@
             return WinJS.Promise.join({
                 bookmark1: instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true),
                 bookmark2: instapaperDB.removeBookmark(data.bookmark2.bookmark_id, true),
+            });
+        });
+    });
+
+    promiseTest("destroyRemoteData", destroyRemoteAccountData);
+    promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks);
+    promiseTest("deleteDb", deleteDb);
+
+    promiseTest("sprinkleBookmarksAcrossTwoNonDefaultFolders", function () {
+        var instapaperDB;
+        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        
+        // First we need to set up some remote data for multiple folder edits.
+        // This really means moving some bookmarks into specific, known folders,
+        // and then pending some edits locally to go up, come down etc.
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            // Add some folders to work with.
+            return Codevoid.Utilities.serialize([
+                Date.now() + "",
+                (Date.now() + 10) + "",
+            ], function (item) {
+                return folders.add(item);
+            });
+        }).then(function () {
+            // Get the remote data, so we can manipulate it.
+            return WinJS.Promise.join({
+                folders: folders.list(),
+                bookmarks: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+            });
+        }).then(function (data) {
+            var bookmarkData = data.bookmarks.bookmarks;
+            var folders = data.folders;
+
+            ok(bookmarkData.length > 1, "Not enough bookmarks");
+            ok(folders.length > 1, "Not enough folders");
+
+            return Codevoid.Utilities.serialize([
+                { bookmark_id: bookmarkData[0].bookmark_id, destination: folders[0].folder_id },
+                { bookmark_id: bookmarkData[1].bookmark_id, destination: folders[1].folder_id },
+            ], function (item) {
+                return bookmarks.move(item);
             });
         });
     });
