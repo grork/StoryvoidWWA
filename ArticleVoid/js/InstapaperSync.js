@@ -98,7 +98,7 @@
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
 
-                    pendingEdits.forEach(function (edit) {
+                    return Codevoid.Utilities.serialize(pendingEdits, function (edit) {
                         var syncPromise;
                         switch (edit.type) {
                             case InstapaperDB.PendingFolderEditTypes.ADD:
@@ -115,13 +115,11 @@
                         }
 
                         if (syncPromise) {
-                            syncs.push(syncPromise.then(function () {
+                            return syncPromise.then(function () {
                                 return db.deletePendingFolderEdit(edit.id);
-                            }));
+                            });
                         }
                     }.bind(this));
-
-                    return WinJS.Promise.join(syncs);
                 }.bind(this)).then(function () {
                     return WinJS.Promise.join({
                         remoteFolders: this._folders.list(),
@@ -186,35 +184,31 @@
                 var b = this._bookmarks;
 
                 return db.getPendingBookmarkAdds().then(function (pendingAdds) {
-                    var remoteAdds = pendingAdds.reduce(function (data, add) {
-                        var addPromise = b.add({
+                    return Codevoid.Utilities.serialize(pendingAdds, function (add) {
+                        return b.add({
                             url: add.url,
                             title: add.title,
                         }).then(function () {
                             return db.deletePendingBookmarkEdit(add.id);
                         });
-
-                        data.push(addPromise);
-                        return data;
-                    }, []);
-
-                    return WinJS.Promise.join(remoteAdds);
+                    });
                 });
             },
             _syncBookmarksForFolder: function _syncBookmarksForFolder(db, dbIdOfFolderToSync) {
                 var b = this._bookmarks;
                 var folderId;
+                var pendingEdits;
 
                 // First get the pending edits to work on
-                return db.getPendingBookmarkEdits(dbIdOfFolderToSync).then(function (pendingEdits) {
-                    var operations = [];
+                return db.getPendingBookmarkEdits(dbIdOfFolderToSync).then(function (edits) {
+                    pendingEdits = edits;
 
                     // Moves
-                    if(pendingEdits.moves) {
-                        pendingEdits.moves.forEach(function(move) {
+                    if (pendingEdits.moves) {
+                        return Codevoid.Utilities.serialize(pendingEdits.moves, function (move) {
                             var operation;
 
-                            switch(move.destinationfolder_dbid) {
+                            switch (move.destinationfolder_dbid) {
                                 case db.commonFolderDbIds.archive:
                                     operation = b.archive(move.bookmark_id);
                                     break;
@@ -226,25 +220,24 @@
                                     break;
                             }
 
-                            operations.push(operation.then(function () {
+                            return operation.then(function () {
                                 return db.deletePendingBookmarkEdit(move.id);
-                            }));
+                            });
                         });
                     }
-
+                }).then(function () {
                     // *Remote* Deletes
                     if (pendingEdits.deletes) {
-                        pendingEdits.deletes.forEach(function (del) {
-                            var operation = b.deleteBookmark(del.bookmark_id).then(function () {
+                        return Codevoid.Utilities.serialize(pendingEdits.deletes, function (del) {
+                            return b.deleteBookmark(del.bookmark_id).then(function () {
                                 return db.deletePendingBookmarkEdit(del.id);
                             });
                         });
                     }
-
+                }).then(function () {
                     // Wait for the operations to complete, and return the local data
                     // so we can look for oprphaned bookmarks
                     return WinJS.Promise.join({
-                        remoteOperations: WinJS.Promise.join(operations),
                         folder: db.getFolderByDbId(dbIdOfFolderToSync),
                         localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
                     });
@@ -313,38 +306,30 @@
             },
             _syncLikes: function _syncLikes(db) {
                 var b = this._bookmarks;
+                var edits;
 
                 // Get the pending edits
-                return db.getPendingBookmarkEdits().then(function (edits) {
-                    var operations = [];
+                return db.getPendingBookmarkEdits().then(function (pendingEdits) {
+                    edits = pendingEdits;
 
                     // We're only looking at likes & unlikes here
                     if (edits.likes && edits.likes.length) {
                         // Push the like edits remotely
-                        operations = edits.likes.reduce(function (data, edit) {
-                            var operation = b.star(edit.bookmark_id).then(function () {
+                        return Codevoid.Utilities.serialize(edits.likes, function(edit) {
+                            return b.star(edit.bookmark_id).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
                             });
-
-                            data.push(operation);
-                            return data;
-                        }, operations);
+                        });
                     }
-
+                }).then(function() {
                     if (edits.unlikes && edits.unlikes.length) {
                         // push the unlike edits
-                        operations = edits.unlikes.reduce(function (data, edit) {
-                            var operation = b.unstar(edit.bookmark_id).then(function () {
+                        return Codevoid.Utilities.serialize(edits.unlikes, function (edit) {
+                            return b.unstar(edit.bookmark_id).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
                             });
-                            
-                            data.push(operation);
-
-                            return data;
-                        }, operations);
+                        });
                     }
-
-                    return WinJS.Promise.join(operations);
                 }).then(function () {
                     // Don't sync the "have" information here
                     // since this will screw with lots of other

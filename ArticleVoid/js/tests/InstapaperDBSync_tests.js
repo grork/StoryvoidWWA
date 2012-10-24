@@ -554,6 +554,8 @@
         }).then(function (currentRemoteBookmarks) {
             ok(currentRemoteBookmarks, "Didn't get list of current remote bookmarks");
             addedRemoteBookmarks = currentRemoteBookmarks;
+            ok(addedRemoteBookmarks, "No remotebookmarks!");
+            ok(addedRemoteBookmarks.length, "No remote bookmarks!");
         });
     };
 
