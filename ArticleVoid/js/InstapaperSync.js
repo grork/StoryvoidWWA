@@ -172,10 +172,24 @@
             },
             syncBookmarks: function syncBookmarks(db) {
                 return this._syncBookmarkPendingAdds(db).then(function () {
-                    return WinJS.Promise.join({
-                        sync: this._syncBookmarksForFolder(db, db.commonFolderDbIds.unread),
-                        timeout: WinJS.Promise.timeout(),
+                    return db.listCurrentFolders();
+                }).then(function(currentFolders) {
+                    currentFolders = currentFolders.filter(function (folder) {
+                        switch (folder.folder_id) {
+                            case InstapaperDB.CommonFolderIds.Liked:
+                            case InstapaperDB.CommonFolderIds.Orphaned:
+                                return false;
+
+                            default:
+                                return true;
+                        }
                     });
+
+                    return Codevoid.Utilities.serialize(currentFolders, function (folder) {
+                        return this._syncBookmarksForFolder(db, folder.id).then(function () {
+                            return WinJS.Promise.timeout();
+                        });
+                    }.bind(this));
                 }.bind(this)).then(function () {
                     return this._syncLikes(db);
                 }.bind(this));
