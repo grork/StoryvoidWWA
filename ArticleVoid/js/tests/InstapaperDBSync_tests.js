@@ -9,7 +9,7 @@
 
     var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
-    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive];
+    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
     var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
     var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
@@ -572,13 +572,16 @@
         var sync = getNewSyncEngine();
         var instapaperDB;
 
-        return sync.sync({ bookmarks: true }).then(function () {
-            return getNewInstapaperDBAndInit();
-        }).then(function (idb) {
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function(data) {
+            return sync.sync({ bookmarks: true });
+        }).then(function (idb) {
 
             return WinJS.Promise.join({
-                local: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
+                local: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                 remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
             });
         }).then(function (data) {
@@ -1238,6 +1241,55 @@
                 { bookmark_id: bookmarkData[1].bookmark_id, destination: folders[1].folder_id },
             ], function (item) {
                 return bookmarks.move(item);
+            });
+        });
+    });
+
+    promiseTest("syncsDownAllBookmarksInAllFolders", function () {
+        var instapaperDB;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return getNewSyncEngine().sync().then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (currentFolders) {
+            var folders = currentFolders.filter(function (folder) {
+                return (defaultFolderIds.indexOf(folder.folder_id) === -1);
+            });
+
+            strictEqual(folders.length, 2, "Incorrect folders");
+
+            return Codevoid.Utilities.serialize(folders, function (folder) {
+                return WinJS.Promise.join({
+                    remoteBookmarks: bookmarks.list({ folder_id: folder.folder_id }),
+                    localBookmarks: instapaperDB.listCurrentBookmarks(folder.id),
+                }).then(function (data) {
+                    var remoteBookmarks = data.remoteBookmarks.bookmarks;
+                    var localBookmarks = data.localBookmarks;
+
+                    remoteBookmarks.forEach(function (rb) {
+                        var localBookmarkIndex = -1;
+                        var isFoundLocally = localBookmarks.some(function (lb, index) {
+                            
+                            if (lb.bookmark_id === rb.bookmark_id) {
+                                localBookmarkIndex = index;
+                                return true;
+                            }
+
+                            return false;
+                        });
+
+                        if (isFoundLocally) {
+                            localBookmarks.splice(localBookmarkIndex, 1);
+                        }
+
+                        ok(isFoundLocally, "Didn't find the bookmark locally");
+                    });
+
+                    strictEqual(localBookmarks.length, 0, "All local bookmarks should have been removed");
+                });
             });
         });
     });
