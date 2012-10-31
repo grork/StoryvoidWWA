@@ -69,17 +69,32 @@
         // Remove all the folders. If there are any bookmarks in these folders
         // when this happens, the back end will move them to "Archive".
         return folders.list().then(function (serverFolders) {
-            var deletedFoldersPromises = [];
-            return Codevoid.Utilities.serialize(serverFolders, function (folder) {
-                // We can't delete the default folders, so skip them
-                switch (folder.folder_id) {
-                    case InstapaperDB.CommonFolderIds.Unread:
-                    case InstapaperDB.CommonFolderIds.Liked:
-                    case InstapaperDB.CommonFolderIds.Archive:
+            return WinJS.Promise.join({
+                bookmarks: Codevoid.Utilities.serialize(serverFolders, function (folder) {
+                    // We can't delete the default folders, so skip them
+                    if (defaultFolderIds.indexOf(folder.folder_id) !== -1) {
                         return;
+                    }
 
-                    default:
-                        break;
+                    return bookmarks.list({ folder_id: folder.folder_id });
+                }),
+                folders: serverFolders,
+            });
+        }).then(function (data) {
+            var allBookmarks = [];
+            data.bookmarks.forEach(function (folderOfBookmarks) {
+                allBookmarks = allBookmarks.concat(folderOfBookmarks.bookmarks);
+            });
+
+            return Codevoid.Utilities.serialize(allBookmarks, function (bookmark) {
+                return bookmarks.unarchive(bookmark.bookmark_id);
+            }).then(function () {
+                return data.folders;
+            });
+        }).then(function (serverFolders) {
+            return Codevoid.Utilities.serialize(serverFolders, function (folder) {
+                if (defaultFolderIds.indexOf(folder.folder_id) !== -1) {
+                    return;
                 }
 
                 return folders.deleteFolder(folder.folder_id);
@@ -576,7 +591,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
             return idb.listCurrentFolders();
-        }).then(function(data) {
+        }).then(function (data) {
             return sync.sync({ bookmarks: true });
         }).then(function (idb) {
 
@@ -646,7 +661,7 @@
 
         var f = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
         var b = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-        
+
         return WinJS.Promise.join({
             folderAdd: f.add(addedFolderName),
             bookmarkAdd: b.add(sourceUrls.shift()),
@@ -880,7 +895,7 @@
                     return WinJS.Promise.timeout();
                 });
             }
-            
+
             return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).unstar(bookmark.bookmark_id);
         }).then(function (bookmark) {
             bookmark.starred = parseInt(bookmark.starred);
@@ -951,7 +966,7 @@
                 });
             });
         }).then(function (data) {
-           addedRemoteBookmarks.push(data.local);
+            addedRemoteBookmarks.push(data.local);
 
             var likedAlready = data.remoteLikes.bookmarks.some(function (bookmark) {
                 return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
@@ -1038,7 +1053,7 @@
             strictEqual(bookmark.hash, data.localBookmark.hash, "Hash wasn't updated locally");
         });
     });
-    
+
     promiseTest("archivesAreMovedToArchiveFolder", function () {
         var instapaperDB;
         var targetBookmark = {};
@@ -1071,7 +1086,7 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            
+
             return idb.addFolder({ title: Date.now() });
         }).then(function (addedFolder) {
             newFolder = addedFolder;
@@ -1187,7 +1202,7 @@
             });
 
             ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
-            
+
             var bookmark2Present = data.orphaned.some(function (item) {
                 return item.bookmark_id === data.bookmark2.bookmark_id;
             });
@@ -1209,7 +1224,7 @@
         var instapaperDB;
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-        
+
         // First we need to set up some remote data for multiple folder edits.
         // This really means moving some bookmarks into specific, known folders,
         // and then pending some edits locally to go up, come down etc.
@@ -1272,7 +1287,7 @@
                     remoteBookmarks.forEach(function (rb) {
                         var localBookmarkIndex = -1;
                         var isFoundLocally = localBookmarks.some(function (lb, index) {
-                            
+
                             if (lb.bookmark_id === rb.bookmark_id) {
                                 localBookmarkIndex = index;
                                 return true;
