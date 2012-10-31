@@ -32,9 +32,17 @@
         start();
     }
 
-    function promiseTest(name, func) {
+    function promiseTest(name, func, delay) {
         asyncTest(name, function () {
-            WinJS.Promise.as(func()).done(startOnSuccessOfPromise, startOnFailureOfPromise);
+            var promise = WinJS.Promise.as(func());
+
+            if(delay) {
+                promise = promise.then(function() {
+                    return WinJS.Promise.timeout(delay);
+                });
+            }
+
+            promise.done(startOnSuccessOfPromise, startOnFailureOfPromise);
         });
     }
 
