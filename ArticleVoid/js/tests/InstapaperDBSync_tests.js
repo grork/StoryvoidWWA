@@ -17,6 +17,7 @@
     var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
     var deleteDb = InstapaperTestUtilities.deleteDb;
+    var defaultTestDelay = 250;
 
     var addedRemoteFolders;
 
@@ -129,8 +130,8 @@
         });
     }
 
-    promiseTest("destoryRemoteDataOnStart", destroyRemoteAccountData);
-    promiseTest("deleteDbOnStart", deleteDb);
+    promiseTest("destoryRemoteDataOnStart", destroyRemoteAccountData, defaultTestDelay);
+    promiseTest("deleteDbOnStart", deleteDb, defaultTestDelay);
 
     function addDefaultRemoteFolders() {
         setSampleFolders();
@@ -147,7 +148,7 @@
         });
     }
 
-    promiseTest("addDefaultRemoteFolders", addDefaultRemoteFolders);
+    promiseTest("addDefaultRemoteFolders", addDefaultRemoteFolders, defaultTestDelay);
 
     function addsFoldersOnFirstSight() {
         var sync = getNewSyncEngine();
@@ -186,7 +187,7 @@
         });
     }
 
-    promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight);
+    promiseTest("addsFoldersOnFirstSight", addsFoldersOnFirstSight, defaultTestDelay);
 
     function differentFolderTitleOnServerIsSyncedToDB() {
         var sync = getNewSyncEngine();
@@ -215,7 +216,7 @@
         });
     }
 
-    promiseTest("differentFolderTitleOnServerIsSyncedToDB", differentFolderTitleOnServerIsSyncedToDB);
+    promiseTest("differentFolderTitleOnServerIsSyncedToDB", differentFolderTitleOnServerIsSyncedToDB, defaultTestDelay);
 
     function removedFolderOnServerIsDeletedLocallyOnSync() {
         var sync = getNewSyncEngine();
@@ -248,7 +249,7 @@
         });
     }
 
-    promiseTest("removedFolderOnServerIsDeletedLocallyOnSync", removedFolderOnServerIsDeletedLocallyOnSync);
+    promiseTest("removedFolderOnServerIsDeletedLocallyOnSync", removedFolderOnServerIsDeletedLocallyOnSync, defaultTestDelay);
 
     function removedAndAddedFoldersOnServerAreCorrectlySynced() {
         var sync = getNewSyncEngine();
@@ -300,7 +301,7 @@
         });
     }
 
-    promiseTest("removedAndAddedFoldersOnServerAreCorrectlySynced", removedAndAddedFoldersOnServerAreCorrectlySynced);
+    promiseTest("removedAndAddedFoldersOnServerAreCorrectlySynced", removedAndAddedFoldersOnServerAreCorrectlySynced, defaultTestDelay);
 
     promiseTest("pendedAddsAreUploaded", function () {
         var sync = getNewSyncEngine();
@@ -327,7 +328,7 @@
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("foldersGetUpdatedFolderIdsWhenUploaded", function () {
         var sync = getNewSyncEngine();
@@ -355,7 +356,7 @@
             addedRemoteFolders.push(syncedFolder);
             return expectNoPendingFolderEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("sameFolderRemoteAndLocalButUnsynced", function () {
         var sync = getNewSyncEngine();
@@ -389,7 +390,7 @@
                 ok(localFolder.cookie, "Cookie was not present on the DB folder. Data Squashed?");
             });
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("pendedDeletesAreUploaded", function () {
         var sync = getNewSyncEngine();
@@ -426,7 +427,7 @@
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("deletedLocallyAndRemotelySyncsSuccessfully", function () {
         var sync = getNewSyncEngine();
@@ -466,7 +467,7 @@
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("pendedDeletesAndAddsSyncUp", function () {
         var sync = getNewSyncEngine();
@@ -513,12 +514,12 @@
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
-    promiseTest("destoryRemoteDataBeforeBookmarks", destroyRemoteAccountData);
-    promiseTest("deleteDbBeforeBookmarks", deleteDb);
-    promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders);
-    promiseTest("addsFoldersOnFirstSightBeforeBookmarks", addsFoldersOnFirstSight);
+    promiseTest("destoryRemoteDataBeforeBookmarks", destroyRemoteAccountData, defaultTestDelay);
+    promiseTest("deleteDbBeforeBookmarks", deleteDb, defaultTestDelay);
+    promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders, defaultTestDelay);
+    promiseTest("addsFoldersOnFirstSightBeforeBookmarks", addsFoldersOnFirstSight, defaultTestDelay);
 
     function addDefaultBookmarks() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
@@ -581,7 +582,7 @@
         });
     };
 
-    promiseTest("addDefaultBookmarks", addDefaultBookmarks);
+    promiseTest("addDefaultBookmarks", addDefaultBookmarks, defaultTestDelay);
 
     promiseTest("bookmarksAddedOnFirstSight", function () {
         var sync = getNewSyncEngine();
@@ -649,7 +650,7 @@
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
 
-    });
+    }, defaultTestDelay);
 
     promiseTest("syncingOnlyFoldersOnlySyncsFolders", function () {
         var sync = getNewSyncEngine();
@@ -698,7 +699,7 @@
         }).then(function (folder) {
             addedRemoteFolders.push(folder);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("syncingOnlyBookmarksOnlySyncsBookmarks", function () {
         var sync = getNewSyncEngine();
@@ -746,7 +747,7 @@
         }).then(function (folder) {
             addedRemoteFolders.push(folder);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("locallyAddedBookmarksGoUpToUnread", function () {
         var instapaperDB;
@@ -786,7 +787,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("syncingBookmarkThatIsAlreadyAvailableRemotelyDoesntDuplicate", function () {
         var instapaperDB;
@@ -814,7 +815,7 @@
             strictEqual(lb.length, localBookmarkCountBeforeSync, "Didn't expect any change in the bookmark counts");
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("remoteProgressChangesAreCorrectlySyncedLocally", function () {
         var instapaperDB;
@@ -846,7 +847,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("likedRemoteBookmarkUpdatedLocallyAfterSync", function () {
         var instapaperDB;
@@ -874,7 +875,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("unlikedRemoteBookmarkUpdatedLocallyAfterSync", function () {
         var instapaperDB;
@@ -908,7 +909,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("localLikesAreSyncedToService", function () {
         var instapaperDB;
@@ -942,7 +943,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("localunlikesAreSyncedToService", function () {
         var instapaperDB;
@@ -986,7 +987,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("remoteTitleAndDescriptionChangesComeDownLocally", function () {
         var instapaperDB;
@@ -1015,7 +1016,7 @@
             strictEqual(localBookmark.title, updatedBookmark.title, "Incorrect title");
             strictEqual(localBookmark.description, updatedBookmark.description);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("localReadProgressIsPushedUp", function () {
         var instapaperDB;
@@ -1052,7 +1053,7 @@
             strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Timestamp for last progress changed was incorrect");
             strictEqual(bookmark.hash, data.localBookmark.hash, "Hash wasn't updated locally");
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("archivesAreMovedToArchiveFolder", function () {
         var instapaperDB;
@@ -1077,7 +1078,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("movesMoveToAppropriateFolder", function () {
         var instapaperDB;
@@ -1111,7 +1112,7 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("localDeletesGoUpToTheServer", function () {
         var instapaperDB;
@@ -1134,16 +1135,16 @@
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
-    });
+    }, defaultTestDelay);
 
-    promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData);
-    promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks);
-    promiseTest("deleteLocalDbBeforeDeletes", deleteDb);
+    promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData, defaultTestDelay);
+    promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks, defaultTestDelay);
+    promiseTest("deleteLocalDbBeforeDeletes", deleteDb, defaultTestDelay);
     promiseTest("syncDefaultState", function () {
         return getNewSyncEngine().sync().then(function () {
             ok(true, "sync complete");
         });
-    });
+    }, defaultTestDelay);
 
     promiseTest("remoteDeletesAreRemovedLocally", function () {
         var instapaperDB;
@@ -1214,11 +1215,11 @@
                 bookmark2: instapaperDB.removeBookmark(data.bookmark2.bookmark_id, true),
             });
         });
-    });
+    }, defaultTestDelay);
 
-    promiseTest("destroyRemoteData", destroyRemoteAccountData);
-    promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks);
-    promiseTest("deleteDb", deleteDb);
+    promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
+    promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks, defaultTestDelay);
+    promiseTest("deleteDb", deleteDb, defaultTestDelay);
 
     promiseTest("sprinkleBookmarksAcrossTwoNonDefaultFolders", function () {
         var instapaperDB;
@@ -1307,6 +1308,6 @@
                 });
             });
         });
-    });
+    }, defaultTestDelay);
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
