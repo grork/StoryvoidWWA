@@ -115,6 +115,7 @@
                 var currentTimeInNyc = new Date(Date.now() - (5 * 60 * 60 * 1000));
                 var previousStoredDateInInNyc = current["date"];
                 if (!previousStoredDateInInNyc) {
+                    appassert(false, "You should stop this run, and wait for the roaming setting to roam");
                     previousStoredDateInInNyc = Date.now() - (24 * 60 * 60 * 1000);
                 }
 
