@@ -3,10 +3,7 @@
 
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
-
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
-    var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
-    var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;

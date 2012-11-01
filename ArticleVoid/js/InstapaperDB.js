@@ -28,7 +28,7 @@
     }
 
     WinJS.Namespace.define("Codevoid.ArticleVoid", {
-        InstapaperDB: WinJS.Class.define(function InstapaperDB_Constructor() {
+        InstapaperDB: WinJS.Class.mix(WinJS.Class.define(function InstapaperDB_Constructor() {
         }, {
             _db: null,
             commonFolderDbIds: null,
@@ -161,6 +161,9 @@
                     }
 
                     return completedPromise;
+                }.bind(this)).then(function (data) {
+                    this.dispatchEvent("folderschanged", {});
+                    return data;
                 }.bind(this));
             }),
             getFolderByDbId: checkDb(function getFolderByDbId(folderDbId) {
@@ -694,6 +697,6 @@
                 LIKE: "star",
                 UNLIKE: "unstar",
             }
-        }),
+        }), WinJS.Utilities.eventMixin)
     });
 })();
