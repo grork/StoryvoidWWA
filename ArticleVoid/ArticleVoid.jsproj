@@ -66,6 +66,7 @@
     <Content Include="js\OAuth.js" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
+    <Content Include="js\tests\InstapaperDBEvent_tests.js" />
     <Content Include="js\tests\InstapaperDBSync_tests.js" />
     <Content Include="js\tests\InstapaperDB_tests.js" />
     <Content Include="js\tests\InstapaperTests_Utilities.js" />
