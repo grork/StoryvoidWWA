@@ -227,6 +227,12 @@
                                     operation = b.archive(move.bookmark_id);
                                     break;
 
+                                case db.commonFolderDbIds.unread:
+                                    operation = db.getBookmarkByBookmarkId(move.bookmark_id).then(function (bookmark) {
+                                        return b.add({ url: bookmark.url });
+                                    });
+                                    break;
+
                                 default:
                                     operation = db.getFolderByDbId(move.destinationfolder_dbid).then(function (folder) {
                                         return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id });
