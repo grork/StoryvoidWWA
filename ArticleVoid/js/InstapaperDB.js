@@ -162,7 +162,11 @@
 
                     return completedPromise;
                 }.bind(this)).then(function (data) {
-                    this.dispatchEvent("folderschanged", {});
+                    this.dispatchEvent("folderschanged", {
+                        operation: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD,
+                        folder_dbid: data.id,
+                        title: data.title,
+                    });
                     return data;
                 }.bind(this));
             }),
@@ -178,7 +182,15 @@
                     });
             }),
             updateFolder: checkDb(function updateFolder(folderDetails) {
-                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderDetails);
+                return this._db.put(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderDetails).then(extractFirstItemInArray).then(function (data) {
+                    this.dispatchEvent("folderschanged", {
+                        operation: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.UPDATE,
+                        folder_dbid: data.id,
+                        folder: data,
+                    });
+
+                    return data;
+                }.bind(this));
             }),
             removeFolder: checkDb(function removeFolder(folderId, dontAddPendingEdit) {
                 var completePromise = WinJS.Promise.as();
@@ -689,6 +701,7 @@
             PendingFolderEditTypes: {
                 ADD: "add",
                 DELETE: "delete",
+                UPDATE: "update",
             },
             PendingBookmarkEditTypes: {
                 ADD: "add",
@@ -696,6 +709,7 @@
                 MOVE: "move",
                 LIKE: "star",
                 UNLIKE: "unstar",
+                UPDATE: "update",
             }
         }), WinJS.Utilities.eventMixin)
     });

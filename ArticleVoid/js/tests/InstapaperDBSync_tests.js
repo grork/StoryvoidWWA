@@ -516,6 +516,7 @@
         });
     }, defaultTestDelay);
 
+    module("InstapaperSyncBookmarks");
     promiseTest("destoryRemoteDataBeforeBookmarks", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("deleteDbBeforeBookmarks", deleteDb, defaultTestDelay);
     promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders, defaultTestDelay);
@@ -1137,9 +1138,12 @@
         });
     }, defaultTestDelay);
 
+    module("InstapaperSyncBookmarkDeletes");
+
     promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks, defaultTestDelay);
     promiseTest("deleteLocalDbBeforeDeletes", deleteDb, defaultTestDelay);
+
     promiseTest("syncDefaultState", function () {
         return getNewSyncEngine().sync().then(function () {
             ok(true, "sync complete");
@@ -1216,6 +1220,9 @@
             });
         });
     }, defaultTestDelay);
+
+
+    module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks, defaultTestDelay);
@@ -1309,5 +1316,61 @@
             });
         });
     }, defaultTestDelay);
+
+    promiseTest("syncsMovesUpFromAllFolders", function () {
+        var instapaperDB;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarkToMoveToUnread;
+        var bookmarkToMoveToFolderA;
+        var folderAFolderId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            var folders = folders.filter(function (folder) {
+                return (defaultFolderIds.indexOf(folder.folder_id) === -1);
+            });
+
+            folderAFolderId = folders[0].folder_id;
+
+            return WinJS.Promise.join({
+                folderA: instapaperDB.listCurrentBookmarks(folders[0].id),
+                folderB: instapaperDB.listCurrentBookmarks(folders[1].id),
+            });
+        }).then(function (data) {
+            bookmarkToMoveToUnread = data.folderA[0];
+            bookmarkToMoveToFolderA = data.folderB[0];
+
+            return WinJS.Promise.join({
+                moveToUnread: instapaperDB.moveBookmark(bookmarkToMoveToUnread.bookmark_id, instapaperDB.commonFolderDbIds.unread),
+                moveToFolderA: instapaperDB.moveBookmark(bookmarkToMoveToFolderA.bookmark_id, bookmarkToMoveToUnread.folder_dbid),
+            });
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return Codevoid.Utilities.serialize([
+                "",
+                folderAFolderId,
+            ], function (folder_id) {
+                var param;
+                if (folder_id) {
+                    param = { folder_id: folder_id };
+                }
+
+                return bookmarks.list(param);
+            });
+        }).then(function (data) {
+            var unreadBookmarks = data[0].bookmarks;
+            var folderABookmarks = data[1].bookmarks;
+
+            strictEqual(unreadBookmarks.length, 1, "Only expected one bookmark in unread");
+            strictEqual(folderABookmarks.length, 1, "Only expected one bookmark in folderA");
+
+            strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
+            strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
+        });
+    });
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

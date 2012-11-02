@@ -631,6 +631,24 @@
     test("addToFolder", addToFolder);
     test("moveBookmarkIntoFolder", moveBookmarkIntoFolder);
     test("listContentsOfAFolder", listContentsOfAFolder);
+    test("moveBookmarkToUnread", function () {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+
+        stop();
+        
+        bookmarks.archive(bookmarkAddedToFolderId2).then(function () {
+            return bookmarks.add({ url: urlToAdd }).then(function () {
+                return bookmarks.list();
+            });
+        }).done(function (unread) {
+            ok(unread.bookmarks, "Expected archived bookmarks");
+            strictEqual(unread.bookmarks.length, 1, "Didn't expect to find any bookmarks");
+            strictEqual(unread.bookmarks[0].bookmark_id, bookmarkAddedToFolderId2, "Bookmark was incorrect");
+
+            start();
+        }, failedPromiseHandler);
+    });
     test("moveBookmarkOutOfArchive", moveBookmarkOutOfArchive);
     test("deleteFolder", deleteFolder);
 })();
