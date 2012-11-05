@@ -1480,6 +1480,7 @@
                 like: idb.likeBookmark(sampleBookmarks[0].bookmark_id, true),
                 unreadFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Unread),
                 archiveFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Archive),
+                moveBookmarkToSampleFolder: idb.moveBookmark(sampleBookmarks[4].bookmark_id, sampleFolders[0].id, true),
             });
         }).then(function (data) {
             unreadFolderDbId = data.unreadFolder.id;
@@ -1490,6 +1491,7 @@
                 instapaperDB.likeBookmark(sampleBookmarks[1].bookmark_id),
                 instapaperDB.moveBookmark(sampleBookmarks[2].bookmark_id, sampleFolders[0].id),
                 instapaperDB.removeBookmark(sampleBookmarks[3].bookmark_id),
+                instapaperDB.moveBookmark(sampleBookmarks[4].bookmark_id, instapaperDB.commonFolderDbIds.unread),
                 WinJS.Promise.timeout(),
             ];
 
@@ -1498,6 +1500,7 @@
             return WinJS.Promise.join({
                 unread: instapaperDB.getPendingBookmarkEdits(unreadFolderDbId),
                 archive: instapaperDB.getPendingBookmarkEdits(archiveFolderDbId),
+                sampleFolder: instapaperDB.getPendingBookmarkEdits(sampleFolders[0].id),
             });
         }).then(function (data) {
             ok(data.unread, "No unread info");
@@ -1510,21 +1513,31 @@
             strictEqual(data.unread.unlikes[0].bookmark_id, sampleBookmarks[0].bookmark_id, "Incorrect bookmark");
             strictEqual(data.unread.unlikes[0].type, InstapaperDB.PendingBookmarkEditTypes.UNLIKE, "Not correct edit type");
 
-            ok(data.unread.likes, "Didn't get any unlikes");
-            ok(data.unread.likes.length, 1, "Didn't get enough likes");
-            ok(data.unread.likes[0].bookmark_id, sampleBookmarks[1].bookmark_id, "Incorrect bookmark ID");
-            ok(data.unread.likes[0].type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Incorrect edit type");
+            ok(data.unread.likes, "Didn't get any likes");
+            strictEqual(data.unread.likes.length, 1, "Didn't get enough likes");
+            strictEqual(data.unread.likes[0].bookmark_id, sampleBookmarks[1].bookmark_id, "Incorrect bookmark ID");
+            strictEqual(data.unread.likes[0].type, InstapaperDB.PendingBookmarkEditTypes.LIKE, "Incorrect edit type");
 
-            ok(data.unread.moves, "Didn't get any unlikes");
-            ok(data.unread.moves.length, 1, "Didn't get enough likes");
-            ok(data.unread.moves[0].bookmark_id, sampleBookmarks[2].bookmark_id, "Incorrect bookmark ID");
-            ok(data.unread.moves[0].type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "Incorrect edit type");
-            ok(data.unread.moves[0].destinationfolder_dbid, sampleFolders[0].id, "Wrong destination folder");
+            ok(data.unread.moves, "Didn't get any moves");
 
-            ok(data.archive.deletes, "Didn't get any unlikes");
-            ok(data.archive.deletes.length, 1, "Didn't get enough likes");
-            ok(data.archive.deletes[0].bookmark_id, sampleBookmarks[3].bookmark_id, "Incorrect bookmark ID");
-            ok(data.archive.deletes[0].type, InstapaperDB.PendingBookmarkEditTypes.DELETE, "Incorrect edit type");
+            // Check the item being moved OUT of unread
+            strictEqual(data.unread.moves.length, 2, "Didn't get enough moves");
+            strictEqual(data.unread.moves[0].bookmark_id, sampleBookmarks[2].bookmark_id, "Incorrect bookmark ID");
+            strictEqual(data.unread.moves[0].type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "Incorrect edit type");
+            strictEqual(data.unread.moves[0].destinationfolder_dbid, sampleFolders[0].id, "Wrong destination folder");
+            strictEqual(data.unread.moves[0].sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "Incorrect source folder");
+
+            // Check the item being moved INTO unread
+            strictEqual(data.unread.moves[1].bookmark_id, sampleBookmarks[4].bookmark_id, "Incorrect bookmark ID");
+            strictEqual(data.unread.moves[1].type, InstapaperDB.PendingBookmarkEditTypes.MOVE, "Incorrect edit type");
+            strictEqual(data.unread.moves[1].destinationfolder_dbid, instapaperDB.commonFolderDbIds.unread, "Wrong destination folder");
+            strictEqual(data.unread.moves[1].sourcefolder_dbid, sampleFolders[0].id, "Incorrect source folder");
+
+
+            ok(data.archive.deletes, "Didn't get any deletes");
+            strictEqual(data.archive.deletes.length, 1, "Didn't get enough deletes");
+            strictEqual(data.archive.deletes[0].bookmark_id, sampleBookmarks[3].bookmark_id, "Incorrect bookmark ID");
+            strictEqual(data.archive.deletes[0].type, InstapaperDB.PendingBookmarkEditTypes.DELETE, "Incorrect edit type");
         });
     });
 })();

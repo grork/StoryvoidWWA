@@ -1370,7 +1370,55 @@
 
             strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
             strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
+        }).then(function (data) {
+            return WinJS.Promise.join({
+                unread: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
+                folderA: instapaperDB.listCurrentBookmarks(bookmarkToMoveToUnread.folder_dbid),
+            });
+        }).then(function (data) {
+            var unreadBookmarks = data.unread;
+            var folderABookmarks = data.folderA;
+
+            ok(unreadBookmarks, "no unread bookmarks");
+            strictEqual(unreadBookmarks.length, 1, "Incorrect number of unread bookmarks");
+            strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Incorrect bookmark");
+            
+            ok(folderABookmarks, "No folderA bookmarks");
+            strictEqual(folderABookmarks.length, 1, "Incorrect number of folder A bookmarks");
+            strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Incorrect bookmark");
         });
-    });
+    }, defaultTestDelay);
+
+    promiseTest("syncMovesIntoArchiveAndProgressIsUpdated", function () {
+        var instapaperDB;
+        var archivedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (bookmarks) {
+            archivedBookmark = bookmarks[0];
+
+            return instapaperDB.moveBookmark(archivedBookmark.bookmark_id, instapaperDB.commonFolderDbIds.archive);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(archivedBookmark.bookmark_id);
+        }).then(function (bookmark) {
+            return instapaperDB.updateReadProgress(bookmark.bookmark_id, 0.43);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+        }).then(function (remoteBookmarks) {
+            var inArchive = remoteBookmarks.bookmarks.filter(function(b) {
+                return b.bookmark_id === archivedBookmark.bookmark_id;
+            })[0];
+
+            ok(inArchive);
+            strictEqual(parseFloat(inArchive.progress), 0.43, "Progress in correct");
+        });
+    }, defaultTestDelay);
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

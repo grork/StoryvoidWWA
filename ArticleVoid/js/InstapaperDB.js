@@ -56,6 +56,7 @@
                         bookmark_id: {},
                         type: {},
                         sourcefolder_dbid: {},
+                        destinationfolder_dbid: {},
                     }
                 };
 
@@ -264,7 +265,12 @@
                 if (!folder) {
                     edits = this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable).execute();
                 } else {
-                    edits = this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "sourcefolder_dbid").only(folder);
+                    edits = WinJS.Promise.join({
+                        source: this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "sourcefolder_dbid").only(folder),
+                        destination: this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBBookmarkUpdatesTable, "destinationfolder_dbid").only(folder),
+                    }).then(function (data) {
+                        return data.source.concat(data.destination);
+                    });
                 }
 
                 edits = edits.then(function (pendingEdits) {
