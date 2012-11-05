@@ -1173,7 +1173,7 @@
             sourceUrls.push({ url: targetBookmark1.url });
             sourceUrls.push({ url: targetBookmark2.url });
 
-            return getNewSyncEngine().sync({ bookmarks: true, folders: false });
+            return getNewSyncEngine().sync({ bookmarks: true, folders: false, skipOrphanCleanup: true });
         }).then(function () {
             return WinJS.Promise.join({
                 bookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
@@ -1235,17 +1235,14 @@
 
         // First we need to set up some remote data for multiple folder edits.
         // This really means moving some bookmarks into specific, known folders,
-        // and then pending some edits locally to go up, come down etc.
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
+        // and then pending some edits locally to go up, come down etc
 
-            // Add some folders to work with.
-            return Codevoid.Utilities.serialize([
-                Date.now() + "",
-                (Date.now() + 10) + "",
-            ], function (item) {
-                return folders.add(item);
-            });
+        // Add some folders to work with.
+        return Codevoid.Utilities.serialize([
+            Date.now() + "",
+            (Date.now() + 10) + "",
+        ], function (item) {
+            return folders.add(item);
         }).then(function () {
             // Get the remote data, so we can manipulate it.
             return WinJS.Promise.join({
@@ -1267,6 +1264,12 @@
             });
         });
     });
+
+    // Remote State:
+    //   Two Folders
+    //   One bookmark in each folder
+    // Local State:
+    //   Empty
 
     promiseTest("syncsDownAllBookmarksInAllFolders", function () {
         var instapaperDB;
@@ -1296,7 +1299,8 @@
                         var localBookmarkIndex = -1;
                         var isFoundLocally = localBookmarks.some(function (lb, index) {
 
-                            if (lb.bookmark_id === rb.bookmark_id) {
+                            if ((lb.bookmark_id === rb.bookmark_id)
+                            && (lb.folder_id === folder.folder_id)){
                                 localBookmarkIndex = index;
                                 return true;
                             }
@@ -1316,6 +1320,13 @@
             });
         });
     }, defaultTestDelay);
+
+    // Remote State:
+    //   Two Folders
+    //   One bookmark in each folder
+    // Local State:
+    //   Two Folders
+    //   One Bookmark in each folder
 
     promiseTest("syncsMovesUpFromAllFolders", function () {
         var instapaperDB;
@@ -1389,6 +1400,12 @@
         });
     }, defaultTestDelay);
 
+    // Remote & Local State:
+    //   Two Folders
+    //   One Unread Bookmark
+    //   One Bookmark in a folder
+    //   One Emptpy folder
+
     promiseTest("syncMovesIntoArchiveAndProgressIsUpdated", function () {
         var instapaperDB;
         var archivedBookmark;
@@ -1420,5 +1437,96 @@
             strictEqual(parseFloat(inArchive.progress), 0.43, "Progress in correct");
         });
     }, defaultTestDelay);
+
+    // State:
+    //   Two Folders
+    //   Bookmark in archive w/ non-zero progress
+    //   One bookmark in a folder
+    //   One Empty Folder
+
+    promiseTest("syncingOnlyOneFolderDoesntEffectOthers", function () {
+        var instapaperDB;
+        var folderDbIdToSync;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            // Find the bookmark in a non default folder
+            return idb.listCurrentBookmarks();
+        }).then(function (allBookmarks) {
+            var bookmarksInNonDefaultFolder = allBookmarks.filter(function (b) {
+                return (defaultFolderIds.indexOf(b.folder_id) === -1);
+            });
+
+            strictEqual(bookmarksInNonDefaultFolder.length, 1, "Only expected to find one bookmark");
+
+            folderDbIdToSync = bookmarksInNonDefaultFolder[0].folder_dbid;
+            return instapaperDB.updateReadProgress(bookmarksInNonDefaultFolder[0].bookmark_id, 0.93);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.archive);
+        }).then(function (archivedBookmarks) {
+            return instapaperDB.updateReadProgress(archivedBookmarks[0].bookmark_id, 0.32);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true, folder: folderDbIdToSync, singleFolder: true });
+        }).then(function () {
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+        }).then(function (remoteBookmarks) {
+            remoteBookmarks = remoteBookmarks.bookmarks;
+
+            strictEqual(parseFloat(remoteBookmarks[0].progress), 0.43, "Incorrect progress on archive bookmark");
+
+            return instapaperDB.getFolderByDbId(folderDbIdToSync);
+        }).then(function (folder) {
+            return bookmarks.list({ folder_id: folder.folder_id });
+        }).then(function (remoteBookmarks) {
+            remoteBookmarks = remoteBookmarks.bookmarks;
+
+            strictEqual(parseFloat(remoteBookmarks[0].progress), 0.93, "Incorrect progress on folder bookmark");
+
+            return getNewSyncEngine().sync();
+        });
+    });
+
+    // State:
+    //   Two Folders
+    //   Bookmark in archive with 0.32 progress
+    //   Bookmark in folder with 0.93 progress
+    //   One Empty folder
+
+    promiseTest("orphanedItemsAreCleanedup", function () {
+        var instapaperDB;
+        var removedBookmarkId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentBookmarks();
+        }).then(function (allBookmarks) {
+            allBookmarks = allBookmarks.filter(function (b) {
+                return defaultFolderIds.indexOf(b.folder_id) === -1;
+            });
+
+            var bookmark = allBookmarks[0];
+            removedBookmarkId = bookmark.bookmark_id = bookmark.bookmark_id + 34;
+            return instapaperDB.addBookmark(bookmark);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(removedBookmarkId);
+        }).then(function (removedBookmark) {
+            ok(!removedBookmark, "Shouldn't be able to find bookmark");
+
+            return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned);
+        }).then(function (orphanedBookmarks) {
+            strictEqual(orphanedBookmarks.length, 0, "Didn't expect to find any orphaned bookmarks");
+        });
+    });
+
+    // State:
+    //   Two Folders
+    //   Bookmark in archive with 0.32 progress
+    //   Bookmark in folder with 0.93 progress
+    //   One Empty folder
+
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();
