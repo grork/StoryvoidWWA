@@ -170,10 +170,20 @@
                     return WinJS.Promise.join(syncs);
                 });
             },
-            syncBookmarks: function syncBookmarks(db) {
-                return this._syncBookmarkPendingAdds(db).then(function () {
-                    return db.listCurrentFolders();
-                }).then(function(currentFolders) {
+            syncBookmarks: function syncBookmarks(db, options) {
+                var promise = WinJS.Promise.as();
+                
+                if (!options.singleFolder) {
+                    promise = this._syncBookmarkPendingAdds(db).then(function () {
+                        return db.listCurrentFolders();
+                    });
+                } else {
+                    promise = db.getFolderByDbId(options.folder).then(function (folder) {
+                        return [folder];
+                    });
+                }
+                        
+                return promise.then(function (currentFolders) {
                     currentFolders = currentFolders.filter(function (folder) {
                         switch (folder.folder_id) {
                             case InstapaperDB.CommonFolderIds.Liked:
@@ -192,7 +202,17 @@
                     }.bind(this));
                 }.bind(this)).then(function () {
                     return this._syncLikes(db);
-                }.bind(this));
+                }.bind(this)).then(function () {
+                    if (options.skipOrphanCleanup || options.singleFolder) {
+                        return;
+                    }
+
+                    return db.listCurrentBookmarks(db.commonFolderDbIds.orphaned).then(function (orphans) {
+                        return Codevoid.Utilities.serialize(orphans, function (orphan) {
+                            return db.removeBookmark(orphan.bookmark_id);
+                        });
+                    });
+                });
             },
             _syncBookmarkPendingAdds: function _syncBookmarkPendingAdds(db) {
                 var b = this._bookmarks;
@@ -408,7 +428,11 @@
                         return;
                     }
 
-                    return this.syncBookmarks(db);
+                    return this.syncBookmarks(db, {
+                        singleFolder: options.singleFolder,
+                        folder: options.folder,
+                        skipOrphanCleanup: options.skipOrphanCleanup,
+                    });
                 }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
                 }.bind(this));
