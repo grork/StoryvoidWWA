@@ -208,7 +208,7 @@
 
             var pendingEdit = pendingEdits[0];
             strictEqual(pendingEdit.type, Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD, "Expected to be ADD edit type");
-            strictEqual(pendingEdit.folderTableId, addFolderResult.id, "Pending edit wasn't for the folder we added");
+            strictEqual(pendingEdit.folder_dbid, addFolderResult.id, "Pending edit wasn't for the folder we added");
 
             return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
         });

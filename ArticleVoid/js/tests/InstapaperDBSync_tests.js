@@ -1221,7 +1221,6 @@
         });
     }, defaultTestDelay);
 
-
     module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
@@ -1527,6 +1526,123 @@
     //   Bookmark in archive with 0.32 progress
     //   Bookmark in folder with 0.93 progress
     //   One Empty folder
+
+    promiseTest("supplyingFolderIdSyncsItBeforeOtherFolders", function () {
+        var instapaperDB;
+        var expectedFirstSyncedFolder;
+        var folderSyncOrder = [];
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (currentFolders) {
+            currentFolders = currentFolders.filter(function (folder) {
+                return defaultFolderIds.indexOf(folder.id) === -1;
+            });
+
+            notStrictEqual(currentFolders.length, 0, "Expected some folders");
+
+            expectedFirstSyncedFolder = currentFolders[0];
+
+            return getNewSyncEngine().sync({
+                bookmarks: true,
+                folderToSync: expectedFirstSyncedFolder.folder_dbid,
+                _testPerFolderCallback: function (id) {
+                    folderSyncOrder.push(id);
+                },
+            });
+        }).then(function () {
+            notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
+
+            strictEqual(folderSyncOrder[0], expectedFirstSyncedFolder.id, "Folder was not sync'd first");
+        });
+    });
+
+    // State:
+    //   Two Folders
+    //   Bookmark in archive with 0.32 progress
+    //   Bookmark in folder with 0.93 progress
+    //   One Empty folder
+
+    promiseTest("withNoPriorityFolderSuppliedUnreadSyncsFirst", function () {
+        var instapaperDB;
+        var folderSyncOrder = [];
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (currentFolders) {
+            return getNewSyncEngine().sync({
+                bookmarks: true,
+                _testPerFolderCallback: function (id) {
+                    folderSyncOrder.push(id);
+                },
+            });
+        }).then(function () {
+            notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
+
+            strictEqual(folderSyncOrder[0], instapaperDB.commonFolderDbIds.unread, "Folder was not sync'd first");
+        });
+    });
+
+    // State:
+    //   Two Folders
+    //   Bookmark in archive with 0.32 progress
+    //   Bookmark in folder with 0.93 progress
+    //   One Empty folder
+
+    promiseTest("syncingBookmarksForSingleNewLocalFolderStillSyncsTheFolderAdd", function () {
+        var instapaperDB;
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var newFolderTitle = Date.now() + "";
+        var addedFolderDbId;
+        var movedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return WinJS.Promise.join({
+                add: idb.addFolder({ title: newFolderTitle }),
+                bookmarks: idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            addedFolderDbId = data.add.id;
+            var bookmarks = data.bookmarks.filter(function (b) {
+                return defaultFolderIds.indexOf(b.folder_id) === -1;
+            });
+
+            movedBookmark = bookmarks[0];
+            return instapaperDB.moveBookmark(movedBookmark.bookmark_id, data.add.id);
+        }).then(function () {
+            return getNewSyncEngine().sync({
+                bookmarks: true,
+                folder: addedFolderDbId,
+                singleFolder: true,
+            });
+        }).then(function () {
+            return folders.list();
+        }).then(function (remoteFolders) {
+            var addedFolder = remoteFolders.filter(function (f) {
+                return f.title === newFolderTitle;
+            })[0];
+
+            ok(addedFolder, "Didn't find the added folder remotely");
+
+            return bookmarks.list({ folder_id: addedFolder.folder_id });
+        }).then(function (folderBookmarks) {
+            folderBookmarks = folderBookmarks.bookmarks;
+
+            strictEqual(folderBookmarks.length, 1, "Expected only one bookmark");
+            strictEqual(folderBookmarks[0].bookmark_id, movedBookmark.bookmark_id, "Incorrect bookmark");
+        });
+    });
+
+    // State:
+    //   Three Folders
+    //   Bookmark in archive with 0.32 progress
+    //   Bookmark in folder with 0.93 progress
+    //   Two Empty Folders
 
     //promiseTest("destroyRemoteAccountDataCleanUpLast", destroyRemoteAccountData);
 })();

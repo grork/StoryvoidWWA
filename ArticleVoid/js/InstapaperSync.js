@@ -44,7 +44,7 @@
             },
             _addFolderPendingEdit: function _addFolderPendingEdit(edit, db) {
                 return WinJS.Promise.join({
-                    local: db.getFolderByDbId(edit.folderTableId),
+                    local: db.getFolderByDbId(edit.folder_dbid),
                     remote: this._folders.add(edit.title).then(null, function (error) {
                         // Error 1251 is the error that the folder with that name
                         // is already on the server. If it's not that then theres
@@ -176,11 +176,51 @@
                 if (!options.singleFolder) {
                     promise = this._syncBookmarkPendingAdds(db).then(function () {
                         return db.listCurrentFolders();
+                    }).then(function (allFolders) {
+                        var priorityFolder;
+                        var priorityFolderIndex = -1;
+
+                        if (options.folder) {
+                            priorityFolder = allFolders.filter(function (f, index) {
+                                if (f.folder_dbid === options.folder) {
+                                    priorityFolderIndex = index;
+                                    return true;
+                                }
+
+                                return false;
+                            })[0];
+
+                            if (priorityFolder && (priorityFolderIndex > -1)) {
+                                allFolders.splice(priorityFolderIndex, 1);
+                                allFolders.unshift(priorityFolder);
+                            }
+                        }
+
+                        return allFolders;
                     });
                 } else {
                     promise = db.getFolderByDbId(options.folder).then(function (folder) {
-                        return [folder];
-                    });
+                        if (folder.folder_id) {
+                            return [folder];
+                        }
+
+                        return db.getPendingFolderEdits().then(function (edits) {
+                            var edit = edits.filter(function (e) {
+                                return e.folder_dbid === folder.id;
+                            })[0];
+
+                            if (!edit) {
+                                appassert(false, "Even though the folder had no folder ID, it had no pending edit either...");
+                                return WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
+                            }
+
+                            return this._addFolderPendingEdit(edit, db).then(function () {
+                                return db.getFolderByDbId(folder.id);
+                            }).then(function (syncedFolder) {
+                                return [syncedFolder];
+                            });
+                        }.bind(this));
+                    }.bind(this));
                 }
                         
                 return promise.then(function (currentFolders) {
@@ -197,6 +237,9 @@
 
                     return Codevoid.Utilities.serialize(currentFolders, function (folder) {
                         return this._syncBookmarksForFolder(db, folder.id).then(function () {
+                            if (options._testPerFolderCallback) {
+                                options._testPerFolderCallback(folder.id);
+                            }
                             return WinJS.Promise.timeout();
                         });
                     }.bind(this));
@@ -432,6 +475,7 @@
                         singleFolder: options.singleFolder,
                         folder: options.folder,
                         skipOrphanCleanup: options.skipOrphanCleanup,
+                        _testPerFolderCallback: options._testPerFolderCallback,
                     });
                 }.bind(this)).then(function () {
                     return WinJS.Promise.timeout();
