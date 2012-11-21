@@ -78,7 +78,7 @@
                     },
                     indexes: {
                         title: {},
-                        folderTableId: {},
+                        folder_dbid: {},
                         type: {},
                     }
                 };
@@ -207,7 +207,7 @@
                 completePromise = completePromise.then(function actuallyRemoveFolder() {
                     return this._db.remove(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable, folderId);
                 }.bind(this)).then(function cleanupPendingAddsOnRemove() {
-                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "folderTableId").only(folderId);
+                    return this._db.index(Codevoid.ArticleVoid.InstapaperDB.DBFolderUpdatesTable, "folder_dbid").only(folderId);
                 }.bind(this)).then(function checkForExistingUpdate(results) {
                     if (!results || !results.length) {
                         return;
@@ -249,7 +249,7 @@
             _addPendingFolderEdit: checkDb(function _addPendingFolderEdit(folderEditToPend) {
                 var pendingEdit = {
                     type: Codevoid.ArticleVoid.InstapaperDB.PendingFolderEditTypes.ADD,
-                    folderTableId: folderEditToPend.id,
+                    folder_dbid: folderEditToPend.id,
                     title: folderEditToPend.title,
                 };
 
