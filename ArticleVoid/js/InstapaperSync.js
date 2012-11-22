@@ -312,7 +312,14 @@
                     // *Remote* Deletes
                     if (pendingEdits.deletes) {
                         return Codevoid.Utilities.serialize(pendingEdits.deletes, function (del) {
-                            return b.deleteBookmark(del.bookmark_id).then(function () {
+                            return b.deleteBookmark(del.bookmark_id).then(null,
+                            function (err) {
+                                if (err.error === 1241) {
+                                    return;
+                                }
+
+                                return WinJS.Promise.wrapError(err);
+                            }).then(function () {
                                 return db.deletePendingBookmarkEdit(del.id);
                             });
                         });

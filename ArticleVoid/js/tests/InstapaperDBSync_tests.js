@@ -1150,56 +1150,46 @@
         });
     }, defaultTestDelay);
 
+    // State:
+    //   No Folders
+    //   Minimum of two bookmarks in unread
+    //   No other bookmarks
+
     promiseTest("remoteDeletesAreRemovedLocally", function () {
         var instapaperDB;
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-        var targetBookmark1 = addedRemoteBookmarks.shift();
-        var targetBookmark2 = addedRemoteBookmarks.shift();
+        var fakeAddedBookmark;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
-        }).then(function (current) {
-            ok(current, "Didn't get any bookmarks");
-            ok(current.length > 1, "Didn't find enough bookmarks");
 
-            return Codevoid.Utilities.serialize([
-                targetBookmark1.bookmark_id,
-                targetBookmark2.bookmark_id,
-            ], function (id) {
-                return bookmarks.deleteBookmark(id);
+            return instapaperDB.addBookmark({
+                bookmark_id: Date.now(),
+                url: "http://notreal.com",
+                title: "Test",
+                folder_id: InstapaperDB.CommonFolderIds.Unread,
+                folder_dbid: idb.commonFolderDbIds.unread,
             });
-        }).then(function () {
-            sourceUrls.push({ url: targetBookmark1.url });
-            sourceUrls.push({ url: targetBookmark2.url });
+        }).then(function (added) {
+            fakeAddedBookmark = added;
 
             return getNewSyncEngine().sync({ bookmarks: true, folders: false, skipOrphanCleanup: true });
         }).then(function () {
             return WinJS.Promise.join({
                 bookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
-                bookmark1: instapaperDB.getBookmarkByBookmarkId(targetBookmark1.bookmark_id),
-                bookmark2: instapaperDB.getBookmarkByBookmarkId(targetBookmark2.bookmark_id),
+                bookmark1: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
             });
         }).then(function (data) {
             var bookmark1NoLongerInUnread = data.bookmarks.some(function (bookmark) {
-                return bookmark.bookmark_id === targetBookmark1.bookmark_id;
+                return bookmark.bookmark_id === fakeAddedBookmark.bookmark_id;
             });
             ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
-
-            var bookmark2NoLongerInUnread = data.bookmarks.some(function (bookmark) {
-                return bookmark.bookmark_id === targetBookmark2.bookmark_id;
-            });
 
             strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
             strictEqual(data.bookmark1.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
 
-            strictEqual(data.bookmark2.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 2 not in orphaned folder");
-            strictEqual(data.bookmark2.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 2 not in orphaned folder");
-
             return WinJS.Promise.join({
                 orphaned: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned),
                 bookmark1: data.bookmark1,
-                bookmark2: data.bookmark2,
             });
         }).then(function (data) {
             var bookmark1Present = data.orphaned.some(function (item) {
@@ -1208,16 +1198,64 @@
 
             ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
 
-            var bookmark2Present = data.orphaned.some(function (item) {
-                return item.bookmark_id === data.bookmark2.bookmark_id;
+            return instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true);
+        });
+
+    }, defaultTestDelay);
+
+    // State:
+    //   No Folders
+    //   Minimum of two bookmarks in unread
+    //   No other bookmarks
+
+    promiseTest("alreadyDeletedBookmarkDoesntFailSync", function () {
+        var instapaperDB;
+        var fakeAddedBookmark;
+        var bookmarkToUpdateProgressFor;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return instapaperDB.addBookmark({
+                bookmark_id: Date.now(),
+                url: "http://notreal.com",
+                title: "Test",
+                folder_id: InstapaperDB.CommonFolderIds.Unread,
+                folder_dbid: idb.commonFolderDbIds.unread,
+            });
+        }).then(function (added) {
+            fakeAddedBookmark = added;
+
+            return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread);
+        }).then(function (currentBookmarks) {
+            currentBookmarks = currentBookmarks.filter(function (b) {
+                return b.bookmark_id != fakeAddedBookmark.bookmark_id;
             });
 
-            ok(bookmark2Present, "Bookmark 2 wasn't present in the orphaned folder");
+            ok(currentBookmarks.length, "not enough bookmarks: " + currentBookmarks.length);
+
+            bookmarkToUpdateProgressFor = currentBookmarks[0];
 
             return WinJS.Promise.join({
-                bookmark1: instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true),
-                bookmark2: instapaperDB.removeBookmark(data.bookmark2.bookmark_id, true),
+                update: instapaperDB.updateReadProgress(bookmarkToUpdateProgressFor.bookmark_id, 0.2),
+                deleteBookmark: instapaperDB.removeBookmark(fakeAddedBookmark.bookmark_id),
             });
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                removedLocally: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var remoteBookmark = data.remote.bookmarks.filter(function (b) {
+                return b.bookmark_id === bookmarkToUpdateProgressFor.bookmark_id;
+            })[0];
+
+            ok(remoteBookmark, "didn't find bookmark");
+            strictEqual(parseFloat(remoteBookmark.progress), 0.2, "Progress was incorrect");
+
+            ok(!data.removedLocally, "Didn't expect to be able to find the bookmark locally");
         });
     }, defaultTestDelay);
 
@@ -1262,7 +1300,7 @@
                 return bookmarks.move(item);
             });
         });
-    });
+    }, defaultTestDelay);
 
     // Remote State:
     //   Two Folders
@@ -1375,8 +1413,8 @@
             var unreadBookmarks = data[0].bookmarks;
             var folderABookmarks = data[1].bookmarks;
 
-            strictEqual(unreadBookmarks.length, 1, "Only expected one bookmark in unread");
-            strictEqual(folderABookmarks.length, 1, "Only expected one bookmark in folderA");
+            notStrictEqual(unreadBookmarks.length, 0, "Only expected one bookmark in unread");
+            notStrictEqual(folderABookmarks.length, 0, "Only expected one bookmark in folderA");
 
             strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
             strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
@@ -1390,11 +1428,13 @@
             var folderABookmarks = data.folderA;
 
             ok(unreadBookmarks, "no unread bookmarks");
-            strictEqual(unreadBookmarks.length, 1, "Incorrect number of unread bookmarks");
-            strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Incorrect bookmark");
+            notStrictEqual(unreadBookmarks.length, 0, "Incorrect number of unread bookmarks");
+            ok(unreadBookmarks.some(function (b) {
+                return b.bookmark_id === bookmarkToMoveToUnread.bookmark_id;
+            }), "Moved Bookmark not found");
             
             ok(folderABookmarks, "No folderA bookmarks");
-            strictEqual(folderABookmarks.length, 1, "Incorrect number of folder A bookmarks");
+            notStrictEqual(folderABookmarks.length, 0, "Incorrect number of folder A bookmarks");
             strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Incorrect bookmark");
         });
     }, defaultTestDelay);
@@ -1485,7 +1525,7 @@
 
             return getNewSyncEngine().sync();
         });
-    });
+    }, defaultTestDelay);
 
     // State:
     //   Two Folders
@@ -1519,7 +1559,7 @@
         }).then(function (orphanedBookmarks) {
             strictEqual(orphanedBookmarks.length, 0, "Didn't expect to find any orphaned bookmarks");
         });
-    });
+    }, defaultTestDelay);
 
     // State:
     //   Two Folders
@@ -1556,7 +1596,7 @@
 
             strictEqual(folderSyncOrder[0], expectedFirstSyncedFolder.id, "Folder was not sync'd first");
         });
-    });
+    }, defaultTestDelay);
 
     // State:
     //   Two Folders
@@ -1583,7 +1623,7 @@
 
             strictEqual(folderSyncOrder[0], instapaperDB.commonFolderDbIds.unread, "Folder was not sync'd first");
         });
-    });
+    }, defaultTestDelay);
 
     // State:
     //   Two Folders
@@ -1636,7 +1676,7 @@
             strictEqual(folderBookmarks.length, 1, "Expected only one bookmark");
             strictEqual(folderBookmarks[0].bookmark_id, movedBookmark.bookmark_id, "Incorrect bookmark");
         });
-    });
+    }, defaultTestDelay);
 
     // State:
     //   Three Folders
