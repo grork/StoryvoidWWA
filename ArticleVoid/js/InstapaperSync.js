@@ -295,7 +295,7 @@
 
                             switch (move.destinationfolder_dbid) {
                                 case db.commonFolderDbIds.archive:
-                                    operation = b.archive(move.bookmark_id);
+                                    operation = b.archive(move.bookmark_id).then(null, handleRemote1241Error);
                                     break;
 
                                 case db.commonFolderDbIds.unread:

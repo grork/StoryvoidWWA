@@ -1420,6 +1420,55 @@
         });
     }, defaultTestDelay);
 
+    // State:
+    //   One Folders
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.5 progress
+    //   No other bookmarks
+
+    promiseTest("alreadyDeletedBookmarkWithPendingArchiveDoesntFailSync", function () {
+        var instapaperDB;
+        var progressValue = 0.5;
+        var updatedBookmarkId;
+        var fakeAddedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks.length, "Didn't have enough bookmarks");
+
+            updatedBookmarkId = currentBookmarks[0].bookmark_id;
+
+            return WinJS.Promise.join({
+                update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
+                added: addLocalOnlyFakeBookmark(instapaperDB),
+            });
+        }).then(function (data) {
+            fakeAddedBookmark = data.added;
+
+            return instapaperDB.moveBookmark(fakeAddedBookmark.bookmark_id, instapaperDB.commonFolderDbIds.archive);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list(),
+                local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var remote = data.remote.bookmarks.filter(function (b) {
+                return b.bookmark_id === updatedBookmarkId;
+            })[0];
+
+            ok(remote, "didn't find updated remote bookmark");
+            strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
+
+            ok(!data.local, "Didn't expect to find the bookmark locally");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }, defaultTestDelay);
+
     module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
