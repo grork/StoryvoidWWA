@@ -17,6 +17,14 @@
         }
     }
 
+    function handleRemote1241Error(err) {
+        if (err.error === 1241) {
+            return;
+        }
+
+        return WinJS.Promise.wrapError(err);
+    }
+
     WinJS.Namespace.define("Codevoid.ArticleVoid", {
         InstapaperSync: WinJS.Class.define(function (clientInformation) {
             this._clientInformation = clientInformation;
@@ -312,14 +320,7 @@
                     // *Remote* Deletes
                     if (pendingEdits.deletes) {
                         return Codevoid.Utilities.serialize(pendingEdits.deletes, function (del) {
-                            return b.deleteBookmark(del.bookmark_id).then(null,
-                            function (err) {
-                                if (err.error === 1241) {
-                                    return;
-                                }
-
-                                return WinJS.Promise.wrapError(err);
-                            }).then(function () {
+                            return b.deleteBookmark(del.bookmark_id).then(null, handleRemote1241Error).then(function () {
                                 return db.deletePendingBookmarkEdit(del.id);
                             });
                         });
@@ -406,7 +407,7 @@
                     if (edits.likes && edits.likes.length) {
                         // Push the like edits remotely
                         return Codevoid.Utilities.serialize(edits.likes, function(edit) {
-                            return b.star(edit.bookmark_id).then(function () {
+                            return b.star(edit.bookmark_id).then(null, handleRemote1241Error).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
                             });
                         });
@@ -415,7 +416,7 @@
                     if (edits.unlikes && edits.unlikes.length) {
                         // push the unlike edits
                         return Codevoid.Utilities.serialize(edits.unlikes, function (edit) {
-                            return b.unstar(edit.bookmark_id).then(function () {
+                            return b.unstar(edit.bookmark_id).then(null, handleRemote1241Error).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
                             });
                         });
