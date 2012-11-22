@@ -1307,6 +1307,54 @@
         });
     }, defaultTestDelay);
 
+    // State:
+    //   No Folders
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.3 progress
+    //   No other bookmarks
+
+    promiseTest("deletedBookmarkWithPendingUnlikeDoesntFailSync", function () {
+        var instapaperDB;
+        var fakeAddedBookmark;
+        var updatedBookmarkId;
+        var progressValue = 0.4;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks.length, "not enough bookmarks");
+
+            updatedBookmarkId = currentBookmarks[0].bookmark_id;
+
+            return WinJS.Promise.join({
+                update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
+                add: addLocalOnlyFakeBookmark(instapaperDB),
+            });
+        }).then(function (data) {
+            fakeAddedBookmark = data.add;
+
+            return instapaperDB.unlikeBookmark(fakeAddedBookmark.bookmark_id);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list(),
+                local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var remote = data.remote.bookmarks.filter(function (b) {
+                return b.bookmark_id === updatedBookmarkId;
+            })[0];
+
+            ok(remote, "Didn't find remote bookmark");
+            strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
+
+            ok(!data.local, "Shouldn't have been able to find local fake bookmark");
+        });
+    }, defaultTestDelay);
+
     module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
