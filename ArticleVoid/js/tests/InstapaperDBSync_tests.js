@@ -1144,6 +1144,18 @@
     promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks, defaultTestDelay);
     promiseTest("deleteLocalDbBeforeDeletes", deleteDb, defaultTestDelay);
 
+    function addLocalOnlyFakeBookmark(idb) {
+        var fakeBookmarkToAdd = {
+            bookmark_id: Date.now(),
+            url: "http://notreal.com",
+            title: "Test",
+            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_dbid: idb.commonFolderDbIds.unread,
+        };
+
+        return idb.addBookmark(fakeBookmarkToAdd);
+    }
+
     promiseTest("syncDefaultState", function () {
         return getNewSyncEngine().sync().then(function () {
             ok(true, "sync complete");
@@ -1162,13 +1174,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
 
-            return instapaperDB.addBookmark({
-                bookmark_id: Date.now(),
-                url: "http://notreal.com",
-                title: "Test",
-                folder_id: InstapaperDB.CommonFolderIds.Unread,
-                folder_dbid: idb.commonFolderDbIds.unread,
-            });
+            return addLocalOnlyFakeBookmark(idb);
         }).then(function (added) {
             fakeAddedBookmark = added;
 
@@ -1216,13 +1222,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
 
-            return instapaperDB.addBookmark({
-                bookmark_id: Date.now(),
-                url: "http://notreal.com",
-                title: "Test",
-                folder_id: InstapaperDB.CommonFolderIds.Unread,
-                folder_dbid: idb.commonFolderDbIds.unread,
-            });
+            return addLocalOnlyFakeBookmark(idb);
         }).then(function (added) {
             fakeAddedBookmark = added;
 
@@ -1256,6 +1256,54 @@
             strictEqual(parseFloat(remoteBookmark.progress), 0.2, "Progress was incorrect");
 
             ok(!data.removedLocally, "Didn't expect to be able to find the bookmark locally");
+        });
+    }, defaultTestDelay);
+
+    // State:
+    //   No Folders
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.2 progress
+    //   No other bookmarks
+
+    promiseTest("deletedBookmarkWithPendingLikeDoesntFailSync", function () {
+        var instapaperDB;
+        var fakeAddedBookmark;
+        var updatedBookmarkId;
+        var progressValue = 0.3;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks.length, "not enough bookmarks");
+
+            updatedBookmarkId = currentBookmarks[0].bookmark_id;
+
+            return WinJS.Promise.join({
+                update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
+                add: addLocalOnlyFakeBookmark(instapaperDB),
+            });
+        }).then(function (data) {
+            fakeAddedBookmark = data.add;
+
+            return instapaperDB.likeBookmark(fakeAddedBookmark.bookmark_id);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list(),
+                local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var remote = data.remote.bookmarks.filter(function (b) {
+                return b.bookmark_id === updatedBookmarkId;
+            })[0];
+
+            ok(remote, "Didn't find remote bookmark");
+            strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
+
+            ok(!data.local, "Shouldn't have been able to find local fake bookmark");
         });
     }, defaultTestDelay);
 

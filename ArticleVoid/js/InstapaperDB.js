@@ -715,7 +715,6 @@
                 MOVE: "move",
                 LIKE: "star",
                 UNLIKE: "unstar",
-                UPDATE: "update",
             }
         }), WinJS.Utilities.eventMixin)
     });
