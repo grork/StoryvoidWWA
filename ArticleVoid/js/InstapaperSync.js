@@ -260,7 +260,7 @@
 
                     return db.listCurrentBookmarks(db.commonFolderDbIds.orphaned).then(function (orphans) {
                         return Codevoid.Utilities.serialize(orphans, function (orphan) {
-                            return db.removeBookmark(orphan.bookmark_id);
+                            return db.removeBookmark(orphan.bookmark_id, true);
                         });
                     });
                 });
@@ -306,7 +306,7 @@
 
                                 default:
                                     operation = db.getFolderByDbId(move.destinationfolder_dbid).then(function (folder) {
-                                        return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id });
+                                        return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, handleRemote1241Error);
                                     });
                                     break;
                             }
