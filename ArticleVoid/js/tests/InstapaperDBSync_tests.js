@@ -1205,6 +1205,8 @@
             ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
 
             return instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
 
     }, defaultTestDelay);
@@ -1256,6 +1258,8 @@
             strictEqual(parseFloat(remoteBookmark.progress), 0.2, "Progress was incorrect");
 
             ok(!data.removedLocally, "Didn't expect to be able to find the bookmark locally");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }, defaultTestDelay);
 
@@ -1265,7 +1269,7 @@
     //   One bookmark with 0.2 progress
     //   No other bookmarks
 
-    promiseTest("deletedBookmarkWithPendingLikeDoesntFailSync", function () {
+    promiseTest("alreadyDeletedBookmarkWithPendingLikeDoesntFailSync", function () {
         var instapaperDB;
         var fakeAddedBookmark;
         var updatedBookmarkId;
@@ -1304,6 +1308,8 @@
             strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
 
             ok(!data.local, "Shouldn't have been able to find local fake bookmark");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }, defaultTestDelay);
 
@@ -1313,7 +1319,7 @@
     //   One bookmark with 0.3 progress
     //   No other bookmarks
 
-    promiseTest("deletedBookmarkWithPendingUnlikeDoesntFailSync", function () {
+    promiseTest("alreadyDeletedBookmarkWithPendingUnlikeDoesntFailSync", function () {
         var instapaperDB;
         var fakeAddedBookmark;
         var updatedBookmarkId;
@@ -1352,6 +1358,65 @@
             strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
 
             ok(!data.local, "Shouldn't have been able to find local fake bookmark");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
+        });
+    }, defaultTestDelay);
+
+    // State:
+    //   No Folders
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.4 progress
+    //   No other bookmarks
+
+    promiseTest("alreadyDeletedBookmarkWithPendingMoveDoesntFailSync", function () {
+        var instapaperDB;
+        var progressValue = 0.5;
+        var updatedBookmarkId;
+        var fakeAddedBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder({ title: Date.now() + "" });
+        }).then(function () {
+            return getNewSyncEngine().sync({ folders: true });
+        }).then(function() {
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            ok(currentBookmarks.length, "Didn't have enough bookmarks");
+
+            updatedBookmarkId = currentBookmarks[0].bookmark_id;
+
+            return WinJS.Promise.join({
+                update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
+                folders: instapaperDB.listCurrentFolders(),
+                added: addLocalOnlyFakeBookmark(instapaperDB),
+            });
+        }).then(function (data) {
+            fakeAddedBookmark = data.added;
+            var currentFolders = data.folders.filter(function (f) {
+                return defaultFolderIds.indexOf(f.folder_id) === -1;
+            });
+
+            return instapaperDB.moveBookmark(fakeAddedBookmark.bookmark_id, currentFolders[0].id);
+        }).then(function () {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                remote: (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list(),
+                local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
+            });
+        }).then(function (data) {
+            var remote = data.remote.bookmarks.filter(function (b) {
+                return b.bookmark_id === updatedBookmarkId;
+            })[0];
+
+            ok(remote, "didn't find updated remote bookmark");
+            strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
+
+            ok(!data.local, "Didn't expect to find the bookmark locally");
+
+            return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }, defaultTestDelay);
 
