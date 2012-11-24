@@ -180,7 +180,7 @@
             },
             syncBookmarks: function syncBookmarks(db, options) {
                 var promise = WinJS.Promise.as();
-                
+
                 if (!options.singleFolder) {
                     promise = this._syncBookmarkPendingAdds(db).then(function () {
                         return db.listCurrentFolders();
@@ -230,9 +230,16 @@
                         }.bind(this));
                     }.bind(this));
                 }
-                        
-                return promise.then(function (currentFolders) {
-                    currentFolders = currentFolders.filter(function (folder) {
+
+                return WinJS.Promise.join({
+                    currentFolders: promise,
+                    remoteFolders: this._folders.list().then(function (folders) {
+                        return folders.map(function (folder) {
+                            return folder.folder_id;
+                        });
+                    }),
+                }).then(function (data) {
+                    var currentFolders = data.currentFolders.filter(function (folder) {
                         switch (folder.folder_id) {
                             case InstapaperDB.CommonFolderIds.Liked:
                             case InstapaperDB.CommonFolderIds.Orphaned:
@@ -244,6 +251,11 @@
                     });
 
                     return Codevoid.Utilities.serialize(currentFolders, function (folder) {
+                        if (!isDefaultFolder(folder.folder_id)
+                            && (data.remoteFolders.indexOf(folder.folder_id) === -1)) {
+                            return;
+                        }
+
                         return this._syncBookmarksForFolder(db, folder.id).then(function () {
                             if (options._testPerFolderCallback) {
                                 options._testPerFolderCallback(folder.id);
@@ -306,7 +318,17 @@
 
                                 default:
                                     operation = db.getFolderByDbId(move.destinationfolder_dbid).then(function (folder) {
-                                        return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, handleRemote1241Error);
+                                        if (!folder) {
+                                            return;
+                                        }
+
+                                        return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, function (err) {
+                                            if (err.error === 1242) {
+                                                return;
+                                            }
+
+                                            return handleRemote1241Error(err);
+                                        });
                                     });
                                     break;
                             }
@@ -406,13 +428,13 @@
                     // We're only looking at likes & unlikes here
                     if (edits.likes && edits.likes.length) {
                         // Push the like edits remotely
-                        return Codevoid.Utilities.serialize(edits.likes, function(edit) {
+                        return Codevoid.Utilities.serialize(edits.likes, function (edit) {
                             return b.star(edit.bookmark_id).then(null, handleRemote1241Error).then(function () {
                                 return db.deletePendingBookmarkEdit(edit.id);
                             });
                         });
                     }
-                }).then(function() {
+                }).then(function () {
                     if (edits.unlikes && edits.unlikes.length) {
                         // push the unlike edits
                         return Codevoid.Utilities.serialize(edits.unlikes, function (edit) {

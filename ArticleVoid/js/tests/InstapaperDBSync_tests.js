@@ -1469,6 +1469,151 @@
         });
     }, defaultTestDelay);
 
+    // State:
+    //   One Folder
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.5 progress
+    //   No other bookmarks
+
+    promiseTest("deletedFolderWithPendingMoveDoesntFailSyncNotSyncingFolders", function () {
+        var instapaperDB;
+        var movedBookmark;
+        var fakeFolder;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return WinJS.Promise.join({
+                folder: idb.addFolder({
+                    title: Date.now() + "",
+                    folder_id: 345234,
+                }, true),
+                bookmarks: idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            var bookmarks = data.bookmarks;
+            ok(bookmarks.length, "need some bookmarks to work with");
+
+            movedBookmark = bookmarks[0];
+            fakeFolder = data.folder;
+
+            return instapaperDB.moveBookmark(movedBookmark.bookmark_id, fakeFolder.id).then(function () {
+                return instapaperDB.listCurrentBookmarks(fakeFolder.id);
+            });
+        }).then(function (data) {
+            return getNewSyncEngine().sync({ bookmarks: true });
+        }).then(function () {
+            return WinJS.Promise.join({
+                bookmark: instapaperDB.getBookmarkByBookmarkId(movedBookmark.bookmark_id),
+                folder: instapaperDB.getFolderByDbId(fakeFolder.id),
+            });
+        }).then(function (data) {
+            ok(data.bookmark, "Expected to get bookmark");
+            strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
+
+            notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+            notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
+        });
+    }, defaultTestDelay);
+
+    // State:
+    //   One Folder
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.5 progress
+    //   No other bookmarks
+
+    promiseTest("deletedFolderWithPendingMoveDoesntFailSync", function () {
+        var instapaperDB;
+        var movedBookmark;
+        var fakeFolder;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return WinJS.Promise.join({
+                folder: idb.addFolder({
+                    title: Date.now() + "",
+                    folder_id: Date.now() + "",
+                }, true),
+                bookmarks: idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            var bookmarks = data.bookmarks;
+            ok(bookmarks.length, "need some bookmarks to work with");
+
+            movedBookmark = bookmarks[0];
+            fakeFolder = data.folder;
+
+            return instapaperDB.moveBookmark(movedBookmark.bookmark_id, fakeFolder.id);
+        }).then(function () {
+            return getNewSyncEngine().sync();
+        }).then(function () {
+            return WinJS.Promise.join({
+                bookmark: instapaperDB.getBookmarkByBookmarkId(movedBookmark.bookmark_id),
+                folder: instapaperDB.getFolderByDbId(fakeFolder.id),
+            });
+        }).then(function (data) {
+            ok(data.bookmark, "Expected to get bookmark");
+            strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
+
+            notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+            notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
+
+            ok(!data.folder, "Didn't expect to find the folder");
+        });
+    }, defaultTestDelay);
+
+    // State:
+    //   One Folder
+    //   Minimum of two bookmarks in unread
+    //   One bookmark with 0.5 progress
+    //   No other bookmarks
+
+    promiseTest("deletedRemoteFolderCleansupState", function () {
+        var instapaperDB;
+        var fakeFolder;
+        var movedOutOfFakeFolderBookmark;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+
+            return WinJS.Promise.join({
+                folder: idb.addFolder({
+                    folder_id: 132456,
+                    title: Date.now() + "",
+                }, true),
+                bookmarks: idb.listCurrentBookmarks(),
+            });
+        }).then(function (data) {
+            fakeFolder = data.folder;
+
+            ok(data.bookmarks.length > 1, "not enough bookmarks");
+
+            movedOutOfFakeFolderBookmark = data.bookmarks.pop();
+
+            // Move the bookmark into the fake destination folder
+            return instapaperDB.moveBookmark(movedOutOfFakeFolderBookmark.bookmark_id, fakeFolder.id, true);
+        }).then(function () {
+            // Create a pending edit to move it back to unread
+            return instapaperDB.moveBookmark(movedOutOfFakeFolderBookmark.bookmark_id, instapaperDB.commonFolderDbIds.unread);
+        }).then(function () {
+            return getNewSyncEngine().sync();
+        }).then(function () {
+            return WinJS.Promise.join({
+                bookmark: instapaperDB.getBookmarkByBookmarkId(movedOutOfFakeFolderBookmark.bookmark_id),
+                folder: instapaperDB.getFolderByDbId(fakeFolder.id),
+            });
+        }).then(function (data) {
+            ok(data.bookmark, "Didn't get bookmark");
+            strictEqual(data.bookmark.bookmark_id, movedOutOfFakeFolderBookmark.bookmark_id, "Wrong bookmark");
+
+            strictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Should be in unread folder");
+
+            ok(!data.folder, "Didn't expect to find the folder");
+        });
+    }, defaultTestDelay);
+
     module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
