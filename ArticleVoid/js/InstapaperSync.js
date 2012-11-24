@@ -244,7 +244,7 @@
                     }.bind(this));
                 }
 
-                return promise.then(function(folders) {
+                return promise.then(function (folders) {
                     return WinJS.Promise.join({
                         currentFolders: folders,
                         remoteFolders: this._folders.list().then(function (folders) {
@@ -290,6 +290,27 @@
                             return db.removeBookmark(orphan.bookmark_id, true);
                         });
                     });
+                }).then(function () {
+                    // Check that there are no orphaned pending edits for bookmarks
+                    return db.getPendingBookmarkEdits((options.singleFolder ? options.folder : null));
+                }).then(function (edits) {
+                    var mergedEdits = [];
+
+                    Object.keys(edits).forEach(function (p) {
+                        // No edits to merge
+                        if (!Array.isArray(edits[p])) {
+                            return;
+                        }
+
+                        mergedEdits.concat(edits[p]);
+                    });
+
+                    if (!mergedEdits.length) {
+                        return;
+                    }
+
+                    debugger;
+                    return WinJS.Promise.wrapError(new Error("There pending bookmark edits still found. Incomplete sync"));
                 });
             },
             _syncBookmarkPendingAdds: function _syncBookmarkPendingAdds(db) {
