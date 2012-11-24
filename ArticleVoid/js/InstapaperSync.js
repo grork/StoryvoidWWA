@@ -176,6 +176,19 @@
                     }, syncs);
 
                     return WinJS.Promise.join(syncs);
+                }).then(function () {
+                    // Make sure there aren't any pending local edits, given we should have
+                    // sync'd everything.
+
+                    return db.getPendingFolderEdits().then(function (edits) {
+                        // No edits? NO worries!
+                        if (!edits || (edits.length < 1)) {
+                            return;
+                        }
+
+                        debugger;
+                        return WinJS.Promise.wrapError(new Error("There are pending folder edits. Didn't expect any pending folder edits"));
+                    });
                 });
             },
             syncBookmarks: function syncBookmarks(db, options) {
@@ -231,14 +244,16 @@
                     }.bind(this));
                 }
 
-                return WinJS.Promise.join({
-                    currentFolders: promise,
-                    remoteFolders: this._folders.list().then(function (folders) {
-                        return folders.map(function (folder) {
-                            return folder.folder_id;
-                        });
-                    }),
-                }).then(function (data) {
+                return promise.then(function(folders) {
+                    return WinJS.Promise.join({
+                        currentFolders: folders,
+                        remoteFolders: this._folders.list().then(function (folders) {
+                            return folders.map(function (folder) {
+                                return folder.folder_id;
+                            });
+                        }),
+                    });
+                }.bind(this)).then(function (data) {
                     var currentFolders = data.currentFolders.filter(function (folder) {
                         switch (folder.folder_id) {
                             case InstapaperDB.CommonFolderIds.Liked:
