@@ -109,11 +109,11 @@
                     return Codevoid.Utilities.serialize(pendingEdits, function (edit) {
                         var syncPromise;
                         switch (edit.type) {
-                            case InstapaperDB.PendingFolderEditTypes.ADD:
+                            case InstapaperDB.FolderChangeTypes.ADD:
                                 syncPromise = this._addFolderPendingEdit(edit, db);
                                 break;
 
-                            case InstapaperDB.PendingFolderEditTypes.DELETE:
+                            case InstapaperDB.FolderChangeTypes.DELETE:
                                 syncPromise = this._removeFolderPendingEdit(edit, db);
                                 break;
 
