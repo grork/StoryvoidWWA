@@ -425,16 +425,37 @@
                     // and other details.
                     if (rb && rb.length) {
                         operations = rb.reduce(function (data, bookmark) {
-                            bookmark.folder_dbid = dbIdOfFolderToSync;
-                            bookmark.folder_id = folderId;
+                            var work = db.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (currentBookmark) {
+                                if (!currentBookmark) {
+                                    bookmark.folder_dbid = dbIdOfFolderToSync;
+                                    bookmark.folder_id = folderId;
+                                    return;
+                                }
 
-                            // Since the server gave us the data in a non-typed format, lets
-                            // fuck with it and get into something that looks typed.
-                            bookmark.starred = parseInt(bookmark.starred, 10);
-                            bookmark.progress = parseFloat(bookmark.progress);
+                                if (currentBookmark.folder_dbid != dbIdOfFolderToSync) {
+                                    return db.moveBookmark(bookmark.bookmark_id, dbIdOfFolderToSync, true);
+                                }
+
+                                return currentBookmark;
+                            }).then(function (current) {
+                                // Since the server gave us the data in a non-typed format, lets
+                                // fuck with it and get into something that looks typed.
+                                bookmark.starred = parseInt(bookmark.starred, 10);
+                                bookmark.progress = parseFloat(bookmark.progress);
+
+                                if (!current) {
+                                    return db.addBookmark(bookmark);
+                                }
+
+                                Object.keys(bookmark).forEach(function (p) {
+                                    current[p] = bookmark[p];
+                                });
+
+                                return db.updateBookmark(current);
+                            });
 
                             // Do the update
-                            data.push(db.updateBookmark(bookmark));
+                            data.push(work);
                             return data;
                         }, operations);
                     }
