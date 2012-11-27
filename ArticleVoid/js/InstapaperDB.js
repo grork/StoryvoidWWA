@@ -537,7 +537,16 @@
                     }.bind(this));
                 }
 
-                return movedBookmark;
+                return movedBookmark.then(function (bookmark) {
+                    this.dispatchEvent("bookmarkschanged", {
+                        operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.MOVE,
+                        bookmark: bookmark,
+                        bookmark_id: bookmark.bookmark_id,
+                        destinationfolder_dbid: bookmark.folder_dbid,
+                        sourcefolder_dbid: sourcefolder_dbid,
+                    });
+                    return bookmark;
+                }.bind(this));
             }),
             likeBookmark: checkDb(function likeBookmark(bookmark_id, dontAddPendingUpdate) {
                 var wasUnsyncedEdit = false;

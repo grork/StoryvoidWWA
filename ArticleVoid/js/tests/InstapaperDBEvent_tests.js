@@ -279,4 +279,47 @@
             });
         });
     });
+
+    promiseTest("movingBookmarkRaisesEvent", function () {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join({
+                bookmark: idb.addBookmark({
+                    bookmark_id: Date.now(),
+                    title: Date.now() + "",
+                    url: "http://" + Date.now(),
+                    folder_dbid: instapaperDB.commonFolderDbIds.unread,
+                }, true),
+                folder: idb.addFolder({ title: Date.now() + "" }),
+            });
+        }).then(function (data) {
+            var folder = data.folder;
+            var bookmark = data.bookmark;
+            var signal = new Signal();
+
+            instapaperDB.addEventListener("bookmarkschanged", function (e) {
+                var detail = e.detail;
+
+                ok(detail, "no detail on the event");
+                strictEqual(e.target, instapaperDB, "Event raised on incorrect instance");
+
+                strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect operation type");
+                strictEqual(detail.bookmark_id, bookmark.bookmark_id, "event raised for wrong bookmark");
+                strictEqual(detail.sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "source folder was in correct");
+                strictEqual(detail.destinationfolder_dbid, folder.id, "Incorrect destination folder");
+                
+                ok(detail.bookmark, "no bookmark data");
+                strictEqual(detail.bookmark.bookmark_id, detail.bookmark_id, "Bookmark on detail was the wrong bookmark");
+                strictEqual(detail.bookmark.folder_dbid, folder.id, "Folder data was incorrect");
+
+                signal.complete();
+            });
+
+            return instapaperDB.moveBookmark(bookmark.bookmark_id, folder.id).then(function () {
+                return signal.promise;
+            });
+        });
+    });
 })();

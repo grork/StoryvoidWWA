@@ -64,10 +64,26 @@
         });
 
         signal.complete();
-        signal.complete();
+
+        try {
+            signal.complete();
+        } catch(e) {
+        }
 
         strictEqual(completed, 1, "Shouldn't complete more than once");
 
+    }
+
+    function signalThrowsWhenCompletingTwice() {
+        var signal = new Signal();
+
+        signal.complete();
+        
+        try {
+            signal.complete();
+        } catch(e) {
+            ok(true, "Got exception!");
+        }
     }
 
     function errorRaisedOnPromise() {
@@ -145,6 +161,7 @@
     test("signalCanComplete", signalCanComplete);
     test("signalCompletesWithValue", signalCompletesWithValue);
     test("signalCantCompleteMoreThanOnce", signalCantCompleteMoreThanOnce);
+    test("signalThrowsWhenCompletingTwice", signalThrowsWhenCompletingTwice);
     test("errorRaisedOnPromise", errorRaisedOnPromise);
     test("errorRaisedOnPromiseWithErrorInfo", errorRaisedOnPromiseWithErrorInfo);
     test("progressReported", progressReported);

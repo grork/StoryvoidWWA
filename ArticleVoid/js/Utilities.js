@@ -51,6 +51,7 @@
         {
             _wrappedPromise: null,
             _complete: null,
+            _completed: false,
             _error: null,
             _progress: null,
             _handleCancelled: function _handleCancelled(e) {
@@ -62,7 +63,12 @@
                 }
             },
             complete: function signal_complete(value) {
+                if (this._completed) {
+                    throw new Erorr("Cannot complete an already completed promise");
+                }
+
                 this._complete(value);
+                this._completed = true;
             },
             error: function signal_error(errorInfo) {
                 this._error(errorInfo);
