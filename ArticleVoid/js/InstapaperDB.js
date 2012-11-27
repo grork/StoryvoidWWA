@@ -491,7 +491,7 @@
                     sourcefolder_dbid = data.bookmark.folder_dbid;
                     data.bookmark.folder_dbid = data.folder.id;
 
-                    return this.updateBookmark(data.bookmark);
+                    return this.updateBookmark(data.bookmark, true);
                 }.bind(this));
 
                 if (!fromServer) {
