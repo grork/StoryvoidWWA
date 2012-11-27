@@ -447,6 +447,10 @@
                                     return db.addBookmark(bookmark);
                                 }
 
+                                // The key here is to layer the updated values from the server
+                                // on to the bookmark that we're about to put in the database.
+                                // This is significant because otherwise, the put call will
+                                // *REPLACE* the data for that key losing the folder information etc.
                                 Object.keys(bookmark).forEach(function (p) {
                                     current[p] = bookmark[p];
                                 });
