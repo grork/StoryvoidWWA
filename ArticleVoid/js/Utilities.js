@@ -36,6 +36,13 @@
             }
         };
     }
+
+    if (!window.appfail) {
+        window.appfail = function appfail(message) {
+            debugger;
+            alert(message);
+        };
+    }
     
     WinJS.Namespace.define("Codevoid.Utilities", {
         Signal: WinJS.Class.mix(WinJS.Class.define(function () {
@@ -64,7 +71,7 @@
             },
             complete: function signal_complete(value) {
                 if (this._completed) {
-                    throw new Erorr("Cannot complete an already completed promise");
+                    throw new Error("Cannot complete an already completed promise");
                 }
 
                 this._complete(value);
@@ -112,6 +119,43 @@
             doWork();
 
             return WinJS.Promise.join(results);
+        },
+    });
+
+    WinJS.Namespace.define("Codevoid.Utilities.DOM", {
+        disposeOfControl: function disposeOfControl(element) {
+            if (!element || !element.winControl || !element.winControl.dispose) {
+                return;
+            }
+
+            try {
+                element.winControl.dispose();
+            } catch (e) {
+                appfail("Failed to unload control:\n" + e.toString() + "\nStack:\n" + e.stack);
+            }
+        },
+        disposeOfControlTree: function disposeOfControlTree(root) {
+            var toUnload = WinJS.Utilities.query("[data-win-control]", root);
+            if (root.hasAttribute("data-win-control")) {
+                toUnload.unshift(root);
+            }
+
+            for (var i = toUnload.length - 1; i > -1; i--) {
+                Codevoid.Utilities.DOM.disposeOfControl(toUnload[i]);
+            }
+        },
+        removeChild: function (element, child) {
+            Codevoid.Utilities.DOM.disposeOfControlTree(child);
+            return element.removeChild(child);
+        },
+        empty: function (element) {
+            appassert(element, "no element provided");
+            if (!element) {
+                return;
+            }
+
+            Codevoid.Utilities.DOM.disposeOfControlTree(element);
+            element.innerHTML = "";
         },
     });
 })();

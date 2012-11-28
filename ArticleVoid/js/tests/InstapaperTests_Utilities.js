@@ -124,5 +124,10 @@
         expectNoPendingBookmarkEdits: expectNoPendingBookmarkEdits,
         deleteDb: deleteDb,
         colludePendingBookmarkEdits: colludePendingBookmarkEdits,
+        getPlayground: function getPlayground() {
+            var playground = document.getElementById("qunit-fixture");
+
+            return playground.appendChild(document.createElement("div"));
+        },
     });
 })();

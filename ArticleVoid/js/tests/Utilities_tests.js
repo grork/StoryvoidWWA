@@ -2,6 +2,51 @@
     "use strict";
     var Signal = Codevoid.Utilities.Signal;
     var promiseTest = InstapaperTestUtilities.promiseTest;
+    var getPlayground = InstapaperTestUtilities.getPlayground;
+    var domUtilities = Codevoid.Utilities.DOM;
+    var customUnloadingControlId = 0;
+
+    WinJS.Namespace.define("CodevoidTests", {
+        TestControl: WinJS.Class.define(function (element) {
+            this.domElement = element;
+        }, {
+            domElement: null,
+            disposed: false,
+            dispose: function () {
+                this.disposed = true;
+            },
+        }, {
+            getElementForControl: function () {
+                var element = document.createElement("div");
+                element.setAttribute("data-win-control", "CodevoidTests.TestControl");
+
+                return element;
+            }
+        }),
+        CustomUnloadingControl: WinJS.Class.define(function(element) {
+            this.domElement = element;
+            this.uid = customUnloadingControlId++;
+        }, {
+            element: null,
+            disposed: false,
+            dispose: function() {
+                if(!CodevoidTests.CustomUnloadingControl.unloadedOrder) {
+                    CodevoidTests.CustomUnloadingControl.unloadedOrder = [];
+                }
+
+                CodevoidTests.CustomUnloadingControl.unloadedOrder.push(this.uid);
+            },
+        }, {
+            getElementForControl: function() {
+                var element = document.createElement("div");
+                element.setAttribute("data-win-control", "CodevoidTests.CustomUnloadingControl");
+
+                return element;
+            },
+            unloadedOrder: null,
+            loadOrder: null,
+        }),
+    });
 
     module("utilitiesSignal");
 
@@ -248,6 +293,111 @@
             values.forEach(function (value, index) {
                 strictEqual(value, data[index], "Values & Order didn't match at index: " + index);
             });
+        });
+    });
+
+    module("utilitiesControlUnload");
+    
+    promiseTest("disposingOfControlCallsUnload", function () {
+        var playground = getPlayground();
+
+        var controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+
+        return WinJS.UI.process(controlElement).then(function () {
+            domUtilities.disposeOfControl(controlElement);
+            ok(controlElement.winControl.disposed, "Control wasn't disposed");
+        });
+    });
+
+    promiseTest("disposingOfTreeOfControlsCallsUnloadOnAll", function () {
+        var playground = getPlayground();
+        var parent = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+
+        for (var i = 0; i < 5; i++) {
+            parent.appendChild(CodevoidTests.TestControl.getElementForControl());
+        }
+
+        return WinJS.UI.processAll(playground).then(function () {
+            var controls = WinJS.Utilities.query("[data-win-control]", playground);
+
+            domUtilities.disposeOfControlTree(parent);
+
+            controls.forEach(function (control) {
+                ok(control.winControl.disposed, "Control wasn't disposed");
+            });
+        });
+    });
+
+    promiseTest("disposingOfTreeOfControlsIsBottomUp", function () {
+        var playground = getPlayground();
+        var parent = playground.appendChild(CodevoidTests.CustomUnloadingControl.getElementForControl());
+
+        for (var i = 0; i < 5; i++) {
+            parent = parent.appendChild(CodevoidTests.CustomUnloadingControl.getElementForControl());
+        }
+
+        return WinJS.UI.processAll(playground).then(function () {
+            var controls = WinJS.Utilities.query("[data-win-control]", playground);
+
+
+            domUtilities.disposeOfControlTree(playground.firstChild);
+
+            var unloadOrder = CodevoidTests.CustomUnloadingControl.unloadedOrder;
+            strictEqual(unloadOrder.length, 6, "Incorrect number of controls");
+
+            for (var i = 1; i < unloadOrder.length; i++) {
+                ok(unloadOrder[i - 1] > unloadOrder[i], "Incorrect unload order detected. Control '" + unloadOrder[i - 1] + "' was not after '" + unloadOrder[i] + "'");
+            }
+
+            CodevoidTests.CustomUnloadingControl.unloadedOrder = null;
+        });
+    });
+
+    promiseTest("throwingInControlUnloadStillUnloadsOtherControls", function () {
+        var playground = getPlayground();
+
+        var controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+        var failingElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+        var controlElement2 = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+
+        return WinJS.UI.processAll(playground).then(function () {
+            failingElement.winControl.dispose = function () {
+                throw new Error();
+            };
+
+            domUtilities.disposeOfControlTree(playground);
+            ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
+        });
+    });
+
+    promiseTest("emptyingAnElementCallsUnload", function () {
+        var playground = getPlayground();
+
+        var controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+        var controlElement2 = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
+
+        return WinJS.UI.processAll(playground).then(function () {
+
+            domUtilities.empty(playground);
+            ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
+        });
+    });
+
+    promiseTest("removeChildCallsUnload", function () {
+        var playground = getPlayground();
+        var parent = playground.appendChild(document.createElement("div"));
+
+        var controlElement = parent.appendChild(CodevoidTests.TestControl.getElementForControl());
+        var controlElement2 = parent.appendChild(CodevoidTests.TestControl.getElementForControl());
+
+        return WinJS.UI.processAll(playground).then(function () {
+
+            domUtilities.removeChild(playground, parent);
+
+            ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
 })();
