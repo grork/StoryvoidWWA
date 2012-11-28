@@ -308,7 +308,7 @@
                                 break;
 
                             default:
-                                appassert(false, "Unsupported edit type");
+                                appfail("Unsupported edit type");
                                 break;
                         }
                     });

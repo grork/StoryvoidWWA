@@ -118,7 +118,7 @@
                                 break;
 
                             default:
-                                appassert(false, "Shouldn't see other edit types");
+                                appfail("Shouldn't see other edit types");
                                 break;
                         }
 
@@ -231,7 +231,7 @@
                             })[0];
 
                             if (!edit) {
-                                appassert(false, "Even though the folder had no folder ID, it had no pending edit either...");
+                                appfail("Even though the folder had no folder ID, it had no pending edit either...");
                                 return WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
                             }
 
