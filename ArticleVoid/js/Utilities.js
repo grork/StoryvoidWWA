@@ -15,7 +15,7 @@
                 (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync().done(function () {
                     dialogVisible = false;
                     showPendingAlerts();
-                })
+                });
             }
             window.alert = function (message) {
                 if (window.console && window.console.log) {
@@ -24,7 +24,7 @@
 
                 alertsToShow.push(message);
                 showPendingAlerts();
-            }
+            };
         })();
     }
 
@@ -120,6 +120,32 @@
 
             return WinJS.Promise.join(results);
         },
+        derive: function derive(baseClass, constructor, instanceMembers, staticMembers) {
+            /// <summary>
+            /// Enables javascript 'classes' to be derived, and have simple access to the
+            /// 'base' classes constructor.
+            ///
+            /// This allows for a more fluid hiearchy of classes without having explicit,
+            /// coded in type names which can be a challenge as time passes and things move
+            /// around.
+            ///
+            /// When using this method, the derived class can gain access to the base class
+            /// constructor through 'this.base()'. It can supply arguments as it sees fit,
+            /// and these will be passed down from class to class
+            /// </summary>
+            instanceMembers = instanceMembers || {};
+            if (baseClass instanceof Function) {
+                instanceMembers.base = function () {
+                    // Patching stuff up. Comment
+                    var original = this.base;
+                    this.base = baseClass.prototype.base;
+                    baseClass.apply(this, arguments);
+                    this.base = original;
+                };
+            }
+
+            return WinJS.Class.derive(baseClass, constructor, instanceMembers, staticMembers);
+        }
     });
 
     WinJS.Namespace.define("Codevoid.Utilities.DOM", {
