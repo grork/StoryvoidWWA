@@ -64,6 +64,8 @@
     <Content Include="js\InstapaperDB.js" />
     <Content Include="js\InstapaperSync.js" />
     <Content Include="js\OAuth.js" />
+    <Content Include="js\tests\authenticator_tests.js" />
+    <Content Include="js\tests\core_tests.js" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
     <Content Include="js\tests\InstapaperDBEvent_tests.js" />
@@ -74,6 +76,8 @@
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
     <Content Include="js\tests\Utilities_tests.js" />
+    <Content Include="js\ui\authenticator.js" />
+    <Content Include="js\ui\core.js" />
     <Content Include="js\Utilities.js" />
     <Content Include="tests.html" />
     <None Include="ArticleVoid_TemporaryKey.pfx" />

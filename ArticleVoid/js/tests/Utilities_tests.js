@@ -400,4 +400,56 @@
             ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
+
+    module("UtilitiesClasses");
+
+    test("canDerive", function () {
+        var control = Codevoid.Utilities.derive(WinJS.Class.define(function () { }, { test: null }), function () { }, { test2: null });
+        ok(control, "No control created");
+    });
+
+    test("canInstantiateDerivedClass", function () {
+        var baseConstructed = false;
+        var derivedConstructed = false;
+
+        var control = WinJS.Class.define(function () {
+            baseConstructed = true;
+        });
+
+        var derived = Codevoid.Utilities.derive(control, function () {
+            this.base();
+            derivedConstructed = true;
+        });
+
+        var instance = new derived();
+
+        ok(baseConstructed, "Base class constructor wasn't called");
+        ok(derivedConstructed, "Derived class wasn't constructed");
+    });
+
+    test("derivedClassesConstructorsCalledInCorrectOrder", function () {
+        var constructorOrder = [];
+        var baseConstructed = false;
+        var derivedConstructed = false;
+
+        var control = WinJS.Class.define(function () {
+            constructorOrder.push(1);
+            baseConstructed = true;
+        });
+
+        var derived = Codevoid.Utilities.derive(control, function () {
+            this.base();
+            constructorOrder.push(2);
+            derivedConstructed = true;
+        });
+
+        var instance = new derived();
+
+        ok(baseConstructed, "Base class constructor wasn't called");
+        ok(derivedConstructed, "Derived class wasn't constructed");
+
+        strictEqual(constructorOrder.length, 2, "Incorrect number of constructors called");
+        strictEqual(constructorOrder[0], 1, "Base class wasn't called first");
+        strictEqual(constructorOrder[1], 2, "Derived class wasn't called second");
+    });
 })();
