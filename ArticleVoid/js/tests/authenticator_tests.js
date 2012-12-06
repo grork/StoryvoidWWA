@@ -5,6 +5,10 @@
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
     var authenticator = Codevoid.ArticleVoid.Authenticator;
+    var testCredentials = {
+        user: "test@codevoid.net",
+        password: "TestPassword"
+    };
 
     module("Authenticator");
 
@@ -52,7 +56,7 @@
     promiseTest("tokenInformationObtainedFromService", function () {
         authenticator.clearClientInformation();
 
-        return authenticator.getClientInformation().then(function (clientInformation) {
+        return authenticator.getClientInformation(testCredentials).then(function (clientInformation) {
             ok(clientInformation, "No client information");
 
             ok(clientInformation.clientToken, "No token information");
@@ -65,7 +69,7 @@
     promiseTest("clientInformationIsSavedAfterGettingFromService", function () {
         authenticator.clearClientInformation();
 
-        return authenticator.getClientInformation().then(function (clientInformation) {
+        return authenticator.getClientInformation(testCredentials).then(function (clientInformation) {
             var tokenInformation = Windows.Storage.ApplicationData.current.roamingSettings.values[authenticator._tokenSettingInformation.root];
             ok(clientInformation, "No client information");
             ok(clientInformation.clientToken, "No token information");

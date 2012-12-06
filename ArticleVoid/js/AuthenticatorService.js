@@ -14,7 +14,7 @@
             token: tokenSettingName,
             secret: tokenSecretSettingName,
         },
-        getClientInformation: function getClientInformation() {
+        getClientInformation: function getClientInformation(overrideCredentials) {
             var store = Windows.Storage.ApplicationData.current.roamingSettings;
             var tokens = store.values[tokenInformationSettingName];
             
@@ -26,7 +26,15 @@
 
             var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
 
-            return accounts.getAccessToken("test@codevoid.net", "TestPassword").then(function (result) {
+            var credentialPromise = WinJS.Promise.as(overrideCredentials);
+
+            if (!overrideCredentials) {
+                throw new Error("Credentials need to be supplied currently");
+            }
+
+            return credentialPromise.then(function(credentials) {
+                return accounts.getAccessToken(credentials.user, credentials.password);
+            }).then(function (result) {
                 var userTokens = new Windows.Storage.ApplicationDataCompositeValue();
                 userTokens[tokenSettingName] = result.oauth_token;
                 userTokens[tokenSecretSettingName] = result.oauth_token_secret;
