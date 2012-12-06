@@ -452,4 +452,82 @@
         strictEqual(constructorOrder[0], 1, "Base class wasn't called first");
         strictEqual(constructorOrder[1], 2, "Derived class wasn't called second");
     });
+
+    test("propertyHelperCanCreateProperty", function () {
+        var object = WinJS.Class.mix(WinJS.Class.define(function () {
+        }, {
+            sample: Codevoid.Utilities.property("sample", null),
+        }), WinJS.Utilities.eventMixin);
+        ok(object, "type wasn't created");
+
+        var instance = new object();
+        ok(instance, "Instance wasn't created");
+        ok("sample" in instance, "Property not found on instance");
+        strictEqual(instance.sample, null, "Value wasn't set correctly");
+    });
+
+    test("propertyRaisesEventWhenChanged", function () {
+        var object = WinJS.Class.mix(WinJS.Class.define(function () {
+        }, {
+            sample: Codevoid.Utilities.property("sample", null),
+        }), WinJS.Utilities.eventMixin);
+        ok(object, "type wasn't created");
+
+        var instance = new object();
+        ok(instance, "Instance wasn't created");
+        
+        var valueChanged = false;
+        instance.addEventListener("sampleChanged", function () {
+            valueChanged = true;
+        });
+
+        instance.sample = Date.now();
+
+        ok(valueChanged, "Value Didn't change");
+    });
+
+    test("propertyRaisesEventWithCorrectDataWhenChanged", function () {
+        var object = WinJS.Class.mix(WinJS.Class.define(function () {
+        }, {
+            sample: Codevoid.Utilities.property("sample", null),
+        }), WinJS.Utilities.eventMixin);
+        ok(object, "type wasn't created");
+
+        var instance = new object();
+        ok(instance, "Instance wasn't created");
+
+        var valueChanged = false;
+        var newValue = Date.now();
+        instance.addEventListener("sampleChanged", function (e) {
+            valueChanged = true;
+            strictEqual(e.detail.previous, null, "Previous value incorrect");
+            strictEqual(e.detail.current, newValue, "New value incorrect");
+        });
+
+        instance.sample = newValue;
+
+        ok(valueChanged, "Value Didn't change");
+    });
+
+    test("propertyRaisesEventWhenChanged", function () {
+        var object = WinJS.Class.mix(WinJS.Class.define(function () {
+        }, {
+            sample: Codevoid.Utilities.property("sample", null),
+        }), WinJS.Utilities.eventMixin);
+        ok(object, "type wasn't created");
+
+        var instance = new object();
+        ok(instance, "Instance wasn't created");
+
+        var valueChanged = false;
+        var newValue = Date.now();
+        instance.sample = newValue;
+        instance.addEventListener("sampleChanged", function () {
+            valueChanged = true;
+        });
+
+        instance.sample = newValue;
+
+        ok(!valueChanged, "Value changed, shouldn't have");
+    });
 })();
