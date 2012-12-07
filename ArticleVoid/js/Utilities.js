@@ -255,5 +255,16 @@
             templateCache = {};
             fragmentCache = {};
         },
+        marryPartsToControl: function (element, control) {
+            var parts = WinJS.Utilities.query("[data-part]");
+            parts.forEach(function (part) {
+                var partName = part.getAttribute("data-part");
+                if (!partName) {
+                    return;
+                }
+
+                control[partName] = part;
+            });
+        },
     });
 })();

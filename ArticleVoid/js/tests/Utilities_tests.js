@@ -559,4 +559,19 @@
             ok(true, "Should have failed to load template");
         });
     });
+
+    promiseTest("canMarryPartNameToObjectInstance", function () {
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts").then(function (template) {
+            return template.render(null, getPlayground());
+        }).then(function () {
+            var instance = {};
+            domUtilities.marryPartsToControl(getPlayground(), instance);
+
+            ok(instance.content, "Content not found");
+            strictEqual(instance.content.innerText, "Test", "Incorrect element");
+            
+            ok(instance.otherContent, "Other Content not found");
+            strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+        });
+    });
 })();
