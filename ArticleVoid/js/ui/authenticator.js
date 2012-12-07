@@ -3,9 +3,11 @@
     WinJS.Namespace.define("Codevoid.ArticleVoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {
             this.base(element, options);
-            element.innerText = "Authenticator";
+            Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
+                template.render(null, element);
+            });
         }, {
-            usernameBox: null,
+            
         }, {
             showAuthenticator: function () {
                 var container = document.createElement("div");

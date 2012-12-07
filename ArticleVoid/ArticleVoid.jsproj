@@ -59,6 +59,7 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <Content Include="css\tests\qunit.css" />
+    <Content Include="HtmlTemplates.html" />
     <Content Include="js\AuthenticatorService.js" />
     <Content Include="js\db.js" />
     <Content Include="js\InstapaperApi.js" />
@@ -76,6 +77,7 @@
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
+    <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
     <Content Include="js\ui\authenticator.js" />
     <Content Include="js\ui\core.js" />

@@ -530,4 +530,33 @@
 
         ok(!valueChanged, "Value changed, shouldn't have");
     });
+
+    module("UtilitiesTemplates");
+
+    promiseTest("canLoadTemplate", function () {
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then(function (template) {
+            ok(template, "Template Loaded!");
+            domUtilities.clearTemplateCaches();
+        });
+    });
+
+    promiseTest("itemReturnedIsABindingTemplate", function () {
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then(function (template) {
+            ok(template, "Template Loaded!");
+            ok(template instanceof WinJS.Binding.Template, "Template isn't a WinJS.Binding.Template");
+            domUtilities.clearTemplateCaches();
+        });
+    });
+
+    promiseTest("loadingTemplateInNonExistantFileErrors", function () {
+        return domUtilities.loadTemplate("/foo.html", "testTemplate").then(null, function () {
+            ok(true, "Should have failed to load template");
+        });
+    });
+
+    promiseTest("loadingNonExistantTemplateInLegitimateFileErrors", function () {
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "foo").then(null, function () {
+            ok(true, "Should have failed to load template");
+        });
+    });
 })();

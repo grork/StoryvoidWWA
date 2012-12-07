@@ -161,4 +161,18 @@
 
         ok(!vm.canAuthenticate, "Authentication should be possible with an invalid");
     });
+
+    test("passwordEntryDisabledOnCreation", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
+    });
+
+    test("passwordEntryEnabledWhenUserSet", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
+
+        vm.username = "test";
+
+        ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
+    });
 })();
