@@ -53,16 +53,18 @@
         AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
             this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
-            this.addEventListener("passwordChanged", this._evaluateCanAuthenticate);
         }, {
             username: property("username", null),
             password: property("password", null),
             canAuthenticate: property("canAuthenticate", false),
+            allowPasswordEntry: property("allowPasswordEntry", false),
             _evaluateCanAuthenticate: function () {
                 if (this.username && (typeof this.username === "string")) {
                     this.canAuthenticate = true;
+                    this.allowPasswordEntry = true;
                 } else {
                     this.canAuthenticate = false;
+                    this.allowPasswordEntry = false;
                 }
             },
         }), WinJS.Utilities.eventMixin),

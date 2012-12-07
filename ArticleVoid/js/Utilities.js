@@ -172,6 +172,10 @@
         },
     });
 
+    var fragmentCache = {};
+    var templateCache = {};
+    var templateIdAttributeName =  "data-templateid";
+
     WinJS.Namespace.define("Codevoid.Utilities.DOM", {
         disposeOfControl: function disposeOfControl(element) {
             if (!element || !element.winControl || !element.winControl.dispose) {
@@ -206,6 +210,50 @@
 
             Codevoid.Utilities.DOM.disposeOfControlTree(element);
             element.innerHTML = "";
+        },
+        loadTemplate: function (path, id) {
+            var templateCacheKey = path + "#" + id;
+            var template = templateCache[templateCacheKey];
+            if (template) {
+                return WinJS.Promise.wrap(template);
+            }
+            
+            var fragmentPromise = fragmentCache[path];
+            if (!fragmentPromise) {
+                fragmentCache[path] = fragmentPromise = WinJS.UI.Fragments.renderCopy(path);
+            }
+
+            return fragmentPromise.then(function (fragment) {
+                var templates = WinJS.Utilities.query("[" + templateIdAttributeName + "]", fragment);
+
+                var templatePromises = templates.map(function (el) {
+                    return WinJS.UI.process(el).then(function (control) {
+                        return {
+                            template: control,
+                            id: el.getAttribute(templateIdAttributeName),
+                        };
+                    });
+                });
+
+                return WinJS.Promise.join(templatePromises);
+            }).then(function (templateControls) {
+                templateControls.forEach(function(controlInfo) {
+                    templateCache[path + "#" + controlInfo.id] = controlInfo.template;
+                });
+
+                var template = templateCache[templateCacheKey];
+                
+                if (!template) {
+                    return WinJS.Promise.wrapError(new Error("No template with name '" + id + "' found"));
+                }
+
+                return template;
+            });
+        },
+        clearTemplateCaches: function() {
+            WinJS.UI.Fragments.clearCache();
+            templateCache = {};
+            fragmentCache = {};
         },
     });
 })();
