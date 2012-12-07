@@ -1,5 +1,6 @@
 ﻿(function () {
     "use strict";
+    var property = Codevoid.Utilities.property;
 
     var clientID = "PLACEHOLDER";
     var clientSecret = "PLACEHOLDER";
@@ -47,5 +48,23 @@
             var storage = Windows.Storage.ApplicationData.current.roamingSettings;
             storage.values.remove(tokenInformationSettingName);
         },
+
+
+        AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
+            this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
+            this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
+            this.addEventListener("passwordChanged", this._evaluateCanAuthenticate);
+        }, {
+            username: property("username", null),
+            password: property("password", null),
+            canAuthenticate: property("canAuthenticate", false),
+            _evaluateCanAuthenticate: function () {
+                if (this.username && (typeof this.username === "string")) {
+                    this.canAuthenticate = true;
+                } else {
+                    this.canAuthenticate = false;
+                }
+            },
+        }), WinJS.Utilities.eventMixin),
     });
 })();

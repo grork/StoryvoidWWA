@@ -81,4 +81,84 @@
             authenticator.clearClientInformation();
         });
     });
+
+
+    module("AuthenticatorViewModel");
+
+    test("canInstantiateViewModel", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(vm, "No view model created");
+    });
+
+    test("changingPasswordRaisesEvent", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var eventRaised = false;
+
+        vm.addEventListener("passwordChanged", function () {
+            eventRaised = true;
+        });
+
+        vm.password = "test";
+
+        ok(eventRaised, "No password changed");
+    });
+
+    test("changingUsernameRaisesEvent", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var eventRaised = false;
+
+        vm.addEventListener("usernameChanged", function () {
+            eventRaised = true;
+        });
+
+        vm.username = "test";
+
+        ok(eventRaised, "No password changed");
+    });
+
+    test("canAuthenticateInitiallyFalse", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(!vm.canAuthenticate, "Shouldn't be able to authenticate with no user/pass");
+    });
+
+    test("settingUsernameAuthenticates", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+
+        ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+
+        vm.username = "test";
+
+        ok(vm.canAuthenticate, "Authentication should be possible with a valid username");
+    });
+
+    test("settingPasswordOnlyShouldn'tEnableAuthentication", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+
+        ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+
+        vm.password = "test";
+
+        ok(!vm.canAuthenticate, "Authentication shouldn't be possible with only a password");
+    });
+
+    test("settingUsernameAndPasswordShouldEnableAuthentication", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+
+        ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+
+        vm.username = "test";
+        vm.password = "test";
+
+        ok(vm.canAuthenticate, "Authentication should be enabled");
+    });
+
+    test("settingNonStringUsernameDoesn'tEnableAuthentication", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+
+        ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+
+        vm.username = 1;
+
+        ok(!vm.canAuthenticate, "Authentication should be possible with an invalid");
+    });
 })();
