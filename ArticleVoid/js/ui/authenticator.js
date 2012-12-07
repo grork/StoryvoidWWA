@@ -3,8 +3,8 @@
     WinJS.Namespace.define("Codevoid.ArticleVoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {
             this.base(element, options);
-            Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
-                template.render(null, element);
+            Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").done(function (template) {
+                return template.render(null, element);
             });
         }, {
             
