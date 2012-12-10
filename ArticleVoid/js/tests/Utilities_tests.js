@@ -46,6 +46,8 @@
             unloadedOrder: null,
             loadOrder: null,
         }),
+        UnitTestView: WinJS.Class.define(function() {
+        }),
     });
 
     module("utilitiesSignal");

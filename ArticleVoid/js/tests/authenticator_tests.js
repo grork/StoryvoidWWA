@@ -10,6 +10,21 @@
         password: "TestPassword"
     };
 
+    WinJS.Namespace.define("CodevoidTests", {
+        AuthenticatorTestUI: WinJS.Class.define(function (e, options) {
+            CodevoidTests.AuthenticatorTestUI.currentInstance = this;
+            WinJS.UI.setOptions(this, options);
+        }, {
+            wasPrompted: false, 
+            prompt: function () {
+                this.wasPrompted = true;
+                return WinJS.Promise.as();
+            },
+        }, {
+            currentInstance: null,
+        }),
+    });
+
     module("Authenticator");
 
     test("canInstantiate", function () {
@@ -174,5 +189,16 @@
         vm.username = "test";
 
         ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
+    });
+
+    promiseTest("canPromptForCredentials", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+
+        vm.view.unittest = "CodevoidTests.AuthenticatorTestUI";
+        return vm.authenticate().then(function () {
+            ok(false, "Expected to fail");
+        }, function () {
+            ok(CodevoidTests.AuthenticatorTestUI.currentInstance.wasPrompted, "Expected to have been prompted");
+        });
     });
 })();
