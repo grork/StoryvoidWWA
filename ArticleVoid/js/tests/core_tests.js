@@ -4,6 +4,7 @@
     var Signal = Codevoid.Utilities.Signal;
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
+    var uicore = Codevoid.UICore;
 
     module("UICoreControls");
 
@@ -29,5 +30,55 @@
 
         ok(control, "Control wasn't created");
         strictEqual(control.element, playground, "Controls element was incorrect");
+    });
+
+
+    test("errorOnGettingViewForModelWithoutView", function () {
+        var model = {};
+
+        var exceptionCaught = false;
+
+        try {
+            uicore.getViewForModel(model);
+        } catch (e) {
+            exceptionCaught = true;
+        }
+
+        ok(exceptionCaught, "No exception caught");
+    });
+
+    test("errorOnGettingViewForNotDefinedViewType", function () {
+        var model = {
+            view: {
+                unittest: "CodevoidTests.TestControl",
+            },
+        };
+
+        var exceptionCaught = false;
+
+        var currentViewType = uicore.currentViewType;
+        uicore.currentViewType = "fake";
+
+        try {
+            uicore.getViewForModel(model);
+        } catch (e) {
+            exceptionCaught = true;
+        }
+
+        ok(exceptionCaught, "No exception caught");
+
+        uicore.currentViewType = currentViewType;
+    });
+
+    test("canGetViewForSimpleModel", function () {
+        var model = {
+            view: {
+                unittest: "CodevoidTests.UnitTestView",
+            },
+        };
+
+        var view = uicore.getViewForModel(model);
+        ok(view, "Expected to get a view");
+        strictEqual(typeof view, "function", "Expected a function");
     });
 })();

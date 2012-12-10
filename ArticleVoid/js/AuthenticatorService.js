@@ -25,17 +25,13 @@
                 return WinJS.Promise.as(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
             }
 
-            var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
-
-            var credentialPromise = WinJS.Promise.as(overrideCredentials);
-
-            if (!overrideCredentials) {
-                throw new Error("Credentials need to be supplied currently");
+            var authenticator = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
+            if (overrideCredentials) {
+                authenticator.username = overrideCredentials.user;
+                authenticator.password = overrideCredentials.password;
             }
 
-            return credentialPromise.then(function(credentials) {
-                return accounts.getAccessToken(credentials.user, credentials.password);
-            }).then(function (result) {
+            return authenticator.authenticate().then(function (result) {
                 var userTokens = new Windows.Storage.ApplicationDataCompositeValue();
                 userTokens[tokenSettingName] = result.oauth_token;
                 userTokens[tokenSecretSettingName] = result.oauth_token_secret;
@@ -49,11 +45,13 @@
             storage.values.remove(tokenInformationSettingName);
         },
 
-
         AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
             this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
         }, {
+            view: {
+                web: "Codevoid.ArticleVoid.UI.Authenticator",
+            },
             username: property("username", null),
             password: property("password", null),
             canAuthenticate: property("canAuthenticate", false),
@@ -66,6 +64,22 @@
                     this.canAuthenticate = false;
                     this.allowPasswordEntry = false;
                 }
+            },
+            authenticate: function () {
+                var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
+                var tokenPromise = WinJS.Promise.as();
+
+                if (!this.canAuthenticate) {
+                    tokenPromise = this.promptForCredentials();
+                }
+
+                return accounts.getAccessToken(this.username, this.password);
+            },
+            promptForCredentials: function promptForCredentials() {
+                var view = Codevoid.UICore.getViewForModel(this);
+                var instance = new view(null, { model: this });
+
+                return instance.prompt();
             },
         }), WinJS.Utilities.eventMixin),
     });
