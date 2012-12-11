@@ -91,16 +91,25 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
+    <None Include="tsc\libs\winjs.d.ts" />
+    <None Include="tsc\libs\winrt.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.WinJS.1.0, Version=1.0" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+  <ItemGroup>
+    <AvailableItemName Include="TypeScriptCompile" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="$(ProjectDir)\**\*.ts" Exclude="$(ProjectDir)\**\*.d.ts" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TypeScriptSourceMap> --sourcemap</TypeScriptSourceMap>
+  </PropertyGroup>
   <Target Name="BeforeBuild">
+    <Message Text="Compiling TypeScript files"/>
+    <Message Text="Executing tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
+    <Exec Command="..\tools\typescript\tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
