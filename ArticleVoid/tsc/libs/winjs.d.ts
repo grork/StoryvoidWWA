@@ -85,6 +85,7 @@ declare module WinJS {
 		export var onnavigating: CustomEvent;
     }
     export module Utilities {
+        export function getMember(name: string, root?: any): any;
         export function markSupportedForProcessing(obj: any): void;
 		export enum Key {
 			backspace = 8, 
@@ -196,9 +197,5 @@ declare module WinJS {
 		export var Menu: any;
 		export var setOptions: any;
     }
-}
-
-interface Element {
-	winControl: any; // TODO: This should be control?   
 }
 
