@@ -1,4 +1,6 @@
-﻿(function () {
+﻿/// <reference path="..\..\tsc\libs\winjs.d.ts" static="true" />
+/// <reference path="..\..\tsc\libs\codevoid.d.ts" static="true" />
+(function () {
     "use strict";
 
     WinJS.Namespace.define("Codevoid.UICore", {
@@ -19,8 +21,8 @@
                 throw new Error("Can't get view for the current view type");
             }
 
-            var constructor = WinJS.Utilities.getMember(view);
-            return constructor;
+            var ctor = WinJS.Utilities.getMember(view);
+            return ctor;
         },
     });
 })();

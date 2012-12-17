@@ -80,10 +80,14 @@
     <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
     <Content Include="js\ui\authenticator.js" />
-    <Content Include="js\ui\core.js" />
+    <Content Include="js\ui\core.js">
+      <DependentUpon>core.ts</DependentUpon>
+    </Content>
     <Content Include="js\Utilities.js" />
     <Content Include="tests.html" />
+    <Content Include="tsc\libs\codevoid.d.ts" />
     <None Include="ArticleVoid_TemporaryKey.pfx" />
+    <None Include="js\ui\core.ts" />
     <Content Include="default.html" />
     <Content Include="images\logo.png" />
     <Content Include="images\smalllogo.png" />
@@ -108,7 +112,7 @@
     <TypeScriptSourceMap> --sourcemap</TypeScriptSourceMap>
   </PropertyGroup>
   <Target Name="BeforeBuild">
-    <Message Text="Compiling TypeScript files"/>
+    <Message Text="Compiling TypeScript files" />
     <Message Text="Executing tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
     <Exec Command="..\tools\typescript\tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
   </Target>
