@@ -85,7 +85,8 @@
     </Content>
     <Content Include="js\Utilities.js" />
     <Content Include="tests.html" />
-    <Content Include="tsc\libs\codevoid.d.ts" />
+    <None Include="tsc\libs\codevoid.d.ts" />
+    <None Include="tsc\libs\lib.d.ts" />
     <None Include="ArticleVoid_TemporaryKey.pfx" />
     <None Include="js\ui\core.ts" />
     <Content Include="default.html" />
