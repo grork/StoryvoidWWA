@@ -61,7 +61,7 @@
                 wwa: "Codevoid.UICore.Control",
             }
         };
-        var experienceInfo = Codevoid.UICore.getExperienceForModel(experience, Codevoid.UICore.ExperienceTypes.WWA);
+        var experienceInfo = Codevoid.UICore.Experiences.getExperienceForModel(experience, Codevoid.UICore.ExperienceTypes.WWA);
 
         host.addExperienceForModel(experience);
         var controlElement = <HTMLExperienceElement>container.firstElementChild;
@@ -95,7 +95,7 @@
         strictEqual(host.host.children.length, 1, "Only expected on child");
 
         host.removeExperienceForModel({ experience: {} });
-
+        
         strictEqual(host.host.children.length, 1, "Only expected on child");
     });
 })();

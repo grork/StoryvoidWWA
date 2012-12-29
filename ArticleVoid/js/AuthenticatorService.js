@@ -49,8 +49,8 @@
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
             this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
         }, {
-            view: {
-                web: "Codevoid.ArticleVoid.UI.Authenticator",
+            experience: {
+                wwa: "Codevoid.ArticleVoid.UI.Authenticator",
             },
             username: property("username", null),
             password: property("password", null),
@@ -76,8 +76,8 @@
                 return accounts.getAccessToken(this.username, this.password);
             },
             promptForCredentials: function promptForCredentials() {
-                var view = Codevoid.UICore.getViewForModel(this);
-                var instance = new view(null, { model: this });
+                var view = Codevoid.UICore.Experiences.getExperienceForModel(this, "unittest");
+                var instance = new view.ctor(null, { model: this });
 
                 return instance.prompt();
             },
