@@ -19,14 +19,9 @@
             
         }, {
             showAuthenticator: function () {
-                var container = document.createElement("div");
-                WinJS.Utilities.addClass(container, "dialog");
-
-                var authenticator = new Codevoid.ArticleVoid.UI.Authenticator();
-
-                container.appendChild(authenticator.element);
-
-                document.body.appendChild(container);
+                Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
+                var vm = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
+                vm.promptForCredentials();
             },
         }),
     });

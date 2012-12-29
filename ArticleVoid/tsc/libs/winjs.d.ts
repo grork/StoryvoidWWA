@@ -94,6 +94,8 @@ declare module WinJS {
         export function markSupportedForProcessing(obj: any): void;
         export function children(items: HTMLElement): Query;
         export function query(query: string, element: HTMLElement): Query;
+        export function addClass(element: HTMLElement, className: string);
+        export function removeClass(element: HTMLElement, className: string);
 		export enum Key {
 			backspace = 8, 
 			tab = 9, 
