@@ -11,17 +11,13 @@
     };
 
     WinJS.Namespace.define("CodevoidTests", {
-        AuthenticatorTestUI: WinJS.Class.define(function (e, options) {
-            CodevoidTests.AuthenticatorTestUI.currentInstance = this;
-            WinJS.UI.setOptions(this, options);
+        AuthenticatorTestUI: WinJS.Class.define(function (container, model) {
+            this.wasPrompted = true;
+            WinJS.Promise.timeout().then(function () {
+                model.credentialAcquisitionComplete.error({});
+            });
         }, {
             wasPrompted: false, 
-            prompt: function () {
-                this.wasPrompted = true;
-                return WinJS.Promise.as();
-            },
-        }, {
-            currentInstance: null,
         }),
     });
 
@@ -186,11 +182,14 @@
     promiseTest("canPromptForCredentials", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
+        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
+
         vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
         return vm.authenticate().then(function () {
             ok(false, "Expected to fail");
         }, function () {
-            ok(CodevoidTests.AuthenticatorTestUI.currentInstance.wasPrompted, "Expected to have been prompted");
+            var xp = Codevoid.UICore.Experiences.currentHost.getExperienceForModel(vm);
+            ok(xp.wasPrompted, "Expected to have been prompted");
         });
     });
 })();

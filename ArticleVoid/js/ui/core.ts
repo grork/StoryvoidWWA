@@ -12,7 +12,7 @@ module Codevoid.UICore {
 
     export interface ExperienceInformation {
         identifier: string;
-        ctor: (element: HTMLElement, viewModel: ViewModel) => any;
+        ctor: (container: any, viewModel: ViewModel) => any;
     }
 
     export interface HTMLExperienceElement extends HTMLElement {
@@ -72,7 +72,7 @@ module Codevoid.UICore {
 
         addExperienceForModel(viewModel: ViewModel) {
             var controlElement = document.createElement("div");
-
+            WinJS.Utilities.addClass(controlElement, "dialog");
             var viewInfo = Experiences.getExperienceForModel(viewModel, ExperienceTypes.WWA);
             controlElement.setAttribute("data-win-control", viewInfo.identifier);
             (<HTMLControlElement>controlElement).winControl = new viewInfo.ctor(controlElement, viewModel);

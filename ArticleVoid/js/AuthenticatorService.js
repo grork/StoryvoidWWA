@@ -56,6 +56,7 @@
             password: property("password", null),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
+            credentialAcquisitionComplete: null,
             _evaluateCanAuthenticate: function () {
                 if (this.username && (typeof this.username === "string")) {
                     this.canAuthenticate = true;
@@ -73,13 +74,14 @@
                     tokenPromise = this.promptForCredentials();
                 }
 
-                return accounts.getAccessToken(this.username, this.password);
+                return tokenPromise.then(function () {
+                    return accounts.getAccessToken(this.username, this.password);
+                }.bind(this));
             },
             promptForCredentials: function promptForCredentials() {
-                var view = Codevoid.UICore.Experiences.getExperienceForModel(this, "unittest");
-                var instance = new view.ctor(null, { model: this });
-
-                return instance.prompt();
+                this.credentialAcquisitionComplete = new Codevoid.Utilities.Signal();
+                Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this);
+                return this.credentialAcquisitionComplete.promise;
             },
         }), WinJS.Utilities.eventMixin),
     });
