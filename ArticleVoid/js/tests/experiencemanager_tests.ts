@@ -8,16 +8,16 @@
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
 
-    test("canInstantiateViewManager", function () {
+    test("canInstantiateExperienceManager", function () {
         var container = getPlayground();
         
         var host = new Codevoid.UICore.WwaExperienceHost(container);
 
         ok(host, "No manager found");
-        strictEqual(host.viewContainer, container, "Container didn't match");
+        strictEqual(host.host, container, "Container didn't match");
     });
 
-    test("viewGetsAddedToDom", function () {
+    test("experienceGetsAddedToDom", function () {
         var container = getPlayground();
         var host = new Codevoid.UICore.WwaExperienceHost(container);
 
@@ -33,7 +33,7 @@
         strictEqual(container.children.length, 1, "Expected one child");
     });
 
-    test("canAddMoreThanOneView", function () {
+    test("canAddMoreThanOneExperience", function () {
         var container = getPlayground();
         var host = new Codevoid.UICore.WwaExperienceHost(container);
         
@@ -67,8 +67,35 @@
         var controlElement = <HTMLExperienceElement>container.firstElementChild;
 
         strictEqual(controlElement.getAttribute("data-win-control"), experienceInfo.identifier, "Incorrect control created, or not attribute set");
-        ok(controlElement.model, "No experience set");
-        ok(controlElement.model instanceof experienceInfo.ctor, "Control instance doesn't match");
+        strictEqual(controlElement.model, experience, "No experience set");
         ok(controlElement.winControl, "No winControl");
+    });
+
+    test("canRemoveExperienceUsingModel", function () {
+        var container = getPlayground();
+        var host = new Codevoid.UICore.WwaExperienceHost(container);
+        var experience = { experience: { wwa: "Codevoid.UICore.Control" } };
+
+        host.addExperienceForModel(experience);
+
+        strictEqual(host.host.children.length, 1, "Only expected on child");
+
+        host.removeExperienceForModel(experience);
+
+        strictEqual(host.host.children.length, 0, "Didn't expect any children");
+    });
+
+    test("removingAnNonAddedExperienceDoesn'tCrash", function () {
+        var container = getPlayground();
+        var host = new Codevoid.UICore.WwaExperienceHost(container);
+        var experience = { experience: { wwa: "Codevoid.UICore.Control" } };
+
+        host.addExperienceForModel(experience);
+
+        strictEqual(host.host.children.length, 1, "Only expected on child");
+
+        host.removeExperienceForModel({ experience: {} });
+
+        strictEqual(host.host.children.length, 1, "Only expected on child");
     });
 })();

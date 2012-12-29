@@ -53,7 +53,7 @@ module Codevoid.UICore {
     }
 
     export class WwaExperienceHost {
-        constructor(public viewContainer: HTMLElement) {
+        constructor(public host: HTMLElement) {
         }
 
         addExperienceForModel(viewModel: ViewModel) {
@@ -61,9 +61,27 @@ module Codevoid.UICore {
 
             var viewInfo = getExperienceForModel(viewModel, ExperienceTypes.WWA);
             controlElement.setAttribute("data-win-control", viewInfo.identifier);
-            (<HTMLExperienceElement>controlElement).model = new viewInfo.ctor(controlElement, viewModel);
+            (<HTMLControlElement>controlElement).winControl = new viewInfo.ctor(controlElement, viewModel);
+            (<HTMLExperienceElement>controlElement).model = viewModel;
 
-            this.viewContainer.appendChild(controlElement);
+            this.host.appendChild(controlElement);
+        }
+
+        removeExperienceForModel(viewModel: ViewModel) {
+            var experience: HTMLExperienceElement;
+            
+            for (var i = 0; i < this.host.children.length; i++) {
+                if (viewModel === (<HTMLExperienceElement>this.host.children[i]).model) {
+                    experience = <HTMLExperienceElement>this.host.children[i];
+                    break;
+                }
+            }
+
+            if (!experience) {
+                return;
+            }
+
+            this.host.removeChild(experience);
         }
     }
 }
