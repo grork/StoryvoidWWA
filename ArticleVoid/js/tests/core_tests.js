@@ -39,7 +39,7 @@
         var exceptionCaught = false;
 
         try {
-            uicore.getExperienceForModel(model);
+            uicore.Experiences.getExperienceForModel(model);
         } catch (e) {
             exceptionCaught = true;
         }
@@ -55,19 +55,13 @@
         };
 
         var exceptionCaught = false;
-
-        var currentViewType = uicore.currentViewType;
-        uicore.currentViewType = "fake";
-
         try {
-            uicore.getExperienceForModel(model);
+            uicore.Experiences.getExperienceForModel(model, "fake");
         } catch (e) {
             exceptionCaught = true;
         }
 
         ok(exceptionCaught, "No exception caught");
-
-        uicore.currentViewType = currentViewType;
     });
 
     test("canGetViewForSimpleModel", function () {
@@ -77,7 +71,7 @@
             },
         };
 
-        var view = uicore.getExperienceForModel(model);
+        var view = uicore.Experiences.getExperienceForModel(model, "unittest");
         ok(view, "Expected to get a view");
         ok(view.identifier, "Expected identifier");
         ok(view.ctor, "Expected constructor");

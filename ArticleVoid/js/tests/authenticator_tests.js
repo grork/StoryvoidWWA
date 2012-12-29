@@ -27,14 +27,6 @@
 
     module("Authenticator");
 
-    test("canInstantiate", function () {
-        var playground = getPlayground();
-        var authenticator = new Codevoid.ArticleVoid.UI.Authenticator(playground);
-
-        ok(authenticator, "Authenticator not created");
-        strictEqual(authenticator.element, playground, "Element not set on control instance");
-    });
-
     promiseTest("settingsReturnedFromStorage", function () {
         var fakeToken = "fakeToken";
         var fakeSecret = "fakeSecret";
@@ -194,7 +186,7 @@
     promiseTest("canPromptForCredentials", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        vm.view.unittest = "CodevoidTests.AuthenticatorTestUI";
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
         return vm.authenticate().then(function () {
             ok(false, "Expected to fail");
         }, function () {
