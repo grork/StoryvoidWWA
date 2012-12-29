@@ -79,16 +79,15 @@
     <Content Include="js\tests\qunit.js" />
     <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
+    <Content Include="js\tests\experiencemanager_tests.js">
+      <DependentUpon>experiencemanager_tests.ts</DependentUpon>
+    </Content>
     <Content Include="js\ui\authenticator.js" />
     <Content Include="js\ui\core.js">
       <DependentUpon>core.ts</DependentUpon>
     </Content>
     <Content Include="js\Utilities.js" />
     <Content Include="tests.html" />
-    <None Include="tsc\libs\codevoid.d.ts" />
-    <None Include="tsc\libs\lib.d.ts" />
-    <None Include="ArticleVoid_TemporaryKey.pfx" />
-    <None Include="js\ui\core.ts" />
     <Content Include="default.html" />
     <Content Include="images\logo.png" />
     <Content Include="images\smalllogo.png" />
@@ -96,6 +95,13 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
+    <None Include="ArticleVoid_TemporaryKey.pfx" />
+    <None Include="js\tests\experiencemanager_tests.ts" />
+    <None Include="js\ui\core.ts" />
+    <None Include="tsc\libs\codevoid.d.ts" />
+    <None Include="tsc\libs\codevoidtest.d.ts" />
+    <None Include="tsc\libs\lib.d.ts" />
+    <None Include="tsc\libs\qunit.d.ts" />
     <None Include="tsc\libs\winjs.d.ts" />
     <None Include="tsc\libs\winrt.d.ts" />
   </ItemGroup>

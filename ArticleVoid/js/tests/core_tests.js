@@ -9,12 +9,12 @@
     module("UICoreControls");
 
     test("canInstantiateControl", function () {
-        var control = new Codevoid.UICore.Control();
+        var control = new Codevoid.UICore.Control(document.createElement("div"));
         ok(control, "Control couldn't be created");
     });
 
     test("optionsPassedToControlAreSetOnObject", function () {
-        var control = new Codevoid.UICore.Control(null, {
+        var control = new Codevoid.UICore.Control(document.createElement("div"), {
             value: "a",
             anotherValue: "b",
         });
@@ -39,7 +39,7 @@
         var exceptionCaught = false;
 
         try {
-            uicore.getViewForModel(model);
+            uicore.getExperienceForModel(model);
         } catch (e) {
             exceptionCaught = true;
         }
@@ -49,7 +49,7 @@
 
     test("errorOnGettingViewForNotDefinedViewType", function () {
         var model = {
-            view: {
+            experience: {
                 unittest: "CodevoidTests.TestControl",
             },
         };
@@ -60,7 +60,7 @@
         uicore.currentViewType = "fake";
 
         try {
-            uicore.getViewForModel(model);
+            uicore.getExperienceForModel(model);
         } catch (e) {
             exceptionCaught = true;
         }
@@ -72,13 +72,15 @@
 
     test("canGetViewForSimpleModel", function () {
         var model = {
-            view: {
+            experience: {
                 unittest: "CodevoidTests.UnitTestView",
             },
         };
 
-        var view = uicore.getViewForModel(model);
+        var view = uicore.getExperienceForModel(model);
         ok(view, "Expected to get a view");
-        strictEqual(typeof view, "function", "Expected a function");
+        ok(view.identifier, "Expected identifier");
+        ok(view.ctor, "Expected constructor");
+        strictEqual(typeof view.ctor, "function", "Expected a function");
     });
 })();

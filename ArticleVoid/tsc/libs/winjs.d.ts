@@ -64,9 +64,10 @@ declare module WinJS {
     }
     export class Promise {
     	constructor(init: (c: any, e: any, p: any) => void);
-        public then: any;
-        static join: any;
-        static timeout: any;
+    	public then(success: () => any, error: () => any);
+        static join(promises: any): Promise;
+        static timeout(value: number): Promise;
+        static as(value?: any): Promise;
     }
     export module Navigation {
         export var history: any;
@@ -85,8 +86,14 @@ declare module WinJS {
 		export var onnavigating: CustomEvent;
     }
     export module Utilities {
+        export interface Query extends Array {
+            query(query: string): Query;
+            include(items: any);
+        }
         export function getMember(name: string, root?: any): any;
         export function markSupportedForProcessing(obj: any): void;
+        export function children(items: HTMLElement): Query;
+        export function query(query: string, element: HTMLElement): Query;
 		export enum Key {
 			backspace = 8, 
 			tab = 9, 
