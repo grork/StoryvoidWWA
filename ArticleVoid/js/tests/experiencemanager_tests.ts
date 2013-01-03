@@ -125,30 +125,50 @@ module CodevoidTests {
 
     test("wwaCanRemoveExperienceUsingModel", function () {
         var container = getPlayground();
-        var host = new Codevoid.UICore.WwaExperienceHost(container);
+        var host: Codevoid.UICore.ExperienceHost = new Codevoid.UICore.WwaExperienceHost(container);
+        var wwaHost: Codevoid.UICore.WwaExperienceHost = <Codevoid.UICore.WwaExperienceHost>host;
         var experience = { experience: { wwa: "Codevoid.UICore.Control" } };
 
         host.addExperienceForModel(experience);
 
-        strictEqual(host.host.children.length, 1, "Only expected on child");
+        strictEqual(wwaHost.host.children.length, 1, "Only expected on child");
 
         host.removeExperienceForModel(experience);
 
-        strictEqual(host.host.children.length, 0, "Didn't expect any children");
+        strictEqual(wwaHost.host.children.length, 0, "Didn't expect any children");
+    });
+
+    test("wwaRemovingExperienceDisposesExperience", function () {
+        var container = getPlayground();
+        var host: Codevoid.UICore.ExperienceHost = new Codevoid.UICore.WwaExperienceHost(container);
+        var wwaHost: Codevoid.UICore.WwaExperienceHost = <Codevoid.UICore.WwaExperienceHost>host;
+        var experience = { experience: { wwa: "CodevoidTests.TestControl" } };
+        var experienceUIInstance: CodevoidTests.TestControl;
+
+        host.addExperienceForModel(experience);
+        strictEqual(wwaHost.host.children.length, 1, "Only expected on child");
+        
+        experienceUIInstance = <CodevoidTests.TestControl>(<Codevoid.UICore.HTMLControlElement>wwaHost.host.children[0]).winControl;
+
+        host.removeExperienceForModel(experience);
+
+        strictEqual(wwaHost.host.children.length, 0, "Didn't expect any children");
+        ok(experienceUIInstance.disposed, "Control wasn't disposed");
     });
 
     test("wwaRemovingAnNonAddedExperienceDoesn'tCrash", function () {
         var container = getPlayground();
-        var host = new Codevoid.UICore.WwaExperienceHost(container);
+        var host: Codevoid.UICore.ExperienceHost = new Codevoid.UICore.WwaExperienceHost(container);
+        var wwaHost: Codevoid.UICore.WwaExperienceHost = <Codevoid.UICore.WwaExperienceHost>host;
         var experience = { experience: { wwa: "Codevoid.UICore.Control" } };
 
         host.addExperienceForModel(experience);
 
-        strictEqual(host.host.children.length, 1, "Only expected one child");
+        strictEqual(wwaHost.host.children.length, 1, "Only expected one child");
 
         host.removeExperienceForModel({ experience: {} });
         
-        strictEqual(host.host.children.length, 1, "Only expected one child");
+        strictEqual(wwaHost.host.children.length, 1, "Only expected one child");
     });
 
     QUnit.module("ExperienceManagerUnitTest");
@@ -178,29 +198,31 @@ module CodevoidTests {
     });
 
     test("unitCanRemoveExperienceUsingModel", function () {
-        var host = new CodevoidTests.UnitTestExperienceHost();
+        var host: Codevoid.UICore.ExperienceHost = new CodevoidTests.UnitTestExperienceHost();
+        var unitHost: CodevoidTests.UnitTestExperienceHost = <CodevoidTests.UnitTestExperienceHost>host;
         var experience = { experience: { unittest: "CodevoidTests.SimpleUnitTestUI" } };
 
         host.addExperienceForModel(experience);
 
-        strictEqual(host.experiences.length, 1, "Only expected on child");
+        strictEqual(unitHost.experiences.length, 1, "Only expected on child");
 
         host.removeExperienceForModel(experience);
 
-        strictEqual(host.experiences.length, 0, "Didn't expect any children");
+        strictEqual(unitHost.experiences.length, 0, "Didn't expect any children");
     });
 
     test("unitRemovingAnNonAddedExperienceDoesn'tCrash", function () {
-        var host = new CodevoidTests.UnitTestExperienceHost();
+        var host: Codevoid.UICore.ExperienceHost = new CodevoidTests.UnitTestExperienceHost();
+        var unitHost: CodevoidTests.UnitTestExperienceHost = <CodevoidTests.UnitTestExperienceHost>host;
         var experience = { experience: { unittest: "CodevoidTests.SimpleUnitTestUI" } };
 
         host.addExperienceForModel(experience);
 
-        strictEqual(host.experiences.length, 1, "Only expected one child");
+        strictEqual(unitHost.experiences.length, 1, "Only expected one child");
 
         host.removeExperienceForModel({ experience: {} });
         
-        strictEqual(host.experiences.length, 1, "Only expected one child");
+        strictEqual(unitHost.experiences.length, 1, "Only expected one child");
     });
 
     test("unitGettingExperienceForModelReturnsExperience", function () {

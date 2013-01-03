@@ -83,7 +83,7 @@ module Codevoid.UICore {
 
         removeExperienceForModel(viewModel: ViewModel) {
             var experience: HTMLExperienceElement;
-            
+
             for (var i = 0; i < this.host.children.length; i++) {
                 if (viewModel === (<HTMLExperienceElement>this.host.children[i]).model) {
                     experience = <HTMLExperienceElement>this.host.children[i];
@@ -95,7 +95,7 @@ module Codevoid.UICore {
                 return;
             }
 
-            this.host.removeChild(experience);
+            Codevoid.Utilities.DOM.removeChild(this.host, experience);
         }
     }
 }
