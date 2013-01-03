@@ -574,6 +574,189 @@
             
             ok(instance.otherContent, "Other Content not found");
             strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+
+            ok(instance.aControl, "No Control found");
+            ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
         });
+    });
+
+    promiseTest("canAttachEvents", function () {
+        var playground = getPlayground();
+
+        // Make sure there is an event on the root node
+        playground.setAttribute("data-event", "{ customRoot: handleCustomRoot }");
+
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithEvents").then(function (t) {
+            return t.render(null, playground);
+        }).then(function () {
+            var customCalled = false;
+            var custom2Called = false;
+            var customRootCalled = false;
+
+            var parts = {};
+            var instance = {
+                hasFlag: true,
+                handleCustom: domUtilities.msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        customCalled = true;
+                    }
+                }),
+                handleCustom2: domUtilities.msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        custom2Called = true;
+                    }
+                }),
+                handleCustomRoot: domUtilities.msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        customRootCalled = true;
+                    }
+                }),
+            };
+
+            domUtilities.marryEventsToHandlers(playground, instance);
+            domUtilities.marryPartsToControl(playground, parts);
+
+            var customEvent = document.createEvent("Event");
+            customEvent.initEvent("custom", true, true);
+
+            parts.parent.dispatchEvent(customEvent);
+
+            ok(customCalled, "Custom handler wasn't called");
+
+            var custom2Event = document.createEvent("Event");
+            custom2Event.initEvent("custom2", true, true);
+
+            parts.child.dispatchEvent(custom2Event);
+
+            ok(custom2Called, "Custom2 handler wasn't called");
+
+            var customRootEvent = document.createEvent("Event");
+            customRootEvent.initEvent("customRoot", true, true);
+            playground.dispatchEvent(customRootEvent);
+
+            ok(customRootCalled, "Custom root handler wasn't called");
+        });
+    });
+
+    test("domWithNoEventAttributesIsOK", function () {
+        var playground = getPlayground();
+        var newElement = document.createElement("div");
+        playground.appendChild(newElement);
+
+        domUtilities.marryEventsToHandlers(playground);
+        ok(true, "Shouldn't fail, unless an exception is thrown");
+    });
+
+    test("canAttachMoreThanOneEventOnAnElement", function () {
+        var playground = getPlayground();
+        var newElement = document.createElement("div");
+        newElement.setAttribute("data-event", "{ custom: handleCustom, custom2: handleCustom2 }");
+        playground.appendChild(newElement);
+
+        var customCalled = false;
+        var custom2Called = false;
+
+        var instance = {
+            hasFlag: true,
+            handleCustom: domUtilities.msfp(function (e) {
+                if (e && this.hasFlag) {
+                    customCalled = true;
+                }
+            }),
+            handleCustom2: domUtilities.msfp(function (e) {
+                if (e && this.hasFlag) {
+                    custom2Called = true;
+                }
+            }),
+            handleCustomRoot: domUtilities.msfp(function (e) {
+                if (e && this.hasFlag) {
+                    customRootCalled = true;
+                }
+            }),
+        };
+
+        domUtilities.marryEventsToHandlers(playground, instance);
+
+        var customEvent = document.createEvent("Event");
+        customEvent.initEvent("custom", true, true);
+
+        newElement.dispatchEvent(customEvent);
+
+        ok(customCalled, "Custom handler wasn't called");
+
+        var custom2Event = document.createEvent("Event");
+        custom2Event.initEvent("custom2", true, true);
+
+        newElement.dispatchEvent(custom2Event);
+
+        ok(custom2Called, "Custom2 handler wasn't called");
+    });
+
+    test("eventAttributesWithMissingHandlersDontCrash", function () {
+        var playground = getPlayground();
+        var newElement = document.createElement("div");
+        newElement.setAttribute("data-event", "{ custom: handleCustom }");
+        playground.appendChild(newElement);
+
+        var instance = {};
+
+        domUtilities.marryEventsToHandlers(playground, instance);
+
+        // Raise the event in case we attach it, and do something horribly wrong
+        var customEvent = document.createEvent("Event");
+        customEvent.initEvent("custom", true, true);
+
+        newElement.dispatchEvent(customEvent);
+
+        ok(true, "shouldn't crash");
+    });
+
+    test("marryingEventsReturnsObjectToCancelThemWith", function () {
+        var playground = getPlayground();
+        var newElement = document.createElement("div");
+        newElement.setAttribute("data-event", "{ custom: handleCustom }");
+        playground.appendChild(newElement);
+
+        var instance = {};
+
+        var cancellable = domUtilities.marryEventsToHandlers(playground, instance);
+
+        ok(cancellable, "Didn't get an event cancellation object");
+        ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
+
+        // Make sure calling cancel in this state
+        cancellable.cancel();
+    });
+
+    test("cancellingEventsActuallyDetatchesHandlers", function () {
+        var playground = getPlayground();
+        var newElement = document.createElement("div");
+        newElement.setAttribute("data-event", "{ custom: handleCustom }");
+        playground.appendChild(newElement);
+
+        var customCalled = false;
+        var instance = {
+            hasFlag: true,
+            handleCustom: domUtilities.msfp(function (e) {
+                if (e && this.hasFlag) {
+                    customCalled = true;
+                }
+            }),
+        };
+
+        var cancellable = domUtilities.marryEventsToHandlers(playground, instance);
+
+        ok(cancellable, "Didn't get an event cancellation object");
+        ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
+
+        // Make sure calling cancel in this state
+        cancellable.cancel();
+
+        var customEvent = document.createEvent("Event");
+        customEvent.initEvent("custom", true, true);
+
+        newElement.dispatchEvent(customEvent);
+
+        ok(!customCalled, "Didn't expect custom handler to be called after detaching them");
     });
 })();

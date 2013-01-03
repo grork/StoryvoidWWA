@@ -177,6 +177,7 @@
     var templateIdAttributeName =  "data-templateid";
 
     WinJS.Namespace.define("Codevoid.Utilities.DOM", {
+        msfp: WinJS.Utilities.markSupportedForProcessing,
         disposeOfControl: function disposeOfControl(element) {
             if (!element || !element.winControl || !element.winControl.dispose) {
                 return;
@@ -263,8 +264,53 @@
                     return;
                 }
 
-                control[partName] = part;
+                control[partName] = part.winControl || part;
             });
+        },
+        marryEventsToHandlers: function marryEventsToHandlers(element, context) {
+            var eventElements = WinJS.Utilities.query("[data-event]", element);
+            var cancellation = {
+                handlers: [],
+                cancel: function () {
+                    this.handlers.forEach(function (item) {
+                        item.element.removeEventListener(item.event, item.handler);
+                    });
+                }
+            };
+            // Make sure we include the root element. It might not actually have
+            // the attribute we want, but it's easier to include here, since we
+            // check anyway.
+            eventElements.unshift(element);
+
+            eventElements.forEach(function (el) {
+                var eventOptions;
+                var attributeData = el.getAttribute("data-event");
+                if (!attributeData) {
+                    return;
+                }
+
+                eventOptions = WinJS.UI.optionsParser(attributeData, context);
+
+                Object.keys(eventOptions).forEach(function (key) {
+                    if (!eventOptions[key]) {
+                        return;
+                    }
+
+                    var wrapper = function () {
+                        eventOptions[key].apply(context, arguments);
+                    };
+
+                    cancellation.handlers.push({
+                        element: el,
+                        event: key,
+                        handler: wrapper,
+                    });
+
+                    el.addEventListener(key, wrapper);
+                });
+            });
+
+            return cancellation;
         },
     });
 })();
