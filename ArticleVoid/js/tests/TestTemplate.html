@@ -12,6 +12,16 @@
              data-win-control="WinJS.Binding.Template">
             <div data-part="content">Test</div>
             <div data-part="otherContent">Foo</div>
+            <div data-part="aControl"
+                 data-win-control="CodevoidTests.TestControl"></div>
+        </div>
+        <div data-templateid="templateWithEvents"
+             data-win-control="WinJS.Binding.Template">
+            <div data-event="{ custom: handleCustom }"
+                 data-part="parent">
+                <div data-event="{ custom2: handleCustom2 }"
+                     data-part="child"></div>
+            </div>
         </div>
     </body>
 </html>
