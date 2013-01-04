@@ -14,14 +14,20 @@
                 if (!element.hasAttribute("data-win-control")) {
                     element.setAttribute("data-win-control", "Codevoid.ArticleVoid.UI.Authenticator");
                 }
-            });
+
+                Codevoid.Utilities.DOM.marryEventsToHandlers(element, this);
+            }.bind(this));
         }, {
-            
+            cancelled: Codevoid.Utilities.DOM.msfp(function (e) {
+                this.viewModel.credentialAcquisitionComplete.error({});
+            }),
         }, {
             showAuthenticator: function () {
                 Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
                 var vm = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
-                vm.promptForCredentials();
+                vm.authenticate().then(null, function () {
+                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(vm);
+                });
             },
         }),
     });

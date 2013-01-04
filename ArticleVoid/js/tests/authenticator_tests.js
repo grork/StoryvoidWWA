@@ -11,10 +11,12 @@
     };
 
     WinJS.Namespace.define("CodevoidTests", {
-        AuthenticatorTestUI: WinJS.Class.define(function (container, model) {
+        AuthenticatorTestUI: WinJS.Class.define(function (container, options) {
+            WinJS.UI.setOptions(this, options);
+
             this.wasPrompted = true;
-            WinJS.Promise.timeout().then(function () {
-                model.credentialAcquisitionComplete.error({});
+            WinJS.Promise.timeout().done(function () {
+                options.viewModel.credentialAcquisitionComplete.error({});
             });
         }, {
             wasPrompted: false, 
