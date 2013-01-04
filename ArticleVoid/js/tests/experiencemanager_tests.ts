@@ -15,7 +15,7 @@ module CodevoidTests {
             var viewInfo = Codevoid.UICore.Experiences.getExperienceForModel(viewModel, Codevoid.UICore.ExperienceTypes.UNITTEST);
             this.experiences.push({
                 model: viewModel,
-                view: new viewInfo.ctor(null, viewModel),
+                view: new viewInfo.ctor(null, { viewModel: viewModel }),
             });
         }
 
@@ -49,7 +49,8 @@ module CodevoidTests {
     }
 
     export class SimpleUnitTestUI {
-        constructor(public model: any) {
+        constructor(public container: any, options: Codevoid.UICore.ExperienceCreationOptions) {
+            WinJS.UI.setOptions(this, options);
         }
     }
 }
@@ -121,6 +122,7 @@ module CodevoidTests {
         strictEqual(controlElement.getAttribute("data-win-control"), experienceInfo.identifier, "Incorrect control created, or not attribute set");
         strictEqual(controlElement.model, experience, "No experience set");
         ok(controlElement.winControl, "No winControl");
+        ok(controlElement.winControl.viewModel, "no view model set");
     });
 
     test("wwaCanRemoveExperienceUsingModel", function () {
@@ -181,20 +183,30 @@ module CodevoidTests {
     test("unitCanAddMoreThanOneExperience", function () {
         var host = new CodevoidTests.UnitTestExperienceHost();
         
-        host.addExperienceForModel({
+        var viewModel1 = {
             experience: {
                 unittest: "CodevoidTests.SimpleUnitTestUI",
             }
-        });
+        };
 
-        host.addExperienceForModel({
+        host.addExperienceForModel(viewModel1);
+
+        var viewModel2 = {
             experience: {
                 unittest: "CodevoidTests.SimpleUnitTestUI",
             }
-        });
+        };
+
+        host.addExperienceForModel(viewModel2);
 
         ok(host.experiences, "No children collection");
         strictEqual(host.experiences.length, 2, "Unexpected number of children");
+
+        ok(host.experiences[0].view.viewModel, "No view model found");
+        strictEqual(host.experiences[0].view.viewModel, viewModel1, "Incorrect view model found");
+
+        ok(host.experiences[1].view.viewModel, "No view model found");
+        strictEqual(host.experiences[1].view.viewModel, viewModel2, "Incorrect view model found");
     });
 
     test("unitCanRemoveExperienceUsingModel", function () {
