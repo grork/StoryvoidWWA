@@ -55,6 +55,7 @@
             username: property("username", null),
             password: property("password", null),
             isWorking: property("isWorking", false),
+            authenticationError: property("authenticationFailed", 0),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             credentialAcquisitionComplete: null,
@@ -70,23 +71,32 @@
             authenticate: function () {
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
                 var tokenPromise = WinJS.Promise.as();
+                var didPrompt = false;
 
                 if (!this.canAuthenticate) {
                     tokenPromise = this.promptForCredentials();
+                    didPrompt = true;
                 }
 
                 return tokenPromise.then(function () {
                     this.isWorking = true;
                     return accounts.getAccessToken(this.username, this.password);
                 }.bind(this)).then(function (result) {
-                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                    if (didPrompt) {
+                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                    }
+
                     this.isWorking = false;
                     return result;
                 }.bind(this), function (err) {
                     this.isWorking = false;
 
                     if (err === Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled) {
-                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                        if (didPrompt) {
+                            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                        }
+                    } else {
+                        this.authenticationError = err.status;
                     }
 
                     return WinJS.Promise.wrapError(err);

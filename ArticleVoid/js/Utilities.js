@@ -170,6 +170,23 @@
                 },
             };
         },
+        addEventListeners: function (eventSource, handlerMap) {
+            var cancellation = {
+                handlers: [],
+                cancel: function () {
+                    this.handlers.forEach(function (l) {
+                        eventSource.removeEventListener(l.event, l.handler);
+                    });
+                }
+            };
+
+            Object.keys(handlerMap).forEach(function (key) {
+                eventSource.addEventListener(key, handlerMap[key]);
+                cancellation.handlers.push({ event: key, handler: handlerMap[key] });
+            });
+
+            return cancellation;
+        }
     });
 
     var fragmentCache = {};
@@ -257,7 +274,7 @@
             fragmentCache = {};
         },
         marryPartsToControl: function (element, control) {
-            var parts = WinJS.Utilities.query("[data-part]");
+            var parts = WinJS.Utilities.query("[data-part]", element);
             parts.forEach(function (part) {
                 var partName = part.getAttribute("data-part");
                 if (!partName) {

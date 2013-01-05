@@ -9,14 +9,27 @@
         <div class="authenticator">
 
             <div class="usernameLabel">Username:</div>
-            <input class="usernameInput" type="text" />
-            
+            <input data-event="{ input: usernameChanged }"
+                data-part="usernameInput"
+                class="usernameInput"
+                type="text" />
+
             <div class="passwordLabel">Password:</div>
-            <input class="passwordInput" type="text" disabled="disabled"/>
+            <input data-part="passwordInput"
+                class="passwordInput"
+                type="password"
+                disabled="disabled" />
 
             <div class="buttonsContainer">
-                <button type="button">Authenticate</button>
-                <button type="button" data-event="{ click: cancelled }">Cancel</button>
+                <button data-part="authenticateButton"
+                    type="button"
+                    disabled="disabled">
+                    Authenticate
+                </button>
+                <button data-event="{ click: cancelled }"
+                    type="button">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
