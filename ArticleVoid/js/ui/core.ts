@@ -42,6 +42,15 @@ module Codevoid.UICore {
         public static WWA = "wwa";
     }
 
+    class NullExperienceHost implements ExperienceHost {
+        constructor() {
+        }
+        addExperienceForModel(viewModel: ViewModel) {
+        }
+        removeExperienceForModel(viewModel: ViewModel) {
+        }
+    }
+
     export class Experiences {
         public static getExperienceForModel(viewModel: ViewModel, viewType: string): ExperienceInformation {
             if (!viewModel.experience) {
@@ -62,6 +71,9 @@ module Codevoid.UICore {
         
         private static _currentHost: ExperienceHost;
         public static get currentHost(): ExperienceHost {
+            if (!_currentHost) {
+                this._currentHost = new NullExperienceHost();
+            }
             return _currentHost;
         }
 

@@ -4,6 +4,7 @@
     var Signal = Codevoid.Utilities.Signal;
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
+    var cleanupExperienceHost = InstapaperTestUtilities.cleanupExperienceHost;
     var authenticator = Codevoid.ArticleVoid.Authenticator;
     var testCredentials = {
         user: "test@codevoid.net",
@@ -99,7 +100,6 @@
             authenticator.clearClientInformation();
         });
     });
-
 
     module("AuthenticatorViewModel");
 
@@ -205,7 +205,7 @@
         }, function () {
             var xp = Codevoid.UICore.Experiences.currentHost.getExperienceForModel(vm);
             ok(xp.wasPrompted, "Expected to have been prompted");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("experienceRemovedWhenCredentialPromptCancelled", function () {
@@ -220,7 +220,7 @@
         }, function () {
             var xp = Codevoid.UICore.Experiences.currentHost.getExperienceForModel(vm);
             ok(!xp, "Didn't expect to find experience");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("canSuccessfullyAuthenticateWhenPromptingForCredentials", function () {
@@ -238,7 +238,7 @@
             ok(true, "Expected to complete authentication");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", function () {
@@ -265,7 +265,7 @@
             ok(true, "Expected to complete authentication");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", function () {
@@ -287,7 +287,7 @@
         }, function () {
             ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
             ok(!vm.isWorking, "Should have completed authentication");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("experienceIsRemovedWhenSuccessfullyAuthenticating", function () {
@@ -308,7 +308,7 @@
             ok(true, "Expected to complete authentication");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
-        });
+        }).then(cleanupExperienceHost);
     });
 
     promiseTest("canFailureToAuthenticateIsCorrectlyPropogated", function () {
@@ -330,6 +330,6 @@
             ok(xp, "Expected to find the experience");
             strictEqual(vm.authenticationError, 401, "Expected auth error");
             ok(true, "Didn't expect to fail authentication");
-        });
+        }).then(cleanupExperienceHost);
     });
 })();

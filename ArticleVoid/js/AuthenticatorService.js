@@ -71,30 +71,24 @@
             authenticate: function () {
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
                 var tokenPromise = WinJS.Promise.as();
-                var didPrompt = false;
 
                 if (!this.canAuthenticate) {
                     tokenPromise = this.promptForCredentials();
-                    didPrompt = true;
                 }
 
                 return tokenPromise.then(function () {
                     this.isWorking = true;
                     return accounts.getAccessToken(this.username, this.password);
                 }.bind(this)).then(function (result) {
-                    if (didPrompt) {
-                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                    }
-
+                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
+
                     return result;
                 }.bind(this), function (err) {
                     this.isWorking = false;
 
                     if (err === Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled) {
-                        if (didPrompt) {
                             Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                        }
                     } else {
                         this.authenticationError = err.status;
                     }
