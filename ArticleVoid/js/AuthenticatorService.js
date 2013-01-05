@@ -54,6 +54,7 @@
             },
             username: property("username", null),
             password: property("password", null),
+            isWorking: property("isWorking", false),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             credentialAcquisitionComplete: null,
@@ -75,7 +76,20 @@
                 }
 
                 return tokenPromise.then(function () {
+                    this.isWorking = true;
                     return accounts.getAccessToken(this.username, this.password);
+                }.bind(this)).then(function (result) {
+                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                    this.isWorking = false;
+                    return result;
+                }.bind(this), function (err) {
+                    this.isWorking = false;
+
+                    if (err === Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled) {
+                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                    }
+
+                    return WinJS.Promise.wrapError(err);
                 }.bind(this));
             },
             promptForCredentials: function promptForCredentials() {
@@ -83,6 +97,8 @@
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this);
                 return this.credentialAcquisitionComplete.promise;
             },
+        }, {
+            Cancelled: { cancelled: true },
         }), WinJS.Utilities.eventMixin),
     });
 })();

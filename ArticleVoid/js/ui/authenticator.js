@@ -19,15 +19,13 @@
             }.bind(this));
         }, {
             cancelled: Codevoid.Utilities.DOM.msfp(function (e) {
-                this.viewModel.credentialAcquisitionComplete.error({});
+                this.viewModel.credentialAcquisitionComplete.error(Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled);
             }),
         }, {
             showAuthenticator: function () {
                 Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
                 var vm = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
-                vm.authenticate().then(null, function () {
-                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(vm);
-                });
+                vm.authenticate().then(null, function () { });
             },
         }),
     });
