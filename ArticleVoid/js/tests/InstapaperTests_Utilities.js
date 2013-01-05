@@ -124,6 +124,9 @@
         expectNoPendingBookmarkEdits: expectNoPendingBookmarkEdits,
         deleteDb: deleteDb,
         colludePendingBookmarkEdits: colludePendingBookmarkEdits,
+        cleanupExperienceHost: function () {
+            Codevoid.UICore.Experiences.initializeHost(null);
+        },
         getPlayground: function getPlayground() {
             var playground = document.getElementById("qunit-fixture");
 
