@@ -1,7 +1,10 @@
 ﻿(function () {
     "use strict";
+    var msfp = Codevoid.Utilities.DOM.msfp;
+
     WinJS.Namespace.define("Codevoid.ArticleVoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {
+            this._handlersToCleanup = [];
             element = element || document.createElement("div");
             this.base(element, options);
 
@@ -15,10 +18,35 @@
                     element.setAttribute("data-win-control", "Codevoid.ArticleVoid.UI.Authenticator");
                 }
 
-                Codevoid.Utilities.DOM.marryEventsToHandlers(element, this);
+                this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(element, this));
+                Codevoid.Utilities.DOM.marryPartsToControl(element, this);
+                this._initializeViewModelListeners();
             }.bind(this));
         }, {
-            cancelled: Codevoid.Utilities.DOM.msfp(function (e) {
+            _handlersToCleanup: null,
+            _initializeViewModelListeners: function () {
+                var cleanup = Codevoid.Utilities.addEventListeners(this.viewModel, {
+                    allowPasswordEntryChanged: this._allowPasswordEntryChanged.bind(this),
+                    canAuthenticateChanged: this._canAuthenticateChanged.bind(this),
+                });
+                
+                this._handlersToCleanup.push(cleanup);
+            },
+            _allowPasswordEntryChanged: function (e) {
+                this.passwordInput.disabled = !this.viewModel.allowPasswordEntry;
+            },
+            _canAuthenticateChanged: function (e) {
+                this.authenticateButton.disabled = !this.viewModel.canAuthenticate;
+            },
+            dispose: function () {
+                this._handlersToCleanup.forEach(function (events) {
+                    events.cancel();
+                });
+            },
+            usernameChanged: msfp(function () {
+                this.viewModel.username = this.usernameInput.value;
+            }),
+            cancelled: msfp(function (e) {
                 this.viewModel.credentialAcquisitionComplete.error(Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled);
             }),
         }, {

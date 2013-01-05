@@ -48,6 +48,7 @@
         }),
         UnitTestView: WinJS.Class.define(function() {
         }),
+        EventSource: WinJS.Class.mix(WinJS.Class.define(function() {}), WinJS.Utilities.eventMixin),
     });
 
     module("utilitiesSignal");
@@ -533,6 +534,75 @@
         ok(!valueChanged, "Value changed, shouldn't have");
     });
 
+    test("addEventListenerCanAddListeners", function () {
+        var source = new CodevoidTests.EventSource();
+        var eventWasRaised = false;
+        
+        Codevoid.Utilities.addEventListeners(source, {
+            custom: function () {
+                eventWasRaised = true;
+            },
+        });
+
+        source.dispatchEvent("custom", {});
+
+        ok(eventWasRaised, "No event raised");
+    });
+
+    test("addEventListenerCanAddMoreThanOneListener", function () {
+        var source = new CodevoidTests.EventSource();
+        var eventWasRaised = false;
+        var event2WasRaised = false;
+
+        Codevoid.Utilities.addEventListeners(source, {
+            custom: function () {
+                eventWasRaised = true;
+            },
+            custom2: function () {
+                event2WasRaised = true;
+            },
+        });
+
+        source.dispatchEvent("custom", {});
+        source.dispatchEvent("custom2", {});
+
+        ok(eventWasRaised, "No event raised");
+        ok(event2WasRaised, "No event raised");
+    });
+
+    test("cancellingEventListenerRemovesListeners", function () {
+        var source = new CodevoidTests.EventSource();
+        var eventWasRaised = false;
+        var event2WasRaised = false;
+
+        var cancel = Codevoid.Utilities.addEventListeners(source, {
+            custom: function () {
+                eventWasRaised = true;
+            },
+            custom2: function () {
+                event2WasRaised = true;
+            },
+        });
+
+        source.dispatchEvent("custom", {});
+        source.dispatchEvent("custom2", {});
+
+        ok(eventWasRaised, "No event raised");
+        ok(event2WasRaised, "No event raised");
+
+        cancel.cancel();
+
+        // Reset the flags so they can be checked again
+        eventWasRaised = false;
+        event2WasRaised = false;
+
+        source.dispatchEvent("custom", {});
+        source.dispatchEvent("custom2", {});
+
+        ok(!eventWasRaised, "Event raised");
+        ok(!event2WasRaised, "Event raised");
+    });
+
     module("UtilitiesTemplates");
 
     promiseTest("canLoadTemplate", function () {
@@ -563,15 +633,43 @@
     });
 
     promiseTest("canMarryPartNameToObjectInstance", function () {
+        var playground = getPlayground();
         return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts").then(function (template) {
-            return template.render(null, getPlayground());
+            return template.render(null, playground);
         }).then(function () {
             var instance = {};
-            domUtilities.marryPartsToControl(getPlayground(), instance);
+            domUtilities.marryPartsToControl(playground, instance);
 
             ok(instance.content, "Content not found");
             strictEqual(instance.content.innerText, "Test", "Incorrect element");
             
+            ok(instance.otherContent, "Other Content not found");
+            strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+
+            ok(instance.aControl, "No Control found");
+            ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
+        });
+    });
+
+    promiseTest("canMarryPartNameToObjectInstanceWithOnlyASubTree", function () {
+        var playground = getPlayground();
+        var uberContainer = playground.appendChild(document.createElement("div"));
+        var fakePart = document.createElement("div");
+        fakePart.setAttribute("data-part", "fakePart");
+        uberContainer.appendChild(fakePart);
+
+        var templateContainer = playground.appendChild(document.createElement("div"));
+        return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts").then(function (template) {
+            return template.render(null, templateContainer);
+        }).then(function () {
+            var instance = {};
+            domUtilities.marryPartsToControl(templateContainer, instance);
+
+            ok(!instance.fakePart, "Didn't expect to find fake part");
+
+            ok(instance.content, "Content not found");
+            strictEqual(instance.content.innerText, "Test", "Incorrect element");
+
             ok(instance.otherContent, "Other Content not found");
             strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
 

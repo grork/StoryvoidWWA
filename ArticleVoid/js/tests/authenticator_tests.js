@@ -26,6 +26,8 @@
                     options.viewModel.password = creds.password;
                     options.viewModel.credentialAcquisitionComplete.complete();
                 }
+
+                CodevoidTests.AuthenticatorTestUI.credentialsToUse = null;
             });
         }, {
             wasPrompted: false, 
@@ -266,6 +268,28 @@
         });
     });
 
+    promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var isWorkingBecameTrue = false;
+
+        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
+
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
+
+        vm.addEventListener("isWorkingChanged", function () {
+            if (vm.isWorking) {
+                isWorkingBecameTrue = true;
+            }
+        });
+
+        return vm.authenticate().then(function () {
+            ok(false, "Expected to fail authentication");
+        }, function () {
+            ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
+            ok(!vm.isWorking, "Should have completed authentication");
+        });
+    });
+
     promiseTest("experienceIsRemovedWhenSuccessfullyAuthenticating", function () {
         var vm = new authenticator.AuthenticatorViewModel();
         var host = new CodevoidTests.UnitTestExperienceHost();
@@ -284,6 +308,28 @@
             ok(true, "Expected to complete authentication");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
+        });
+    });
+
+    promiseTest("canFailureToAuthenticateIsCorrectlyPropogated", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var host = new CodevoidTests.UnitTestExperienceHost();
+
+        Codevoid.UICore.Experiences.initializeHost(host);
+
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
+        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
+            username: testCredentials.user,
+            password: "foo",
+        };
+
+        return vm.authenticate().then(function () {
+            ok(false, "Expected to complete authentication");
+        }, function () {
+            var xp = host.getExperienceForModel(vm);
+            ok(xp, "Expected to find the experience");
+            strictEqual(vm.authenticationError, 401, "Expected auth error");
+            ok(true, "Didn't expect to fail authentication");
         });
     });
 })();
