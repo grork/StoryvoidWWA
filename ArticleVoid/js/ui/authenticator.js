@@ -32,10 +32,10 @@
                 
                 this._handlersToCleanup.push(cleanup);
             },
-            _allowPasswordEntryChanged: function (e) {
+            _allowPasswordEntryChanged: function () {
                 this.passwordInput.disabled = !this.viewModel.allowPasswordEntry;
             },
-            _canAuthenticateChanged: function (e) {
+            _canAuthenticateChanged: function () {
                 this.authenticateButton.disabled = !this.viewModel.canAuthenticate;
             },
             dispose: function () {
@@ -46,14 +46,38 @@
             usernameChanged: msfp(function () {
                 this.viewModel.username = this.usernameInput.value;
             }),
-            cancelled: msfp(function (e) {
-                this.viewModel.credentialAcquisitionComplete.error(Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled);
+            passwordChanged: msfp(function () {
+                this.viewModel.password = this.passwordInput.value;
+            }),
+            authenticate: msfp(function () {
+                if (!this.viewModel.canAuthenticate) {
+                    return;
+                }
+
+                this.viewModel.credentialAcquisitionComplete.complete();
+            }),
+            canceled: msfp(function () {
+                this.viewModel.credentialAcquisitionComplete.promise.cancel();
+            }),
+            containerKeyDown: msfp(function (e) {
+                switch (e.keyCode) {
+                    case WinJS.Utilities.Key.escape:
+                        this.canceled();
+                        break;
+
+                    case WinJS.Utilities.Key.enter:
+                        this.authenticate();
+                        break;
+
+                    default:
+                        break;
+                }
             }),
         }, {
             showAuthenticator: function () {
                 Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
                 var vm = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
-                vm.authenticate().then(null, function () { });
+                vm.authenticate(true).then(null, function () { });
             },
         }),
     });

@@ -16,24 +16,44 @@
             WinJS.UI.setOptions(this, options);
 
             this.wasPrompted = true;
-            WinJS.Promise.timeout().done(function () {
-                var creds = CodevoidTests.AuthenticatorTestUI.credentialsToUse;
-                if (!creds) {
-                    options.viewModel.credentialAcquisitionComplete.error({});
-                } else if (creds === Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled) {
-                    options.viewModel.credentialAcquisitionComplete.error(creds);
-                } else {
-                    options.viewModel.username = creds.username;
-                    options.viewModel.password = creds.password;
-                    options.viewModel.credentialAcquisitionComplete.complete();
-                }
 
-                CodevoidTests.AuthenticatorTestUI.credentialsToUse = null;
-            });
+            this.again();
         }, {
-            wasPrompted: false, 
+            again: function () {
+                this.tryCount++;
+                WinJS.Promise.timeout().done(function () {
+                    var creds = CodevoidTests.AuthenticatorTestUI.credentialsToUse;
+                    if (!creds) {
+                        this.viewModel.credentialAcquisitionComplete.error({});
+                    } else if (creds === -1) {
+                        this.viewModel.credentialAcquisitionComplete.promise.cancel();
+                    } else {
+                        this.viewModel.username = creds.username;
+                        this.viewModel.password = creds.password;
+                        this.viewModel.credentialAcquisitionComplete.complete();
+                    }
+                }.bind(this));
+            },
+            wasPrompted: false,
+            tryCount: 0,
         }, {
-            credentialsToUse: null,
+            credentialsToUse: (function () {
+                var credStore = null;
+                return {
+                    get: function () {
+                        var creds = credStore;
+                        if (Array.isArray(credStore)) {
+                            creds = credStore.shift();
+                        } else {
+                            credStore = null;
+                        }
+                        return creds;
+                    },
+                    set: function (v) {
+                        credStore = v;
+                    }
+                };
+            })(),
         }),
     });
 
@@ -208,11 +228,11 @@
         }).then(cleanupExperienceHost);
     });
 
-    promiseTest("experienceRemovedWhenCredentialPromptCancelled", function () {
+    promiseTest("experienceRemovedWhenCredentialPromptCanceled", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
         Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled;
+        CodevoidTests.AuthenticatorTestUI.credentialsToUse = -1;
 
         vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
         return vm.authenticate().then(function () {
@@ -331,5 +351,25 @@
             strictEqual(vm.authenticationError, 401, "Expected auth error");
             ok(true, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
+    });
+
+    promiseTest("authenticationIsRetriedWhenFails", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var host = new CodevoidTests.UnitTestExperienceHost();
+
+        Codevoid.UICore.Experiences.initializeHost(host);
+
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
+        CodevoidTests.AuthenticatorTestUI.credentialsToUse = [{
+            username: testCredentials.user,
+            password: "foo",
+        }, {
+            username: testCredentials.user,
+            password: testCredentials.password,
+        }];
+
+        return vm.authenticate(true).then(function () {
+            ok(true, "Expected to complete authentication");
+        });
     });
 })();

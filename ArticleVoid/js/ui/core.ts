@@ -85,8 +85,23 @@ module Codevoid.UICore {
     export class WwaExperienceHost implements ExperienceHost {
         constructor(public host: HTMLElement) {
         }
+        private findExperienceForModel(viewModel: ViewModel) : HTMLExperienceElement {
+            for (var i = 0; i < this.host.children.length; i++) {
+                if (viewModel === (<HTMLExperienceElement>this.host.children[i]).model) {
+                    return <HTMLExperienceElement>this.host.children[i];
+                    break;
+                }
+            }
 
+            return null;
+        }
         addExperienceForModel(viewModel: ViewModel) {
+            // See if there is already an experience for this model
+            // and if there is, just bail.
+            if (this.findExperienceForModel(viewModel)) {
+                return;
+            }
+
             var controlElement = document.createElement("div");
             WinJS.Utilities.addClass(controlElement, "dialog");
             var viewInfo = Experiences.getExperienceForModel(viewModel, ExperienceTypes.WWA);
@@ -98,15 +113,8 @@ module Codevoid.UICore {
         }
 
         removeExperienceForModel(viewModel: ViewModel) {
-            var experience: HTMLExperienceElement;
-
-            for (var i = 0; i < this.host.children.length; i++) {
-                if (viewModel === (<HTMLExperienceElement>this.host.children[i]).model) {
-                    experience = <HTMLExperienceElement>this.host.children[i];
-                    break;
-                }
-            }
-
+            var experience: HTMLExperienceElement = this.findExperienceForModel(viewModel);
+            
             if (!experience) {
                 return;
             }

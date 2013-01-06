@@ -12,6 +12,16 @@ module CodevoidTests {
         public experiences: ExperienceInformation[] = [];
 
         addExperienceForModel(viewModel: Codevoid.UICore.ViewModel) {
+            var experienceForModel = this.getExperienceForModel(viewModel);
+
+            if (experienceForModel) {
+                if (experienceForModel.again) {
+                    experienceForModel.again();
+                }
+
+                return;
+            }
+
             var viewInfo = Codevoid.UICore.Experiences.getExperienceForModel(viewModel, Codevoid.UICore.ExperienceTypes.UNITTEST);
             this.experiences.push({
                 model: viewModel,
@@ -53,6 +63,13 @@ module CodevoidTests {
             WinJS.UI.setOptions(this, options);
         }
     }
+
+    export class SimpleUnitTestUIWithAgain extends SimpleUnitTestUI {
+        again() {
+            this.wasNotified = true;
+        }
+        public wasNotified: bool = false;
+    }
 }
 
 (function () {
@@ -82,6 +99,26 @@ module CodevoidTests {
         
         host.addExperienceForModel(viewModel);
 
+        ok(container.children, "No Children collection");
+        strictEqual(container.children.length, 1, "Expected one child");
+    });
+
+    test("wwaAddingSameViewModelDoesn'tCreateSecondExperience", function () {
+        var container = getPlayground();
+        var host = new Codevoid.UICore.WwaExperienceHost(container);
+
+        var viewModel = {
+            experience: {
+                wwa: "Codevoid.UICore.Control"
+            },
+        };
+        
+        host.addExperienceForModel(viewModel);
+
+        ok(container.children, "No Children collection");
+        strictEqual(container.children.length, 1, "Expected one child");
+
+        host.addExperienceForModel(viewModel);
         ok(container.children, "No Children collection");
         strictEqual(container.children.length, 1, "Expected one child");
     });
@@ -123,6 +160,29 @@ module CodevoidTests {
         strictEqual(controlElement.model, experience, "No experience set");
         ok(controlElement.winControl, "No winControl");
         ok(controlElement.winControl.viewModel, "no view model set");
+    });
+
+    test("wwaAddingSameViewModelDoesn'tReplaceControl", function () {
+        var container = getPlayground();
+        var host = new Codevoid.UICore.WwaExperienceHost(container);
+        var viewModel = {
+            experience: {
+                wwa: "Codevoid.UICore.Control",
+            }
+        };
+        var experienceInfo = Codevoid.UICore.Experiences.getExperienceForModel(viewModel, Codevoid.UICore.ExperienceTypes.WWA);
+
+        host.addExperienceForModel(viewModel);
+        var controlElement = <HTMLExperienceElement>container.firstElementChild;
+
+        strictEqual(controlElement.getAttribute("data-win-control"), experienceInfo.identifier, "Incorrect control created, or not attribute set");
+        strictEqual(controlElement.model, viewModel, "No experience set");
+        ok(controlElement.winControl, "No winControl");
+        ok(controlElement.winControl.viewModel, "no view model set");
+
+        host.addExperienceForModel(viewModel);
+        strictEqual(container.children.length, 1, "Expected one child");
+        strictEqual(container.firstElementChild, controlElement, "Element was recreated");
     });
 
     test("wwaCanRemoveExperienceUsingModel", function () {
@@ -207,6 +267,47 @@ module CodevoidTests {
 
         ok(host.experiences[1].view.viewModel, "No view model found");
         strictEqual(host.experiences[1].view.viewModel, viewModel2, "Incorrect view model found");
+    });
+
+    test("canAddSameViewModelTwiceWithoutDuplicates", function () {
+        var host = new CodevoidTests.UnitTestExperienceHost();
+        
+        var viewModel1 = {
+            experience: {
+                unittest: "CodevoidTests.SimpleUnitTestUI",
+            }
+        };
+
+        host.addExperienceForModel(viewModel1);
+        host.addExperienceForModel(viewModel1);
+
+        ok(host.experiences, "No children collection");
+        strictEqual(host.experiences.length, 1, "Unexpected number of children");
+
+        ok(host.experiences[0].view.viewModel, "No view model found");
+        strictEqual(host.experiences[0].view.viewModel, viewModel1, "Incorrect view model found");
+    });
+
+    test("addingSameViewModelNotifiesViewModel", function () {
+        var host = new CodevoidTests.UnitTestExperienceHost();
+        
+        var viewModel1 = {
+            experience: {
+                unittest: "CodevoidTests.SimpleUnitTestUIWithAgain",
+            },
+        };
+
+        host.addExperienceForModel(viewModel1);
+        ok(host.experiences, "No children collection");
+        strictEqual(host.experiences.length, 1, "Unexpected number of children");
+        ok(host.experiences[0].view.viewModel, "No view model found");
+        strictEqual(host.experiences[0].view.viewModel, viewModel1, "Incorrect view model found");
+        
+        ok(!host.getExperienceForModel(viewModel1).wasNotified, "Shouldn't have been notified yet");
+
+        host.addExperienceForModel(viewModel1);
+        strictEqual(host.experiences.length, 1, "Unexpected number of children");
+        ok(host.getExperienceForModel(viewModel1).wasNotified, "Wasn't notified");
     });
 
     test("unitCanRemoveExperienceUsingModel", function () {
