@@ -59,8 +59,9 @@
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             credentialAcquisitionComplete: null,
+            _authenticationComplete: null,
             _evaluateCanAuthenticate: function () {
-                if (this.username && (typeof this.username === "string")) {
+                if (this.username && ((typeof this.username) === "string")) {
                     this.canAuthenticate = true;
                     this.allowPasswordEntry = true;
                 } else {
@@ -68,41 +69,56 @@
                     this.allowPasswordEntry = false;
                 }
             },
-            authenticate: function () {
+            _tryAuthenticate: function (credentialPromise, retry) {
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
-                var tokenPromise = WinJS.Promise.as();
 
-                if (!this.canAuthenticate) {
-                    tokenPromise = this.promptForCredentials();
-                }
-
-                return tokenPromise.then(function () {
+                credentialPromise.then(function () {
                     this.isWorking = true;
                     return accounts.getAccessToken(this.username, this.password);
-                }.bind(this)).then(function (result) {
+                }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
 
-                    return result;
+                    this._authenticationComplete.complete(result);
                 }.bind(this), function (err) {
                     this.isWorking = false;
 
-                    if (err === Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel.Cancelled) {
-                            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                    } else {
-                        this.authenticationError = err.status;
+                    // Cancelled
+                    if (err && (err.name === "Canceled")) {
+                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                        this._authenticationComplete.promise.cancel();
+                        return;
                     }
 
-                    return WinJS.Promise.wrapError(err);
+                    this.authenticationError = err.status;
+
+                    // Retry
+                    if (!retry) {
+                        this._authenticationComplete.error(err);
+                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                        return;
+                    }
+
+                    this._tryAuthenticate(this.promptForCredentials(), retry);
                 }.bind(this));
+            },
+            authenticate: function (retry) {
+                this._authenticationComplete = new Codevoid.Utilities.Signal();
+                var credentialPromise = WinJS.Promise.as();
+
+                if (!this.canAuthenticate) {
+                    credentialPromise = this.promptForCredentials();
+                }
+
+                this._tryAuthenticate(credentialPromise, retry);
+
+                return this._authenticationComplete.promise;
             },
             promptForCredentials: function promptForCredentials() {
                 this.credentialAcquisitionComplete = new Codevoid.Utilities.Signal();
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this);
                 return this.credentialAcquisitionComplete.promise;
             },
-        }, {
-            Cancelled: { cancelled: true },
         }), WinJS.Utilities.eventMixin),
     });
 })();
