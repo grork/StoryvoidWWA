@@ -6,7 +6,8 @@
 <body>
     <div data-templateid="authenticatorCredentials"
         data-win-control="WinJS.Binding.Template">
-        <div class="authenticator" data-event="{ keydown: containerKeyDown }">
+        <div class="authenticator"
+            data-event="{ keydown: containerKeyDown }">
 
             <div class="usernameLabel">Username:</div>
             <input data-event="{ input: usernameChanged }"
@@ -34,6 +35,10 @@
                     type="button">
                     Cancel
                 </button>
+            </div>
+            <div class="workingContainer hide"
+                data-part="workingContainer">
+
             </div>
         </div>
     </div>

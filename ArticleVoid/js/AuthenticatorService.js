@@ -73,15 +73,15 @@
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
 
                 credentialPromise.then(function () {
-                    this.isWorking = true;
+                    this._startIsWorking();
                     return accounts.getAccessToken(this.username, this.password);
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                    this.isWorking = false;
+                    this._stopIsWorking();
 
                     this._authenticationComplete.complete(result);
                 }.bind(this), function (err) {
-                    this.isWorking = false;
+                    this._stopIsWorking();
 
                     // Cancelled
                     if (err && (err.name === "Canceled")) {
@@ -101,6 +101,16 @@
 
                     this._tryAuthenticate(this.promptForCredentials(), retry);
                 }.bind(this));
+            },
+            _startIsWorking: function () {
+                this.canAuthenticate = false;
+                this.allowPasswordEntry = false;
+
+                this.isWorking = true;
+            },
+            _stopIsWorking: function () {
+                this._evaluateCanAuthenticate();
+                this.isWorking = false;
             },
             authenticate: function (retry) {
                 this._authenticationComplete = new Codevoid.Utilities.Signal();

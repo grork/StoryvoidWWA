@@ -264,6 +264,8 @@
     promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", function () {
         var vm = new authenticator.AuthenticatorViewModel();
         var isWorkingBecameTrue = false;
+        var canAuthenticateIsFalse = false;
+        var allowPasswordEntryIsFalse = false;
 
         Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
 
@@ -277,12 +279,23 @@
             if (vm.isWorking) {
                 isWorkingBecameTrue = true;
             }
+
+            if (!vm.canAuthenticate) {
+                canAuthenticateIsFalse = true;
+            }
+
+            if (!vm.allowPasswordEntry) {
+                allowPasswordEntryIsFalse = true;
+            }
         });
 
         return vm.authenticate().then(function () {
             ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
+            ok(canAuthenticateIsFalse, "Expected can authenticate become false during authentication");
+            ok(allowPasswordEntryIsFalse, "Expected can authenticate become false during authentication");
             ok(!vm.isWorking, "Should have completed authentication");
-            ok(true, "Expected to complete authentication");
+            ok(vm.canAuthenticate, "Should be able to authenticate again");
+            ok(vm.allowPasswordEntry, "Should be able to enter password again");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
