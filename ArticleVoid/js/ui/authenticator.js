@@ -31,6 +31,7 @@
                 var cleanup = Codevoid.Utilities.addEventListeners(this.viewModel, {
                     allowPasswordEntryChanged: this._allowPasswordEntryChanged.bind(this),
                     canAuthenticateChanged: this._canAuthenticateChanged.bind(this),
+                    isWorkingChanged: this._isWorkingChanged.bind(this),
                 });
                 
                 this._handlersToCleanup.push(cleanup);
@@ -40,6 +41,14 @@
             },
             _canAuthenticateChanged: function () {
                 this.authenticateButton.disabled = !this.viewModel.canAuthenticate;
+            },
+            _isWorkingChanged: function () {
+                var op = this.viewModel.isWorking ? "remove" : "add";
+                WinJS.Utilities[op + "Class"](this.workingContainer, "hide");
+
+                if (!this.viewModel.isWorking) {
+                    this.usernameInput.focus();
+                }
             },
             dispose: function () {
                 this._handlersToCleanup.forEach(function (events) {
