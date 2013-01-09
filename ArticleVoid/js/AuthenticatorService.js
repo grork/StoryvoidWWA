@@ -58,9 +58,12 @@
             authenticationError: property("authenticationFailed", 0),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
+            allowUsernameEntry: property("allowUsernameEntry", true),
             credentialAcquisitionComplete: null,
             _authenticationComplete: null,
             _evaluateCanAuthenticate: function () {
+                this.allowUsernameEntry = true;
+
                 if (this.username && ((typeof this.username) === "string")) {
                     this.canAuthenticate = true;
                     this.allowPasswordEntry = true;
@@ -105,6 +108,7 @@
             _startIsWorking: function () {
                 this.canAuthenticate = false;
                 this.allowPasswordEntry = false;
+                this.allowUsernameEntry = false;
 
                 this.isWorking = true;
             },
