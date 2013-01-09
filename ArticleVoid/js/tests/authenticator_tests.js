@@ -159,7 +159,7 @@
         ok(!vm.canAuthenticate, "Shouldn't be able to authenticate with no user/pass");
     });
 
-    test("settingUsernameAuthenticates", function () {
+    test("settingUsernameEnablesCanAuthenticate", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
         ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
@@ -167,6 +167,25 @@
         vm.username = "test";
 
         ok(vm.canAuthenticate, "Authentication should be possible with a valid username");
+    });
+
+    test("allowUsernameIsInitiallyTrue", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
+    });
+
+    test("allowUsernameRaisesChangeEvent", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
+        var allowUsernameEntryChangedEventRaised = false;
+
+        vm.addEventListener("allowUsernameEntryChanged", function () {
+            allowUsernameEntryChangedEventRaised = true;
+        });
+
+        vm.allowUsernameEntry = false;
+
+        ok(allowUsernameEntryChangedEventRaised, "Didn't get change event for username entry");
     });
 
     test("settingPasswordOnlyShouldn'tEnableAuthentication", function () {
@@ -266,6 +285,7 @@
         var isWorkingBecameTrue = false;
         var canAuthenticateIsFalse = false;
         var allowPasswordEntryIsFalse = false;
+        var allowUsernameEntryIsFalse = false;
 
         Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
 
@@ -287,15 +307,21 @@
             if (!vm.allowPasswordEntry) {
                 allowPasswordEntryIsFalse = true;
             }
+
+            if (!vm.allowUsernameEntry) {
+                allowUsernameEntryIsFalse = true;
+            }
         });
 
         return vm.authenticate().then(function () {
             ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
-            ok(canAuthenticateIsFalse, "Expected can authenticate become false during authentication");
-            ok(allowPasswordEntryIsFalse, "Expected can authenticate become false during authentication");
+            ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
+            ok(allowPasswordEntryIsFalse, "Expected allowPasswordEntry to become false during authentication");
+            ok(allowUsernameEntryIsFalse, "Expected allowUsernameEntry to become false during authentication");
             ok(!vm.isWorking, "Should have completed authentication");
             ok(vm.canAuthenticate, "Should be able to authenticate again");
             ok(vm.allowPasswordEntry, "Should be able to enter password again");
+            ok(vm.allowUsernameEntry, "Should be able to enter username again");
         }, function () {
             ok(false, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
