@@ -57,7 +57,7 @@
             username: property("username", null),
             password: property("password", null),
             isWorking: property("isWorking", false),
-            authenticationError: property("authenticationFailed", 0),
+            authenticationError: property("authenticationError", 0),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             allowUsernameEntry: property("allowUsernameEntry", true),
@@ -76,6 +76,7 @@
             },
             _tryAuthenticate: function (credentialPromise, retry) {
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
+                this.authenticationError = 0;
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
