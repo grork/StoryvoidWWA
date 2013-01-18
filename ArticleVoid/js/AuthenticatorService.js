@@ -79,9 +79,7 @@
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
-                    return accounts.getAccessToken(this.username, this.password).then(function (a) {
-                        return WinJS.Promise.timeout(10 * 1000).then(function () { return a; });
-                    });
+                    return accounts.getAccessToken(this.username, this.password);
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
