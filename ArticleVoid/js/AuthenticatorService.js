@@ -47,7 +47,9 @@
 
         AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
+            this._isWorkingChanged = this._isWorkingChanged.bind(this);
             this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
+            this.addEventListener("isWorkingChanged", this._isWorkingChanged);
         }, {
             experience: {
                 wwa: "Codevoid.ArticleVoid.UI.Authenticator",
@@ -76,15 +78,17 @@
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
 
                 credentialPromise.then(function () {
-                    this._startIsWorking();
-                    return accounts.getAccessToken(this.username, this.password);
+                    this.isWorking = true;
+                    return accounts.getAccessToken(this.username, this.password).then(function (a) {
+                        return WinJS.Promise.timeout(10 * 1000).then(function () { return a; });
+                    });
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                    this._stopIsWorking();
+                    this.isWorking = false;
 
                     this._authenticationComplete.complete(result);
                 }.bind(this), function (err) {
-                    this._stopIsWorking();
+                    this.isWorking = false;
 
                     // Cancelled
                     if (err && (err.name === "Canceled")) {
@@ -105,16 +109,14 @@
                     this._tryAuthenticate(this.promptForCredentials(), retry);
                 }.bind(this));
             },
-            _startIsWorking: function () {
-                this.canAuthenticate = false;
-                this.allowPasswordEntry = false;
-                this.allowUsernameEntry = false;
-
-                this.isWorking = true;
-            },
-            _stopIsWorking: function () {
-                this._evaluateCanAuthenticate();
-                this.isWorking = false;
+            _isWorkingChanged: function () {
+                if (this.isWorking) {
+                    this.canAuthenticate = false;
+                    this.allowPasswordEntry = false;
+                    this.allowUsernameEntry = false;
+                } else {
+                    this._evaluateCanAuthenticate();
+                }
             },
             authenticate: function (retry) {
                 this._authenticationComplete = new Codevoid.Utilities.Signal();
