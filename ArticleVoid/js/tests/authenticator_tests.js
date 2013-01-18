@@ -392,6 +392,52 @@
         }).then(cleanupExperienceHost);
     });
 
+    test("authenticationErrorPropertyRaisesEvent", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var authenticationErrorChanged = false;
+        vm.addEventListener("authenticationErrorChanged", function () {
+            authenticationErrorChanged = true;
+        });
+
+        vm.authenticationError = 1;
+        ok(authenticationErrorChanged, "Authentication error didn't change");
+    });
+
+    promiseTest("authenticationErrorIsResetWhenReauthenticating", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var host = new CodevoidTests.UnitTestExperienceHost();
+        var authenticationErrorWasReset = false;
+
+        Codevoid.UICore.Experiences.initializeHost(host);
+
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
+        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
+            username: testCredentials.user,
+            password: "foo",
+        };
+
+        return vm.authenticate().then(function () {
+            ok(false, "Expected to fails authentication");
+        }, function () {
+            var xp = host.getExperienceForModel(vm);
+            ok(xp, "Expected to find the experience");
+            strictEqual(vm.authenticationError, 401, "Expected auth error");
+
+            vm.addEventListener("authenticationErrorChanged", function () {
+                if (vm.authenticationError === 0) {
+                    authenticationErrorWasReset = true;
+                }
+            });
+
+            return vm.authenticate();
+        }).then(function () {
+            ok(false, "shouldn't have succeeded");
+        }, function () {
+            ok(authenticationErrorWasReset, "Should have been reset");
+            strictEqual(vm.authenticationError, 401, "Incorrect error code");
+        }).then(cleanupExperienceHost);
+    });
+
     promiseTest("authenticationIsRetriedWhenFails", function () {
         var vm = new authenticator.AuthenticatorViewModel();
         var host = new CodevoidTests.UnitTestExperienceHost();
