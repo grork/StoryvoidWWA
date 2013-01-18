@@ -50,6 +50,7 @@
                 var op = this.viewModel.isWorking ? "remove" : "add";
                 WinJS.Utilities[op + "Class"](this.workingContainer, "hide");
 
+                this.cancelButton.disabled = this.viewModel.isWorking;
                 if (!this.viewModel.isWorking) {
                     this.usernameInput.focus();
                 }
@@ -66,13 +67,17 @@
                 this.viewModel.password = this.passwordInput.value;
             }),
             authenticate: msfp(function () {
-                if (!this.viewModel.canAuthenticate) {
+                if (!this.viewModel.canAuthenticate || this.viewModel.isWorking) {
                     return;
                 }
 
                 this.viewModel.credentialAcquisitionComplete.complete();
             }),
             canceled: msfp(function () {
+                if (this.viewModel.isWorking) {
+                    return;
+                }
+
                 this.viewModel.credentialAcquisitionComplete.promise.cancel();
             }),
             containerKeyDown: msfp(function (e) {
