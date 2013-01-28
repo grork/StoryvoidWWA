@@ -98,7 +98,27 @@
             verifyCredentials: function verifyCredentials() {
                 var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.verify_credentials);
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
-            }
+            },
+            getAccessTokenVerifyIsSubscriber: function (username, password) {
+                var accessToken;
+                return this.getAccessToken(username, password).then(function (token) {
+                    accessToken = token;
+                    // Since this account instance is going to get the access token, we dont have
+                    // the full token for this client, and to verify the creds & subscriber status
+                    // we *do* need it all, we're going to create a new account instance, with the
+                    // full token information we've now got, and use that to verify if the user is
+                    // a subscriber or not.
+                    var clientInformation = new Codevoid.OAuth.ClientInfomation(this._clientInformation.clientId,
+                                                                                this._clientInformation.clientSecret,
+                                                                                token.oauth_token,
+                                                                                token.oauth_token_secret);
+                    var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+                    return accounts.verifyCredentials();
+                }.bind(this)).then(function (userDetails) {
+                    accessToken.isSubscriber = (userDetails.subscription_is_active === "1");
+                    return accessToken;
+                });
+            },
         }),
         Bookmarks: WinJS.Class.define(function Bookmarks_Constructor(clientInformation) {
             this._clientInformation = clientInformation;

@@ -8,6 +8,8 @@
     var secret = "PLACEHOLDER";
 
     var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    var promiseTest = InstapaperTestUtilities.promiseTest;
+
     function failedPromiseHandler(req) {
         var message;
         if(req.error) {
@@ -22,6 +24,8 @@
     }
 
     module("instapaperApi");
+
+    module("instapaperApiAccounts");
 
     function canGetAccessToken() {
         var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
@@ -51,9 +55,34 @@
         }, failedPromiseHandler);
     }
 
-
     test("canGetAccessToken", canGetAccessToken);
+
+    promiseTest("can'tGetAccessTokenWhenUsingBadCredentials", function () {
+        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
+        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+
+        return accounts.getAccessToken("PLACEHOLDER", "IncorrectPassword").then(function () {
+            ok(false, "shouldn't succeed");
+        }, function (err) {
+            ok(true, "Should have errored");
+            strictEqual(err.status, 401, "Expected auth failure");
+        });
+    });
+
     test("canVerifyCredentials", canVerifyCredentials);
+
+    promiseTest("verifyingBadCredentialsFails", function () {
+        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token + "3", secret + "a");
+        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+
+        return accounts.verifyCredentials().then(function () {
+            ok(false, "Should have failed");
+        }, function (err) {
+            ok(true, "Shouldn't have succeeded");
+            strictEqual(err.error, 403, "Should have failed with error 403");
+        });
+    });
+
     test("nonSubscriptionAccountTokenAndHasNoActiveSub", function () {
         var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
         var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
@@ -67,6 +96,41 @@
             strictEqual(userInfo.subscription_is_active, "0", "Subscription shouldn't be active");
             start();
         }, failedPromiseHandler);
+    });
+
+    promiseTest("canGetTokenAndSubscriberStatusForSubscriber", function () {
+        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        return accounts.getAccessTokenVerifyIsSubscriber("PLACEHOLDER", "PLACEHOLDER").then(function (tokenInfo) {
+            ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
+            strictEqual(tokenInfo.oauth_token, token, "token didn't match");
+
+            ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
+            strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
+
+            ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
+            ok(tokenInfo.isSubscriber, "User should have been a subscriber");
+        });
+    });
+
+    promiseTest("canGetTokenAndSubscriberStatusForNonSubscriber", function () {
+        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        return accounts.getAccessTokenVerifyIsSubscriber("test2@codevoid.net", "PLACEHOLDER").then(function (tokenInfo) {
+            ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
+            ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
+
+            ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
+            ok(!tokenInfo.isSubscriber, "User should have been a subscriber");
+        });
+    });
+
+    promiseTest("gettingAccessTokenVerifyIsSubscriberWithIncorrectCredentialsErrors", function () {
+        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        return accounts.getAccessTokenVerifyIsSubscriber("test2@codevoid.net", "IncorrectPassword").then(function (tokenInfo) {
+            ok(false, "Should have failed");
+        }, function (err) {
+            ok(true, "Shouldn't have succeeded");
+            strictEqual(err.status, 401, "Should have failed auth");
+        });
     });
 
     module("instapaperApiBookmarksHaveConversion");
@@ -117,6 +181,22 @@
     });
 
     module("instapaperApiBookmarks");
+
+    test("clearRemoteData", function () {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        stop();
+        InstapaperTestUtilities.destroyRemoteData(clientInformation).then(function () {
+            return bookmarks.list();
+        }).then(function (rb) {
+            return Codevoid.Utilities.serialize(rb.bookmarks, function (item) {
+                return bookmarks.deleteBookmark(item.bookmark_id);
+            });
+        }).then(function () {
+            ok(true, "Deleted remote data");
+            start();
+        }, failedPromiseHandler);
+    });
 
     function addThrowsWhenNoUrl() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
