@@ -44,6 +44,20 @@
             var storage = Windows.Storage.ApplicationData.current.roamingSettings;
             storage.values.remove(tokenInformationSettingName);
         },
+        friendlyMessageForError: function (code) {
+            var message;
+            switch (code) {
+                case 401:
+                    message = "Looks like you've type the wrong username, or password for Instapaper. Check them, and give it another try!";
+                    break;
+
+                default:
+                    message = "Uh oh! Something went wrong, and we're not sure what. Give it a few moments, check your username & password, and try again. If it still doesn't work,  please contact us and mention error code: '" + code + "'";
+                    break;
+            }
+
+            return message;
+        },
 
         AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
@@ -76,7 +90,6 @@
             },
             _tryAuthenticate: function (credentialPromise, retry) {
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
-                this.authenticationError = 0;
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
@@ -118,6 +131,9 @@
                 }
             },
             authenticate: function (retry) {
+                // Reset authentication state
+                this.authenticationError = 0;
+
                 this._authenticationComplete = new Codevoid.Utilities.Signal();
                 var credentialPromise = WinJS.Promise.as();
 
