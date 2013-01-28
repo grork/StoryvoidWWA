@@ -33,6 +33,7 @@
                     allowUsernameEntryChanged: this._allowUsernameEntryChanged.bind(this),
                     canAuthenticateChanged: this._canAuthenticateChanged.bind(this),
                     isWorkingChanged: this._isWorkingChanged.bind(this),
+                    authenticationErrorChanged: this._authenticationErrorChanged.bind(this),
                 });
                 
                 this._handlersToCleanup.push(cleanup);
@@ -42,6 +43,22 @@
             },
             _allowUsernameEntryChanged: function () {
                 this.usernameInput.disabled = !this.viewModel.allowUsernameEntry;
+            },
+            _authenticationErrorChanged: function () {
+                var statusCode = this.viewModel.authenticationError;
+                var messageContent = "";
+                var op = "addClass";
+
+                if (statusCode != 0) {
+                    messageContent = Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(statusCode);
+                } else {
+                    messageContent = "";
+                }
+
+                op = (messageContent ? "addClass" : "removeClass");
+
+                this.errorMessage.textContent = messageContent;
+                WinJS.Utilities[op](this.errorMessageContainer, "hide");
             },
             _canAuthenticateChanged: function () {
                 this.authenticateButton.disabled = !this.viewModel.canAuthenticate;

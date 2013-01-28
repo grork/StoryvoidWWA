@@ -457,4 +457,36 @@
             ok(true, "Expected to complete authentication");
         });
     });
+
+    promiseTest("authenticationErrorIsntResetOnRetry", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var host = new CodevoidTests.UnitTestExperienceHost();
+        var states = [];
+
+        Codevoid.UICore.Experiences.initializeHost(host);
+
+        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
+        CodevoidTests.AuthenticatorTestUI.credentialsToUse = [{
+            username: testCredentials.user,
+            password: "foo",
+        }, -1];
+
+        vm.addEventListener("authenticationErrorChanged", function () {
+            if (vm.authenticationError === 401) {
+                states.push(401);
+            }
+
+            if (vm.authenticationError === 0) {
+                states.push(0);
+            }
+        });
+
+        return vm.authenticate(true).then(function () {
+            ok(false, "Shouldn't have completed");
+        }, function (err) {
+            strictEqual(err.name, "Canceled", "Should have been cancelled");
+            strictEqual(states.length, 1, "Only expected on status change");
+            strictEqual(states[0], 401, "Expected error code to be 401");
+        }).then(cleanupExperienceHost);
+    });
 })();
