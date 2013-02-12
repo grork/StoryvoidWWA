@@ -388,6 +388,7 @@
             var xp = host.getExperienceForModel(vm);
             ok(xp, "Expected to find the experience");
             strictEqual(vm.authenticationError, 401, "Expected auth error");
+            strictEqual(vm.authenticationErrorMessage, Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
             ok(true, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
     });
@@ -403,10 +404,22 @@
         ok(authenticationErrorChanged, "Authentication error didn't change");
     });
 
+    test("authenticationErrorMessagePropertyRaisesEvent", function () {
+        var vm = new authenticator.AuthenticatorViewModel();
+        var authenticationErrorMessageChanged = false;
+        vm.addEventListener("authenticationErrorMessageChanged", function () {
+            authenticationErrorMessageChanged = true;
+        });
+
+        vm.authenticationError = 401;
+        ok(authenticationErrorMessageChanged, "Authentication error didn't change");
+    });
+
     promiseTest("authenticationErrorIsResetWhenReauthenticating", function () {
         var vm = new authenticator.AuthenticatorViewModel();
         var host = new CodevoidTests.UnitTestExperienceHost();
         var authenticationErrorWasReset = false;
+        var authenticationErrorMessageWasReset = false;
 
         Codevoid.UICore.Experiences.initializeHost(host);
 
@@ -426,6 +439,9 @@
             vm.addEventListener("authenticationErrorChanged", function () {
                 if (vm.authenticationError === 0) {
                     authenticationErrorWasReset = true;
+                    if (!vm.authenticationErrorMessage) {
+                        authenticationErrorMessageWasReset = true;
+                    }
                 }
             });
 
@@ -434,6 +450,7 @@
             ok(false, "shouldn't have succeeded");
         }, function () {
             ok(authenticationErrorWasReset, "Should have been reset");
+            ok(authenticationErrorMessageWasReset, "message wasn't reset");
             strictEqual(vm.authenticationError, 401, "Incorrect error code");
         }).then(cleanupExperienceHost);
     });

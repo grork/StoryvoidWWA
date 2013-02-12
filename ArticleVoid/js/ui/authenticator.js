@@ -33,7 +33,7 @@
                     allowUsernameEntryChanged: this._allowUsernameEntryChanged.bind(this),
                     canAuthenticateChanged: this._canAuthenticateChanged.bind(this),
                     isWorkingChanged: this._isWorkingChanged.bind(this),
-                    authenticationErrorChanged: this._authenticationErrorChanged.bind(this),
+                    authenticationErrorMessageChanged: this._authenticationErrorMessageChanged.bind(this),
                 });
                 
                 this._handlersToCleanup.push(cleanup);
@@ -44,18 +44,15 @@
             _allowUsernameEntryChanged: function () {
                 this.usernameInput.disabled = !this.viewModel.allowUsernameEntry;
             },
-            _authenticationErrorChanged: function () {
-                var statusCode = this.viewModel.authenticationError;
-                var messageContent = "";
+            _authenticationErrorMessageChanged: function () {
+                var messageContent = this.viewModel.authenticationErrorMessage;
                 var op = "addClass";
 
-                if (statusCode != 0) {
-                    messageContent = Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(statusCode);
+                if (!messageContent) {
+                    op = "addClass";
                 } else {
-                    messageContent = "";
+                    op = "removeClass"
                 }
-
-                op = (messageContent ? "addClass" : "removeClass");
 
                 this.errorMessage.textContent = messageContent;
                 WinJS.Utilities[op](this.errorMessageContainer, "hide");

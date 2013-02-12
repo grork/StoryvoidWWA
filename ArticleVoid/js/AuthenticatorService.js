@@ -45,8 +45,12 @@
             storage.values.remove(tokenInformationSettingName);
         },
         friendlyMessageForError: function (code) {
-            var message;
+            var message = "";
             switch (code) {
+                case 0:
+                    message = "";
+                    break;
+
                 case 401:
                     message = "Looks like you've type the wrong username, or password for Instapaper. Check them, and give it another try!";
                     break;
@@ -62,8 +66,10 @@
         AuthenticatorViewModel: WinJS.Class.mix(WinJS.Class.define(function () {
             this._evaluateCanAuthenticate = this._evaluateCanAuthenticate.bind(this);
             this._isWorkingChanged = this._isWorkingChanged.bind(this);
+            this._authenticationErrorChanged = this._authenticationErrorChanged.bind(this);
             this.addEventListener("usernameChanged", this._evaluateCanAuthenticate);
             this.addEventListener("isWorkingChanged", this._isWorkingChanged);
+            this.addEventListener("authenticationErrorChanged", this._authenticationErrorChanged);
         }, {
             experience: {
                 wwa: "Codevoid.ArticleVoid.UI.Authenticator",
@@ -72,6 +78,7 @@
             password: property("password", null),
             isWorking: property("isWorking", false),
             authenticationError: property("authenticationError", 0),
+            authenticationErrorMessage: property("authenticationErrorMessage", ""),
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             allowUsernameEntry: property("allowUsernameEntry", true),
@@ -109,7 +116,7 @@
                         return;
                     }
 
-                    this.authenticationError = err.status;
+                    this.authenticationError = err.status || 0;
 
                     // Retry
                     if (!retry) {
@@ -129,6 +136,14 @@
                 } else {
                     this._evaluateCanAuthenticate();
                 }
+            },
+            _authenticationErrorChanged: function () {
+                var message = Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(this.authenticationError);
+                if (this.authenticationErrorMessage === message) {
+                    return;
+                }
+
+                this.authenticationErrorMessage = message;
             },
             authenticate: function (retry) {
                 // Reset authentication state
