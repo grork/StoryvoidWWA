@@ -55,6 +55,10 @@
                     message = "Looks like you've type the wrong username, or password for Instapaper. Check them, and give it another try!";
                     break;
 
+                case 402:
+                    message = "You don't appear to be an Instapaper Subscriber, which you need to be to use your account on non-iOS devices. Sorry :(";
+                    break;
+
                 default:
                     message = "Uh oh! Something went wrong, and we're not sure what. Give it a few moments, check your username & password, and try again. If it still doesn't work,  please contact us and mention error code: '" + code + "'";
                     break;
@@ -100,7 +104,15 @@
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
-                    return accounts.getAccessToken(this.username, this.password);
+                    return accounts.getAccessTokenVerifyIsSubscriber(this.username, this.password);
+                }.bind(this)).then(function (result) {
+                    if (!result.isSubscriber) {
+                        return WinJS.Promise.wrapError({
+                            status: 402,
+                        });
+                    }
+
+                    return result;
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
