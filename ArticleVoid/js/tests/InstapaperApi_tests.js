@@ -333,6 +333,11 @@
             ok(Array.isArray(data.bookmarks), "Expected an array of data")
             strictEqual(data.bookmarks.length, 1, "Expected updated item");
 
+            if (data.bookmarks.length === 0) {
+                start();
+                return;
+            }
+
             var updatedBookmark = data.bookmarks[0];
             equal(updatedBookmark.progress, 0.5, "progress wasn't updated");
             notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
