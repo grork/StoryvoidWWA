@@ -246,6 +246,7 @@
 
                 var templatePromises = templates.map(function (el) {
                     return WinJS.UI.process(el).then(function (control) {
+                        control.disableOptimizedProcessing = true;
                         return {
                             template: control,
                             id: el.getAttribute(templateIdAttributeName),
