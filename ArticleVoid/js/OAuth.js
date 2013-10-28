@@ -194,11 +194,22 @@
 
                 var bodyDataEncoder = new Codevoid.OAuth.ParameterEncoder();
                 var data;
+                var url = this._url;
                 if (this._data) {
-                    data = bodyDataEncoder.getEncodedStringForData(this._data);
+                    switch (this._operation.toLowerCase()) {
+                        case "get":
+                            url += "?" + bodyDataEncoder.getEncodedStringForData(this._data);
+                            break;
+
+                        case "post":
+                            data = bodyDataEncoder.getEncodedStringForData(this._data);
+                            break;
+                    }
+                } else {
+                    data = "";
                 }
 
-                return WinJS.xhr({ type: this._operation, url: this._url, headers: headers, data: data }).then(function oauthXhrSuccess(xhrResult) {
+                return WinJS.xhr({ type: this._operation, url: url, headers: headers, data: data }).then(function oauthXhrSuccess(xhrResult) {
                     return xhrResult.responseText;
                 }, function oauthXhrFailure(xhrError) {
                     var error = {

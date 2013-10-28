@@ -966,6 +966,8 @@
             return instapaperDB.updateReadProgress(localBookmark.bookmark_id, targetProgress);
         }).then(function (progressChanged) {
             updatedBookmark = progressChanged;
+            return (new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+        }).then(function() {
             return getNewSyncEngine().sync({ bookmarks: true, folders: false });
         }).then(function () {
             return WinJS.Promise.join({
