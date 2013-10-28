@@ -56,7 +56,15 @@
     }
 
     function handleSingleItemJSONError(error) {
-        return WinJS.Promise.wrapError(extractSingleItemFromJSONArray(error.response));
+        var result;
+
+        if (error.response) {
+            result = extractSingleItemFromJSONArray(error.response);
+        } else {
+            result = { error: error.status };
+        }
+
+        return WinJS.Promise.wrapError(result);
     }
 
     WinJS.Namespace.define("Codevoid.ArticleVoid.InstapaperApi", {
@@ -257,7 +265,7 @@
                 }
 
                 if ((parameters.progress < 0.0) || (parameters.progress > 1.0)) {
-                    throw new Error("Must have valid progres between 0.0 and 1.0");
+                    throw new Error("Must have valid progress between 0.0 and 1.0");
                 }
 
                 if (!parameters.progress_timestamp) {
@@ -375,7 +383,7 @@
                     }
 
                     return data;
-                });
+                }, handleSingleItemJSONError);
             },
             deleteFolder: function deleteFolder(folder_id) {
                 if (!folder_id) {

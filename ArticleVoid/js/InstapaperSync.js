@@ -95,7 +95,7 @@
                 return this._folders.deleteFolder(edit.removedFolderId).then(null, function (error) {
                     // Folder isn't present on the server, and since we're trying
                     // to delete the thing anyway, this is ok.
-                    if (error && (error.error === 1242)) {
+                    if (error && (error.error === 1242 || error.error === 1250)) {
                         return;
                     }
 
@@ -359,7 +359,7 @@
                                         }
 
                                         return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, function (err) {
-                                            if (err.error === 1242) {
+                                            if (err.error === 1242 || err.error === 1500) {
                                                 return;
                                             }
 

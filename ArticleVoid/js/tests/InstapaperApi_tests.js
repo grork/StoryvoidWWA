@@ -347,7 +347,7 @@
         raises(function () {
             bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Date.now() });
         }, function (ex) {
-            return ex.message === "Must have valid progres between 0.0 and 1.0";
+            return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
     }
 
@@ -357,7 +357,7 @@
         raises(function () {
             bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Date.now() });
         }, function (ex) {
-            return ex.message === "Must have valid progres between 0.0 and 1.0";
+            return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
     }
 
@@ -522,6 +522,7 @@
     test("listShowsAddedBookmark", listShowsAddedBookmark);
     test("listShowsNoDataWithUptodateHaveData", listShowsNoDataWithUptodateHaveData);
     test("updateProgress", updateProgress);
+    test("listWithHaveProgressInfoUpdatesProgress", listWithHaveProgressInfoUpdatesProgress);
     test("updateProgressMoreThan1", updateProgressMoreThan1);
     test("updateProgressLessThan0", updateProgressLessThan0);
     test("listInStarredFolderExpectingNoStarredItems", listInStarredFolderExpectingNoStarredItems);
@@ -601,7 +602,18 @@
             ok(Array.isArray(folders), "Folders should have been an array");
             strictEqual(folders.length, 2, "Shouldn't have found any folders");
 
-            strictEqual(folders[0].title, "folder", "folder title was incorrect");
+            var foundFolderWithCorrectTitle = false;
+            folders.forEach(function (folder) {
+                if (folder.title === "folder") {
+                    if (foundFolderWithCorrectTitle) {
+                        ok(false, "Shouldn't have found more than 1 folder with title 'folder'");
+                    }
+
+                    foundFolderWithCorrectTitle = true;
+                }
+            });
+
+            ok(foundFolderWithCorrectTitle, "folder title was incorrect");
             start();
         }, failedPromiseHandler);
     }
@@ -665,18 +677,27 @@
             ok(Array.isArray(data.bookmarks), "Expected an array of data")
             strictEqual(data.bookmarks.length, 2, "Didn't expect any pre-existing data");
 
-            // Validate the only bookmark
-            var bookmarkData = data.bookmarks[0];
-            strictEqual(bookmarkData.type, "bookmark");
-            strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
-            strictEqual(bookmarkData.title, "TestPage4", "title wasn't expected");
-            strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
+            var bookmarkData;
+            var bookmarkData2;
 
-            var bookmarkData2 = data.bookmarks[1];
+            data.bookmarks.forEach(function (bookmark) {
+                if (bookmark.bookmark_id === bookmarkAddedToFolderId) {
+                    bookmarkData = bookmark;
+                } else if (bookmark.bookmark_id === bookmarkAddedToFolderId2) {
+                    bookmarkData2 = bookmark;
+                }
+            });
+            
+            // Validate the only bookmark
+            strictEqual(bookmarkData.type, "bookmark");
+            strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
+            strictEqual(bookmarkData.title, "TestPage3", "title wasn't expected");
+            strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+
             strictEqual(bookmarkData2.type, "bookmark");
-            strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
-            strictEqual(bookmarkData2.title, "TestPage3", "title wasn't expected");
-            strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+            strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
+            strictEqual(bookmarkData2.title, "TestPage4", "title wasn't expected");
+            strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
 
             start();
         }, failedPromiseHandler);

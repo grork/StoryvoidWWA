@@ -21,6 +21,14 @@
     <script src="/js/ui/core.js"></script>
     <script src="/js/ui/authenticator.js"></script>
     <script src="/js/default.js"></script>
+    <script>
+        WinJS.Namespace.define("Codevoid.ArticleVoid.Tests", {
+            runSpecificTest: function runSpecificTest() {
+                var testToRun = document.getElementById("specificTestToRun").value;
+                window.location.href = "/tests.html?filter=" + testToRun;
+            },
+        });
+    </script>
 </head>
 <body>
     <div>
@@ -48,7 +56,7 @@
         <a href="/tests.html?filter=InstapaperSyncMultipleBookmarkFolders">InstapaperDB Sync Tests (Multiple Bookmark Folders)</a><br />
         <a href="/tests.html?filter=Authenticator">Authenticator</a><br />
         <a href="/tests.html?filter=AuthenticatorViewModel">Authenticator (View Model)</a><br />
-
+        <input id="specificTestToRun" type="search" placeholder="Test to run"/><button onclick="Codevoid.ArticleVoid.Tests.runSpecificTest()">Run Test</button>
         
         <div>Manual Control Tests</div>
         <button onclick="Codevoid.ArticleVoid.UI.Authenticator.showAuthenticator()" type="button">Authenticate</button>
