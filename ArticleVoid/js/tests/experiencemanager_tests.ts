@@ -68,11 +68,13 @@ module CodevoidTests {
         again() {
             this.wasNotified = true;
         }
-        public wasNotified: bool = false;
+        public wasNotified: boolean = false;
     }
 }
 
-(function () {
+module CodevoidTests.ExperienceManagerTests {
+    import HTMLExperienceElement = Codevoid.UICore.HTMLExperienceElement;
+
     QUnit.module("ExperienceManagerWwa");
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
@@ -80,7 +82,7 @@ module CodevoidTests {
 
     test("canInstantiateWwaExperienceManager", function () {
         var container = getPlayground();
-        
+
         var host = new Codevoid.UICore.WwaExperienceHost(container);
 
         ok(host, "No manager found");
@@ -96,7 +98,7 @@ module CodevoidTests {
                 wwa: "Codevoid.UICore.Control"
             },
         };
-        
+
         host.addExperienceForModel(viewModel);
 
         ok(container.children, "No Children collection");
@@ -112,7 +114,7 @@ module CodevoidTests {
                 wwa: "Codevoid.UICore.Control"
             },
         };
-        
+
         host.addExperienceForModel(viewModel);
 
         ok(container.children, "No Children collection");
@@ -126,7 +128,7 @@ module CodevoidTests {
     test("wwaCanAddMoreThanOneExperience", function () {
         var container = getPlayground();
         var host = new Codevoid.UICore.WwaExperienceHost(container);
-        
+
         host.addExperienceForModel({
             experience: {
                 wwa: "Codevoid.UICore.Control",
@@ -209,7 +211,7 @@ module CodevoidTests {
 
         host.addExperienceForModel(experience);
         strictEqual(wwaHost.host.children.length, 1, "Only expected on child");
-        
+
         experienceUIInstance = <CodevoidTests.TestControl>(<Codevoid.UICore.HTMLControlElement>wwaHost.host.children[0]).winControl;
 
         host.removeExperienceForModel(experience);
@@ -229,7 +231,7 @@ module CodevoidTests {
         strictEqual(wwaHost.host.children.length, 1, "Only expected one child");
 
         host.removeExperienceForModel({ experience: {} });
-        
+
         strictEqual(wwaHost.host.children.length, 1, "Only expected one child");
     });
 
@@ -242,7 +244,7 @@ module CodevoidTests {
 
     test("unitCanAddMoreThanOneExperience", function () {
         var host = new CodevoidTests.UnitTestExperienceHost();
-        
+
         var viewModel1 = {
             experience: {
                 unittest: "CodevoidTests.SimpleUnitTestUI",
@@ -271,7 +273,7 @@ module CodevoidTests {
 
     test("canAddSameViewModelTwiceWithoutDuplicates", function () {
         var host = new CodevoidTests.UnitTestExperienceHost();
-        
+
         var viewModel1 = {
             experience: {
                 unittest: "CodevoidTests.SimpleUnitTestUI",
@@ -290,7 +292,7 @@ module CodevoidTests {
 
     test("addingSameViewModelNotifiesViewModel", function () {
         var host = new CodevoidTests.UnitTestExperienceHost();
-        
+
         var viewModel1 = {
             experience: {
                 unittest: "CodevoidTests.SimpleUnitTestUIWithAgain",
@@ -302,7 +304,7 @@ module CodevoidTests {
         strictEqual(host.experiences.length, 1, "Unexpected number of children");
         ok(host.experiences[0].view.viewModel, "No view model found");
         strictEqual(host.experiences[0].view.viewModel, viewModel1, "Incorrect view model found");
-        
+
         ok(!host.getExperienceForModel(viewModel1).wasNotified, "Shouldn't have been notified yet");
 
         host.addExperienceForModel(viewModel1);
@@ -334,7 +336,7 @@ module CodevoidTests {
         strictEqual(unitHost.experiences.length, 1, "Only expected one child");
 
         host.removeExperienceForModel({ experience: {} });
-        
+
         strictEqual(unitHost.experiences.length, 1, "Only expected one child");
     });
 
@@ -353,4 +355,4 @@ module CodevoidTests {
         notStrictEqual(xp, model, "Shouldn't have gotten the model back");
         ok(xp instanceof CodevoidTests.SimpleUnitTestUI, "Incorrect experience created");
     });
-})();
+}

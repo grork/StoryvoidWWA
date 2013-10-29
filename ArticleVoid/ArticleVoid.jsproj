@@ -96,33 +96,28 @@
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
     <None Include="ArticleVoid_TemporaryKey.pfx" />
-    <None Include="js\tests\experiencemanager_tests.ts" />
-    <None Include="js\ui\core.ts" />
+    <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
+    <TypeScriptCompile Include="js\ui\core.ts" />
     <None Include="tsc\libs\codevoid.d.ts" />
     <None Include="tsc\libs\codevoidtest.d.ts" />
-    <None Include="tsc\libs\lib.d.ts" />
     <None Include="tsc\libs\qunit.d.ts" />
     <None Include="tsc\libs\winjs.d.ts" />
     <None Include="tsc\libs\winrt.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
-  <ItemGroup>
-    <AvailableItemName Include="TypeScriptCompile" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="$(ProjectDir)\**\*.ts" Exclude="$(ProjectDir)\**\*.d.ts" />
-  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <ItemGroup>
     <SDKReference Include="Microsoft.WinJS.2.0, Version=1.0" />
   </ItemGroup>
-  <PropertyGroup>
-    <TypeScriptSourceMap> --sourcemap</TypeScriptSourceMap>
-    <VisualStudioVersion>12.0</VisualStudioVersion>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptIncludeComments>true</TypeScriptIncludeComments>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
   </PropertyGroup>
-  <Target Name="BeforeBuild">
-    <Message Text="Compiling TypeScript files" />
-    <Message Text="Executing tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
-    <Exec Command="..\tools\typescript\tsc$(TypeScriptSourceMap) -target ES5 @(TypeScriptCompile ->'&quot;%(fullpath)&quot;', ' ')" />
-  </Target>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptIncludeComments>false</TypeScriptIncludeComments>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" />
 </Project>
