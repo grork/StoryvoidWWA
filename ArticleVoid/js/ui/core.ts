@@ -16,7 +16,7 @@ module Codevoid.UICore {
 
     export interface ExperienceInformation {
         identifier: string;
-        ctor: (container: any, options: ExperienceCreationOptions) => any;
+        ctor: (container: any, options: ExperienceCreationOptions) => void;
     }
 
     export interface HTMLExperienceElement extends HTMLElement {
@@ -71,14 +71,14 @@ module Codevoid.UICore {
         
         private static _currentHost: ExperienceHost;
         public static get currentHost(): ExperienceHost {
-            if (!_currentHost) {
+            if (!Experiences._currentHost) {
                 this._currentHost = new NullExperienceHost();
             }
-            return _currentHost;
+            return Experiences._currentHost;
         }
 
         public static initializeHost(host: ExperienceHost) {
-            _currentHost = host;
+            Experiences._currentHost = host;
         }
     }
 
@@ -102,7 +102,7 @@ module Codevoid.UICore {
                 return;
             }
 
-            var controlElement = document.createElement("div");
+            var controlElement = <HTMLElement>document.createElement("div");
             WinJS.Utilities.addClass(controlElement, "dialog");
             var viewInfo = Experiences.getExperienceForModel(viewModel, ExperienceTypes.WWA);
             controlElement.setAttribute("data-win-control", viewInfo.identifier);
