@@ -78,7 +78,7 @@
     }
 
     function canPostStatusToTwitter() {
-        var url = "http://api.twitter.com/1.1/statuses/update.json";
+        var url = "https://api.twitter.com/1.1/statuses/update.json";
         var request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url);
 
         request.data = [{ key: "status", value: "Test@Status %78 update: " + Date.now() }];
