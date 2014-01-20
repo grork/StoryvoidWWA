@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "ArticleVoid", "ArticleVoid\ArticleVoid.jsproj", "{75649025-5099-4C32-9F57-084461404DDF}"
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "ArticleVoidTest", "ArticleVoidTest\ArticleVoidTest.jsproj", "{75649025-5099-4C32-9F57-084461404DDF}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -9,9 +11,9 @@ Global
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://codevoid.visualstudio.com/defaultcollection
 		SccLocalPath0 = .
-		SccProjectUniqueName1 = ArticleVoid\\ArticleVoid.jsproj
-		SccProjectName1 = ArticleVoid
-		SccLocalPath1 = ArticleVoid
+		SccProjectUniqueName1 = ArticleVoidTest\\ArticleVoidTest.jsproj
+		SccProjectName1 = ArticleVoidTest
+		SccLocalPath1 = ArticleVoidTest
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
