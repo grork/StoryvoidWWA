@@ -47,7 +47,6 @@
 
         stop();
         accounts.verifyCredentials().done(function (verifiedCreds) {
-            strictEqual(verifiedCreds.subscription_is_active, "1", "Subscription not marked as active");
             strictEqual(verifiedCreds.type, "user");
             strictEqual(verifiedCreds.user_id, PLACEHOLDER);
             strictEqual(verifiedCreds.username, "PLACEHOLDER");
@@ -108,7 +107,6 @@
             strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
 
             ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
-            ok(tokenInfo.isSubscriber, "User should have been a subscriber");
         });
     });
 
@@ -119,7 +117,6 @@
             ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
 
             ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
-            ok(!tokenInfo.isSubscriber, "User should have been a subscriber");
         });
     });
 
@@ -309,9 +306,9 @@
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
-        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.98, progress_timestamp: Date.now() }).done(function (data) {
+        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50 }).done(function (data) {
             strictEqual(data.type, "bookmark");
-            equal(data.progress, 0.98);
+            equal(data.progress, 0.2);
             updatedProgressHash = data.hash;
 
             start();
@@ -327,7 +324,7 @@
                 id: justAddedBookmark.bookmark_id,
                 hash: updatedProgressHash,
                 progress: 0.5,
-                progressLastChanged: Date.now()
+                progressLastChanged: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
             }]
         }).done(function (data) {
             ok(Array.isArray(data.bookmarks), "Expected an array of data")
@@ -350,7 +347,7 @@
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
         raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Date.now() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
@@ -360,7 +357,7 @@
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
         raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Date.now() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
@@ -586,7 +583,7 @@
 
         stop();
 
-        var title = Date.now() + "";
+        var title = Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + "";
 
         folders.add(title).then(function () {
             return folders.add(title);

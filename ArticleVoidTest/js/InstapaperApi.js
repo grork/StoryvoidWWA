@@ -75,6 +75,12 @@
             error: 0,
             message: String.empty,
         }),
+        getCurrentTimeAsUnixTimestamp: function getCurrentTimeAsUnixTimestamp() {
+            var timestampInMilliseconds = Date.now();
+            var timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
+
+            return timestampInSeconds;
+        },
         Accounts: WinJS.Class.define(function Accounts_Constructor(clientInformation) {
             this._clientInformation = clientInformation;
         },
@@ -175,6 +181,7 @@
                     if (parameters.folder_id) {
                         data.push({ key: "folder_id", value: parameters.folder_id });
                     }
+
                     if (parameters.have && parameters.have.length) {
                         appassert(Array.isArray(parameters.have, "expected 'have' parameter to be an array"));
                         appassert(parameters.have.length > 0, "didn't actually supply any parameters");
