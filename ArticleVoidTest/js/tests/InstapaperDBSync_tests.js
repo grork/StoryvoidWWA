@@ -950,7 +950,7 @@
 
     promiseTest("localReadProgressIsPushedUp", function () {
         var instapaperDB;
-        var targetProgress = 0.3;
+        var targetProgress = Math.round(Math.random() * 100) / 100;
         var updatedBookmark;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
