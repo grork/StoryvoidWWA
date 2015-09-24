@@ -506,30 +506,4 @@
             strictEqual(states[0], 401, "Expected error code to be 401");
         }).then(cleanupExperienceHost);
     });
-
-    promiseTest("authenticationFailsWithSubscriberErrorWhenNotSubscriber", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
-
-        // Set up the experiences so that we get the unit test engine
-        // rather than the actual U
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: "test2@codevoid.net",
-            password: "PLACEHOLDER",
-        };
-
-        return vm.authenticate().then(function () {
-            ok(false, "Expected to error authentication");
-        }, function (e) {
-            var xp = host.getExperienceForModel(vm);
-            ok(xp, "Expected to find the experience");
-
-            strictEqual(vm.authenticationError, 402, "Expected auth error");
-            strictEqual(vm.authenticationErrorMessage, Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(402), "Wrong error message");
-            ok(true, "Didn't expect to fail authentication");
-        }).then(cleanupExperienceHost);
-    });
 })();

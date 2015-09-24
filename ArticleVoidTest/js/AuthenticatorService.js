@@ -105,14 +105,6 @@
                 credentialPromise.then(function () {
                     this.isWorking = true;
                     return accounts.getAccessTokenVerifyIsSubscriber(this.username, this.password);
-                }.bind(this)).then(function (result) {
-                    if (!result.isSubscriber) {
-                        return WinJS.Promise.wrapError({
-                            status: 402,
-                        });
-                    }
-
-                    return result;
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
