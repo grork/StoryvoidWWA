@@ -319,11 +319,15 @@
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
+        var newProgress = (Math.round(Math.random() * 100) / 100);
+
         bookmarks.list({
             have: [{
                 id: justAddedBookmark.bookmark_id,
-                hash: updatedProgressHash,
-                progress: 0.5,
+                progress: newProgress,
+                hash: "X", // Set hash to something random that causes the service to give us back the new hash.
+                           // If we don't do this and hand up the "current" hash that we currently have, it updates
+                           // the current state, but doesn't tell us that it recomputed the hash.
                 progressLastChanged: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
             }]
         }).done(function (data) {
@@ -336,7 +340,7 @@
             }
 
             var updatedBookmark = data.bookmarks[0];
-            equal(updatedBookmark.progress, 0.5, "progress wasn't updated");
+            equal(updatedBookmark.progress, newProgress, "progress wasn't updated");
             notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
 
             start();

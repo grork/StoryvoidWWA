@@ -695,6 +695,10 @@
 
                     bookmark.progress = progress;
                     bookmark.progress_timestamp = Date.now();
+                    // When upating progress locally, we need to invalidate our hash
+                    // so that the service sees/thinks we've got different local data
+                    // No, I'm not clear why, but thats what they said.
+                    bookmark.hash = Math.random();
 
                     return this.updateBookmark(bookmark);
                 }.bind(this));
