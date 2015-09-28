@@ -47,8 +47,9 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).Default.props" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).props" />
   <PropertyGroup>
-    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
-    <TargetPlatformVersion>8.1</TargetPlatformVersion>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
     <PackageCertificateKeyFile>ArticleVoid_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>5A07CA97892FBD08491C1EEE6595599866451D37</PackageCertificateThumbprint>
@@ -79,6 +80,7 @@
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
+    <Content Include="js\tests\testdefault.js" />
     <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
     <Content Include="js\tests\experiencemanager_tests.js">
@@ -98,6 +100,11 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
+    <Content Include="WinJS\css\ui-light-intrinsics.css" />
+    <Content Include="WinJS\css\ui-light.css" />
+    <Content Include="WinJS\fonts\Symbols.ttf" />
+    <Content Include="WinJS\js\base.js" />
+    <Content Include="WinJS\js\intrinsics.js" />
     <None Include="ArticleVoid_TemporaryKey.pfx" />
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
@@ -110,9 +117,6 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets')" />
-  <ItemGroup>
-    <SDKReference Include="Microsoft.WinJS.2.0, Version=1.0" />
-  </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
   </ItemGroup>

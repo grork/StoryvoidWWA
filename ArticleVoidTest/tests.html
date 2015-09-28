@@ -4,7 +4,7 @@
         <title>ArticleVoid Tests</title>
         
         <!-- WinJS references -->
-        <script src="//Microsoft.WinJS.2.0/js/base.js"></script>
+        <script src="/WinJS/js/base.js"></script>
 
         <!-- QUnit -->
         <link href="/css/tests/qunit.css" rel="stylesheet" />
@@ -32,10 +32,11 @@
         <script src="/js/tests/core_tests.js"></script>
         <script src="/js/tests/experiencemanager_tests.js"></script>
         <script src="/js/tests/authenticator_tests.js"></script>
+        <script src="/js/tests/testdefault.js"></script>
     </head>
     <body>
-        <button onclick="window.close()">Close</button>
-        <button onclick="window.history.back()">Back</button>
+        <button id="closeButton">Close</button>
+        <button id="goBackButton">Back</button>
         <h1 id="qunit-header">ArticleVoid Tests</h1>
         <h2 id="qunit-banner"></h2>
         <ol id="qunit-tests"></ol>

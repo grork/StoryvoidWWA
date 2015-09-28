@@ -103,7 +103,7 @@
 
     module("dbase");
     var dbName = "testDb";
-    var indexedDB = window.msIndexedDB;
+    var indexedDB = window.indexedDB;
     var currentServer;
 
     function before() {

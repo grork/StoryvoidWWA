@@ -1,36 +1,45 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest">
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  IgnorableNamespaces="uap mp">
+
   <Identity Name="Codevoid.ArticleVoidTest" Version="1.0.0.0" Publisher="CN=Codevoid" />
+  
+  <mp:PhoneIdentity PhoneProductId="07e8e7e7-dbd8-4a78-b4c1-2da884a2d8fd" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
   <Properties>
     <DisplayName>ArticleVoidTest</DisplayName>
     <Description>ArticleVoid</Description>
     <PublisherDisplayName>Codevoid</PublisherDisplayName>
     <Logo>images\storelogo.png</Logo>
   </Properties>
-  <Prerequisites>
-    <OSMinVersion>6.3.0</OSMinVersion>
-    <OSMaxVersionTested>6.3.0</OSMaxVersionTested>
-  </Prerequisites>
+  
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+
   <Resources>
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
     <Application Id="App" StartPage="default.html">
-      <ApplicationContentUriRules>
-        <Rule Match="https://api.twitter.com" Type="include" />
-      </ApplicationContentUriRules>
-      <m2:VisualElements DisplayName="ArticleVoidTest" Description="ArticleVoidTest" BackgroundColor="#000000" ForegroundText="light" Square150x150Logo="images\logo.png" Square30x30Logo="images\smalllogo.png">
-        <m2:DefaultTile>
-          <m2:ShowNameOnTiles>
-            <m2:ShowOn Tile="square150x150Logo" />
-          </m2:ShowNameOnTiles>
-        </m2:DefaultTile>
-        <m2:SplashScreen Image="images\splashscreen.png" />
-      </m2:VisualElements>
+      <uap:ApplicationContentUriRules>
+        <uap:Rule Match="https://api.twitter.com" Type="include" WindowsRuntimeAccess="none" />
+      </uap:ApplicationContentUriRules>
+      <uap:VisualElements
+        DisplayName="ArticleVoidTest"
+        Description="ArticleVoidTest"
+        BackgroundColor="transparent"
+        ForegroundText="light"
+        Square150x150Logo="images\logo.png"
+        Square44x44Logo="images\smalllogo.png">
+        <uap:SplashScreen Image="images\splashscreen.png" />
+      </uap:VisualElements>
     </Application>
   </Applications>
   <Capabilities>
-    <Capability Name="privateNetworkClientServer" />
     <Capability Name="internetClient" />
   </Capabilities>
 </Package>
