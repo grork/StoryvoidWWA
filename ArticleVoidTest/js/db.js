@@ -3,7 +3,7 @@
 
 (function (window) {
     'use strict';
-    var indexedDB = window.msIndexedDB,
+    var indexedDB = window.indexedDB,
         IDBDatabase = window.IDBDatabase,
         IDBTransaction = window.IDBTransaction,
         IDBKeyRange = window.IDBKeyRange,

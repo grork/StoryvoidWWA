@@ -3,15 +3,19 @@
 (function () {
     "use strict";
 
-    var app = WinJS.Application;
+    WinJS.Namespace.define("Codevoid.ArticleVoid.Tests", {
+        runSpecificTest: function runSpecificTest() {
+            var testToRun = document.getElementById("specificTestToRun").value;
+            window.location.href = "/tests.html?filter=" + testToRun;
+        },
+    });
 
-    // This function responds to all application activations.
-    app.onactivated = function (eventObject) {
-        if (eventObject.detail.kind === Windows.ApplicationModel.Activation.ActivationKind.launch) {
-            // TODO: Initialize your application here.
-            WinJS.UI.processAll();
-        }
-    };
 
-    app.start();
+    WinJS.Utilities.ready().then(function () {
+        var authenticateTestButton = document.getElementById("authenticateButton");
+        authenticateTestButton.addEventListener("click", Codevoid.ArticleVoid.UI.Authenticator.showAuthenticator);
+
+        var runSpecificTestButton = document.getElementById("runSpecificTestButton");
+        runSpecificTestButton.addEventListener("click", Codevoid.ArticleVoid.Tests.runSpecificTest);
+    });
 })();
