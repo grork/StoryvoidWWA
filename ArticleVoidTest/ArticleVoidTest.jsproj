@@ -41,7 +41,7 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
-    <TypeScriptToolsVersion>1.5</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>1.6</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).Default.props" />
@@ -51,8 +51,8 @@
     <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>ArticleVoid_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>5A07CA97892FBD08491C1EEE6595599866451D37</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>ArticleVoidTest_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>CB5DB13FEA5B0104F47B255DB6F08F05DCD5E5AE</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>$(USERPROFILE)\Desktop\TempProjects\$(MSBuildProjectName)\bin\$(Configuration)</OutputPath>
@@ -61,6 +61,7 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="ArticleVoidTest_TemporaryKey.pfx" />
     <Content Include="css\tests\qunit.css" />
     <Content Include="HtmlTemplates.html" />
     <Content Include="js\AuthenticatorService.js" />
@@ -105,7 +106,6 @@
     <Content Include="WinJS\fonts\Symbols.ttf" />
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
-    <None Include="ArticleVoid_TemporaryKey.pfx" />
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
