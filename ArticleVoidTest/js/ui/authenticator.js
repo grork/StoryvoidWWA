@@ -21,6 +21,7 @@
                 this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(element, this));
                 Codevoid.Utilities.DOM.marryPartsToControl(element, this);
                 this._initializeViewModelListeners();
+
                 WinJS.Promise.timeout().then(function () {
                     this.usernameInput.focus();
                 }.bind(this));
