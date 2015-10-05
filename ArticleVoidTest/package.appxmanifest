@@ -32,7 +32,6 @@
         DisplayName="ArticleVoidTest"
         Description="ArticleVoidTest"
         BackgroundColor="transparent"
-        ForegroundText="light"
         Square150x150Logo="images\logo.png"
         Square44x44Logo="images\smalllogo.png">
         <uap:SplashScreen Image="images\splashscreen.png" />
