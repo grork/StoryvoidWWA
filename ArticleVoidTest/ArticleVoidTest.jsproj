@@ -108,11 +108,11 @@
     <Content Include="WinJS\js\intrinsics.js" />
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
+    <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoid.d.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
     <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
-    <TypeScriptCompile Include="tsc\libs\winjs.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
