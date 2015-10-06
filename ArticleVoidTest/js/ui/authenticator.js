@@ -113,7 +113,7 @@
             showAuthenticator: function () {
                 Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
                 var vm = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
-                vm.authenticate(true).then(null, function () { });
+                vm.authenticate(true).done(null, function () { });
             },
         }),
     });
