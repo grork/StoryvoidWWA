@@ -1,6 +1,4 @@
-﻿/// <reference path="../scripts/typings/winjs/winjs.d.ts" />
-
-module Codevoid.ArticleVoid {
+﻿module Codevoid.ArticleVoid {
     export class App {
         constructor() {
         }
