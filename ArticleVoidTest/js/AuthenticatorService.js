@@ -15,6 +15,14 @@
             token: tokenSettingName,
             secret: tokenSecretSettingName,
         },
+        hasStoredCredentials: function hasStoredCredentials() {
+            var store = Windows.Storage.ApplicationData.current.roamingSettings;
+            var tokens = store.values[tokenInformationSettingName];
+            
+            return (tokens
+                && tokens.hasKey(tokenSettingName)
+                && tokens.hasKey(tokenSecretSettingName));
+        },
         getClientInformation: function getClientInformation(overrideCredentials) {
             var store = Windows.Storage.ApplicationData.current.roamingSettings;
             var tokens = store.values[tokenInformationSettingName];
