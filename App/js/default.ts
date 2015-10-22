@@ -1,38 +1,19 @@
 ﻿module Codevoid.ArticleVoid {
     export class App {
-        private _loginEvents: Codevoid.Utilities.ICancellable;
-        private _clearCredsEvents: Codevoid.Utilities.ICancellable;
-        private _isSignedIn: boolean = false;
-
         constructor() {
         }
 
         public initialize(): void {
-            var loginButton = <HTMLElement>document.querySelector("[data-cv-id=loginButton]");
-            this._loginEvents = Codevoid.Utilities.addEventListeners(loginButton, {
-                click: () => {
-                    Codevoid.ArticleVoid.UI.Authenticator.showAuthenticator().done((result: Codevoid.OAuth.ClientInformation) => {
-                        loginButton.innerText = "Logged In";
-                    }, () => {
-                        loginButton.innerText = "Failed";
-                    });
-                },
-            });
+            Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
-            var clearCredsButton = document.querySelector("[data-cv-id=clearCredentials]");
-            this._clearCredsEvents = Codevoid.Utilities.addEventListeners(clearCredsButton, {
-                click: () => {
+            if (!Codevoid.ArticleVoid.Authenticator.hasStoredCredentials()) {
+                WinJS.Utilities.empty(document.body);
+                Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new Codevoid.ArticleVoid.UI.SignedOutViewModel());
+            } else {
+                document.querySelector("[data-cv-id=clearCreds]").addEventListener("click", () => {
                     Codevoid.ArticleVoid.Authenticator.clearClientInformation();
-                }
-            });
-
-            if (Codevoid.ArticleVoid.Authenticator.hasStoredCredentials()) {
-                loginButton.innerText = "Already Authed!"
+                });
             }
-        }
-
-        public get isSignedIn(): boolean {
-            return this._isSignedIn;
         }
     }
 

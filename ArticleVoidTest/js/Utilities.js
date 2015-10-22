@@ -229,6 +229,13 @@
             Codevoid.Utilities.DOM.disposeOfControlTree(element);
             element.innerHTML = "";
         },
+        setControlAttribute: function(element, controlClassName) {
+            if (element.hasAttribute("data-win-control")) {
+                return;
+            }
+
+            element.setAttribute("data-win-control", controlClassName);
+        },
         loadTemplate: function (path, id) {
             var templateCacheKey = path + "#" + id;
             var template = templateCache[templateCacheKey];

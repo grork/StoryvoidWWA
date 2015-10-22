@@ -12,6 +12,7 @@
 
 
     WinJS.Utilities.ready().then(function () {
+        Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
         var authenticateTestButton = document.getElementById("authenticateButton");
         authenticateTestButton.addEventListener("click", Codevoid.ArticleVoid.UI.Authenticator.showAuthenticator);
 
