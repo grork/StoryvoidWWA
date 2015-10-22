@@ -102,7 +102,6 @@ module Codevoid.UICore {
             }
 
             var controlElement = <HTMLElement>document.createElement("div");
-            WinJS.Utilities.addClass(controlElement, "dialog");
             var viewInfo = Experiences.getExperienceForModel(viewModel, ExperienceTypes.WWA);
             controlElement.setAttribute("data-win-control", viewInfo.identifier);
             (<HTMLControlElement>controlElement).winControl = new viewInfo.ctor(controlElement, { viewModel: viewModel });

@@ -5,8 +5,9 @@
     WinJS.Namespace.define("Codevoid.ArticleVoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {
             this._handlersToCleanup = [];
-            element = element || document.createElement("div");
             this.base(element, options);
+
+            WinJS.Utilities.addClass(element, "dialog");
 
             Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
                 return template.render(null, element);
@@ -14,9 +15,7 @@
                 // Make sure we set the attribute after, since when we render
                 // the template on our own element, it'll process the win-control
                 // attribute and create two of them. This would be bad, mmmkay?
-                if (!element.hasAttribute("data-win-control")) {
-                    element.setAttribute("data-win-control", "Codevoid.ArticleVoid.UI.Authenticator");
-                }
+                Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.Authenticator");
 
                 this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(element, this));
                 Codevoid.Utilities.DOM.marryPartsToControl(element, this);
@@ -111,7 +110,6 @@
             }),
         }, {
             showAuthenticator: function () {
-                Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
                 return Codevoid.ArticleVoid.Authenticator.getClientInformation();
             },
         }),

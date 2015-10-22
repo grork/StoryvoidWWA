@@ -113,6 +113,10 @@
     <Content Include="js\default.js">
       <DependentUpon>default.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\SignedOutExperience.ts" />
+    <Content Include="js\ui\SignedOutExperience.js">
+      <DependentUpon>SignedOutExperience.ts</DependentUpon>
+    </Content>
     <Content Include="packages.config" />
     <Content Include="WinJS\css\ui-light-intrinsics.css" />
     <Content Include="WinJS\css\ui-light.css" />
