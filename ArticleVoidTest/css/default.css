@@ -21,7 +21,7 @@ body {
 }
 
 .hide {
-    display: none;
+    display: none !important;
 }
 
 .dialog > div {
@@ -33,56 +33,64 @@ body {
 
 .authenticator {
     display: -ms-grid;
-                /* 1    2    3    4    5    6    7    8    9    10   11   12   13 */
+    /* 1    2    3    4    5    6    7    8    9    10   11   12   13 */
     -ms-grid-rows: 20px auto 10px auto auto 10px auto 10px auto 10px auto 20px auto;
     -ms-grid-columns: 300px;
 }
 
-.authenticator > .subscriptionInformationContainer {
-    -ms-grid-row: 2;
-}
+    .authenticator > .subscriptionInformationContainer {
+        -ms-grid-row: 2;
+    }
 
-.authenticator > .errorMessageContainer.hide {
-    display: none;
-}
+    .authenticator > .errorMessageContainer.hide {
+        display: none;
+    }
 
-.authenticator > .errorMessageContainer {
-    -ms-grid-row: 4;
-    display: -ms-grid;
-    -ms-grid-rows: auto 10px;
-}
+    .authenticator > .errorMessageContainer {
+        -ms-grid-row: 4;
+        display: -ms-grid;
+        -ms-grid-rows: auto 10px;
+    }
 
-.authenticator > .usernameLabel {
-    -ms-grid-row: 5;
-}
+    .authenticator > .usernameLabel {
+        -ms-grid-row: 5;
+    }
 
-.authenticator > .usernameInput {
-    -ms-grid-row: 7;
-    width: 100%;
-}
+    .authenticator > .usernameInput {
+        -ms-grid-row: 7;
+        width: 100%;
+    }
 
-.authenticator > .passwordLabel {
-    -ms-grid-row: 9;
-}
+    .authenticator > .passwordLabel {
+        -ms-grid-row: 9;
+    }
 
-.authenticator > .passwordInput {
-    -ms-grid-row: 11;
-    width: 100%;
-}
+    .authenticator > .passwordInput {
+        -ms-grid-row: 11;
+        width: 100%;
+    }
 
-.authenticator > .buttonsContainer {
-    -ms-grid-row: 13;
-    display: -ms-flexbox;
-    -ms-flex-wrap: nowrap;
-    -ms-flex-direction: row;
-    -ms-flex-pack: distribute;
-}
+    .authenticator > .buttonsContainer {
+        -ms-grid-row: 13;
+        display: -ms-flexbox;
+        -ms-flex-wrap: nowrap;
+        -ms-flex-direction: row;
+        -ms-flex-pack: distribute;
+    }
 
-.authenticator > .workingContainer {
-    background-color: rgba(255, 255, 255, 0.36);
-    -ms-grid-column: 1;
-    -ms-grid-row: 1;
-    -ms-grid-row-span: 13;
-    width: 100%;
-    height: 100%;
-}
+    .authenticator > .workingContainer {
+        background-color: rgba(255, 255, 255, 0.36);
+        -ms-grid-column: 1;
+        -ms-grid-row: 1;
+        -ms-grid-row-span: 13;
+        width: 100%;
+        height: 100%;
+        display: -ms-grid;
+        -ms-grid-columns: 1fr;
+        -ms-grid-rows: 1fr;
+    }
+
+        .authenticator > .workingContainer > progress {
+            -ms-grid-column-align: center;
+            -ms-grid-row-align: center;
+        }

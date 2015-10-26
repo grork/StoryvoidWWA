@@ -7,8 +7,8 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
+            WinJS.Utilities.addClass(element, "signedOut-container");
             DOM.loadTemplate("/HtmlTemplates.html", "signedOut").then((template) => {
-                WinJS.Utilities.addClass(element.parentElement, "signedOut-container");
                 return template.render(null, element);
             }).done(() => {
                 DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
@@ -20,7 +20,7 @@
         public startLogin(): void {
             this.viewModel.startLogin().done((successful: boolean) => {
                 if (successful) {
-                    this._loginButton.innerText = "Logged In";
+                    Codevoid.ArticleVoid.App.instance.signedIn();
                 } else {
                     this._loginButton.innerText = "Failed";
                 }

@@ -26,7 +26,7 @@
 
         public signOut(): void {
             this.viewModel.signOut();
-            this._signOutButton.innerText = "Signed out";
+            Codevoid.ArticleVoid.App.instance.signedOut();
         }
     }
 
