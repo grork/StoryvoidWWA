@@ -113,6 +113,10 @@
     <Content Include="js\default.js">
       <DependentUpon>default.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
+    <Content Include="js\ui\SignedInExperience.js">
+      <DependentUpon>SignedInExperience.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\SignedOutExperience.ts" />
     <Content Include="js\ui\SignedOutExperience.js">
       <DependentUpon>SignedOutExperience.ts</DependentUpon>
@@ -130,9 +134,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="js\ui\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />

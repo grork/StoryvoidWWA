@@ -5,14 +5,13 @@
 
         public initialize(): void {
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
+            var signedInElement = <HTMLElement>document.body.firstElementChild;
 
             if (!Codevoid.ArticleVoid.Authenticator.hasStoredCredentials()) {
-                WinJS.Utilities.empty(document.body);
+                WinJS.Utilities.addClass(signedInElement, "hide");
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new Codevoid.ArticleVoid.UI.SignedOutViewModel());
             } else {
-                document.querySelector("[data-cv-id=clearCreds]").addEventListener("click", () => {
-                    Codevoid.ArticleVoid.Authenticator.clearClientInformation();
-                });
+                (<Codevoid.UICore.WwaExperienceHost>Codevoid.UICore.Experiences.currentHost).createExperienceWithModel(signedInElement, new Codevoid.ArticleVoid.UI.SignedInViewModel());
             }
         }
     }

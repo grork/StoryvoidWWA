@@ -22,6 +22,12 @@ declare module Codevoid.OAuth {
 declare module Codevoid.ArticleVoid.Authenticator {
     export function hasStoredCredentials(): boolean;
     export function clearClientInformation(): void;
+    export function getClientInformation(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+    export class AuthenticatorViewModel {
+        constructor();
+
+        authenticate(retry?: boolean): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+    }
 }
 
 declare module Codevoid.ArticleVoid.UI {

@@ -102,12 +102,15 @@ module Codevoid.UICore {
             }
 
             var controlElement = <HTMLElement>document.createElement("div");
+            this.createExperienceWithModel(controlElement, viewModel);
+            this.host.appendChild(controlElement);
+        }
+
+        createExperienceWithModel(controlElement: HTMLElement, viewModel: ViewModel) {
             var viewInfo = Experiences.getExperienceForModel(viewModel, ExperienceTypes.WWA);
             controlElement.setAttribute("data-win-control", viewInfo.identifier);
             (<HTMLControlElement>controlElement).winControl = new viewInfo.ctor(controlElement, { viewModel: viewModel });
             (<HTMLExperienceElement>controlElement).model = viewModel;
-
-            this.host.appendChild(controlElement);
         }
 
         removeExperienceForModel(viewModel: ViewModel) {

@@ -22,9 +22,13 @@
     <script src="/js/ui/core.js"></script>
     <script src="/js/ui/authenticator.js"></script>
     <script src="/js/ui/SignedOutExperience.js"></script>
+    <script src="/js/ui/SignedInExperience.js"></script>
     <script src="/js/default.js"></script>
 </head>
 <body class="win-type-body">
-    <button data-cv-id="clearCreds">Clear Creds</button>
+    <div class="signedIn-container">
+        <button data-part="_signOutButton"
+                data-event="{ click: signOut }">Sign out</button>
+    </div>
 </body>
 </html>

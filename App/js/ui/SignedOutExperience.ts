@@ -3,10 +3,12 @@
     export class SignedOutExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _loginButton: HTMLElement;
+        private viewModel: SignedOutViewModel;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
             DOM.loadTemplate("/HtmlTemplates.html", "signedOut").then((template) => {
+                WinJS.Utilities.addClass(element.parentElement, "signedOut-container");
                 return template.render(null, element);
             }).done(() => {
                 DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
@@ -16,17 +18,27 @@
         }
 
         public startLogin(): void {
-            Codevoid.ArticleVoid.UI.Authenticator.showAuthenticator().done((result: Codevoid.OAuth.ClientInformation) => {
-                this._loginButton.innerText = "Logged In";
-            }, () => {
-                this._loginButton.innerText = "Failed";
+            this.viewModel.startLogin().done((successful: boolean) => {
+                if (successful) {
+                    this._loginButton.innerText = "Logged In";
+                } else {
+                    this._loginButton.innerText = "Failed";
+                }
             });
         }
     }
 
-    export class SignedOutViewModel {
+    export class SignedOutViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedOutExperience" };
         constructor() {
+        }
+
+        public startLogin(): WinJS.Promise<boolean> {
+            return Codevoid.ArticleVoid.Authenticator.getClientInformation().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
+                return true;
+            }, () => {
+                return false;
+            });
         }
     }
 
