@@ -1,5 +1,8 @@
 ﻿body {
-    margin: 10px;
+    overflow: auto;
+}
+body > div {
+    box-sizing: border-box;
 }
 
 .dialog {
@@ -23,6 +26,20 @@
     -ms-grid-column: 1;
     -ms-grid-column-align: center;
     -ms-grid-row-align: center;
+}
+
+.signedIn-container {
+    width: 100vw;
+    height: 100vh;
+    background-color: pink;
+    padding: 10px;
+}
+
+.signedOut-container {
+    width: 100vw;
+    height: 100vh;
+    background-color: lightblue;
+    padding: 10px;
 }
 
 .authenticator {
