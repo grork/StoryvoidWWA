@@ -13,10 +13,11 @@
         public initialize(): void {
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
-            if (!Codevoid.ArticleVoid.Authenticator.hasStoredCredentials()) {
+            var credentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            if (!credentials) {
                 this.signedOut();
             } else {
-                this.signedIn();
+                this.signedIn(credentials);
             }
         }
 
@@ -27,7 +28,7 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this._signedOutViewModel);
         }
 
-        public signedIn(): void {
+        public signedIn(credentials: Codevoid.OAuth.ClientInformation): void {
             var signedInElement = <HTMLElement>document.body.firstElementChild;
             if (!this._signedInViewModel) {
                 this._signedInViewModel = new Codevoid.ArticleVoid.UI.SignedInViewModel();

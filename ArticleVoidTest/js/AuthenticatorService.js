@@ -15,22 +15,24 @@
             token: tokenSettingName,
             secret: tokenSecretSettingName,
         },
-        hasStoredCredentials: function hasStoredCredentials() {
+        getStoredCredentials: function getStoredCredentials() {
             var store = Windows.Storage.ApplicationData.current.roamingSettings;
             var tokens = store.values[tokenInformationSettingName];
             
-            return (tokens
+            if(tokens
                 && tokens.hasKey(tokenSettingName)
-                && tokens.hasKey(tokenSecretSettingName));
+                && tokens.hasKey(tokenSecretSettingName)) {
+                return new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]);
+            }
+
+            return null;
         },
         getClientInformation: function getClientInformation(overrideCredentials) {
             var store = Windows.Storage.ApplicationData.current.roamingSettings;
-            var tokens = store.values[tokenInformationSettingName];
             
-            if (tokens
-                && tokens.hasKey(tokenSettingName)
-                && tokens.hasKey(tokenSecretSettingName)) {
-                return WinJS.Promise.as(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
+            var storedCredentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            if (storedCredentials) {
+                return WinJS.Promise.as(storedCredentials);
             }
 
             var authenticator = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();

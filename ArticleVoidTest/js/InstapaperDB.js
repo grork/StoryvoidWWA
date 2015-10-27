@@ -111,7 +111,7 @@
                 /// Returns a snap-shotted state of the current folders. This is
                 /// not a live collection, and thus doesn't refect changes
                 /// </summary>
-                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable).execute()
+                return this._db.query(Codevoid.ArticleVoid.InstapaperDB.DBFoldersTable).execute();
             }),
             addFolder: checkDb(function addFolder(folder, dontAddPendingEdit) {
                 /// <summary>
