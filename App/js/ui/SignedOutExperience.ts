@@ -18,9 +18,9 @@
         }
 
         public startLogin(): void {
-            this.viewModel.startLogin().done((successful: boolean) => {
-                if (successful) {
-                    Codevoid.ArticleVoid.App.instance.signedIn();
+            this.viewModel.startLogin().done((clientInfo: Codevoid.OAuth.ClientInformation) => {
+                if (clientInfo) {
+                    Codevoid.ArticleVoid.App.instance.signedIn(clientInfo);
                 } else {
                     this._loginButton.innerText = "Failed";
                 }
@@ -33,11 +33,11 @@
         constructor() {
         }
 
-        public startLogin(): WinJS.Promise<boolean> {
+        public startLogin(): WinJS.Promise<Codevoid.OAuth.ClientInformation> {
             return Codevoid.ArticleVoid.Authenticator.getClientInformation().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
-                return true;
+                return clientInfo;
             }, () => {
-                return false;
+                return null;
             });
         }
     }

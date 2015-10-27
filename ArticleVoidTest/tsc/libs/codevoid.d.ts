@@ -19,8 +19,15 @@ declare module Codevoid.OAuth {
     }
 }
 
+declare module Codevoid.ArticleVoid {
+    export class InstapaperSync {
+        constructor(clientInformation: Codevoid.OAuth.ClientInformation);
+        sync(): WinJS.Promise<void>;
+    }
+}
+
 declare module Codevoid.ArticleVoid.Authenticator {
-    export function hasStoredCredentials(): boolean;
+    export function getStoredCredentials(): Codevoid.OAuth.ClientInformation;
     export function clearClientInformation(): void;
     export function getClientInformation(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
     export class AuthenticatorViewModel {

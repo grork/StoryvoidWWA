@@ -27,8 +27,19 @@
 </head>
 <body class="win-type-body">
     <div class="signedIn-container">
-        <button data-part="_signOutButton"
-                data-event="{ click: signOut }">Sign out</button>
+        <div class="signedIn-commands">
+            <button data-part="_signOutButton"
+                    data-event="{ click: signOut }">
+                Sign out
+            </button>
+            <button data-event="{ click: startSync }">
+                Sync
+            </button>
+        </div>
+        <div class="signedIn-content"
+             data-part="_content">
+
+        </div>
     </div>
 </body>
 </html>
