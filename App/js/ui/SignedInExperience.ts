@@ -5,7 +5,7 @@
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         constructor() {
-            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getClientInformation();
+            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
         }
 
         public signOut(): void {
@@ -13,8 +13,8 @@
             Codevoid.ArticleVoid.App.instance.signedOut();
         }
 
-        public startSync(): WinJS.Promise<any> {
-            return WinJS.Promise.as();
+        public getSyncEngine(): Codevoid.ArticleVoid.InstapaperSync {
+            return new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
         }
     }
 
@@ -40,11 +40,48 @@
             var startEl = document.createElement("div");
             startEl.innerText = "Starting Sync";
             this._content.appendChild(startEl);
-            this.viewModel.startSync().done(() => {
-                var endEl = document.createElement("div");
-                endEl.innerText = "Ending Sync";
-                this._content.appendChild(endEl);
+
+            var sync = this.viewModel.getSyncEngine();
+            sync.addEventListener("syncstatusupdate", (eventData) => {
+                var el = document.createElement("div");
+                switch (eventData.detail.operation) {
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
+                        el.innerText = "Started";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
+                        el.innerText = "Ended";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
+                        el.innerText = "Folders Started";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
+                        el.innerText = "Folders Ended";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
+                        el.innerText = "Bookmarks Start";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
+                        el.innerText = "Bookmarks End";
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
+                        el.innerText = "Folder Synced: " + eventData.detail.title;
+                        break;
+
+                    default:
+                        el.innerText = "Unknown Event: " + eventData.detail.operation;
+                        break;
+                }
+
+                this._content.appendChild(el);
             });
+
+            sync.sync();
         }
     }
 
