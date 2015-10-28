@@ -26,7 +26,7 @@
     }
 
     WinJS.Namespace.define("Codevoid.ArticleVoid", {
-        InstapaperSync: WinJS.Class.define(function (clientInformation) {
+        InstapaperSync: WinJS.Class.mix(WinJS.Class.define(function (clientInformation) {
             this._clientInformation = clientInformation;
         }, {
             _clientInformation: null,
@@ -49,6 +49,9 @@
 
                     return this._bookmarksStorage;
                 }
+            },
+            _raiseStatusChanged: function(payload) {
+                this.dispatchEvent("syncstatusupdate", payload);
             },
             _addFolderPendingEdit: function _addFolderPendingEdit(edit, db) {
                 return WinJS.Promise.join({
@@ -103,6 +106,8 @@
                 });
             },
             _syncFolders: function _syncFolders(db, folders) {
+                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart });
+
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
 
@@ -140,6 +145,11 @@
                         var synced = db.getFolderFromFolderId(rf.folder_id).then(function (lf) {
                             var done = WinJS.Promise.as();
 
+                            this._raiseStatusChanged({
+                                operation: Codevoid.ArticleVoid.InstapaperSync.Operation.folder,
+                                title: rf.title,
+                            });
+
                             if (!lf) {
                                 done = db.addFolder(rf, true);
                             } else {
@@ -150,11 +160,11 @@
                             }
 
                             return done;
-                        });
+                        }.bind(this));
 
                         data.push(synced);
                         return data;
-                    }, []);
+                    }.bind(this), []);
 
                     // Find all the folders that are not on the server, that
                     // we have locally.
@@ -176,11 +186,12 @@
                     }, syncs);
 
                     return WinJS.Promise.join(syncs);
-                }).then(function () {
+                }.bind(this)).then(function () {
                     // Make sure there aren't any pending local edits, given we should have
                     // sync'd everything.
 
                     return db.getPendingFolderEdits().then(function (edits) {
+                        this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd });
                         // No edits? NO worries!
                         if (!edits || (edits.length < 1)) {
                             return;
@@ -188,11 +199,12 @@
 
                         debugger;
                         return WinJS.Promise.wrapError(new Error("There are pending folder edits. Didn't expect any pending folder edits"));
-                    });
-                });
+                    }.bind(this));
+                }.bind(this));
             },
             syncBookmarks: function syncBookmarks(db, options) {
                 var promise = WinJS.Promise.as();
+                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart });
 
                 if (!options.singleFolder) {
                     promise = this._syncBookmarkPendingAdds(db).then(function () {
@@ -305,13 +317,15 @@
                         mergedEdits.concat(edits[p]);
                     });
 
+                    this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd });
+
                     if (!mergedEdits.length) {
                         return;
                     }
 
                     debugger;
                     return WinJS.Promise.wrapError(new Error("There pending bookmark edits still found. Incomplete sync"));
-                });
+                }.bind(this));
             },
             _syncBookmarkPendingAdds: function _syncBookmarkPendingAdds(db) {
                 var b = this._bookmarks;
@@ -551,6 +565,7 @@
 
                 var db = new InstapaperDB();
 
+                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.start });
                 return db.initialize().then(function startSync() {
                     if (!syncFolders) {
                         return;
@@ -569,9 +584,21 @@
                         _testPerFolderCallback: options._testPerFolderCallback,
                     });
                 }.bind(this)).then(function () {
+                    this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.end });
                     return WinJS.Promise.timeout();
                 }.bind(this));
             },
-        }),
+        }, {
+            Operation: {
+                start: "start",
+                end: "end",
+                foldersStart: "foldersStart",
+                foldersEnd: "foldersEnd",
+                bookmarksStart: "bookmarksStart",
+                bookmarksEnd: "bookmarksEnd",
+                folder: "folder",
+                bookmark: "bookmark",
+            }
+        }), WinJS.Utilities.eventMixin),
     });
 })();

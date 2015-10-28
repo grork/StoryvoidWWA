@@ -1598,7 +1598,66 @@
         var instapaperDB;
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
-        return getNewSyncEngine().sync().then(function () {
+        var syncEngine = getNewSyncEngine();
+        var startCount = 0;
+        var endCount = 0;
+        var foldersStarted = 0;
+        var foldersEnded = 0;
+        var foldersSynced = 0;
+        var bookmarksStarted = 0;
+        var bookmarksEnded = 0;
+        var unknown = 0;
+
+        syncEngine.addEventListener("syncstatusupdate", function (e) {
+            var detail = e.detail;
+            switch (detail.operation) {
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
+                    startCount++;
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
+                    endCount++;
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
+                    foldersStarted++;
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
+                    foldersEnded++;
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
+                    if (detail.title) {
+                        foldersSynced++;
+                    }
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
+                    bookmarksStarted++;
+                    break;
+
+                case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
+                    bookmarksEnded++;
+                    break;
+
+                default:
+                    unknown = 0;
+                    break;
+            }
+        });
+        
+        return syncEngine.sync().then(function () {
+            strictEqual(unknown, 0, "Unexpected Unknown count");
+            strictEqual(startCount, 1, "Unexpected Start count");
+            strictEqual(endCount, 1, "Unexpected End count");
+            strictEqual(startCount, 1, "Unexpected Start count");
+            strictEqual(foldersStarted, 1, "Wrong number of folders started");
+            strictEqual(foldersEnded, 1, "Wrong number of folders ended");
+            strictEqual(foldersSynced, 2, "Wrong number of folders");
+            strictEqual(bookmarksStarted, 1, "Unexpected bookmarks started");
+            strictEqual(bookmarksEnded, 1, "Unexpected bookmarks ended");
+
             return getNewInstapaperDBAndInit();
         }).then(function (idb) {
             instapaperDB = idb;

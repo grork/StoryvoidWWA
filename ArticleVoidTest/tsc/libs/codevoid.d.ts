@@ -20,9 +20,25 @@ declare module Codevoid.OAuth {
 }
 
 declare module Codevoid.ArticleVoid {
+    export class SyncOperation {
+        start: string;
+        end: string;
+        foldersStart: string;
+        foldersEnd: string;
+        bookmarksStart: string;
+        bookmarksEnd: string;
+        folder: string;
+        bookmark: string;
+    }
+    export interface ISyncStatusUpdate {
+        operation: string;
+        title: string;
+    }
     export class InstapaperSync {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
+        addEventListener(name: string, handler: (eventData: { detail: ISyncStatusUpdate }) => void);
         sync(): WinJS.Promise<void>;
+        static Operation: SyncOperation;
     }
 }
 
