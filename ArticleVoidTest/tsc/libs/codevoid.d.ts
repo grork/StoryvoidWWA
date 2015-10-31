@@ -40,6 +40,12 @@ declare module Codevoid.ArticleVoid {
         sync(): WinJS.Promise<void>;
         static Operation: SyncOperation;
     }
+
+    export class InstapaperDB {
+        constructor();
+        initialize(): WinJS.Promise<InstapaperDB>;
+        deleteAllData(): WinJS.Promise<any>;
+    }
 }
 
 declare module Codevoid.ArticleVoid.Authenticator {

@@ -706,6 +706,10 @@
             getBookmarkByBookmarkId: checkDb(function getBookmarkByBookmarkId(bookmark_id) {
                 return this._db.get(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark_id);
             }),
+            deleteAllData: checkDb(function () {
+                this.dispose();
+                return db.deleteDb(Codevoid.ArticleVoid.InstapaperDB.DBName);
+            }),
             dispose: function dispose() {
                 if (this._db) {
                     this._db.close();

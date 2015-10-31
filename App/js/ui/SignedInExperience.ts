@@ -10,11 +10,24 @@
 
         public signOut(): void {
             Codevoid.ArticleVoid.Authenticator.clearClientInformation();
-            Codevoid.ArticleVoid.App.instance.signedOut();
+
+            var idb = new Codevoid.ArticleVoid.InstapaperDB();
+            idb.initialize().then(() => {
+                return idb.deleteAllData();
+            }).done(() => {
+                Codevoid.ArticleVoid.App.instance.signedOut();
+            });
         }
 
         public getSyncEngine(): Codevoid.ArticleVoid.InstapaperSync {
             return new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
+        }
+
+        public clearDb(): WinJS.Promise<any> {
+            var idb = new Codevoid.ArticleVoid.InstapaperDB();
+            return idb.initialize().then(() => {
+                return idb.deleteAllData();
+            });
         }
     }
 
@@ -83,9 +96,19 @@
 
             sync.sync();
         }
+
+        public clearDb(): void {
+            this.viewModel.clearDb().done(() => {
+                var clearedElement = document.createElement("div");
+                clearedElement.textContent = "Cleared";
+                this._content.appendChild(clearedElement);
+            });
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
+
 }
