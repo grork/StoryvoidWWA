@@ -16,7 +16,7 @@
             secret: tokenSecretSettingName,
         },
         getStoredCredentials: function getStoredCredentials() {
-            var store = Windows.Storage.ApplicationData.current.roamingSettings;
+            var store = Windows.Storage.ApplicationData.current.localSettings;
             var tokens = store.values[tokenInformationSettingName];
             
             if(tokens
@@ -28,7 +28,7 @@
             return null;
         },
         getClientInformation: function getClientInformation(overrideCredentials) {
-            var store = Windows.Storage.ApplicationData.current.roamingSettings;
+            var store = Windows.Storage.ApplicationData.current.localSettings;
             
             var storedCredentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
             if (storedCredentials) {
@@ -51,7 +51,7 @@
             });
         },
         clearClientInformation: function clearClientInformation() {
-            var storage = Windows.Storage.ApplicationData.current.roamingSettings;
+            var storage = Windows.Storage.ApplicationData.current.localSettings;
             storage.values.remove(tokenInformationSettingName);
         },
         friendlyMessageForError: function (code) {

@@ -1417,7 +1417,20 @@
         });
     });
 
-    promiseTest("deleteDb", deleteDb);
+    promiseTest("deleteDbWithAPI", function () {
+        var instapaperDB;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            ok(folders, "Expected folders");
+            ok(folders.length > 0, "Expect some folders");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            instapaperDB.deleteAllData();
+        });
+    });
 
     promiseTest("gettingPendingBookmarkAddsWithEmptyDbReturnsUndefined", function () {
         return getNewInstapaperDBAndInit().then(function (idb) {

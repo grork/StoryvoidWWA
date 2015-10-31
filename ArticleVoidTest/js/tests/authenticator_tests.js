@@ -67,7 +67,7 @@
         values[authenticator._tokenSettingInformation.token] = fakeToken;
         values[authenticator._tokenSettingInformation.secret] = fakeSecret;
 
-        Windows.Storage.ApplicationData.current.roamingSettings.values[authenticator._tokenSettingInformation.root] = values;
+        Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
 
         return authenticator.getClientInformation().then(function (clientInformation) {
             ok(clientInformation, "Didn't get client information");
@@ -85,11 +85,11 @@
         values[authenticator._tokenSettingInformation.token] = fakeToken;
         values[authenticator._tokenSettingInformation.secret] = fakeSecret;
 
-        Windows.Storage.ApplicationData.current.roamingSettings.values[authenticator._tokenSettingInformation.root] = values;
+        Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
 
         authenticator.clearClientInformation();
 
-        ok(!Windows.Storage.ApplicationData.current.roamingSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
+        ok(!Windows.Storage.ApplicationData.current.localSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
     });
 
     promiseTest("tokenInformationObtainedFromService", function () {
@@ -109,7 +109,7 @@
         authenticator.clearClientInformation();
 
         return authenticator.getClientInformation(testCredentials).then(function (clientInformation) {
-            var tokenInformation = Windows.Storage.ApplicationData.current.roamingSettings.values[authenticator._tokenSettingInformation.root];
+            var tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
             ok(clientInformation, "No client information");
             ok(clientInformation.clientToken, "No token information");
             ok(clientInformation.clientTokenSecret, "No secret information");
