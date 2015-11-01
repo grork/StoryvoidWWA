@@ -12,6 +12,20 @@ declare module Codevoid.Utilities {
         cancel();
     }
     export function addEventListeners(source: EventTarget, handlers: any): ICancellable;
+
+
+    export interface IIndexedDatabase {
+        objectStoreNames: string[];
+        close(): void;
+    }
+
+    export interface IIndexedDBOpenOptions {
+        server: string;
+        version: number;
+    }
+    export interface IIndexedDB {
+        open(options: IIndexedDBOpenOptions): WinJS.Promise<IIndexedDatabase>;
+    }
 }
 
 declare module Codevoid.OAuth {
@@ -45,6 +59,9 @@ declare module Codevoid.ArticleVoid {
         constructor();
         initialize(): WinJS.Promise<InstapaperDB>;
         deleteAllData(): WinJS.Promise<any>;
+
+        static DBVersion: number;
+        static DBName: string;
     }
 }
 

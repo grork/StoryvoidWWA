@@ -29,6 +29,25 @@
                 return idb.deleteAllData();
             });
         }
+
+        public dumpDb(): WinJS.Promise<any> {
+            var database: Codevoid.Utilities.IIndexedDatabase;
+            var db: Codevoid.Utilities.IIndexedDB = (<any>window).db;
+            var dumpData = {};
+
+            return db.open({
+                server: Codevoid.ArticleVoid.InstapaperDB.DBName,
+                version: Codevoid.ArticleVoid.InstapaperDB.DBVersion,
+            }).then((openedDb) => {
+                database = openedDb;
+
+                for (var i = 0; i < database.objectStoreNames.length; i++) {
+                    dumpData[database.objectStoreNames[i]] = {};
+                }
+            }).then(() => {
+                return JSON.stringify(dumpData, null, 2);
+            });
+        }
     }
 
     export class SignedInExperience extends Codevoid.UICore.Control {
@@ -45,53 +64,55 @@
             DOM.marryPartsToControl(element, this);
         }
 
+        private _logMessage(message: string): void {
+            var messageElement = document.createElement("div");
+            messageElement.textContent = message;
+            this._content.appendChild(messageElement);
+        }
+
         public signOut(): void {
             this.viewModel.signOut();
         }
 
         public startSync(): void {
-            var startEl = document.createElement("div");
-            startEl.innerText = "Starting Sync";
-            this._content.appendChild(startEl);
+            this._logMessage("Starting Sync");
 
             var sync = this.viewModel.getSyncEngine();
             sync.addEventListener("syncstatusupdate", (eventData) => {
-                var el = document.createElement("div");
                 switch (eventData.detail.operation) {
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
-                        el.innerText = "Started";
+                        this._logMessage("Started");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
-                        el.innerText = "Ended";
+                        this._logMessage("Ended");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
-                        el.innerText = "Folders Started";
+                        this._logMessage("Folders Started");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
-                        el.innerText = "Folders Ended";
+                        this._logMessage("Folders Ended");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
-                        el.innerText = "Bookmarks Start";
+                        this._logMessage("Bookmarks Start");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
-                        el.innerText = "Bookmarks End";
+                        this._logMessage("Bookmarks End");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
-                        el.innerText = "Folder Synced: " + eventData.detail.title;
+                        this._logMessage("Folder Synced: " + eventData.detail.title);
                         break;
 
                     default:
-                        el.innerText = "Unknown Event: " + eventData.detail.operation;
+                        this._logMessage("Unknown Event: " + eventData.detail.operation);
                         break;
                 }
 
-                this._content.appendChild(el);
             });
 
             sync.sync();
@@ -99,9 +120,19 @@
 
         public clearDb(): void {
             this.viewModel.clearDb().done(() => {
-                var clearedElement = document.createElement("div");
-                clearedElement.textContent = "Cleared";
-                this._content.appendChild(clearedElement);
+                this._logMessage("Cleared DB");
+            });
+        }
+
+        public dumpDb(): void {
+            this.viewModel.dumpDb().done((dumpData: string) => {
+                this._logMessage("Dumped");
+
+                var structured = document.createElement("pre");
+                structured.innerText = dumpData;
+                this._content.appendChild(structured);
+            }, () => {
+                this._logMessage("Not dumped");
             });
         }
     }
@@ -110,5 +141,6 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
 
 }
