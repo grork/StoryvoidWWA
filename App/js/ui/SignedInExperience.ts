@@ -41,9 +41,17 @@
             }).then((openedDb) => {
                 database = openedDb;
 
+                var tablePromises = [];
+
                 for (var i = 0; i < database.objectStoreNames.length; i++) {
-                    dumpData[database.objectStoreNames[i]] = {};
+                    ((tableName: string) => {
+                        tablePromises.push(database.query(tableName).execute().then((results: any[]) => {
+                            dumpData[tableName] = results;
+                        }));
+                    })(database.objectStoreNames[i]);
                 }
+
+                return WinJS.Promise.join(tablePromises);
             }).then(() => {
                 return JSON.stringify(dumpData, null, 2);
             });
@@ -67,6 +75,12 @@
         private _logMessage(message: string): void {
             var messageElement = document.createElement("div");
             messageElement.textContent = message;
+            this._content.appendChild(messageElement);
+        }
+
+        private _logStructedMessage(message: string): void {
+            var messageElement = document.createElement("pre");
+            messageElement.innerText = message;
             this._content.appendChild(messageElement);
         }
 
@@ -115,7 +129,12 @@
 
             });
 
-            sync.sync();
+            sync.sync().done(() => {
+                this._logMessage("Completed Sync");
+            }, (e) => {
+                this._logMessage("Failed Sync:");
+                this._logStructedMessage(JSON.stringify(e, null, 2));
+            });
         }
 
         public clearDb(): void {
@@ -128,12 +147,15 @@
             this.viewModel.dumpDb().done((dumpData: string) => {
                 this._logMessage("Dumped");
 
-                var structured = document.createElement("pre");
-                structured.innerText = dumpData;
-                this._content.appendChild(structured);
+                this._logStructedMessage(dumpData);
             }, () => {
                 this._logMessage("Not dumped");
             });
+        }
+
+
+        public clearLog(): void {
+            this._content.textContent = "";
         }
     }
 
@@ -142,5 +164,6 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearLog);
 
 }

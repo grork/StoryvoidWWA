@@ -12,10 +12,12 @@ declare module Codevoid.Utilities {
         cancel();
     }
     export function addEventListeners(source: EventTarget, handlers: any): ICancellable;
+    export function serialize(items: any[], work: (item: any, index: number) => WinJS.Promise<any>);
 
 
     export interface IIndexedDatabase {
         objectStoreNames: string[];
+        query(tableName: string): { execute(): WinJS.Promise<any[]> };
         close(): void;
     }
 
