@@ -20,14 +20,14 @@
         throw 'IndexedDB required';
     }
 
-    var Server = function Server_Constructor(db, existingTransaction) {
+    var Server = function Server_Constructor(localDb, existingTransaction) {
         var that = this,
             closed = false;
         var addOrPut = function Server_AddOrPut(table, records, usePut) {
             if (closed) {
                 throw 'Database has been closed';
             }
-            var transaction = existingTransaction || db.transaction(table, transactionModes.readwrite);
+            var transaction = existingTransaction || localDb.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
 
             if (records.constructor !== Array) {
@@ -78,7 +78,7 @@
             if (closed) {
                 throw 'Database has been closed';
             }
-            var transaction = existingTransaction || db.transaction(table, transactionModes.readwrite);
+            var transaction = existingTransaction || localDb.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
             var signal = new Signal();
 
@@ -98,7 +98,7 @@
             if (closed) {
                 throw 'Database has been closed';
             }
-            return new Query(table, db);
+            return new Query(table, localDb);
         };
 
         this.close = function Server_Close() {
@@ -106,13 +106,13 @@
                 return;
             }
 
-            db.close();
+            localDb.close();
 
             closed = true;
 
             var name;
             for (var cachedName in dbCache) {
-                if (dbCache[cachedName] === db) {
+                if (dbCache[cachedName] === localDb) {
                     name = cachedName;
                     break;
                 }
@@ -124,7 +124,7 @@
         };
 
         this.get = function Server_Get(table, id) {
-            var transaction = existingTransaction || db.transaction(table),
+            var transaction = existingTransaction || localDb.transaction(table),
                 store = transaction.objectStore(table),
                 signal = new Signal();
 
@@ -139,30 +139,19 @@
         };
 
         this.index = function Server_Index(table, index) {
-            return new IndexQuery(table, index, db);
+            return new IndexQuery(table, index, localDb);
         };
 
-        for (var i = 0, il = db.objectStoreNames.length ; i < il ; i++) {
-            (function Server_Constructor_MapStoreNames(storeName) {
-                that[storeName] = {};
-                for (var i in that) {
-                    if (!hasOwn.call(that, i) || i === 'close') {
-                        continue;
-                    }
-                    that[storeName][i] = (function Server_Constructor_StoreNameGetter(i) {
-                        return function () {
-                            var args = [storeName].concat([].slice.call(arguments, 0));
-                            return that[i].apply(that, args);
-                        };
-                    })(i);
-                }
-            })(db.objectStoreNames[i]);
-        }
+        Object.defineProperty(this, "objectStoreNames", {
+            get: function () {
+                return localDb.objectStoreNames;
+            }
+        })
     };
 
-    var IndexQuery = function IndexQuery_Constructor(table, indexName, db) {
+    var IndexQuery = function IndexQuery_Constructor(table, indexName, localDb) {
         this.only = function IndexQuery_Only(val) {
-            var transaction = db.transaction(table),
+            var transaction = localDb.transaction(table),
                 store = transaction.objectStore(table),
                 index = store.index(indexName),
                 singleKeyRange = IDBKeyRange.only(val),
@@ -191,7 +180,7 @@
         };
     };
 
-    var Query = function Query_Constructor(table, db) {
+    var Query = function Query_Constructor(table, localDb) {
         var that = this,
             filters = [];
 
@@ -205,7 +194,7 @@
 
         this.execute = function Query_Execute() {
             var records = [],
-                transaction = db.transaction(table),
+                transaction = localDb.transaction(table),
                 store = transaction.objectStore(table);
 
             var req = store.openCursor();
@@ -252,7 +241,7 @@
         };
     };
 
-    var createSchema = function createSchema(e, schema, db) {
+    var createSchema = function createSchema(e, schema, localDb) {
         if (typeof schema === 'function') {
             schema = schema();
         }
@@ -268,7 +257,7 @@
                 return;
             }
 
-            var store = db.createObjectStore(tableName, table.key);
+            var store = localDb.createObjectStore(tableName, table.key);
 
             for (var indexKey in table.indexes) {
                 var index = table.indexes[indexKey];
@@ -281,12 +270,12 @@
 
     window.db = {
         open: function open(options, upgradeCallback) {
-            var db = dbCache[options.server];
+            var cachedDb = dbCache[options.server];
             var request;
             var complete;
             var signal;
-            if (db) {
-                complete = WinJS.Promise.as(new Server(db));
+            if (cachedDb) {
+                complete = WinJS.Promise.as(new Server(cachedDb));
             } else {
                 request = indexedDB.open(options.server, options.version);
                 signal = new Signal();
@@ -328,7 +317,7 @@
             };
 
             req.onerror = function (e) {
-                console.log('error deleting db', arguments);
+                console.log('error deleting database', arguments);
                 signal.error(e);
             };
 

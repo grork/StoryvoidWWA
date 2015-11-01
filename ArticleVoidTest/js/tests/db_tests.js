@@ -235,6 +235,36 @@
         });
     }
 
+    function objectStoreNamesPropertyContainsTableNames() {
+        var server;
+
+        db.open({
+            server: dbName,
+            version: 1,
+            schema: {
+                test: {
+                    key: {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    }
+                }
+            }
+        }).done(function (s) {
+            server = s;
+        });
+
+        return waitFor(function () {
+            return server;
+        }).then(function () {
+            ok(server, "no database returned");
+
+            ok(server.objectStoreNames, "expected list of object stores");
+            strictEqual(server.objectStoreNames.length, 1, "only expected on object store");
+            strictEqual(server.objectStoreNames[0], "test", "wrong store name returned");
+            server.close();
+        });
+    }
+
     function failsWhenMissingKeyPathOnSchema() {
         var server;
 
@@ -365,6 +395,7 @@
     test("openDbSuccessfully", dbTestWrapper(openDbSuccessfully));
     test("closeClearsCache", dbTestWrapper(closeClearsCache));
     test("usesProvidedSchema", dbTestWrapper(usesProvidedSchema));
+    test("objectStoreNamesPropertyContainsTableNames", dbTestWrapper(objectStoreNamesPropertyContainsTableNames));
     test("failsWhenMissingKeyPathOnSchema", dbTestWrapper(failsWhenMissingKeyPathOnSchema));
     test("callsUpgradeOnCreate", dbTestWrapper(callsUpgradeOnCreate));
     test("canUseExistingTransactionForOperations", dbTestWrapper(canUseExistingTransactionForOperations));
