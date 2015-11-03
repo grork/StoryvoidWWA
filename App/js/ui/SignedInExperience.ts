@@ -5,7 +5,6 @@
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         constructor() {
-            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
         }
 
         public signOut(): void {
@@ -15,8 +14,13 @@
             idb.initialize().then(() => {
                 return idb.deleteAllData();
             }).done(() => {
+                this._clientInformation = null;
                 Codevoid.ArticleVoid.App.instance.signedOut();
             });
+        }
+
+        public signedIn() {
+            this._clientInformation = this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
         }
 
         public getSyncEngine(): Codevoid.ArticleVoid.InstapaperSync {
@@ -26,7 +30,10 @@
         public clearDb(): WinJS.Promise<any> {
             var idb = new Codevoid.ArticleVoid.InstapaperDB();
             return idb.initialize().then(() => {
-                return idb.deleteAllData();
+
+            }, () => {
+            }).then(() => {
+                idb.deleteAllData();
             });
         }
 
@@ -53,6 +60,7 @@
 
                 return WinJS.Promise.join(tablePromises);
             }).then(() => {
+                database.close();
                 return JSON.stringify(dumpData, null, 2);
             });
         }

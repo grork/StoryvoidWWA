@@ -59,6 +59,7 @@
     height: 100%;
     background-color: antiquewhite;
     overflow-y: auto;
+    -ms-user-select: text;
 }
 
 .signedOut-container {

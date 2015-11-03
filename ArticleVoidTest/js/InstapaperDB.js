@@ -557,6 +557,7 @@
                     if (!bookmark) {
                         var error = new Error();
                         error.code = Codevoid.ArticleVoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND;
+                        error.message = "Didn't find bookmark with ID " + bookmark_id;
                         return WinJS.Promise.wrapError(error);
                     }
 

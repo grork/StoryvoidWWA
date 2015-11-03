@@ -306,6 +306,7 @@
         deleteDb: function deleteDb(name) {
             var database = dbCache[name];
             if (database) {
+                database.close();
                 delete dbCache[name];
             }
 
