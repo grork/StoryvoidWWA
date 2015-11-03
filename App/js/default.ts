@@ -35,6 +35,8 @@
                 (<Codevoid.UICore.WwaExperienceHost>Codevoid.UICore.Experiences.currentHost).createExperienceWithModel(signedInElement, this._signedInViewModel);
             }
 
+            this._signedInViewModel.signedIn();
+
             WinJS.Utilities.removeClass(signedInElement, "hide");
 
             if (this._signedOutViewModel) {
