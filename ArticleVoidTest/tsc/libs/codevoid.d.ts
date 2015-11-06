@@ -43,6 +43,7 @@ declare module Codevoid.ArticleVoid {
         foldersEnd: string;
         bookmarksStart: string;
         bookmarksEnd: string;
+        bookmarkFolder: string;
         folder: string;
         bookmark: string;
     }
