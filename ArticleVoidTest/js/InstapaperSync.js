@@ -521,43 +521,39 @@
                         });
                     }
                 }).then(function () {
-                    // Don't sync the "have" information here
-                    // since this will screw with lots of other
-                    // state that we're syncing through other means
-                    return WinJS.Promise.join({
-                        remoteBookmarks: b.list({
-                            folder_id: InstapaperDB.CommonFolderIds.Liked,
-                            limit: 50,
-                        }),
-                        localBookmarks: db.listCurrentBookmarks(db.commonFolderDbIds.liked),
-                    });
-                }).then(function (data) {
-                    var remoteData = data.remoteBookmarks;
-                    var localLikesBeforeSync = data.localBookmarks;
-
-                    // Since we didn't use the have functionality, we need
-                    // to manually look for the bookmarks in the liked folder
-                    // to see which need to be added as liked locally, and removed
-                    // as liked locally
-                    var operations = localLikesBeforeSync.reduce(function (data, lb) {
-                        var isStillLiked = remoteData.bookmarks.some(function (rb) {
-                            return rb.bookmark_id === lb.bookmark_id;
+                    return db.listCurrentBookmarks(db.commonFolderDbIds.liked);
+                }).then(function (localLikes) {
+                    var haves = localLikes.reduce(function (data, bookmark) {
+                        data.push({
+                            id: bookmark.bookmark_id,
+                            hash: bookmark.hash,
                         });
-
-                        if (!isStillLiked) {
-                            data.push(db.unlikeBookmark(lb.bookmark_id, true));
-                        }
 
                         return data;
                     }, []);
 
-                    // Since we're not going to leave a pending edit, we can just like the
+                    return b.list({
+                        folder_id: InstapaperDB.CommonFolderIds.Liked,
+                        have: haves,
+                        limit: 500,
+                    });
+                }).then(function (remoteData) {
+                    var rb = remoteData.bookmarks;
+                    var rd = remoteData.meta;
+                    // Since we're not going to leave a pending edit, we can just like & unlike the
                     // remaining bookmarks irrespective of their existing state.
-                    operations = remoteData.bookmarks.reduce(function (data, bookmark) {
-                        data.push(db.likeBookmark(bookmark.bookmark_id, true));
+                    var operations = rb.reduce(function (data, rb) {
+                        data.push(db.likeBookmark(rb.bookmark_id, true));
                         return data;
-                    }, operations);
+                    }, []);
 
+                    if (rd.delete_ids) {
+                        operations = rd.delete_ids.split(",").reduce(function (data, bookmark) {
+                            var bookmark_id = parseInt(bookmark);
+                            data.push(db.unlikeBookmark(bookmark_id, true));
+                            return data;
+                        }, operations);
+                    }
                     return WinJS.Promise.join(operations);
                 });
             },
