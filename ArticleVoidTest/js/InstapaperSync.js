@@ -283,6 +283,7 @@
                             return;
                         }
 
+                        this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder, title: folder.title });
                         return this._syncBookmarksForFolder(db, folder.id).then(function () {
                             if (options._testPerFolderCallback) {
                                 options._testPerFolderCallback(folder.id);
@@ -425,6 +426,7 @@
                     return b.list({
                         folder_id: folderId,
                         have: haves,
+                        limit: 500,
                     });
                 }).then(function (result) {
                     // Now we've told the server what our local state is, and it's telling
@@ -525,6 +527,7 @@
                     return WinJS.Promise.join({
                         remoteBookmarks: b.list({
                             folder_id: InstapaperDB.CommonFolderIds.Liked,
+                            limit: 50,
                         }),
                         localBookmarks: db.listCurrentBookmarks(db.commonFolderDbIds.liked),
                     });
@@ -596,6 +599,7 @@
                 foldersEnd: "foldersEnd",
                 bookmarksStart: "bookmarksStart",
                 bookmarksEnd: "bookmarksEnd",
+                bookmarkFolder: "bookmarkFolder",
                 folder: "folder",
                 bookmark: "bookmark",
             }

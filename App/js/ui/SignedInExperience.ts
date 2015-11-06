@@ -126,6 +126,10 @@
                         this._logMessage("Bookmarks End");
                         break;
 
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder:
+                        this._logMessage("Syncing Folder: " + eventData.detail.title);
+                        break;
+
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
                         this._logMessage("Folder Synced: " + eventData.detail.title);
                         break;
