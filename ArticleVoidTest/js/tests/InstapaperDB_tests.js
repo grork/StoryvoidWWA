@@ -457,6 +457,18 @@
         });
     }
 
+    function likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull() {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.likeBookmark(Date.now(), true, true);
+        }).then(function (bookmark) {
+            strictEqual(bookmark, null, "Shouldn't have gotten a bookmark");
+        });
+    }
+
     function likeingNonExistantBookmarkErrors() {
         return getNewInstapaperDBAndInit().then(function (idb) {
             return idb.likeBookmark(Date.now());
@@ -537,6 +549,7 @@
     promiseTest("canUpdateBookmarkInformationNoPendingEdits", canUpdateBookmarkInformationNoPendingEdits);
     promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
     promiseTest("addingNewUrlDoesntShowUpInBookmarks", addingNewUrlDoesntShowUpInBookmarks);
+    promiseTest("likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull", likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull);
     promiseTest("canLikeBookmarkNoPendingEdit", canLikeBookmarkNoPendingEdit);
     promiseTest("likeingNonExistantBookmarkErrors", likeingNonExistantBookmarkErrors);
     promiseTest("canUnlikeBookmarkNoPendingEdit", canUnlikeBookmarkNoPendingEdit);
@@ -1557,23 +1570,3 @@
         });
     });
 })();
-
-/*
-
-What to do about moving to a folder that isn't currently sync'd?
-Allow them to do that? If you let them "move" the bookmark to another folder, you have to either only deal with 
-db ID's on the items, and fix the properties up later when the changes come down.
-
-Thats gonna be kinda confusing actually. Although we can get bookmarks by ID, so maybe not so much.
-
-Ah ha.
-
-How about:
-* store the DB id of the folder in the pending Edit
-* Sync all the folder changes first (this is the key)
-* Then, when you go to sync the bookmark changes, you can get the real folder id then
-* When you pull DOWN the changes, you'll just do it by folder, and use the change not ifications in "have"
- to push the changes into the actual items, and some how update the itmes 
-
-
-*/

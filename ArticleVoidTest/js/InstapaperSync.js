@@ -426,7 +426,7 @@
                     return b.list({
                         folder_id: folderId,
                         have: haves,
-                        limit: 500,
+                        limit: 25,
                     });
                 }).then(function (result) {
                     // Now we've told the server what our local state is, and it's telling
@@ -535,7 +535,7 @@
                     return b.list({
                         folder_id: InstapaperDB.CommonFolderIds.Liked,
                         have: haves,
-                        limit: 500,
+                        limit: 25,
                     });
                 }).then(function (remoteData) {
                     var rb = remoteData.bookmarks;
@@ -543,7 +543,7 @@
                     // Since we're not going to leave a pending edit, we can just like & unlike the
                     // remaining bookmarks irrespective of their existing state.
                     var operations = rb.reduce(function (data, rb) {
-                        data.push(db.likeBookmark(rb.bookmark_id, true));
+                        data.push(db.likeBookmark(rb.bookmark_id, true, true));
                         return data;
                     }, []);
 
