@@ -1069,6 +1069,53 @@
         });
     }, defaultTestDelay);
 
+    module("InstapaperSyncLimits");
+
+    promiseTest("deleteLocalDBBeforeSyncingWithLimits", deleteDb, defaultTestDelay);
+
+    promiseTest("syncRespectsLimits", function () {
+        var sync = getNewSyncEngine();
+        sync.bookmarkLimit = 1;
+
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
+
+            return sync.sync();
+        }).then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
+        });
+    }, defaultTestDelay);
+
+    promiseTest("syncingOnlyOneBookmarkWithOneLikeNotInOneBookmarkBoundaryDoesn'tFailSync", function () {
+        var sync = getNewSyncEngine();
+        sync.bookmarkLimit = 1;
+
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
+
+            var lastBookmark = rb.bookmarks[rb.bookmarks.length - 1];
+
+            return bookmarks.star(lastBookmark.bookmark_id);
+        }).then(function() {
+            return sync.sync();
+        }).then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (localBookmarks) {
+            strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
+            strictEqual(localBookmarks[0].starred, 0, "Didn't expect it to be starred")
+        });
+    }, defaultTestDelay);
+
     module("InstapaperSyncBookmarkDeletes");
 
     promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData, defaultTestDelay);
@@ -1587,10 +1634,10 @@
             });
         });
     }, defaultTestDelay);
-
+    
     // Remote State:
     //   Two Folders
-    //   One bookmark in each folder
+    //   One bookmark in each folder minimum
     // Local State:
     //   Empty
 
