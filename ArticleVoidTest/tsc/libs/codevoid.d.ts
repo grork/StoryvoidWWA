@@ -58,10 +58,30 @@ declare module Codevoid.ArticleVoid {
         static Operation: SyncOperation;
     }
 
+
+    export interface IFolder {
+        title: string;
+        localOnly: boolean;
+    }
+
+    export interface IBookmark {
+        title: string;
+        url: string;
+    }
+
     export class InstapaperDB {
         constructor();
         initialize(): WinJS.Promise<InstapaperDB>;
         deleteAllData(): WinJS.Promise<any>;
+        dispose(): void;
+        listCurrentFolders(): WinJS.Promise<IFolder[]>;
+        listCurrentBookmarks(folder_id: string): WinJS.Promise<IBookmark[]>;
+        commonFolderDbIds: {
+            archive: string;
+            liked: string;
+            unread: string;
+            orphaned: string;
+        };
 
         static DBVersion: number;
         static DBName: string;

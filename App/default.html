@@ -28,18 +28,27 @@
 <body class="win-type-body">
     <div class="signedIn-container">
         <div class="signedIn-commands">
-            <button data-part="_signOutButton"
-                    data-event="{ click: signOut }">
-                Sign out
+            <button data-event="{ click: initializeDB }">
+                Intialize Database
             </button>
             <button data-event="{ click: startSync }">
                 Sync
             </button>
-            <button data-event="{ click: clearDb }">
-                Clear DB
+            <button data-event="{ click: listFolders }">
+                List Folders
+            </button>
+            <button data-event="{ click: listUnreadBookmarks }">
+                List bookmarks in 'unread' folder
+            </button>
+            <button data-part="_signOutButton"
+                    data-event="{ click: signOut }">
+                Sign out
             </button>
             <button data-event="{ click: dumpDb }">
                 Dump DB
+            </button>
+            <button data-event="{ click: clearDb }">
+                Clear DB
             </button>
             <button data-event="{ click: clearLog }">
                 Clear Log
