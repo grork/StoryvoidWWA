@@ -1072,6 +1072,7 @@
     module("InstapaperSyncLimits");
 
     promiseTest("deleteLocalDBBeforeSyncingWithLimits", deleteDb, defaultTestDelay);
+    promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks);
 
     promiseTest("syncRespectsLimits", function () {
         var sync = getNewSyncEngine();

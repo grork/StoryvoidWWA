@@ -4,10 +4,29 @@
     export class SignedInViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
+        private _instapaperDB: Codevoid.ArticleVoid.InstapaperDB;
         constructor() {
         }
 
+        public initializeDB(): WinJS.Promise<Codevoid.ArticleVoid.InstapaperDB> {
+            if (this._instapaperDB) {
+                return WinJS.Promise.as(this._instapaperDB);
+            }
+
+            this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
+            return this._instapaperDB.initialize();
+        }
+
+        private disposeDB(): void {
+            if (!this._instapaperDB) {
+                return;
+            }
+
+            this._instapaperDB.dispose();
+        }
+
         public signOut(): void {
+            this.disposeDB();
             Codevoid.ArticleVoid.Authenticator.clearClientInformation();
 
             var idb = new Codevoid.ArticleVoid.InstapaperDB();
@@ -28,6 +47,7 @@
         }
 
         public clearDb(): WinJS.Promise<any> {
+            this.disposeDB();
             var idb = new Codevoid.ArticleVoid.InstapaperDB();
             return idb.initialize().then(() => {
 
@@ -64,6 +84,22 @@
                 return JSON.stringify(dumpData, null, 2);
             });
         }
+
+        public listFolders(): WinJS.Promise<Codevoid.ArticleVoid.IFolder[]> {
+            return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
+                return folders.filter((item) => {
+                    if (item.localOnly) {
+                        return false;
+                    }
+
+                    return true;
+                });
+            });
+        }
+
+        public listUnreadBookmarks(): WinJS.Promise<Codevoid.ArticleVoid.IBookmark[]> {
+            return this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread);
+        }
     }
 
     export class SignedInExperience extends Codevoid.UICore.Control {
@@ -94,6 +130,30 @@
 
         public signOut(): void {
             this.viewModel.signOut();
+        }
+
+        public initializeDB(): void {
+            this.viewModel.initializeDB().done(() => {
+                this._logMessage("Initialized DB");
+            });
+        }
+
+        public listFolders(): void {
+            this.viewModel.listFolders().done((folders: IFolder[]) => {
+                folders.forEach((folder) => {
+                    this._logMessage("Folder: " + folder.title);
+                });
+            });
+        }
+
+        public listUnreadBookmarks(): void {
+            this.viewModel.listUnreadBookmarks().done((bookmarks: IBookmark[]) => {
+                this._logMessage("Bookmarks!");
+                bookmarks.reverse();
+                bookmarks.forEach((bookmark) => {
+                    this._logMessage(bookmark.title + " (" + bookmark.url + ")");
+                });
+            });
         }
 
         public startSync(): void {
@@ -165,7 +225,6 @@
             });
         }
 
-
         public clearLog(): void {
             this._content.textContent = "";
         }
@@ -173,7 +232,10 @@
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.initializeDB);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listFolders);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listUnreadBookmarks);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearLog);
