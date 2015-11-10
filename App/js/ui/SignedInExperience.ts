@@ -105,27 +105,31 @@
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _signOutButton: HTMLElement;
-        private _content: HTMLElement;
+        private _messages: HTMLElement;
+        private _repeater: WinJS.UI.Repeater;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
             DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
-            this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-            DOM.marryPartsToControl(element, this);
+
+            WinJS.UI.processAll(element).done(() => {
+                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
+                DOM.marryPartsToControl(element, this);
+            });
         }
 
         private _logMessage(message: string): void {
             var messageElement = document.createElement("div");
             messageElement.textContent = message;
-            this._content.appendChild(messageElement);
+            this._messages.appendChild(messageElement);
         }
 
         private _logStructedMessage(message: string): void {
             var messageElement = document.createElement("pre");
             messageElement.innerText = message;
-            this._content.appendChild(messageElement);
+            this._messages.appendChild(messageElement);
         }
 
         public signOut(): void {
@@ -150,9 +154,7 @@
             this.viewModel.listUnreadBookmarks().done((bookmarks: IBookmark[]) => {
                 this._logMessage("Bookmarks!");
                 bookmarks.reverse();
-                bookmarks.forEach((bookmark) => {
-                    this._logMessage(bookmark.title + " (" + bookmark.url + ")");
-                });
+                this._repeater.data = new WinJS.Binding.List<IBookmark>(bookmarks);
             });
         }
 
@@ -226,7 +228,7 @@
         }
 
         public clearLog(): void {
-            this._content.textContent = "";
+            this._messages.textContent = "";
         }
     }
 
