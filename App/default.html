@@ -8,6 +8,7 @@
     <link href="/WinJS/css/ui-light.css" rel="stylesheet" />
     <link href="/WinJS/css/ui-light-intrinsics.css" rel="stylesheet" />
     <script src="/WinJS/js/base.js"></script>
+    <script src="/WinJS/js/ui.js"></script>
     <script src="/WinJS/js/intrinsics.js"></script>
 
     <!-- App references -->
@@ -54,8 +55,13 @@
                 Clear Log
             </button>
         </div>
-        <div class="signedIn-content"
-             data-part="_content">
+        <div class="signedIn-content">
+            <div data-win-control="WinJS.UI.Repeater" data-part="_repeater">
+                <div data-win-bind="textContent: title"></div>
+            </div>
+        </div>
+        <div class="signedIn-messages"
+             data-part="_messages">
 
         </div>
     </div>

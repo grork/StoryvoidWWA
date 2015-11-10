@@ -34,7 +34,7 @@
     height: 100vh;
     background-color: pink;
     display: -ms-grid;
-    -ms-grid-columns: 1fr;
+    -ms-grid-columns: 1fr 1fr;
     -ms-grid-rows: 100px 1fr;
 }
 
@@ -52,14 +52,23 @@
         margin-left: 5px;
         margin-right: 5px;
     }
-.signedIn-content {
+.signedIn-messages {
     -ms-grid-row: 2;
-    -ms-grid-column: 1;
+    -ms-grid-column: 2;
     width: 100%;
     height: 100%;
     background-color: antiquewhite;
     overflow-y: auto;
     -ms-user-select: text;
+}
+
+.signedIn-content {
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    overflow-y: auto;
 }
 
 .signedOut-container {

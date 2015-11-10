@@ -102,6 +102,7 @@
     <Content Include="images\StoreLogo.png" />
     <Content Include="images\Wide310x150Logo.scale-200.png" />
     <Content Include="css\default.css" />
+    <Content Include="WinJS\js\ui.js" />
     <TypeScriptCompile Include="..\ArticleVoidTest\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
     </TypeScriptCompile>
