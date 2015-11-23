@@ -107,6 +107,8 @@
         private _signOutButton: HTMLElement;
         private _messages: HTMLElement;
         private _contentList: WinJS.UI.ListView<any>;
+        private _splitToggle: WinJS.UI.SplitViewPaneToggle;
+        private _splitView: WinJS.UI.SplitView;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -117,6 +119,8 @@
             WinJS.UI.processAll(element).done(() => {
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
+
+                this._splitToggle.splitView = this._splitView.element;
             });
         }
 
