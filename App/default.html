@@ -28,6 +28,22 @@
 </head>
 <body class="win-type-body">
     <div class="signedIn-container">
+        <div class="template-article"
+             data-win-control="WinJS.Binding.Template">
+            <div class="article">
+                <div class="article-title">
+                    <span class="article-title-text"
+                          data-win-bind="textContent: title"></span>
+                </div>
+
+                <div class="article-summary"
+                     data-win-bind="textContent: description"></div>
+
+                <div class="article-footer">
+                    <span data-win-bind="textContent: title"></span>
+                </div>
+            </div>
+        </div>
         <div class="signedIn-commands">
             <button data-event="{ click: initializeDB }">
                 Intialize Database
@@ -56,9 +72,13 @@
             </button>
         </div>
         <div class="signedIn-content">
-            <div data-win-control="WinJS.UI.Repeater" data-part="_repeater">
-                <div data-win-bind="textContent: title"></div>
-            </div>
+            <div class="signedIn-articleList"
+                 data-win-control="WinJS.UI.ListView"
+                 data-win-options="{
+                    itemTemplate: select('.template-article'),
+                    layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
+                 }"
+                 data-part="_contentList"></div>
         </div>
         <div class="signedIn-messages"
              data-part="_messages">

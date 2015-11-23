@@ -106,7 +106,7 @@
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _signOutButton: HTMLElement;
         private _messages: HTMLElement;
-        private _repeater: WinJS.UI.Repeater;
+        private _contentList: WinJS.UI.ListView<any>;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -154,7 +154,7 @@
             this.viewModel.listUnreadBookmarks().done((bookmarks: IBookmark[]) => {
                 this._logMessage("Bookmarks!");
                 bookmarks.reverse();
-                this._repeater.data = new WinJS.Binding.List<IBookmark>(bookmarks);
+                this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
             });
         }
 

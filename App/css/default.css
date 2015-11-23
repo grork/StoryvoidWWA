@@ -34,7 +34,7 @@
     height: 100vh;
     background-color: pink;
     display: -ms-grid;
-    -ms-grid-columns: 1fr 1fr;
+    -ms-grid-columns: 1fr 300px;
     -ms-grid-rows: 100px 1fr;
 }
 
@@ -43,9 +43,11 @@
     -ms-grid-column: 1;
     -ms-grid-row: 1;
     -ms-grid-row-align: center;
+    -ms-grid-column-span: 2;
     display: flex;
     flex-direction: row;
     flex-shrink: 0;
+    overflow-y: auto;
 }
 
     .signedIn-commands > button {
@@ -71,12 +73,82 @@
     overflow-y: auto;
 }
 
+.signedIn-articleList {
+    height: 100%;
+    width: 100%;
+}
+
 .signedOut-container {
     width: 100vw;
     height: 100vh;
     background-color: lightblue;
     padding: 10px;
 }
+
+.win-listview .win-gridlayout .win-container {
+    margin: 12px;
+}
+
+.win-listview > .win-viewport.win-vertical .win-surface {
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 12px;
+}
+
+.article {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	display: -ms-grid;
+	-ms-grid-rows: 58px 1fr auto;
+    -ms-grid-columns: 1fr;
+	width: 248px;
+	height: 248px;
+	background-color: #DBDADA;
+}
+
+    .article-title {
+        -ms-grid-row: 1;
+	    padding-right: 8px;
+	    overflow: hidden;
+    }
+
+    .article-title-text {
+        position: relative;
+        display: inline;
+        background-color: red;
+        color: white;
+        font-size: 18px;
+        padding-top: 4px;
+        left: 8px;
+        top: -1px; /* Make it feel like it's got more bottom spaceing */
+        line-height: 30px;
+        border-bottom: 4px solid red;
+        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+    }
+
+    .article-summary {
+	    -ms-grid-row: 2;
+	    overflow: hidden;
+	    font-size: 14px;
+	    margin: 8px;
+	    margin-top: 4px;
+	    margin-bottom: 4px;
+    }
+
+    .article-footer {
+	    -ms-grid-row: 3;
+	    -ms-grid-column-align: end;
+	    overflow: hidden;
+	    color: gray;
+	    text-align: right;
+	    margin: 8px;
+	    width: calc(100% - 16px);
+    }
+
+    .article-footer > span {
+	    position: relative;
+	    display: inline;
+	    font-size: 12px;
+    }
 
 .authenticator {
     display: -ms-grid;
