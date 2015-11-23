@@ -67,8 +67,8 @@
             <!-- Content for the splitview -->
             <div class="signedIn-content-root">
                 <div class="signedIn-commands">
-                    <button data-event="{ click: initializeDB }">
-                        Intialize Database
+                    <button data-event="{ click: showLogger }">
+                        Show Logger
                     </button>
                     <button data-event="{ click: startSync }">
                         Sync
@@ -101,10 +101,6 @@
                     layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
                  }"
                          data-part="_contentList"></div>
-                </div>
-                <div class="signedIn-messages"
-                     data-part="_messages">
-
                 </div>
             </div>
         </div>

@@ -14,7 +14,10 @@
             }
 
             this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
-            return this._instapaperDB.initialize();
+            return this._instapaperDB.initialize().then((result) => {
+                Utilities.Logging.instance.log("Initialized DB");
+                return result;
+            });
         }
 
         private disposeDB(): void {
@@ -40,6 +43,7 @@
 
         public signedIn() {
             this._clientInformation = this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            this.initializeDB();
         }
 
         public getSyncEngine(): Codevoid.ArticleVoid.InstapaperSync {
@@ -124,121 +128,107 @@
             });
         }
 
-        private _logMessage(message: string): void {
-            var messageElement = document.createElement("div");
-            messageElement.textContent = message;
-            this._messages.appendChild(messageElement);
-        }
-
-        private _logStructedMessage(message: string): void {
-            var messageElement = document.createElement("pre");
-            messageElement.innerText = message;
-            this._messages.appendChild(messageElement);
-        }
-
         public signOut(): void {
             this.viewModel.signOut();
         }
 
-        public initializeDB(): void {
-            this.viewModel.initializeDB().done(() => {
-                this._logMessage("Initialized DB");
-            });
+        public showLogger(): void {
+            Utilities.Logging.instance.showViewer();
         }
 
         public listFolders(): void {
             this.viewModel.listFolders().done((folders: IFolder[]) => {
                 folders.forEach((folder) => {
-                    this._logMessage("Folder: " + folder.title);
+                    Utilities.Logging.instance.log("Folder: " + folder.title);
                 });
             });
         }
 
         public listUnreadBookmarks(): void {
             this.viewModel.listUnreadBookmarks().done((bookmarks: IBookmark[]) => {
-                this._logMessage("Bookmarks!");
+                Utilities.Logging.instance.log("Bookmarks!");
                 bookmarks.reverse();
                 this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
             });
         }
 
         public startSync(): void {
-            this._logMessage("Starting Sync");
+            Utilities.Logging.instance.log("Starting Sync");
 
             var sync = this.viewModel.getSyncEngine();
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
-                        this._logMessage("Started");
+                        Utilities.Logging.instance.log("Started");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
-                        this._logMessage("Ended");
+                        Utilities.Logging.instance.log("Ended");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
-                        this._logMessage("Folders Started");
+                        Utilities.Logging.instance.log("Folders Started");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
-                        this._logMessage("Folders Ended");
+                        Utilities.Logging.instance.log("Folders Ended");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
-                        this._logMessage("Bookmarks Start");
+                        Utilities.Logging.instance.log("Bookmarks Start");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
-                        this._logMessage("Bookmarks End");
+                        Utilities.Logging.instance.log("Bookmarks End");
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder:
-                        this._logMessage("Syncing Folder: " + eventData.detail.title);
+                        Utilities.Logging.instance.log("Syncing Folder: " + eventData.detail.title);
                         break;
 
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
-                        this._logMessage("Folder Synced: " + eventData.detail.title);
+                        Utilities.Logging.instance.log("Folder Synced: " + eventData.detail.title);
                         break;
 
                     default:
-                        this._logMessage("Unknown Event: " + eventData.detail.operation);
+                        Utilities.Logging.instance.log("Unknown Event: " + eventData.detail.operation);
                         break;
                 }
 
             });
 
             sync.sync().done(() => {
-                this._logMessage("Completed Sync");
+                Utilities.Logging.instance.log("Completed Sync");
             }, (e) => {
-                this._logMessage("Failed Sync:");
-                this._logStructedMessage(JSON.stringify(e, null, 2));
+                Utilities.Logging.instance.log("Failed Sync:");
+                Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
             });
         }
 
         public clearDb(): void {
             this.viewModel.clearDb().done(() => {
-                this._logMessage("Cleared DB");
+                Utilities.Logging.instance.log("Cleared DB");
             });
         }
 
         public dumpDb(): void {
             this.viewModel.dumpDb().done((dumpData: string) => {
-                this._logMessage("Dumped");
+                Utilities.Logging.instance.log("Dumped");
 
-                this._logStructedMessage(dumpData);
+                Utilities.Logging.instance.log(dumpData, true);
             }, () => {
-                this._logMessage("Not dumped");
+                Utilities.Logging.instance.log("Not dumped");
             });
         }
 
         public clearLog(): void {
-            this._messages.textContent = "";
+            Codevoid.Utilities.Logging.instance.clear();
         }
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.initializeDB);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listFolders);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listUnreadBookmarks);

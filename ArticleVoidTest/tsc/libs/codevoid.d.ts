@@ -28,6 +28,13 @@ declare module Codevoid.Utilities {
     export interface IIndexedDB {
         open(options: IIndexedDBOpenOptions): WinJS.Promise<IIndexedDatabase>;
     }
+
+    export class Logging {
+        log(message: string, fixedLayout?: boolean);
+        showViewer();
+        clear();
+        static instance: Logging;
+    }
 }
 
 declare module Codevoid.OAuth {
