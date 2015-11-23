@@ -1,4 +1,7 @@
-﻿body {
+﻿/****************************************************\
+ * Don't put colours here. Put them in colours.css. *
+\****************************************************/
+body {
     overflow: auto;
 }
 
@@ -15,7 +18,6 @@
     left: 0;
     height: 100vh;
     width: 100vw;
-    background-color: rgba(255, 0, 0, 0.54);
 }
 
 .hide {
@@ -32,7 +34,6 @@
 .signedIn-container {
     width: 100vw;
     height: 100vh;
-    background-color: pink;
     display: -ms-grid;
     -ms-grid-columns: 1fr 300px;
     -ms-grid-rows: 100px 1fr;
@@ -54,12 +55,12 @@
         margin-left: 5px;
         margin-right: 5px;
     }
+
 .signedIn-messages {
     -ms-grid-row: 2;
     -ms-grid-column: 2;
     width: 100%;
     height: 100%;
-    background-color: antiquewhite;
     overflow-y: auto;
     -ms-user-select: text;
 }
@@ -69,7 +70,6 @@
     -ms-grid-row: 2;
     height: 100%;
     width: 100%;
-    background-color: white;
     overflow-y: auto;
 }
 
@@ -81,7 +81,6 @@
 .signedOut-container {
     width: 100vw;
     height: 100vh;
-    background-color: lightblue;
     padding: 10px;
 }
 
@@ -97,57 +96,54 @@
 
 .article {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	display: -ms-grid;
-	-ms-grid-rows: 58px 1fr auto;
+    display: -ms-grid;
+    -ms-grid-rows: 58px 1fr auto;
     -ms-grid-columns: 1fr;
-	width: 248px;
-	height: 248px;
-	background-color: #DBDADA;
+    width: 248px;
+    height: 248px;
 }
 
-    .article-title {
-        -ms-grid-row: 1;
-	    padding-right: 8px;
-	    overflow: hidden;
-    }
+.article-title {
+    -ms-grid-row: 1;
+    padding-right: 8px;
+    overflow: hidden;
+}
 
-    .article-title-text {
-        position: relative;
-        display: inline;
-        background-color: red;
-        color: white;
-        font-size: 18px;
-        padding-top: 4px;
-        left: 8px;
-        top: -1px; /* Make it feel like it's got more bottom spaceing */
-        line-height: 30px;
-        border-bottom: 4px solid red;
-        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
-    }
+.article-title-text {
+    position: relative;
+    display: inline;
+    font-size: 18px;
+    padding-top: 4px;
+    left: 8px;
+    top: -1px; /* Make it feel like it's got more bottom spaceing */
+    line-height: 30px;
+    border-bottom-width: 4px;
+    border-bottom-style: solid;
+    box-shadow: 8px 0px 0px red, -8px 0px 0px red; /* Set fo' realz by .setShadow*/
+}
 
-    .article-summary {
-	    -ms-grid-row: 2;
-	    overflow: hidden;
-	    font-size: 14px;
-	    margin: 8px;
-	    margin-top: 4px;
-	    margin-bottom: 4px;
-    }
+.article-summary {
+    -ms-grid-row: 2;
+    overflow: hidden;
+    font-size: 14px;
+    margin: 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
 
-    .article-footer {
-	    -ms-grid-row: 3;
-	    -ms-grid-column-align: end;
-	    overflow: hidden;
-	    color: gray;
-	    text-align: right;
-	    margin: 8px;
-	    width: calc(100% - 16px);
-    }
+.article-footer {
+    -ms-grid-row: 3;
+    -ms-grid-column-align: end;
+    overflow: hidden;
+    text-align: right;
+    margin: 8px;
+    width: calc(100% - 16px);
+}
 
     .article-footer > span {
-	    position: relative;
-	    display: inline;
-	    font-size: 12px;
+        position: relative;
+        display: inline;
+        font-size: 12px;
     }
 
 .authenticator {
@@ -198,7 +194,6 @@
     }
 
     .authenticator > .workingContainer {
-        background-color: rgba(255, 255, 255, 0.36);
         -ms-grid-column: 1;
         -ms-grid-row: 1;
         -ms-grid-row-span: 13;
