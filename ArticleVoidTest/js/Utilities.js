@@ -186,7 +186,58 @@
             });
 
             return cancellation;
-        }
+        },
+        /// <summary>
+        /// Logging helper class that provides structured & unstructured logging.
+        /// Structured in this case means support for saying "this message should be presented without reformatting"
+        ///
+        /// Additionally, this provides an in memory store of the messages so they can be seen later if the
+        /// viewer was not open at the time they were originally logged.
+        /// </summary>
+        Logging: WinJS.Class.mix(WinJS.Class.define(function () {
+            this.clear();
+        }, {
+            _logMessages: null,
+            logToConsole: false,
+            log: function _log(message, fixedLayout) {
+                var messageDetail = { message: message, useFixedLayout: fixedLayout };
+                this._logMessages.push(messageDetail);
+
+                if (this.logToConsole) {
+                    console.log(message);
+                }
+
+                this.dispatchEvent("newlogmessage", messageDetail);
+            },
+            messages: {
+                get: function logging_getMessages() {
+                    // Clone the messages list to stop consumers manipultating the list itself
+                    // Doesn't protect against manipulating each individual message itself.
+                    return [].concat(this._logMessages);
+                },
+            },
+            clear: function() {
+                this._logMessages = [];
+                this.dispatchEvent("logcleared");
+            },
+            showViewer: function () {
+                var viewerElement = document.createElement("div");
+                document.body.appendChild(viewerElement);
+
+                viewerElement.winControl = new Codevoid.Utilities.DOM.LogViewer(viewerElement);
+            }
+        }, {
+            _instance: null,
+            instance: {
+                get: function loggin_getInstance() {
+                    if (!Codevoid.Utilities.Logging._instance) {
+                        Codevoid.Utilities.Logging._instance = new Codevoid.Utilities.Logging();
+                    }
+
+                    return Codevoid.Utilities.Logging._instance;
+                }
+            }
+        }), WinJS.Utilities.eventMixin),
     });
 
     var fragmentCache = {};
@@ -337,5 +388,76 @@
 
             return cancellation;
         },
+        /// <summary>
+        /// Class to view the outoput of Codevoid.Utilties.Logging in a nice top level floating "window"
+        /// </summary>
+        LogViewer: WinJS.Class.define(function (element, options) {
+            // Set up our own element
+            this.element = element;
+            Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.Utilities.DOM.LogViewer");
+            WinJS.Utilities.addClass(element, "codevoid-logviewer");
+            WinJS.UI.setOptions(this, options);
+
+            // Create the container for all the messages
+            this._messageContainer = document.createElement("div");
+            WinJS.Utilities.addClass(this._messageContainer, "codevoid-logviewer-messages");
+            this.element.appendChild(this._messageContainer);
+            
+            // Create the dismiss button to hide this thing
+            var dismissElement = document.createElement("div");
+            WinJS.Utilities.addClass(dismissElement, "codevoid-logviewer-dismiss");
+
+            this._dismissEvents = Codevoid.Utilities.addEventListeners(dismissElement, {
+                click: function () {
+                    this._dismiss();
+                }.bind(this)
+            });
+
+            this.element.appendChild(dismissElement);
+
+            // Capture the logger & listen for events
+            this._logger = Codevoid.Utilities.Logging.instance;
+            this._loggingEvents = Codevoid.Utilities.addEventListeners(this._logger, {
+                newlogmessage: function (e) {
+                    var message = e.detail;
+                    
+                    this._appendMessage(message);
+                }.bind(this),
+                logcleared: function () {
+                    this._messageContainer.innerHTML = "";
+                }.bind(this),
+            });
+
+
+            this._logger.messages.forEach(function (message) {
+                this._appendMessage(message);
+            }.bind(this));
+        }, {
+            element: null,
+            _logger: null,
+            _loggingEvents: null,
+            _dismissEvents: null,
+            _messageContainer: null,
+            _appendMessage: function(message) {
+                var messageElement;
+                if (message.useFixedLayout) {
+                    // If it's using fixed layout, then we want to render it
+                    // in a 'pre' element to ensure forrect formatting
+                    messageElement = document.createElement("pre");
+                } else {
+                    messageElement = document.createElement("div");
+                }
+
+                messageElement.textContent = message.message;
+
+                this._messageContainer.appendChild(messageElement);
+            },
+            _dismiss: function () {
+                this._dismissEvents.cancel();
+                this._loggingEvents.cancel();
+
+                this.element.parentElement.removeChild(this.element);
+            },
+        }),
     });
 })();
