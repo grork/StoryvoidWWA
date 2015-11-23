@@ -35,12 +35,42 @@ body {
     width: 100vw;
     height: 100vh;
     display: -ms-grid;
+    -ms-grid-rows: 1fr;
+    -ms-grid-columns: 1fr;
+}
+
+    .signedIn-container > .win-splitviewpanetoggle {
+        -ms-grid-row: 1;
+        -ms-grid-column: 1;
+        position: relative;
+        z-index: 2000;
+    }
+
+.signedIn-splitview {
+    -ms-grid-row: 1;
+    -ms-grid-column: 1;
+}
+
+    .signedIn-splitview .win-splitview-pane {
+        display: -ms-grid;
+        -ms-grid-rows: 48px 1fr;
+        -ms-grid-columns: 1fr;
+    }
+
+        .signedIn-splitview .win-splitview-pane > div {
+            -ms-grid-row: 2;
+            -ms-grid-column: 1;
+        }
+
+.signedIn-content-root {
+    height: 100%;
+    display: -ms-grid;
     -ms-grid-columns: 1fr 300px;
     -ms-grid-rows: 100px 1fr;
 }
 
 .signedIn-commands {
-    padding: 10px 5px 10px 5px;
+    padding: 10px 5px 10px 48px;
     -ms-grid-column: 1;
     -ms-grid-row: 1;
     -ms-grid-row-align: center;

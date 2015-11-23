@@ -45,45 +45,68 @@
                 </div>
             </div>
         </div>
-        <div class="signedIn-commands">
-            <button data-event="{ click: initializeDB }">
-                Intialize Database
-            </button>
-            <button data-event="{ click: startSync }">
-                Sync
-            </button>
-            <button data-event="{ click: listFolders }">
-                List Folders
-            </button>
-            <button data-event="{ click: listUnreadBookmarks }">
-                List bookmarks in 'unread' folder
-            </button>
-            <button data-part="_signOutButton"
-                    data-event="{ click: signOut }">
-                Sign out
-            </button>
-            <button data-event="{ click: dumpDb }">
-                Dump DB
-            </button>
-            <button data-event="{ click: clearDb }">
-                Clear DB
-            </button>
-            <button data-event="{ click: clearLog }">
-                Clear Log
-            </button>
-        </div>
-        <div class="signedIn-content">
-            <div class="signedIn-articleList"
-                 data-win-control="WinJS.UI.ListView"
-                 data-win-options="{
+
+        <button class="win-splitviewpanetoggle"
+                data-part="_splitToggle"
+                data-win-control="WinJS.UI.SplitViewPaneToggle"></button>
+
+        <div class="signedIn-splitview"
+             data-win-control="WinJS.UI.SplitView"
+             data-win-options="{
+                 openedDisplayMode: WinJS.UI.SplitView.OpenedDisplayMode.overlay,
+                 closedDisplayMode: WinJS.UI.SplitView.ClosedDisplayMode.none
+             }"
+             data-part="_splitView">
+            <!-- Slide out pane from split view-->
+            <div class="win-splitview-pane">
+                <div>
+                    I am pane
+                </div>
+            </div>
+
+            <!-- Content for the splitview -->
+            <div class="signedIn-content-root">
+                <div class="signedIn-commands">
+                    <button data-event="{ click: initializeDB }">
+                        Intialize Database
+                    </button>
+                    <button data-event="{ click: startSync }">
+                        Sync
+                    </button>
+                    <button data-event="{ click: listFolders }">
+                        List Folders
+                    </button>
+                    <button data-event="{ click: listUnreadBookmarks }">
+                        List bookmarks in 'unread' folder
+                    </button>
+                    <button data-part="_signOutButton"
+                            data-event="{ click: signOut }">
+                        Sign out
+                    </button>
+                    <button data-event="{ click: dumpDb }">
+                        Dump DB
+                    </button>
+                    <button data-event="{ click: clearDb }">
+                        Clear DB
+                    </button>
+                    <button data-event="{ click: clearLog }">
+                        Clear Log
+                    </button>
+                </div>
+                <div class="signedIn-content">
+                    <div class="signedIn-articleList"
+                         data-win-control="WinJS.UI.ListView"
+                         data-win-options="{
                     itemTemplate: select('.template-article'),
                     layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
                  }"
-                 data-part="_contentList"></div>
-        </div>
-        <div class="signedIn-messages"
-             data-part="_messages">
+                         data-part="_contentList"></div>
+                </div>
+                <div class="signedIn-messages"
+                     data-part="_messages">
 
+                </div>
+            </div>
         </div>
     </div>
 </body>

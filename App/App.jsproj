@@ -111,6 +111,9 @@
       <Link>js\ui\core.js</Link>
       <DependentUpon>core.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="..\ArticleVoidTest\Scripts\typings\winjs\winjs.d.ts">
+      <Link>Scripts\typings\winjs\winjs.d.ts</Link>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="js\default.ts" />
     <Content Include="js\default.js">
       <DependentUpon>default.ts</DependentUpon>
@@ -131,11 +134,13 @@
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
     <None Include="App_TemporaryKey.pfx" />
-    <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scripts\typings\winjs\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
