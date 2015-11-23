@@ -1,0 +1,41 @@
+﻿.dialog {
+    background-color: rgba(255, 0, 0, 0.54);
+}
+
+.signedIn-container {
+    background-color: pink;
+}
+
+.signedIn-messages {
+    background-color: antiquewhite;
+}
+
+.signedIn-content {
+    background-color: white;
+}
+
+.signedOut-container {
+    background-color: lightblue;
+}
+
+.article {
+    background-color: #DBDADA;
+}
+
+.article-title-text {
+    background-color: red;
+    border-bottom-color: red;
+    color: white;
+}
+
+    .article-title-text .setShadow {
+        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+    }
+
+.article-footer {
+    color: gray;
+}
+
+.authenticator > .workingContainer {
+    background-color: rgba(255, 255, 255, 0.36);
+}
