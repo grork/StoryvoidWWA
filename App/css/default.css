@@ -117,13 +117,13 @@ body {
 }
 
 .win-listview .win-gridlayout .win-container {
-    margin: 12px;
+    margin: 6px;
 }
 
 .win-listview > .win-viewport.win-vertical .win-surface {
-    margin-left: 12px;
-    margin-right: 12px;
-    margin-top: 12px;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 6px;
 }
 
 .article {
