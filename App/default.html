@@ -51,37 +51,41 @@
                 data-win-control="WinJS.UI.SplitViewPaneToggle"></button>
 
         <div class="signedIn-splitview"
+             data-part="_splitView"
              data-win-control="WinJS.UI.SplitView"
              data-win-options="{
                  openedDisplayMode: WinJS.UI.SplitView.OpenedDisplayMode.overlay,
                  closedDisplayMode: WinJS.UI.SplitView.ClosedDisplayMode.none
              }"
-             data-part="_splitView">
+             data-event="{ beforeopen: splitViewOpening }">
             <!-- Slide out pane from split view-->
             <div class="win-splitview-pane">
-                <div>
-                    I am pane
+                <div class="pane-folderlist">
+                    <div data-part="_folderList"
+                         data-win-control="WinJS.UI.Repeater">
+                        <div data-win-control="WinJS.UI.SplitViewCommand"
+                             data-win-bind="winControl.label: title; winControl.icon: folder_id Codevoid.ArticleVoid.UI.SignedInExperience.folderIdToIcon"></div>
+                    </div>
                 </div>
+                <div class="pane-section-splitter"></div>
+                <div class="pane-signout-button"
+                     data-win-control="WinJS.UI.SplitViewCommand"
+                     data-event="{ invoked: signOut }"
+                     data-win-options="{ label: 'Sign out', icon: '\uE77B'}"></div>
+                <div class="pane-settings-button"
+                     data-win-control="WinJS.UI.SplitViewCommand"
+                     data-event="{ invoked: showLogger }"
+                     data-win-options="{ label: 'Settings', icon: '\uE713'}"></div>
             </div>
 
             <!-- Content for the splitview -->
             <div class="signedIn-content-root">
                 <div class="signedIn-commands">
-                    <button data-event="{ click: showLogger }">
-                        Show Logger
-                    </button>
                     <button data-event="{ click: startSync }">
                         Sync
                     </button>
-                    <button data-event="{ click: listFolders }">
-                        List Folders
-                    </button>
                     <button data-event="{ click: listUnreadBookmarks }">
                         List bookmarks in 'unread' folder
-                    </button>
-                    <button data-part="_signOutButton"
-                            data-event="{ click: signOut }">
-                        Sign out
                     </button>
                     <button data-event="{ click: dumpDb }">
                         Dump DB
