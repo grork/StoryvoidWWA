@@ -3,15 +3,25 @@
 }
 
 .signedIn-content-root {
-    background-color: pink;
-}
-
-.signedIn-messages {
-    background-color: antiquewhite;
+    background-color: white;
 }
 
 .signedIn-content {
     background-color: white;
+}
+
+.signedIn-header {
+    background-color: red;
+    color: white;
+}
+
+button.win-splitviewpanetoggle[aria-expanded=false] {
+    color: white;
+}
+
+html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.34);
 }
 
 .signedOut-container {
