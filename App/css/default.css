@@ -89,22 +89,6 @@ body {
     -ms-grid-rows: 48px 1fr;
 }
 
-.signedIn-commands {
-    padding: 10px 5px 10px 48px;
-    -ms-grid-column: 1;
-    -ms-grid-row: 1;
-    -ms-grid-row-align: center;
-    display: flex;
-    flex-direction: row;
-    flex-shrink: 0;
-    overflow-y: auto;
-}
-
-    .signedIn-commands > button {
-        margin-left: 5px;
-        margin-right: 5px;
-    }
-
 .signedIn-content {
     -ms-grid-column: 1;
     -ms-grid-row: 2;
@@ -259,31 +243,42 @@ body {
     bottom: 25px;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 1fr;
+    -ms-grid-rows: 48px 1fr 48px;
 }
 
     .codevoid-logviewer > .codevoid-logviewer-messages {
         -ms-grid-column: 1;
-        -ms-grid-row: 1;
+        -ms-grid-row: 2;
         overflow: auto;
         padding: 0px 17px 0px 6px;
         -ms-user-select: text;
     }
 
-    .codevoid-logviewer > .codevoid-logviewer-dismiss {
-        -ms-grid-column: 1;
-        -ms-grid-row: 1;
-        -ms-grid-column-align: end;
-        font-family: "Segoe MDL2 Assets", "Symbols";
-        font-size: 24px;
-        width: 48px;
-        height: 48px;
-        text-align: center;
-        margin-right: -6px;
+.codevoid-logviewer-dismiss {
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+    -ms-grid-column-align: end;
+    font-family: "Segoe MDL2 Assets", "Symbols";
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    margin-right: -6px;
+}
+
+    .codevoid-logviewer-dismiss::after {
+        content: "\E711";
+        line-height: 1.33em;
+        font-weight: 400;
     }
 
-        .codevoid-logviewer > .codevoid-logviewer-dismiss::after {
-            content: "\E711";
-            line-height: 1.33em;
-            font-weight: 400;
-        }
+.codevoid-logviewer-clearlog {
+    -ms-grid-row: 3;
+    -ms-grid-column: 1;
+    margin-left: 12px;
+    -ms-grid-row-align: center;
+}
+
+    .codevoid-logviewer-clearlog:hover {
+        color: yellow;
+    }

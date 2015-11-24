@@ -394,6 +394,8 @@
         /// Class to view the outoput of Codevoid.Utilties.Logging in a nice top level floating "window"
         /// </summary>
         LogViewer: WinJS.Class.define(function (element, options) {
+            this._handlersToCancel = [];
+
             // Set up our own element
             this.element = element;
             Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.Utilities.DOM.LogViewer");
@@ -409,17 +411,17 @@
             var dismissElement = document.createElement("div");
             WinJS.Utilities.addClass(dismissElement, "codevoid-logviewer-dismiss");
 
-            this._dismissEvents = Codevoid.Utilities.addEventListeners(dismissElement, {
+            this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(dismissElement, {
                 click: function () {
                     this._dismiss();
                 }.bind(this)
-            });
+            }));
 
             this.element.appendChild(dismissElement);
 
             // Capture the logger & listen for events
             this._logger = Codevoid.Utilities.Logging.instance;
-            this._loggingEvents = Codevoid.Utilities.addEventListeners(this._logger, {
+            this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(this._logger, {
                 newlogmessage: function (e) {
                     var message = e.detail;
                     
@@ -428,17 +430,27 @@
                 logcleared: function () {
                     this._messageContainer.innerHTML = "";
                 }.bind(this),
-            });
+            }));
 
+            var clearLogElement = document.createElement("div");
+            WinJS.Utilities.addClass(clearLogElement, "codevoid-logviewer-clearlog");
+            clearLogElement.textContent = "Clear Log";
+
+            this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(clearLogElement, {
+                click: function () {
+                    this._logger.clear();
+                }.bind(this),
+            }));
+
+            this.element.appendChild(clearLogElement);
 
             this._logger.messages.forEach(function (message) {
                 this._appendMessage(message);
             }.bind(this));
         }, {
+            _handlersToCancel: null,
             element: null,
             _logger: null,
-            _loggingEvents: null,
-            _dismissEvents: null,
             _messageContainer: null,
             _appendMessage: function(message) {
                 var messageElement;
@@ -455,8 +467,11 @@
                 this._messageContainer.appendChild(messageElement);
             },
             _dismiss: function () {
-                this._dismissEvents.cancel();
-                this._loggingEvents.cancel();
+                this._handlersToCancel.forEach(function (toCancel) {
+                    toCancel.cancel();
+                });
+
+                this._handlersToCancel = null;
 
                 this.element.parentElement.removeChild(this.element);
             },
