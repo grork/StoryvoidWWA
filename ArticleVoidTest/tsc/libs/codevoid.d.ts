@@ -69,6 +69,7 @@ declare module Codevoid.ArticleVoid {
     export interface IFolder {
         title: string;
         localOnly: boolean;
+        folder_id: string;
     }
 
     export interface IBookmark {
@@ -92,6 +93,13 @@ declare module Codevoid.ArticleVoid {
 
         static DBVersion: number;
         static DBName: string;
+
+        static CommonFolderIds: {
+            Archive: string;
+            Liked: string;
+            Unread: string;
+            Orphaned: string;
+        };
     }
 }
 

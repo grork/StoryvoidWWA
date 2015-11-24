@@ -26,6 +26,7 @@
             }
 
             this._instapaperDB.dispose();
+            this._instapaperDB = null;
         }
 
         public signOut(): void {
@@ -108,11 +109,11 @@
 
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
-        private _signOutButton: HTMLElement;
         private _messages: HTMLElement;
         private _contentList: WinJS.UI.ListView<any>;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
+        private _folderList: WinJS.UI.Repeater;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -128,20 +129,20 @@
             });
         }
 
+        public splitViewOpening() {
+            this.viewModel.listFolders().done((folders: IFolder[]) => {
+                this._folderList.data = new WinJS.Binding.List(folders);
+            });
+        }
+
         public signOut(): void {
+            this._folderList.data = null;
+            this._contentList.itemDataSource = null;
             this.viewModel.signOut();
         }
 
         public showLogger(): void {
             Utilities.Logging.instance.showViewer();
-        }
-
-        public listFolders(): void {
-            this.viewModel.listFolders().done((folders: IFolder[]) => {
-                folders.forEach((folder) => {
-                    Utilities.Logging.instance.log("Folder: " + folder.title);
-                });
-            });
         }
 
         public listUnreadBookmarks(): void {
@@ -224,16 +225,43 @@
         public clearLog(): void {
             Codevoid.Utilities.Logging.instance.clear();
         }
+
+        static folderIdToIcon: any;
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
+
+
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
+
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listFolders);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listUnreadBookmarks);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearLog);
 
+    SignedInExperience.folderIdToIcon = WinJS.Binding.converter((folder: string) => {
+        var result = "\uE8B7"; // hollow folder icon
+
+        switch (folder) {
+            case InstapaperDB.CommonFolderIds.Archive:
+                result = "\uE8F1";
+                break;
+
+            case InstapaperDB.CommonFolderIds.Liked:
+                result = "\uE006";
+                break;
+
+            case InstapaperDB.CommonFolderIds.Unread:
+                result = "\uE80F";
+                break;
+
+            default:
+                break;
+        }
+
+        return result;
+    });
 }

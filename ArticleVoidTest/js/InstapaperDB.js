@@ -723,9 +723,9 @@
             createDefaultData: function createDefaultData(server) {
                 // Create Folders
                 server.add("folders", [
-                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread, title: "unread" },
-                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked, title: "liked" },
-                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive, title: "archive" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Unread, title: "Home" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Liked, title: "Liked" },
+                    { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Archive, title: "Archive" },
                     { folder_id: Codevoid.ArticleVoid.InstapaperDB.CommonFolderIds.Orphaned, title: "orphaned", localOnly: true },
                 ]);
             },

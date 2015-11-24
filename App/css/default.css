@@ -53,20 +53,45 @@ body {
 
     .signedIn-splitview .win-splitview-pane {
         display: -ms-grid;
-        -ms-grid-rows: 48px 1fr;
+        -ms-grid-rows: 48px 1fr 12px 48px 48px;
         -ms-grid-columns: 1fr;
     }
 
-        .signedIn-splitview .win-splitview-pane > div {
-            -ms-grid-row: 2;
-            -ms-grid-column: 1;
-        }
+.pane-folderlist {
+    -ms-grid-row: 2;
+    -ms-grid-column: 1;
+    overflow-y: auto;
+}
+
+.pane-section-splitter {
+    -ms-grid-row: 3;
+    -ms-grid-column: 1;
+    -ms-grid-row-align: center;
+    margin-left: 12px;
+    margin-right: 12px;
+    height: 1px;
+    border-top: 1px solid;
+}
+
+.pane-signout-button {
+    -ms-grid-row: 4;
+    -ms-grid-column: 1;
+}
+
+.pane-settings-button {
+    -ms-grid-row: 5;
+    -ms-grid-column: 1;
+}
+
+.win-splitviewcommand-icon {
+    margin-top: 16px;
+}
 
 .signedIn-content-root {
     height: 100%;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 100px 1fr;
+    -ms-grid-rows: 48px 1fr;
 }
 
 .signedIn-commands {

@@ -18,6 +18,10 @@
     background-color: lightblue;
 }
 
+.pane-section-splitter {
+    border-color: lightgray;
+}
+
 .article {
     background-color: #DBDADA;
 }
