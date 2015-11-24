@@ -70,6 +70,9 @@
                 <div class="pane-section-splitter"></div>
                 <div class="pane-commands">
                     <div data-win-control="WinJS.UI.SplitViewCommand"
+                         data-event="{ invoked: dumpDb }"
+                         data-win-options="{ label: 'Dump DB', icon: '\uE105'}"></div>
+                    <div data-win-control="WinJS.UI.SplitViewCommand"
                          data-event="{ invoked: startSync }"
                          data-win-options="{ label: 'Sync', icon: '\uE117'}"></div>
                     <div data-win-control="WinJS.UI.SplitViewCommand"
@@ -83,17 +86,6 @@
 
             <!-- Content for the splitview -->
             <div class="signedIn-content-root">
-                <div class="signedIn-commands">
-                    <button data-event="{ click: dumpDb }">
-                        Dump DB
-                    </button>
-                    <button data-event="{ click: clearDb }">
-                        Clear DB
-                    </button>
-                    <button data-event="{ click: clearLog }">
-                        Clear Log
-                    </button>
-                </div>
                 <div class="signedIn-content">
                     <div class="signedIn-articleList"
                          data-win-control="WinJS.UI.ListView"

@@ -269,11 +269,7 @@
                 Utilities.Logging.instance.log("Not dumped");
             });
         }
-
-        public clearLog(): void {
-            Codevoid.Utilities.Logging.instance.clear();
-        }
-
+        
         static folderIdToIcon: any;
     }
 
@@ -288,7 +284,6 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listUnreadBookmarks);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearLog);
 
     SignedInExperience.folderIdToIcon = WinJS.Binding.converter((folder: string) => {
         var result = "\uE8B7"; // hollow folder icon
