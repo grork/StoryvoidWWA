@@ -10,7 +10,22 @@
             App._instance = this;
         }
 
+        private configureTitlebar(): void {
+            var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
+
+            var primaryColour = Windows.UI.Colors.red;
+            var textColour = Windows.UI.Colors.white;
+
+            titleBar.backgroundColor = primaryColour;
+            titleBar.buttonBackgroundColor = primaryColour;
+            titleBar.buttonForegroundColor = textColour;
+            titleBar.foregroundColor = textColour;
+            titleBar.inactiveBackgroundColor = primaryColour;
+            titleBar.buttonInactiveBackgroundColor = primaryColour;
+        }
+
         public initialize(): void {
+            this.configureTitlebar();
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
             var credentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();

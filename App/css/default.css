@@ -89,6 +89,14 @@ body {
     -ms-grid-rows: 48px 1fr;
 }
 
+.signedIn-header {
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+    padding-left: 48px;
+    height: 100%;
+    width: 100%;
+}
+
 .signedIn-content {
     -ms-grid-column: 1;
     -ms-grid-row: 2;
