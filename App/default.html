@@ -68,25 +68,22 @@
                     </div>
                 </div>
                 <div class="pane-section-splitter"></div>
-                <div class="pane-signout-button"
-                     data-win-control="WinJS.UI.SplitViewCommand"
-                     data-event="{ invoked: signOut }"
-                     data-win-options="{ label: 'Sign out', icon: '\uE77B'}"></div>
-                <div class="pane-settings-button"
-                     data-win-control="WinJS.UI.SplitViewCommand"
-                     data-event="{ invoked: showLogger }"
-                     data-win-options="{ label: 'Settings', icon: '\uE713'}"></div>
+                <div class="pane-commands">
+                    <div data-win-control="WinJS.UI.SplitViewCommand"
+                         data-event="{ invoked: startSync }"
+                         data-win-options="{ label: 'Sync', icon: '\uE117'}"></div>
+                    <div data-win-control="WinJS.UI.SplitViewCommand"
+                         data-event="{ invoked: signOut }"
+                         data-win-options="{ label: 'Sign out', icon: '\uE77B'}"></div>
+                    <div data-win-control="WinJS.UI.SplitViewCommand"
+                         data-event="{ invoked: showLogger }"
+                         data-win-options="{ label: 'Settings', icon: '\uE713'}"></div>
+                </div>
             </div>
 
             <!-- Content for the splitview -->
             <div class="signedIn-content-root">
                 <div class="signedIn-commands">
-                    <button data-event="{ click: startSync }">
-                        Sync
-                    </button>
-                    <button data-event="{ click: listUnreadBookmarks }">
-                        List bookmarks in 'unread' folder
-                    </button>
                     <button data-event="{ click: dumpDb }">
                         Dump DB
                     </button>

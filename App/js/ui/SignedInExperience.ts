@@ -5,19 +5,12 @@
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _instapaperDB: Codevoid.ArticleVoid.InstapaperDB;
+        private _dbOpened: boolean;
+        private _pendingDbOpen: Utilities.Signal;
+        private _eventSource: Utilities.EventSource;
+
         constructor() {
-        }
-
-        public initializeDB(): WinJS.Promise<Codevoid.ArticleVoid.InstapaperDB> {
-            if (this._instapaperDB) {
-                return WinJS.Promise.as(this._instapaperDB);
-            }
-
-            this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
-            return this._instapaperDB.initialize().then((result) => {
-                Utilities.Logging.instance.log("Initialized DB");
-                return result;
-            });
+            this._eventSource = new Utilities.EventSource();
         }
 
         private disposeDB(): void {
@@ -27,6 +20,32 @@
 
             this._instapaperDB.dispose();
             this._instapaperDB = null;
+            this._dbOpened = false;
+        }
+
+        public initializeDB(): WinJS.Promise<void> {
+            if (this._dbOpened) {
+                return WinJS.Promise.as(null);
+            }
+
+            if (this._pendingDbOpen) {
+                return this._pendingDbOpen.promise;
+            }
+
+            this._pendingDbOpen = new Utilities.Signal();
+            this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
+
+            this._instapaperDB.initialize().done((result) => {
+                this._dbOpened = true;
+                Utilities.Logging.instance.log("Initialized DB");
+                this._pendingDbOpen.complete();
+                this._pendingDbOpen = null;
+            }, (e) => {
+                this._pendingDbOpen.error(e);
+                this._pendingDbOpen = null;
+            });
+
+            return this._pendingDbOpen.promise;
         }
 
         public signOut(): void {
@@ -47,8 +66,59 @@
             this.initializeDB();
         }
 
-        public getSyncEngine(): Codevoid.ArticleVoid.InstapaperSync {
-            return new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
+        public startSync(): void {
+            var sync = new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
+
+            Utilities.Logging.instance.log("Starting Sync");
+
+            sync.addEventListener("syncstatusupdate", (eventData) => {
+                switch (eventData.detail.operation) {
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
+                        Utilities.Logging.instance.log("Started");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
+                        Utilities.Logging.instance.log("Ended");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
+                        Utilities.Logging.instance.log("Folders Started");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
+                        Utilities.Logging.instance.log("Folders Ended");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
+                        Utilities.Logging.instance.log("Bookmarks Start");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
+                        Utilities.Logging.instance.log("Bookmarks End");
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder:
+                        Utilities.Logging.instance.log("Syncing Folder: " + eventData.detail.title);
+                        break;
+
+                    case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
+                        Utilities.Logging.instance.log("Folder Synced: " + eventData.detail.title);
+                        break;
+
+                    default:
+                        Utilities.Logging.instance.log("Unknown Event: " + eventData.detail.operation);
+                        break;
+                }
+
+            });
+
+            sync.sync().done(() => {
+                Utilities.Logging.instance.log("Completed Sync");
+                this._eventSource.dispatchEvent("synccompleted", null);
+            }, (e) => {
+                Utilities.Logging.instance.log("Failed Sync:");
+                Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
+            });
         }
 
         public clearDb(): WinJS.Promise<any> {
@@ -105,6 +175,10 @@
         public listUnreadBookmarks(): WinJS.Promise<Codevoid.ArticleVoid.IBookmark[]> {
             return this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread);
         }
+
+        public get events(): Utilities.EventSource {
+            return this._eventSource;
+        }
     }
 
     export class SignedInExperience extends Codevoid.UICore.Control {
@@ -126,7 +200,30 @@
                 DOM.marryPartsToControl(element, this);
 
                 this._splitToggle.splitView = this._splitView.element;
+
+                this.viewModel.initializeDB().then(() => {
+                    this._handleInitialized();
+                });
+
+                this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
+                    synccompleted: () => {
+                        this.listUnreadBookmarks();
+                    }
+                }));
             });
+        }
+
+        private _handleInitialized() {
+            var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
+                contentanimating: (eventObject) => {
+                    if (eventObject.detail.type === "entrance") {
+                        eventObject.preventDefault();
+                        firstTimeAnimation.cancel();
+                    }
+                }
+            });
+
+            this.listUnreadBookmarks();
         }
 
         public splitViewOpening() {
@@ -154,56 +251,7 @@
         }
 
         public startSync(): void {
-            Utilities.Logging.instance.log("Starting Sync");
-
-            var sync = this.viewModel.getSyncEngine();
-            sync.addEventListener("syncstatusupdate", (eventData) => {
-                switch (eventData.detail.operation) {
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
-                        Utilities.Logging.instance.log("Started");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
-                        Utilities.Logging.instance.log("Ended");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
-                        Utilities.Logging.instance.log("Folders Started");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
-                        Utilities.Logging.instance.log("Folders Ended");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
-                        Utilities.Logging.instance.log("Bookmarks Start");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
-                        Utilities.Logging.instance.log("Bookmarks End");
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder:
-                        Utilities.Logging.instance.log("Syncing Folder: " + eventData.detail.title);
-                        break;
-
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
-                        Utilities.Logging.instance.log("Folder Synced: " + eventData.detail.title);
-                        break;
-
-                    default:
-                        Utilities.Logging.instance.log("Unknown Event: " + eventData.detail.operation);
-                        break;
-                }
-
-            });
-
-            sync.sync().done(() => {
-                Utilities.Logging.instance.log("Completed Sync");
-            }, (e) => {
-                Utilities.Logging.instance.log("Failed Sync:");
-                Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
-            });
+            this.viewModel.startSync();
         }
 
         public clearDb(): void {
