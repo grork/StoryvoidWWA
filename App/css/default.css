@@ -53,7 +53,7 @@ body {
 
     .signedIn-splitview .win-splitview-pane {
         display: -ms-grid;
-        -ms-grid-rows: 48px 1fr 12px 48px 48px;
+        -ms-grid-rows: 48px 1fr 12px auto;
         -ms-grid-columns: 1fr;
     }
 
@@ -73,13 +73,8 @@ body {
     border-top: 1px solid;
 }
 
-.pane-signout-button {
+.pane-commands {
     -ms-grid-row: 4;
-    -ms-grid-column: 1;
-}
-
-.pane-settings-button {
-    -ms-grid-row: 5;
     -ms-grid-column: 1;
 }
 
