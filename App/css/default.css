@@ -92,9 +92,17 @@ body {
 .signedIn-header {
     -ms-grid-column: 1;
     -ms-grid-row: 1;
-    padding-left: 48px;
+    display: -ms-grid;
+    -ms-grid-rows: 1fr;
+    -ms-grid-columns: 48px 12px 1fr;
     height: 100%;
     width: 100%;
+}
+
+.header-folderName {
+    -ms-grid-column: 3;
+    -ms-grid-row-align: center;
+    font-size: 18px;
 }
 
 .signedIn-content {
@@ -124,6 +132,7 @@ body {
     margin-left: 6px;
     margin-right: 6px;
     margin-top: 6px;
+    margin-bottom: 6px;
 }
 
 .article {

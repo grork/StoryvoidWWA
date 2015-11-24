@@ -107,6 +107,7 @@ declare module Codevoid.ArticleVoid {
         title: string;
         localOnly: boolean;
         folder_id: string;
+        id: number;
     }
 
     export interface IBookmark {
@@ -120,13 +121,15 @@ declare module Codevoid.ArticleVoid {
         deleteAllData(): WinJS.Promise<any>;
         dispose(): void;
         listCurrentFolders(): WinJS.Promise<IFolder[]>;
-        listCurrentBookmarks(folder_id: string): WinJS.Promise<IBookmark[]>;
+        listCurrentBookmarks(folder_id: number): WinJS.Promise<IBookmark[]>;
         commonFolderDbIds: {
-            archive: string;
-            liked: string;
-            unread: string;
-            orphaned: string;
+            archive: number;
+            liked: number;
+            unread: number;
+            orphaned: number;
         };
+
+        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>
 
         static DBVersion: number;
         static DBName: string;
@@ -154,5 +157,9 @@ declare module Codevoid.ArticleVoid.Authenticator {
 declare module Codevoid.ArticleVoid.UI {
     export class Authenticator {
         static showAuthenticator(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+    }
+
+    export class SplitViewCommandWithData extends WinJS.UI.SplitViewCommand {
+        dataContext: any;
     }
 }

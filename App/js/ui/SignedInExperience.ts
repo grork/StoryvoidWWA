@@ -172,18 +172,25 @@
             });
         }
 
-        public listUnreadBookmarks(): WinJS.Promise<Codevoid.ArticleVoid.IBookmark[]> {
-            return this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread);
+        public listBookmarksForFolder(folderId: number): WinJS.Promise<{ folder: IFolder, bookmarks: Codevoid.ArticleVoid.IBookmark[] }> {
+            return WinJS.Promise.join({
+                folder: this._instapaperDB.getFolderByDbId(folderId),
+                bookmarks: this._instapaperDB.listCurrentBookmarks(folderId),
+            });
         }
 
         public get events(): Utilities.EventSource {
             return this._eventSource;
         }
+
+        public get commonFolderDbIds() {
+            return this._instapaperDB.commonFolderDbIds;
+        }
     }
 
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
-        private _messages: HTMLElement;
+        private _folderNameElement: HTMLElement;
         private _contentList: WinJS.UI.ListView<any>;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
@@ -196,24 +203,28 @@
             DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
 
             WinJS.UI.processAll(element).done(() => {
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
-
-                this._splitToggle.splitView = this._splitView.element;
-
-                this.viewModel.initializeDB().then(() => {
-                    this._handleInitialized();
-                });
-
-                this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
-                    synccompleted: () => {
-                        this.listUnreadBookmarks();
-                    }
-                }));
+                this._initialize();
             });
         }
 
-        private _handleInitialized() {
+        private _initialize(): void {
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            this._splitToggle.splitView = this._splitView.element;
+
+            this.viewModel.initializeDB().then(() => {
+                this._handleDBInitialized();
+            });
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
+                synccompleted: () => {
+                    this.listBookmarksForFolder(this.viewModel.commonFolderDbIds.unread);
+                }
+            }));
+        }
+
+        private _handleDBInitialized(): void {
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
                 contentanimating: (eventObject) => {
                     if (eventObject.detail.type === "entrance") {
@@ -223,7 +234,7 @@
                 }
             });
 
-            this.listUnreadBookmarks();
+            this.listBookmarksForFolder(this.viewModel.commonFolderDbIds.unread);
         }
 
         public splitViewOpening() {
@@ -242,16 +253,22 @@
             Utilities.Logging.instance.showViewer();
         }
 
-        public listUnreadBookmarks(): void {
-            this.viewModel.listUnreadBookmarks().done((bookmarks: IBookmark[]) => {
-                Utilities.Logging.instance.log("Bookmarks!");
-                bookmarks.reverse();
+        public listBookmarksForFolder(folderId: number): void {
+            this.viewModel.listBookmarksForFolder(folderId).done((result) => {
+                Utilities.Logging.instance.log("Bookmarks for: " + folderId);
+                this._folderNameElement.textContent = result.folder.title;
+                var bookmarks = result.bookmarks.reverse();
                 this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
             });
         }
 
         public startSync(): void {
             this.viewModel.startSync();
+        }
+
+        public folderClicked(e: any): void {
+            var button: UI.SplitViewCommandWithData = e.target.winControl;
+            this.listBookmarksForFolder(button.dataContext.id);
         }
 
         public clearDb(): void {
@@ -281,7 +298,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listUnreadBookmarks);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
 
