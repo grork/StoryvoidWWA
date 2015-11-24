@@ -60,11 +60,12 @@
              data-event="{ beforeopen: splitViewOpening }">
             <!-- Slide out pane from split view-->
             <div class="win-splitview-pane">
-                <div class="pane-folderlist">
+                <div class="pane-folderlist"
+                     data-event="{ invoked: folderClicked }">
                     <div data-part="_folderList"
                          data-win-control="WinJS.UI.Repeater">
                         <div data-win-control="WinJS.UI.SplitViewCommand"
-                             data-win-bind="winControl.label: title; winControl.icon: folder_id Codevoid.ArticleVoid.UI.SignedInExperience.folderIdToIcon"></div>
+                             data-win-bind="winControl.label: title; winControl.icon: folder_id Codevoid.ArticleVoid.UI.SignedInExperience.folderIdToIcon; winControl.dataContext: this"></div>
                     </div>
                 </div>
                 <div class="pane-section-splitter"></div>
@@ -86,7 +87,10 @@
 
             <!-- Content for the splitview -->
             <div class="signedIn-content-root">
-                <div class="signedIn-header"></div>
+                <div class="signedIn-header">
+                    <div class="header-folderName"
+                         data-part="_folderNameElement"></div>
+                </div>
                 <div class="signedIn-content">
                     <div class="signedIn-articleList"
                          data-win-control="WinJS.UI.ListView"
