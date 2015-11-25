@@ -1,6 +1,11 @@
 ﻿module Codevoid.ArticleVoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
+    export interface IFolderDetails {
+        folder: IFolder;
+        bookmarks: IBookmark[];
+    }
+
     export class SignedInViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
@@ -8,6 +13,8 @@
         private _dbOpened: boolean;
         private _pendingDbOpen: Utilities.Signal;
         private _eventSource: Utilities.EventSource;
+        private _currentFolderId: number = -1;
+        private _currentFolder: IFolderDetails;
 
         constructor() {
             this._eventSource = new Utilities.EventSource();
@@ -115,6 +122,11 @@
             sync.sync().done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
+                
+                //HACK until we have actual DB change notifications
+                var currentFolder = this._currentFolderId;
+                this._currentFolderId = -1;
+                this.switchCurrentFolderTo(currentFolder);
             }, (e) => {
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
@@ -172,7 +184,7 @@
             });
         }
 
-        public listBookmarksForFolder(folderId: number): WinJS.Promise<{ folder: IFolder, bookmarks: Codevoid.ArticleVoid.IBookmark[] }> {
+        public getDetailsForFolder(folderId: number): WinJS.Promise<IFolderDetails> {
             return WinJS.Promise.join({
                 folder: this._instapaperDB.getFolderByDbId(folderId),
                 bookmarks: this._instapaperDB.listCurrentBookmarks(folderId),
@@ -185,6 +197,34 @@
 
         public get commonFolderDbIds() {
             return this._instapaperDB.commonFolderDbIds;
+        }
+
+        public get currentFolderId(): number {
+            return this._currentFolderId;
+        }
+
+        public get currentFolder(): IFolderDetails {
+            return this._currentFolder;
+        }
+
+        public switchCurrentFolderTo(folderId: number): void {
+            // If we're being asked to switch to the folder
+            // we're currently on, then no-op.
+            if (this._currentFolderId === folderId) {
+                return;
+            }
+
+            this._currentFolder = null;
+            this._currentFolderId = folderId;
+
+            this._eventSource.dispatchEvent("currentfolderchanging", null);
+
+            this.getDetailsForFolder(folderId).done((result) => {
+                this._currentFolder = result;
+                this._eventSource.dispatchEvent("currentfolderchanged", result);
+            }, () => {
+                this._currentFolderId = -1;
+            });
         }
     }
 
@@ -213,15 +253,19 @@
 
             this._splitToggle.splitView = this._splitView.element;
 
+            this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
+                currentfolderchanging: () => {
+                    this._contentList.itemDataSource = null;
+                },
+                currentfolderchanged: (e: { detail: IFolderDetails }) => {
+                    this._renderFolderDetails(e.detail);
+                },
+            }));
+
             this.viewModel.initializeDB().then(() => {
                 this._handleDBInitialized();
             });
 
-            this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
-                synccompleted: () => {
-                    this.listBookmarksForFolder(this.viewModel.commonFolderDbIds.unread);
-                }
-            }));
         }
 
         private _handleDBInitialized(): void {
@@ -234,7 +278,11 @@
                 }
             });
 
-            this.listBookmarksForFolder(this.viewModel.commonFolderDbIds.unread);
+            if (this.viewModel.currentFolder) {
+                this._renderFolderDetails(this.viewModel.currentFolder);
+            } else {
+                this.viewModel.switchCurrentFolderTo(this.viewModel.commonFolderDbIds.unread);
+            }
         }
 
         public splitViewOpening() {
@@ -253,13 +301,11 @@
             Utilities.Logging.instance.showViewer();
         }
 
-        public listBookmarksForFolder(folderId: number): void {
-            this.viewModel.listBookmarksForFolder(folderId).done((result) => {
-                Utilities.Logging.instance.log("Bookmarks for: " + folderId);
-                this._folderNameElement.textContent = result.folder.title;
-                var bookmarks = result.bookmarks.reverse();
-                this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
-            });
+        public _renderFolderDetails(folderDeatils: IFolderDetails): void {
+            Utilities.Logging.instance.log("Bookmarks for: " + folderDeatils.folder.folder_id);
+            this._folderNameElement.textContent = folderDeatils.folder.title;
+            var bookmarks = folderDeatils.bookmarks.reverse();
+            this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
         }
 
         public startSync(): void {
@@ -268,7 +314,7 @@
 
         public folderClicked(e: any): void {
             var button: UI.SplitViewCommandWithData = e.target.winControl;
-            this.listBookmarksForFolder(button.dataContext.id);
+            this.viewModel.switchCurrentFolderTo(button.dataContext.id);
         }
 
         public clearDb(): void {
