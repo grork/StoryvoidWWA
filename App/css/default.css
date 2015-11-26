@@ -94,7 +94,7 @@ body {
     -ms-grid-row: 1;
     display: -ms-grid;
     -ms-grid-rows: 1fr;
-    -ms-grid-columns: 48px 12px 1fr;
+    -ms-grid-columns: 48px 12px auto 1fr;
     height: 100%;
     width: 100%;
 }
@@ -104,6 +104,47 @@ body {
     -ms-grid-row-align: center;
     font-size: 18px;
 }
+
+.header-commands {
+    -ms-grid-column: 4;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: end;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+    .header-commands > div {
+        margin-left: 6px;
+        margin-right: 6px;
+    }
+
+.commands-sort {
+    border-color: transparent;
+    border-width: 1px;
+    color: white;
+    margin: 0px;
+    margin-right: 6px;
+    margin-top: 2px;
+    background-color: transparent;
+}
+
+    .commands-sort:hover {
+        border-color: white;
+        background-color: transparent;
+    }
+    .commands-sort::-ms-value {
+        background-color: transparent;
+    }
+
+    .commands-sort::-ms-expand {
+        color: white;
+    }
 
 .signedIn-content {
     -ms-grid-column: 1;

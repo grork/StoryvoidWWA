@@ -6,6 +6,12 @@
         bookmarks: IBookmark[];
     }
 
+    enum SortOption {
+        Oldest,
+        Newest,
+        Progress
+    }
+
     export class SignedInViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
@@ -15,6 +21,7 @@
         private _eventSource: Utilities.EventSource;
         private _currentFolderId: number = -1;
         private _currentFolder: IFolderDetails;
+        private _currentSort: SortOption = SortOption.Oldest;
 
         constructor() {
             this._eventSource = new Utilities.EventSource();
@@ -226,6 +233,14 @@
                 this._currentFolderId = -1;
             });
         }
+
+        public get sorts(): { label: string, sort: SortOption }[]{
+            return [
+                { label: "Oldest", sort: SortOption.Oldest },
+                { label: "Newest", sort: SortOption.Newest },
+                { label: "Progress", sort: SortOption.Progress },
+            ];
+        }
     }
 
     export class SignedInExperience extends Codevoid.UICore.Control {
@@ -235,6 +250,8 @@
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
         private _folderList: WinJS.UI.Repeater;
+        private _sorts: WinJS.UI.Repeater;
+        private _sortsElement: HTMLSelectElement;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -262,10 +279,17 @@
                 },
             }));
 
-            this.viewModel.initializeDB().then(() => {
+            this.viewModel.initializeDB().done(() => {
                 this._handleDBInitialized();
             });
 
+            this._sortsElement = <HTMLSelectElement>this._sorts.element;
+            this._sorts.data = new WinJS.Binding.List(this.viewModel.sorts);
+            this._sortsElement.selectedIndex = 0;
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._sortsElement, {
+                change: this._handleSortsChanged.bind(this),
+            }));
         }
 
         private _handleDBInitialized(): void {
@@ -283,6 +307,10 @@
             } else {
                 this.viewModel.switchCurrentFolderTo(this.viewModel.commonFolderDbIds.unread);
             }
+        }
+
+        private _handleSortsChanged(e: UIEvent) {
+            console.log("Sort changed:" + this._sortsElement.value);
         }
 
         public splitViewOpening() {
