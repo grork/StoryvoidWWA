@@ -315,6 +315,7 @@
         public folderClicked(e: any): void {
             var button: UI.SplitViewCommandWithData = e.target.winControl;
             this.viewModel.switchCurrentFolderTo(button.dataContext.id);
+            this._splitView.closePane();
         }
 
         public clearDb(): void {
