@@ -90,6 +90,14 @@
                 <div class="signedIn-header">
                     <div class="header-folderName"
                          data-part="_folderNameElement"></div>
+                    <div class="header-commands">
+                        <div>Sort by:</div>
+                        <select class="commands-sort"
+                                data-win-control="WinJS.UI.Repeater"
+                                data-part="_sorts">
+                            <option data-win-bind="textContent: label; value: sort"></option>
+                        </select>
+                    </div>
                 </div>
                 <div class="signedIn-content">
                     <div class="signedIn-articleList"
