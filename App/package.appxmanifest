@@ -20,6 +20,14 @@
         </uap:DefaultTile>
         <uap:SplashScreen Image="images\splashscreen.png" />
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.shareTarget" StartPage="shareTarget.html">
+          <uap:ShareTarget Description="Add links to your Instapaper account with ArticleVoid">
+            <uap:DataFormat>URI</uap:DataFormat>
+            <uap:DataFormat>Text</uap:DataFormat>
+          </uap:ShareTarget>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

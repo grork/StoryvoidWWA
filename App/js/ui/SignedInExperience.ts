@@ -315,7 +315,7 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
+            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedInExperience");
 
             WinJS.UI.processAll(element).done(() => {
                 this._initialize();

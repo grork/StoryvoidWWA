@@ -13672,6 +13672,7 @@ declare module Windows {
                 onnavigated: any/* TODO */;
             }
             export class WebUIApplication {
+                static addEventListener(eventName: string, handler: (activationEventArgs: Windows.ApplicationModel.Activation.IActivatedEventArgs) => void);
                 static onactivated: any/* TODO */;
                 static onsuspending: any/* TODO */;
                 static onresuming: any/* TODO */;
