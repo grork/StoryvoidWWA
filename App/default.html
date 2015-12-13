@@ -94,6 +94,7 @@
                         <div>Sort by:</div>
                         <select class="commands-sort"
                                 data-win-control="WinJS.UI.Repeater"
+                                data-event="{ change: handleSortsChanged }"
                                 data-part="_sorts">
                             <option data-win-bind="textContent: label; value: sort"></option>
                         </select>
@@ -103,9 +104,9 @@
                     <div class="signedIn-articleList"
                          data-win-control="WinJS.UI.ListView"
                          data-win-options="{
-                    itemTemplate: select('.template-article'),
-                    layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
-                 }"
+                            itemTemplate: select('.template-article'),
+                            layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
+                         }"
                          data-part="_contentList"></div>
                 </div>
             </div>
