@@ -111,6 +111,8 @@ declare module Codevoid.ArticleVoid {
     }
 
     export interface IBookmark {
+        bookmark_id: number;
+        progress: number;
         title: string;
         url: string;
     }

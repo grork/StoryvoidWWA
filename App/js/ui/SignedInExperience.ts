@@ -12,6 +12,13 @@
         Progress
     }
 
+    interface ISortsInfo
+    {
+        label: string;
+        sort: SortOption;
+        comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
+    }
+
     export class SignedInViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
@@ -22,6 +29,7 @@
         private _currentFolderId: number = -1;
         private _currentFolder: IFolderDetails;
         private _currentSort: SortOption = SortOption.Oldest;
+        private static _sorts: ISortsInfo[];
 
         constructor() {
             this._eventSource = new Utilities.EventSource();
@@ -230,6 +238,8 @@
             this._eventSource.dispatchEvent("currentfolderchanging", null);
 
             this.getDetailsForFolder(this._currentFolderId).done((result) => {
+                result.bookmarks.sort(SignedInViewModel.sorts[this._currentSort].comparer);
+
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("currentfolderchanged", result);
             }, () => {
@@ -237,12 +247,57 @@
             });
         }
 
-        public get sorts(): { label: string, sort: SortOption }[]{
-            return [
-                { label: "Oldest", sort: SortOption.Oldest },
-                { label: "Newest", sort: SortOption.Newest },
-                { label: "Progress", sort: SortOption.Progress },
-            ];
+        public changeSortTo(newSort: SortOption): void {
+            if (this._currentSort == newSort) {
+                return;
+            }
+
+            this._currentSort = newSort;
+            this._eventSource.dispatchEvent("currentsortchanged", newSort);
+
+            this.refreshCurrentFolder();
+        }
+
+        public static get sorts(): ISortsInfo[]{
+            if (!SignedInViewModel._sorts) {
+                SignedInViewModel._sorts = [
+                    { label: "Oldest", sort: SortOption.Oldest, comparer: SignedInViewModel.sortOldestFirst },
+                    { label: "Newest", sort: SortOption.Newest, comparer: SignedInViewModel.sortNewestFirst },
+                    { label: "Progress", sort: SortOption.Progress, comparer: SignedInViewModel.sortMostProgressFirst },
+                ];
+            }
+
+            return SignedInViewModel._sorts;
+        }
+
+        private static sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+            if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
+                return -1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
+        private static sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+            if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
+                return 1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+
+        private static sortMostProgressFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+            if (firstBookmark.progress < secondBookmark.progress) {
+                return -1;
+            } else if (firstBookmark.progress > secondBookmark.progress) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
     }
 
@@ -280,13 +335,16 @@
                 currentfolderchanged: (e: { detail: IFolderDetails }) => {
                     this._renderFolderDetails(e.detail);
                 },
+                currentsortchanged: (e: { detail: SortOption }) => {
+                    this._sortsElement.value = e.detail.toString();
+                },
             }));
 
             this.viewModel.initializeDB().done(() => {
                 this._handleDBInitialized();
             });
 
-            this._sorts.data = new WinJS.Binding.List(this.viewModel.sorts);
+            this._sorts.data = new WinJS.Binding.List(SignedInViewModel.sorts);
             this._sortsElement = <HTMLSelectElement>this._sorts.element;
             this._sortsElement.selectedIndex = 0;
         }
@@ -305,7 +363,8 @@
         }
 
         public handleSortsChanged(e: UIEvent) {
-            console.log("Sort changed:" + this._sortsElement.value);
+            var rawSortOption = parseInt(this._sortsElement.value);
+            this.viewModel.changeSortTo(<SortOption>rawSortOption);
         }
 
         public splitViewOpening() {
