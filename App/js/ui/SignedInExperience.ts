@@ -51,7 +51,9 @@
 
             this._instapaperDB.initialize().done((result) => {
                 this._dbOpened = true;
-                Utilities.Logging.instance.log("Initialized DB");
+                this._currentFolderId = this.commonFolderDbIds.unread;
+
+                Utilities.Logging.instance.log("Initialized DB w/ folder ID: " + this._currentFolderId);
                 this._pendingDbOpen.complete();
                 this._pendingDbOpen = null;
             }, (e) => {
@@ -129,11 +131,8 @@
             sync.sync().done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
-                
-                //HACK until we have actual DB change notifications
-                var currentFolder = this._currentFolderId;
-                this._currentFolderId = -1;
-                this.switchCurrentFolderTo(currentFolder);
+
+                this.refreshCurrentFolder();
             }, (e) => {
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
@@ -224,9 +223,13 @@
             this._currentFolder = null;
             this._currentFolderId = folderId;
 
+            this.refreshCurrentFolder();
+        }
+
+        public refreshCurrentFolder(): void {
             this._eventSource.dispatchEvent("currentfolderchanging", null);
 
-            this.getDetailsForFolder(folderId).done((result) => {
+            this.getDetailsForFolder(this._currentFolderId).done((result) => {
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("currentfolderchanged", result);
             }, () => {
@@ -283,13 +286,9 @@
                 this._handleDBInitialized();
             });
 
-            this._sortsElement = <HTMLSelectElement>this._sorts.element;
             this._sorts.data = new WinJS.Binding.List(this.viewModel.sorts);
+            this._sortsElement = <HTMLSelectElement>this._sorts.element;
             this._sortsElement.selectedIndex = 0;
-
-            this._handlersToCleanup.push(Utilities.addEventListeners(this._sortsElement, {
-                change: this._handleSortsChanged.bind(this),
-            }));
         }
 
         private _handleDBInitialized(): void {
@@ -302,14 +301,10 @@
                 }
             });
 
-            if (this.viewModel.currentFolder) {
-                this._renderFolderDetails(this.viewModel.currentFolder);
-            } else {
-                this.viewModel.switchCurrentFolderTo(this.viewModel.commonFolderDbIds.unread);
-            }
+            this.viewModel.refreshCurrentFolder();
         }
 
-        private _handleSortsChanged(e: UIEvent) {
+        public handleSortsChanged(e: UIEvent) {
             console.log("Sort changed:" + this._sortsElement.value);
         }
 
@@ -374,6 +369,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.handleSortsChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
 
