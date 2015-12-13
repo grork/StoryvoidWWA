@@ -235,13 +235,13 @@
         }
 
         public refreshCurrentFolder(): void {
-            this._eventSource.dispatchEvent("currentfolderchanging", null);
+            this._eventSource.dispatchEvent("folderchanging", null);
 
             this.getDetailsForFolder(this._currentFolderId).done((result) => {
                 result.bookmarks.sort(SignedInViewModel.sorts[this._currentSort].comparer);
 
                 this._currentFolder = result;
-                this._eventSource.dispatchEvent("currentfolderchanged", result);
+                this._eventSource.dispatchEvent("folderchanged", result);
             }, () => {
                 this._currentFolderId = -1;
             });
@@ -253,7 +253,7 @@
             }
 
             this._currentSort = newSort;
-            this._eventSource.dispatchEvent("currentsortchanged", newSort);
+            this._eventSource.dispatchEvent("sortchanged", newSort);
 
             this.refreshCurrentFolder();
         }
@@ -272,9 +272,9 @@
 
         private static sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
             if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
-                return -1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
                 return 1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return -1;
             } else {
                 return 0;
             }
@@ -282,9 +282,9 @@
 
         private static sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
             if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
-                return 1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
                 return -1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return 1;
             } else {
                 return 0;
             }
@@ -296,7 +296,7 @@
             } else if (firstBookmark.progress > secondBookmark.progress) {
                 return 1;
             } else {
-                return 0;
+                return SignedInViewModel.sortNewestFirst(firstBookmark, secondBookmark);
             }
         }
     }
@@ -329,13 +329,13 @@
             this._splitToggle.splitView = this._splitView.element;
 
             this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
-                currentfolderchanging: () => {
+                folderchanging: () => {
                     this._contentList.itemDataSource = null;
                 },
-                currentfolderchanged: (e: { detail: IFolderDetails }) => {
+                folderchanged: (e: { detail: IFolderDetails }) => {
                     this._renderFolderDetails(e.detail);
                 },
-                currentsortchanged: (e: { detail: SortOption }) => {
+                sortchanged: (e: { detail: SortOption }) => {
                     this._sortsElement.value = e.detail.toString();
                 },
             }));
