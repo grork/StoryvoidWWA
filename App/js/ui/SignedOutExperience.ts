@@ -18,26 +18,20 @@
         }
 
         public startLogin(): void {
-            this.viewModel.startLogin().done((clientInfo: Codevoid.OAuth.ClientInformation) => {
-                if (clientInfo) {
-                    Codevoid.ArticleVoid.App.instance.signedIn(clientInfo);
-                } else {
-                    this._loginButton.innerText = "Failed";
-                }
+            this.viewModel.startLogin().done(null, () => {
+                this._loginButton.innerText = "Failed";
             });
         }
     }
 
     export class SignedOutViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedOutExperience" };
-        constructor() {
+        constructor(private _app: IAppWithAbilityToSignIn) {
         }
 
-        public startLogin(): WinJS.Promise<Codevoid.OAuth.ClientInformation> {
+        public startLogin(): WinJS.Promise<void> {
             return Codevoid.ArticleVoid.Authenticator.getClientInformation().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
-                return clientInfo;
-            }, () => {
-                return null;
+                this._app.signedIn(clientInfo);
             });
         }
     }

@@ -371,7 +371,7 @@
 
                 Object.keys(eventOptions).forEach(function (key) {
                     if (!eventOptions[key]) {
-                        throw new Exception("Missing event handler for '" + key + "' event");
+                        throw new Error("Missing event handler for '" + key + "' event");
                     }
 
                     var wrapper = function () {

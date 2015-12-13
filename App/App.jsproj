@@ -114,6 +114,10 @@
     <TypeScriptCompile Include="..\ArticleVoidTest\Scripts\typings\winjs\winjs.d.ts">
       <Link>Scripts\typings\winjs\winjs.d.ts</Link>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
+    <Content Include="js\AppThatCanSignIn.js">
+      <DependentUpon>AppThatCanSignIn.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\default.ts" />
     <Content Include="js\default.js">
       <DependentUpon>default.ts</DependentUpon>
