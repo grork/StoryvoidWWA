@@ -18,10 +18,10 @@
             </div>
             
             <div class="usernameLabel">Username:</div>
-            <input data-event="{ input: usernameChanged }"
+            <input data-event="{ input: usernameChanged, keydown: usernameKeydown }"
                 data-part="usernameInput"
                 class="usernameInput"
-                type="text" />
+                type="email" />
 
             <div class="passwordLabel">Password:</div>
             <input data-part="passwordInput"
