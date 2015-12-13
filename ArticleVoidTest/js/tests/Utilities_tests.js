@@ -790,15 +790,22 @@
         ok(custom2Called, "Custom2 handler wasn't called");
     });
 
-    test("eventAttributesWithMissingHandlersDontCrash", function () {
+    test("eventAttributesWithMissingHandlersThrowsException", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         newElement.setAttribute("data-event", "{ custom: handleCustom }");
         playground.appendChild(newElement);
 
         var instance = {};
-
-        domUtilities.marryEventsToHandlers(playground, instance);
+        var exceptionWasThrown = false;
+        try
+        {
+            domUtilities.marryEventsToHandlers(playground, instance);
+        }
+        catch(e)
+        {
+            exceptionWasThrown = true;
+        }
 
         // Raise the event in case we attach it, and do something horribly wrong
         var customEvent = document.createEvent("Event");
@@ -806,7 +813,7 @@
 
         newElement.dispatchEvent(customEvent);
 
-        ok(true, "shouldn't crash");
+        ok(exceptionWasThrown, "Married events to handlers when handler was missing");
     });
 
     test("marryingEventsReturnsObjectToCancelThemWith", function () {
@@ -815,7 +822,7 @@
         newElement.setAttribute("data-event", "{ custom: handleCustom }");
         playground.appendChild(newElement);
 
-        var instance = {};
+        var instance = { handleCustom: WinJS.Utilities.markSupportedForProcessing(function () { }) };
 
         var cancellable = domUtilities.marryEventsToHandlers(playground, instance);
 
