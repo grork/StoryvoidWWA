@@ -103,6 +103,7 @@
     <Content Include="images\StoreLogo.png" />
     <Content Include="images\Wide310x150Logo.scale-200.png" />
     <Content Include="css\default.css" />
+    <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
     <TypeScriptCompile Include="..\ArticleVoidTest\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
@@ -121,6 +122,10 @@
     <TypeScriptCompile Include="js\default.ts" />
     <Content Include="js\default.js">
       <DependentUpon>default.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="js\shareTarget.ts" />
+    <Content Include="js\shareTarget.js">
+      <DependentUpon>shareTarget.ts</DependentUpon>
     </Content>
     <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
     <Content Include="js\ui\SignedInExperience.js">
