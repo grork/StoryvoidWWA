@@ -164,4 +164,13 @@ declare module Codevoid.ArticleVoid.UI {
     export class SplitViewCommandWithData extends WinJS.UI.SplitViewCommand {
         dataContext: any;
     }
+
+    export interface IAppWithAbilityToSignIn {
+        signOut(): void;
+        signedIn(credentials: OAuth.ClientInformation): void;
+    }
+
+    export interface ISignedInViewModel extends UICore.ViewModel {
+        signedIn(): void;
+    }
 }

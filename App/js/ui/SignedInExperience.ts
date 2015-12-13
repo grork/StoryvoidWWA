@@ -19,7 +19,7 @@
         comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
     }
 
-    export class SignedInViewModel implements Codevoid.UICore.ViewModel {
+    export class SignedInViewModel implements Codevoid.ArticleVoid.UI.ISignedInViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _instapaperDB: Codevoid.ArticleVoid.InstapaperDB;
@@ -31,7 +31,7 @@
         private _currentSort: SortOption = SortOption.Oldest;
         private static _sorts: ISortsInfo[];
 
-        constructor() {
+        constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
         }
 
@@ -81,7 +81,7 @@
                 return idb.deleteAllData();
             }).done(() => {
                 this._clientInformation = null;
-                Codevoid.ArticleVoid.App.instance.signedOut();
+                this._app.signOut();
             });
         }
 
