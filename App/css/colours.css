@@ -62,3 +62,26 @@ html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
     background-color: darkslategrey;
     color: white;
 }
+
+.shareSignedIn-container {
+    background-color: white;
+}
+
+    .shareSignedIn-container input[type=text] {
+        background-color: white;
+    }
+
+
+.share-article-title-text {
+    background-color: red;
+    border-bottom-color: red;
+    color: white;
+}
+
+    .share-article-title-text .setShadow {
+        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+    }
+
+.share-article-url {
+    color: gray;
+}

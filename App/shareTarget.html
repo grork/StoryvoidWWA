@@ -28,6 +28,24 @@
     <script src="/js/shareTarget.js"></script>
 </head>
 <body>
-    <div></div>
+    <div class="shareSignedIn-container">
+        <div class="shareSignedIn-details">
+            <div class="share-article-info">
+               The article with these details will be saved straight to Instapaper when you click save.
+            </div>
+            <div class="share-article-label">Title</div>
+            <div class="share-article-title">
+                <span data-part="articleTitle"
+                      class="share-article-title-text setShadow"></span>
+            </div>
+            <div class="share-article-label">URL</div>
+            <div data-part="articleUrl"
+                 class="share-article-url">
+            </div>
+            <button class="share-sendtoinstapaper-button" data-event="{ click: saveClicked }">
+                Send to Instapaper
+            </button>
+        </div>
+    </div>
 </body>
 </html>

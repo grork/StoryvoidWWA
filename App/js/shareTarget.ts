@@ -1,17 +1,19 @@
 ﻿module Codevoid.ArticleVoid {
     export class ShareTargetApp extends UI.AppThatCanSignIn {
-
         public initialize(): void {
             super.initialize();
 
             Windows.UI.WebUI.WebUIApplication.addEventListener("activated", (args) => {
                 var shareArgs = <Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>args;
+                var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
 
-                Utilities.Logging.instance.log("From: " + shareArgs.shareOperation.data.properties.title);
-
-                shareArgs.shareOperation.data.getUriAsync().done((uri: Windows.Foundation.Uri) => {
-                    Utilities.Logging.instance.log(uri.rawUri);
-                });
+                if (shareArgs.kind === Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
+                    viewModel.shareDetailsAvailabile(shareArgs.shareOperation);
+                } else {
+                    // We're testing since we shouldn't see this activation kind
+                    // in the real world, so fake some data.
+                    viewModel.__test__setArticleDeatils({ title: "Excellent title master. A wise choice that will make you most enlightened", url: new Windows.Foundation.Uri("http://www.bing.com")});
+                }
             });
         }
 
@@ -23,33 +25,140 @@
     WinJS.Utilities.ready().done(() => {
         var app = new ShareTargetApp();
         app.initialize();
-
-        Utilities.Logging.instance.showViewer();
     });
 }
 
 module Codevoid.ArticleVoid.UI {
+    import DOM = Codevoid.Utilities.DOM;
+
+    interface IArticleDetails {
+        title: string;
+        url: Windows.Foundation.Uri;
+    }
+
     export class ShareTargetSignedInViewModel implements ISignedInViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience" };
         private _app: ShareTargetApp;
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _eventSource: Utilities.EventSource;
+        private _articleDetails: IArticleDetails;
+        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation;
+        private _savingToService: boolean = false;
 
         constructor(app: IAppWithAbilityToSignIn) {
             this._app = <ShareTargetApp>app;
             this._eventSource = new Utilities.EventSource();
         }
 
+        private _updateArticleDetails(details: IArticleDetails): void {
+            this._articleDetails = details;
+            this._eventSource.dispatchEvent("detailschanged", details);
+        }
+
         public signedIn(): void {
+            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+        }
+
+        public saveToInstapaper(): void {
+            if (!this._shareOperation) {
+                return;
+            }
+
+            this._shareOperation.reportCompleted();
+        }
+
+        public completeSharingDueToClosing(): void {
+            // if we don't have an operation, or, more importantly
+            // if we're actually saving the data to the service, don't
+            // complete the operation or bad things will happen.
+            if (!this._shareOperation || this._savingToService) {
+                return;
+            }
+
+            this._shareOperation.reportCompleted();
+        }
+
+        public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation): void {
+            this._shareOperation = shareDetails;
+
+            WinJS.Promise.join({
+                title: shareDetails.data.properties.title,
+                url: shareDetails.data.getUriAsync(),
+            }).done((details: IArticleDetails) => {
+                if (!details.title) {
+                    details.title = details.url.absoluteUri;
+                }
+
+                this._updateArticleDetails(details);
+            });
+        }
+
+        public __test__setArticleDeatils(details: IArticleDetails) {
+            this._updateArticleDetails(details);
+        }
+
+        public get events(): Utilities.EventSource {
+            return this._eventSource;
+        }
+
+        public get articleDetails(): IArticleDetails {
+            return this._articleDetails;
         }
     }
 
     export class ShareTargetSignedInExperience extends UICore.Control {
+        private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
+        private articleTitle: HTMLSpanElement;
+        private articleUrl: HTMLDivElement;
+        private viewModel: ShareTargetSignedInViewModel;
+        private _hasArticleDetails: boolean = false;
+
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            Utilities.DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience");
-            element.textContent = "Signed in!";
+            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience");
+
+            WinJS.UI.processAll(element).done(() => {
+                this._initialize();
+            });
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
+                detailschanged: (e: any) => {
+                    this._handleArticleDeatilsChanged(e.detail);
+                }
+            }));
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(document, {
+                visibilitychange: () => {
+                    if (!document.hidden) {
+                        return;
+                    }
+
+                    this.viewModel.completeSharingDueToClosing();
+                }
+            }));
+        }
+
+        private _initialize(): void {
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            if (this._hasArticleDetails) {
+                this._handleArticleDeatilsChanged(this.viewModel.articleDetails);
+            }
+        }
+
+        private _handleArticleDeatilsChanged(articleDetails: IArticleDetails): void {
+            this._hasArticleDetails = true;
+            this.articleTitle.textContent = articleDetails.title;
+            this.articleUrl.textContent = articleDetails.url.absoluteUri;            
+        }
+
+        public saveClicked(e: UIEvent): void {
+            this.viewModel.saveToInstapaper();
         }
     }
+
+    WinJS.Utilities.markSupportedForProcessing(ShareTargetSignedInExperience);
+    WinJS.Utilities.markSupportedForProcessing(ShareTargetSignedInExperience.prototype.saveClicked);
 }

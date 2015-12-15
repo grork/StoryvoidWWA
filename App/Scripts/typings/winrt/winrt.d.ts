@@ -1487,6 +1487,7 @@ declare module Windows {
                 export interface IShareOperation {
                     data: Windows.ApplicationModel.DataTransfer.DataPackageView;
                     quickLinkId: string;
+                    dismissUI(): void;
                     removeThisQuickLink(): void;
                     reportStarted(): void;
                     reportDataRetrieved(): void;
@@ -1498,6 +1499,7 @@ declare module Windows {
                 export class ShareOperation implements Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation {
                     data: Windows.ApplicationModel.DataTransfer.DataPackageView;
                     quickLinkId: string;
+                    dismissUI(): void;
                     removeThisQuickLink(): void;
                     reportStarted(): void;
                     reportDataRetrieved(): void;

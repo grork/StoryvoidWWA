@@ -109,12 +109,10 @@ body {
     -ms-grid-column: 4;
     -ms-grid-row-align: center;
     -ms-grid-column-align: end;
-
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
-
     margin-left: 6px;
     margin-right: 6px;
 }
@@ -138,6 +136,7 @@ body {
         border-color: white;
         background-color: transparent;
     }
+
     .commands-sort::-ms-value {
         background-color: transparent;
     }
@@ -340,3 +339,65 @@ body {
     .codevoid-logviewer-clearlog:hover {
         color: yellow;
     }
+
+
+.shareSignedIn-container {
+    width: 100vw;
+    height: 100vh;
+    display: -ms-grid;
+    -ms-grid-rows: 1fr;
+    -ms-grid-columns: 1fr;
+}
+
+.shareSignedIn-details {
+    -ms-grid-column-align: center;
+    width: 70vw;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+    .shareSignedIn-details > div {
+        width: 100%;
+    }
+
+
+.share-article-label {
+    font-size: 20px;
+    padding: 8px;
+}
+
+.share-article-title {
+    overflow: hidden;
+    padding-right: 8px;
+}
+
+.share-article-title-text {
+    position: relative;
+    display: inline;
+    font-size: 30px;
+    padding-top: 4px;
+    left: 8px;
+    top: -1px; /* Make it feel like it's got more bottom spaceing */
+    line-height: 48px;
+    border-bottom-width: 4px;
+    border-bottom-style: solid;
+    box-shadow: 8px 0px 0px red, -8px 0px 0px red; /* Set fo' realz by .setShadow*/
+}
+
+.share-article-url {
+    word-wrap:break-word;
+    font-size: 24px;
+    padding: 8px;
+    padding-top: 0px;
+}
+
+.share-sendtoinstapaper-button {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.share-article-info {
+    padding: 8px;
+    padding-bottom: 0px;
+}
