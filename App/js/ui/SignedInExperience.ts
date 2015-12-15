@@ -86,7 +86,7 @@
         }
 
         public signedIn() {
-            this._clientInformation = this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
             this.initializeDB();
         }
 
@@ -420,10 +420,7 @@
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
-
-
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
-
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);

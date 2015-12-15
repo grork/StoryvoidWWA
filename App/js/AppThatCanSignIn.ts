@@ -37,6 +37,10 @@
             }
         }
 
+        protected get signedInViewModel(): ISignedInViewModel {
+            return this._signedInViewModel;
+        }
+
         protected getSignedInViewModel(app: IAppWithAbilityToSignIn): ISignedInViewModel {
             throw new Error("Must implement this method to support signing in");
         }
