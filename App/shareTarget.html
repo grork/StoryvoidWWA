@@ -29,8 +29,10 @@
 </head>
 <body>
     <div class="shareSignedIn-container">
-        <div class="shareSignedIn-details">
-            <div class="share-article-info">
+        <div data-part="details"
+             class="shareSignedIn-details">
+            <div data-part="informationLabel"
+                 class="share-article-info">
                The article with these details will be saved straight to Instapaper when you click save.
             </div>
             <div class="share-article-label">Title</div>
@@ -46,6 +48,10 @@
                 Send to Instapaper
             </button>
         </div>
+        <progress data-part="progressRing"
+                  class="win-progress-ring win-large hide share-progress"></progress>
+        <div class="share-success hide"
+             data-part="successMessage">All done!</div>
     </div>
 </body>
 </html>

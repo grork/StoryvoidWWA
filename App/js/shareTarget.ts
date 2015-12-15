@@ -36,6 +36,13 @@ module Codevoid.ArticleVoid.UI {
         url: Windows.Foundation.Uri;
     }
 
+    enum SharingState {
+        NotStarted,
+        Started,
+        Complete,
+        Error,
+    }
+
     export class ShareTargetSignedInViewModel implements ISignedInViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience" };
         private _app: ShareTargetApp;
@@ -60,11 +67,32 @@ module Codevoid.ArticleVoid.UI {
         }
 
         public saveToInstapaper(): void {
-            if (!this._shareOperation) {
-                return;
-            }
+            var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation);
+            this._savingToService = true;
 
-            this._shareOperation.reportCompleted();
+            this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Started);
+
+            this._shareOperation.reportStarted();
+
+            WinJS.Promise.join({
+                operation: bookmarks.add({
+                    title: this._articleDetails.title,
+                    url: this._articleDetails.url.absoluteUri
+                }),
+                delay: WinJS.Promise.timeout(1000),
+            }).then(() => {
+
+                this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Complete);
+                return WinJS.Promise.timeout(1000);
+            }).done(() => {
+                if (this._shareOperation) {
+                    this._shareOperation.reportCompleted();
+                }
+            },
+            (e: any) => {
+                this._shareOperation.reportError("Unable to share!");
+                this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Error);
+            });
         }
 
         public completeSharingDueToClosing(): void {
@@ -110,6 +138,10 @@ module Codevoid.ArticleVoid.UI {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private articleTitle: HTMLSpanElement;
         private articleUrl: HTMLDivElement;
+        private informationLabel: HTMLDivElement;
+        private successMessage: HTMLDivElement;
+        private progressRing: HTMLProgressElement;
+        private details: HTMLDivElement;
         private viewModel: ShareTargetSignedInViewModel;
         private _hasArticleDetails: boolean = false;
 
@@ -124,7 +156,10 @@ module Codevoid.ArticleVoid.UI {
 
             this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
                 detailschanged: (e: any) => {
-                    this._handleArticleDeatilsChanged(e.detail);
+                    this._handleArticleDetailsChanged(e.detail);
+                },
+                sharingstatechanged: (e: any) => {
+                    this._handleSharingStateChanged(e.detail);
                 }
             }));
 
@@ -144,14 +179,37 @@ module Codevoid.ArticleVoid.UI {
             DOM.marryPartsToControl(this.element, this);
 
             if (this._hasArticleDetails) {
-                this._handleArticleDeatilsChanged(this.viewModel.articleDetails);
+                this._handleArticleDetailsChanged(this.viewModel.articleDetails);
             }
         }
 
-        private _handleArticleDeatilsChanged(articleDetails: IArticleDetails): void {
+        private _handleArticleDetailsChanged(articleDetails: IArticleDetails): void {
             this._hasArticleDetails = true;
             this.articleTitle.textContent = articleDetails.title;
             this.articleUrl.textContent = articleDetails.url.absoluteUri;            
+        }
+
+        private _handleSharingStateChanged(state: SharingState): void {
+            switch (state) {
+                case SharingState.Started:
+                    WinJS.Utilities.addClass(this.details, "hide");
+                    WinJS.Utilities.removeClass(this.progressRing, "hide");
+                    break;
+
+                case SharingState.Complete:
+                    WinJS.Utilities.addClass(this.progressRing, "hide");
+                    WinJS.Utilities.removeClass(this.successMessage, "hide");
+                    break;
+
+                case SharingState.Error:
+                    WinJS.Utilities.addClass(this.progressRing, "hide");
+                    WinJS.Utilities.removeClass(this.details, "hide");
+                    break;
+
+                default:
+                    debugger; // unknown state
+                    break;
+            }
         }
 
         public saveClicked(e: UIEvent): void {

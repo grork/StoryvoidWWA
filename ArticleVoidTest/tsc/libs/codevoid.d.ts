@@ -145,6 +145,13 @@ declare module Codevoid.ArticleVoid {
     }
 }
 
+declare module Codevoid.ArticleVoid.InstapaperApi {
+    export class Bookmarks {
+        constructor(clientInformation: Codevoid.OAuth.ClientInformation);
+        add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<void>;
+    }
+}
+
 declare module Codevoid.ArticleVoid.Authenticator {
     export function getStoredCredentials(): Codevoid.OAuth.ClientInformation;
     export function clearClientInformation(): void;
