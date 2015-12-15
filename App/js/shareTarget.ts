@@ -8,7 +8,11 @@
                 var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
 
                 if (shareArgs.kind === Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
-                    viewModel.shareDetailsAvailabile(shareArgs.shareOperation);
+                    // We really need to yield to the browser before we go lala on getting
+                    // data and potentially doing any more operations, so bounce around a timeout.
+                    WinJS.Promise.timeout().done(() => {
+                        viewModel.shareDetailsAvailabile(shareArgs.shareOperation);
+                    });
                 } else {
                     // We're testing since we shouldn't see this activation kind
                     // in the real world, so fake some data.
@@ -43,6 +47,8 @@ module Codevoid.ArticleVoid.UI {
         Error,
     }
 
+    var QUICK_LINK_ID = "unread";
+
     export class ShareTargetSignedInViewModel implements ISignedInViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience" };
         private _app: ShareTargetApp;
@@ -60,6 +66,10 @@ module Codevoid.ArticleVoid.UI {
         private _updateArticleDetails(details: IArticleDetails): void {
             this._articleDetails = details;
             this._eventSource.dispatchEvent("detailschanged", details);
+
+            if (this._shareOperation && this._shareOperation.quickLinkId === QUICK_LINK_ID) {
+                this.saveToInstapaper();
+            }
         }
 
         public signedIn(): void {
@@ -71,7 +81,7 @@ module Codevoid.ArticleVoid.UI {
             this._savingToService = true;
 
             this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Started);
-
+    
             this._shareOperation.reportStarted();
 
             WinJS.Promise.join({
@@ -79,14 +89,31 @@ module Codevoid.ArticleVoid.UI {
                     title: this._articleDetails.title,
                     url: this._articleDetails.url.absoluteUri
                 }),
-                delay: WinJS.Promise.timeout(1000),
+                delay: WinJS.Promise.timeout(1000), // Let the user see the spinner for a second minimum
             }).then(() => {
-
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Complete);
-                return WinJS.Promise.timeout(1000);
-            }).done(() => {
+
+                var executingPackage = Windows.ApplicationModel.Package.current;
+                return WinJS.Promise.join({
+                    timeout: WinJS.Promise.timeout(1000),
+                    // Because the quick link might need an image, we should start loading it
+                    // while the timeout above is showing the user "All Done" to make out lives
+                    // simpler.
+                    image: executingPackage.installedLocation.getFileAsync("Images\\Square44x44Logo.scale-200.png").then((iconFile: Windows.Storage.StorageFile) => {
+                        return Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(iconFile);
+                    }),
+                });
+            }).done((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
                 if (this._shareOperation) {
-                    this._shareOperation.reportCompleted();
+                    // We successfully saved the article, so give the customer
+                    // a chance to quickly save it to the same location next time.
+                    var quickLink = new Windows.ApplicationModel.DataTransfer.ShareTarget.QuickLink();
+                    quickLink.id = QUICK_LINK_ID;
+                    quickLink.supportedDataFormats.replaceAll([Windows.ApplicationModel.DataTransfer.StandardDataFormats.uri]);
+                    quickLink.title = "Add to Instapaper";
+                    quickLink.thumbnail = result.image;
+
+                    this._shareOperation.reportCompleted(quickLink);
                 }
             },
             (e: any) => {
@@ -185,6 +212,7 @@ module Codevoid.ArticleVoid.UI {
 
         private _handleArticleDetailsChanged(articleDetails: IArticleDetails): void {
             this._hasArticleDetails = true;
+            WinJS.Utilities.removeClass(this.details, "hide");
             this.articleTitle.textContent = articleDetails.title;
             this.articleUrl.textContent = articleDetails.url.absoluteUri;            
         }
