@@ -401,3 +401,14 @@ body {
     padding: 8px;
     padding-bottom: 0px;
 }
+
+.share-progress {
+    -ms-grid-column-align: center;
+    -ms-grid-row-align: center;
+}
+
+.share-success {
+    font-size: 24px;
+    -ms-grid-column-align: center;
+    -ms-grid-row-align: center;
+}

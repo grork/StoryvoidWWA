@@ -85,3 +85,7 @@ html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
 .share-article-url {
     color: gray;
 }
+
+.share-success {
+    color: gray;
+}
