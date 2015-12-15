@@ -347,11 +347,12 @@ body {
     display: -ms-grid;
     -ms-grid-rows: 1fr;
     -ms-grid-columns: 1fr;
+    padding: 12px;
 }
 
 .shareSignedIn-details {
     -ms-grid-column-align: center;
-    width: 70vw;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -359,6 +360,7 @@ body {
 
     .shareSignedIn-details > div {
         width: 100%;
+        box-sizing: border-box;
     }
 
 
