@@ -417,6 +417,7 @@
         }
         
         static folderIdToIcon: any;
+        static restrictProgressTo5PercentOrMore: any;
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
@@ -450,5 +451,13 @@
         }
 
         return result;
+    });
+
+    SignedInExperience.restrictProgressTo5PercentOrMore = WinJS.Binding.converter((progress: number) => {
+        if (progress > 0.049) {
+            return progress;
+        }
+
+        return 0;
     });
 }
