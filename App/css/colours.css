@@ -54,6 +54,11 @@ html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
     color: gray;
 }
 
+progress.article-progress {
+    background-color: transparent;
+    color: red;
+}
+
 .authenticator > .workingContainer {
     background-color: rgba(255, 255, 255, 0.36);
 }

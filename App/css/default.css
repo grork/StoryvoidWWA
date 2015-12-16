@@ -194,7 +194,7 @@ body {
     position: relative;
     display: inline;
     font-size: 18px;
-    padding-top: 4px;
+    padding-top: 3px;
     left: 8px;
     top: -1px; /* Make it feel like it's got more bottom spaceing */
     line-height: 30px;
@@ -212,6 +212,13 @@ body {
     margin-bottom: 4px;
 }
 
+.article-progress {
+    -ms-grid-row: 3;
+    -ms-grid-row-align: end;
+    height: 2px;
+    width: 100%;
+}
+
 .article-footer {
     -ms-grid-row: 3;
     -ms-grid-column-align: end;
@@ -219,6 +226,7 @@ body {
     text-align: right;
     margin: 8px;
     width: calc(100% - 16px);
+    max-height: 42px;
 }
 
     .article-footer > span {
