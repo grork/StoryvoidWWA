@@ -45,14 +45,27 @@
                     handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
                             operation: InstapaperDB.BookmarkChangeTypes.ADD,
+                            bookmark_id: 235423452,
+                            bookmark: {
+                                bookmark_id: 235423452,
+                                folder_dbid: this._db.commonFolderDbIds.unread,
+                                title: "FAKE ADDED",
+                                time: 1,
+                                description: "Nothing"
+                            }
                         });
                     }
                 },
                 {
                     label: "Remove",
                     handler: () => {
-                        this._db.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDB.BookmarkChangeTypes.DELETE,
+                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
+                            var firstBookmark = bookmarks[0];
+                            this._db.dispatchEvent("bookmarkschanged", {
+                                operation: InstapaperDB.BookmarkChangeTypes.DELETE,
+                                bookmark: firstBookmark,
+                                bookmark_id: firstBookmark.bookmark_id,
+                            });
                         });
                     }
                 },
@@ -66,7 +79,7 @@
                             this._db.dispatchEvent("bookmarkschanged", {
                                 operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
                                 bookmark_id: firstBookmark.bookmark_id,
-                                boomark: firstBookmark,
+                                bookmark: firstBookmark,
                             });
                         });
                     }
@@ -74,16 +87,16 @@
                 {
                     label: "Mutate Progress",
                     handler: () => {
-                        this._db.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
-                        });
-                    }
-                },
-                {
-                    label: "Move",
-                    handler: () => {
-                        this._db.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDB.BookmarkChangeTypes.MOVE,
+                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
+                            var firstBookmark = bookmarks[0];
+                            firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
+                            firstBookmark.progress = Math.random();
+
+                            this._db.dispatchEvent("bookmarkschanged", {
+                                operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
+                                bookmark_id: firstBookmark.bookmark_id,
+                                bookmark: firstBookmark,
+                            });
                         });
                     }
                 },

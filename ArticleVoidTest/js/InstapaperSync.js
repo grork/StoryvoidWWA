@@ -575,10 +575,11 @@
                 var syncFolders = options.folders;
                 var syncBookmarks = options.bookmarks;
 
-                var db = new InstapaperDB();
+                var db = options.dbInstance || new InstapaperDB();
+                var initialize = options.dbInstance ? WinJS.Promise.as(db) : db.initialize();
 
                 this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.start });
-                return db.initialize().then(function startSync() {
+                return initialize.then(function startSync() {
                     if (!syncFolders) {
                         return;
                     }

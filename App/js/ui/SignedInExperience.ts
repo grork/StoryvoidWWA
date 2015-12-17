@@ -47,16 +47,21 @@
                 cancellable.cancel();
             });
 
-            this._handlersToCleanUp = null;
+            this._handlersToCleanUp = [];
             this._instapaperDB.dispose();
             this._instapaperDB = null;
             this._dbOpened = false;
         }
 
         private _handleFoldersChanged(detail: IFoldersChangedEvent): void {
+            // Only care if it's for the folder we're currently on
+            if (detail.folder_dbid !== this._currentFolderId) {
+                return;
+            }
+
             switch (detail.operation) {
                 case InstapaperDB.FolderChangeTypes.UPDATE:
-                    this._handleFolderUpdated(detail);
+                    this._handleFoldersUpdated(detail);
                     break;
 
                 case InstapaperDB.FolderChangeTypes.DELETE:
@@ -65,14 +70,9 @@
             }
         }
 
-        private _handleFolderUpdated(detail: IFoldersChangedEvent): void {
+        private _handleFoldersUpdated(detail: IFoldersChangedEvent): void {
             // We only care about updates
             if (detail.operation !== InstapaperDB.FolderChangeTypes.UPDATE) {
-                return;
-            }
-
-            // Only care if it's for the folder we're currently on
-            if (detail.folder_dbid !== this._currentFolderId) {
                 return;
             }
 
@@ -90,14 +90,110 @@
                 return;
             }
 
-            // Not for the folder we're looking at? Screw it.
-            if (this._currentFolderId !== detail.folder_dbid) {
-                return;
-            }
-
             // Since the folder we're on was deleted, we should refresh
             // to some UI -- so switch to 'home'
             this.switchCurrentFolderTo(this._instapaperDB.commonFolderDbIds.unread);
+        }
+
+        private _handleBookmarksChanged(detail: IBookmarksChangedEvent): void {
+            if (detail.operation === InstapaperDB.BookmarkChangeTypes.MOVE) {
+                // Moves are handled specially because we need to look at both destination
+                // and source information.
+                this._handleBookmarkMoved(detail);
+                return;
+            }
+
+            var folderId = detail.sourcefolder_dbid || detail.bookmark.folder_dbid;
+            // Only care if the folder for this bookmark is of interest
+            if (folderId != this._currentFolderId) {
+                return;
+            }
+
+            switch (detail.operation) {
+                case InstapaperDB.BookmarkChangeTypes.UPDATE:
+                    this._handleBookmarkUpdated(detail);
+                    break;
+
+                case InstapaperDB.BookmarkChangeTypes.ADD:
+                    this._handleBookmarkAdded(detail);
+                    break;
+
+                case InstapaperDB.BookmarkChangeTypes.DELETE:
+                    this._handleBookmarkDeleted(detail);
+                    break;
+            }
+        }
+
+        private _handleBookmarkMoved(detail: IBookmarksChangedEvent) {
+            if (detail.sourcefolder_dbid === this._currentFolderId) {
+                // since it's *from* this folder, and it's a move, this should be remapped to an delete:
+                detail.operation = InstapaperDB.BookmarkChangeTypes.DELETE;
+                this._handleBookmarkDeleted(detail);
+                return;
+            }
+
+            if (detail.destinationfolder_dbid === this._currentFolderId) {
+                // If the destination maps to the folder we're looking at,
+                // then we can map to an add
+                detail.operation = InstapaperDB.BookmarkChangeTypes.ADD;
+                this._handleBookmarkAdded(detail);
+                return;
+            }
+        }
+
+        private _handleBookmarkUpdated(detail: IBookmarksChangedEvent): void {
+            // Don't care about non-updates
+            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.UPDATE) {
+                return;
+            }
+
+            var indexOfBookmark: number;
+            var boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
+                if (bookmark.bookmark_id === detail.bookmark_id) {
+                    indexOfBookmark = index;
+                    return true;
+                }
+
+                return false;
+            });
+
+            if (!boomarkWereLookingFor) {
+                return;
+            }
+
+            this._currentBookmarks.setAt(indexOfBookmark, detail.bookmark);
+        }
+
+        private _handleBookmarkAdded(detail: IBookmarksChangedEvent): void {
+            // Only adds of intrest to us here.
+            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.ADD) {
+                return;
+            }
+
+            this._currentBookmarks.push(detail.bookmark);
+        }
+
+        private _handleBookmarkDeleted(detail: IBookmarksChangedEvent): void {
+            // Don't care about non-deletes
+            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.DELETE) {
+                return;
+            }
+
+            var indexOfBookmark: number;
+            var boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
+                if (bookmark.bookmark_id === detail.bookmark_id) {
+                    indexOfBookmark = index;
+                    return true;
+                }
+
+                return false;
+            });
+
+            if (!boomarkWereLookingFor) {
+                return;
+            }
+
+            this._currentBookmarks.splice(indexOfBookmark, 1);
         }
 
         public initializeDB(): WinJS.Promise<void> {
@@ -120,7 +216,8 @@
                 },
                 bookmarkschanged: (e: Utilities.EventObject<IBookmarksChangedEvent>) => {
                     Utilities.Logging.instance.log("Bookmark Changed: " + e.detail.operation + ", for Bookmark: " + e.detail.bookmark_id);
-                    debugger;
+
+                    this._handleBookmarksChanged(e.detail);
                 },
             }));
 
@@ -203,11 +300,14 @@
 
             });
 
-            sync.sync().done(() => {
+            sync.sync({
+                dbInstance: this._instapaperDB,
+                folders: true,
+                bookmarks: true,
+            }).done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
 
-                this.refreshCurrentFolder();
             }, (e) => {
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
@@ -374,9 +474,9 @@
         }
 
         private static sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
-            if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
+            if (firstBookmark.time < secondBookmark.time) {
                 return -1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+            } else if (firstBookmark.time > secondBookmark.time) {
                 return 1;
             } else {
                 return 0;
@@ -384,9 +484,9 @@
         }
 
         private static sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
-            if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
+            if (firstBookmark.time < secondBookmark.time) {
                 return 1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+            } else if (firstBookmark.time > secondBookmark.time) {
                 return -1;
             } else {
                 return 0;

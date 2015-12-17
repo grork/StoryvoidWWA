@@ -437,6 +437,7 @@
                     this.dispatchEvent("bookmarkschanged", {
                         operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.DELETE,
                         bookmark_id: bookmark_id,
+                        sourcefolder_dbid: sourcefolder_dbid,
                     });
                     // Hide the result of the DB operation
                 }.bind(this));
