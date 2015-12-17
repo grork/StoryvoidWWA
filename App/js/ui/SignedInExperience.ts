@@ -3,7 +3,7 @@
 
     export interface IFolderDetails {
         folder: IFolder;
-        bookmarks: IBookmark[];
+        bookmarks: WinJS.Binding.ListBase<IBookmark>;
     }
 
     enum SortOption {
@@ -28,6 +28,7 @@
         private _eventSource: Utilities.EventSource;
         private _currentFolderId: number = -1;
         private _currentFolder: IFolderDetails;
+        private _currentBookmarks: WinJS.Binding.List<IBookmark>;
         private _currentSort: SortOption = SortOption.Oldest;
         private static _sorts: ISortsInfo[];
 
@@ -194,6 +195,38 @@
                     }
 
                     return true;
+                }).sort((firstFolder: IFolder, secondFolder: IFolder): number => {
+                    if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
+                        // Assume we're sorting pre-canned folders. Sort by "id"
+                        if (firstFolder.id < secondFolder.id) {
+                            return -1;
+                        } else if (firstFolder.id > secondFolder.id) {
+                            return 1;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
+                        // Assume it's a pre-canned folder against a user folder. Pre-canned
+                        // always go first
+                        return -1;
+                    }
+
+                    if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
+                        // Assume it's a user folder against a pre-canned folder. User folders
+                        // always come after.
+                        return 1;
+                    }
+
+                    // Since we've got user folders, sort soley by the users ordering preference
+                    if (firstFolder.position < secondFolder.position) {
+                        return -1;
+                    } else if (firstFolder.position > secondFolder.position) {
+                        return 1;
+                    } else {
+                        return 1;
+                    }
                 });
             });
         }
@@ -202,6 +235,16 @@
             return WinJS.Promise.join({
                 folder: this._instapaperDB.getFolderByDbId(folderId),
                 bookmarks: this._instapaperDB.listCurrentBookmarks(folderId),
+            }).then((result) => {
+                // Save base list of bookmarks locally so we can mutate it based
+                // on change notifications.
+                this._currentBookmarks = new WinJS.Binding.List<IBookmark>(result.bookmarks);
+
+                // However, return the projection to the person asking for the *sorted* list of bookmarks.
+                return {
+                    folder: result.folder,
+                    bookmarks: this._currentBookmarks.createSorted(SignedInViewModel.sorts[this._currentSort].comparer),
+                };
             });
         }
 
@@ -211,14 +254,6 @@
 
         public get commonFolderDbIds() {
             return this._instapaperDB.commonFolderDbIds;
-        }
-
-        public get currentFolderId(): number {
-            return this._currentFolderId;
-        }
-
-        public get currentFolder(): IFolderDetails {
-            return this._currentFolder;
         }
 
         public switchCurrentFolderTo(folderId: number): void {
@@ -238,8 +273,6 @@
             this._eventSource.dispatchEvent("folderchanging", null);
 
             this.getDetailsForFolder(this._currentFolderId).done((result) => {
-                result.bookmarks.sort(SignedInViewModel.sorts[this._currentSort].comparer);
-
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("folderchanged", result);
             }, () => {
@@ -272,9 +305,9 @@
 
         private static sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
             if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
-                return 1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
                 return -1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return 1;
             } else {
                 return 0;
             }
@@ -282,9 +315,9 @@
 
         private static sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
             if (firstBookmark.bookmark_id < secondBookmark.bookmark_id) {
-                return -1;
-            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
                 return 1;
+            } else if (firstBookmark.bookmark_id > secondBookmark.bookmark_id) {
+                return -1;
             } else {
                 return 0;
             }
@@ -296,7 +329,7 @@
             } else if (firstBookmark.progress > secondBookmark.progress) {
                 return 1;
             } else {
-                return SignedInViewModel.sortNewestFirst(firstBookmark, secondBookmark);
+                return SignedInViewModel.sortOldestFirst(firstBookmark, secondBookmark);
             }
         }
     }
@@ -383,11 +416,11 @@
             Utilities.Logging.instance.showViewer();
         }
 
-        public _renderFolderDetails(folderDeatils: IFolderDetails): void {
-            Utilities.Logging.instance.log("Bookmarks for: " + folderDeatils.folder.folder_id);
-            this._folderNameElement.textContent = folderDeatils.folder.title;
-            var bookmarks = folderDeatils.bookmarks.reverse();
-            this._contentList.itemDataSource = new WinJS.Binding.List<IBookmark>(bookmarks).dataSource;
+        public _renderFolderDetails(folderDetails: IFolderDetails): void {
+            Utilities.Logging.instance.log("Bookmarks for: " + folderDetails.folder.folder_id);
+
+            this._folderNameElement.textContent = folderDetails.folder.title;
+            this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
         }
 
         public startSync(): void {
@@ -402,7 +435,7 @@
 
         public clearDb(): void {
             this.viewModel.clearDb().done(() => {
-                Utilities.Logging.instance.log("Cleared DB");
+                Utilities.Logging.instance.log("Cleared DB"); 
             });
         }
 
