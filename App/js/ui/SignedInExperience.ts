@@ -54,6 +54,18 @@
         }
 
         private _handleFoldersChanged(detail: IFoldersChangedEvent): void {
+            switch (detail.operation) {
+                case InstapaperDB.FolderChangeTypes.UPDATE:
+                    this._handleFolderUpdated(detail);
+                    break;
+
+                case InstapaperDB.FolderChangeTypes.DELETE:
+                    this._handleFolderDeleted(detail);
+                    break;
+            }
+        }
+
+        private _handleFolderUpdated(detail: IFoldersChangedEvent): void {
             // We only care about updates
             if (detail.operation !== InstapaperDB.FolderChangeTypes.UPDATE) {
                 return;
@@ -70,6 +82,22 @@
             }
 
             this._eventSource.dispatchEvent("foldertitleupdated", detail.folder);
+        }
+
+        private _handleFolderDeleted(detail: IFoldersChangedEvent): void {
+            // Don't care about not-deletes
+            if (detail.operation !== InstapaperDB.FolderChangeTypes.DELETE) {
+                return;
+            }
+
+            // Not for the folder we're looking at? Screw it.
+            if (this._currentFolderId !== detail.folder_dbid) {
+                return;
+            }
+
+            // Since the folder we're on was deleted, we should refresh
+            // to some UI -- so switch to 'home'
+            this.switchCurrentFolderTo(this._instapaperDB.commonFolderDbIds.unread);
         }
 
         public initializeDB(): WinJS.Promise<void> {

@@ -59,8 +59,15 @@
                 {
                     label: "Mutate Title",
                     handler: () => {
-                        this._db.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
+                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
+                            var firstBookmark = bookmarks[0];
+                            firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
+
+                            this._db.dispatchEvent("bookmarkschanged", {
+                                operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
+                                bookmark_id: firstBookmark.bookmark_id,
+                                boomark: firstBookmark,
+                            });
                         });
                     }
                 },
@@ -90,6 +97,33 @@
                                 id: this._db.commonFolderDbIds.unread,
                                 title: "New Title",
                             }
+                        });
+                    }
+                },
+                {
+                    label: "Remove folder",
+                    handler: () => {
+                        var commonFolderIds = Object.keys(this._db.commonFolderDbIds).map((key: string) => {
+                            return this._db.commonFolderDbIds[key];
+                        });
+
+                        this._db.listCurrentFolders().then((folders: IFolder[]) => {
+                            var nonDefaultFolders = folders.filter((folder: IFolder) => {
+                                if (folder.localOnly) {
+                                    return false;
+                                }
+
+                                if (commonFolderIds.indexOf(folder.id) > -1) {
+                                    return false;
+                                }
+
+                                return true;
+                            });
+
+                            this._db.dispatchEvent("folderschanged", {
+                                operation: InstapaperDB.FolderChangeTypes.DELETE,
+                                folder_dbid: nonDefaultFolders[0].id,
+                            });
                         });
                     }
                 }
