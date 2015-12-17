@@ -460,7 +460,7 @@
                                     return;
                                 }
 
-                                if (currentBookmark.folder_dbid != dbIdOfFolderToSync) {
+                                if (currentBookmark.folder_dbid !== dbIdOfFolderToSync) {
                                     return db.moveBookmark(bookmark.bookmark_id, dbIdOfFolderToSync, true);
                                 }
 

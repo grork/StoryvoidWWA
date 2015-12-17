@@ -78,7 +78,7 @@
                 this.viewModel.username = this.usernameInput.value;
             }),
             usernameKeydown: msfp(function(e) {
-                if(e.keyCode == WinJS.Utilities.Key.enter && !this.passwordInput.value)
+                if(e.keyCode === WinJS.Utilities.Key.enter && !this.passwordInput.value)
                 {
                     e.stopPropagation();
                     e.preventDefault();
