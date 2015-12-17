@@ -145,6 +145,7 @@
                         var synced = db.getFolderFromFolderId(rf.folder_id).then(function (lf) {
                             var done = WinJS.Promise.as();
 
+                            // Notify that the remote folder w/ name had some changes
                             this._raiseStatusChanged({
                                 operation: Codevoid.ArticleVoid.InstapaperSync.Operation.folder,
                                 title: rf.title,
@@ -153,8 +154,11 @@
                             if (!lf) {
                                 done = db.addFolder(rf, true);
                             } else {
-                                if (rf.title !== lf.title) {
+                                // if the title or position has changed
+                                // update those details locally
+                                if ((rf.title !== lf.title) || (rf.position !== lf.position)) {
                                     lf.title = rf.title;
+                                    lf.position = rf.position;
                                     done = db.updateFolder(lf);
                                 }
                             }
@@ -257,9 +261,14 @@
                 }
 
                 return promise.then(function (folders) {
+                    // If we've just sync'd the remote folders, theres no point
+                    // in us getting the remote list *AGAIN*, so just let it filter
+                    // based on the local folders
+                    var remoteFolders = options.didSyncFolders ? WinJS.Promise.as(folders) : this._folders.list();
                     return WinJS.Promise.join({
                         currentFolders: folders,
-                        remoteFolders: this._folders.list().then(function (folders) {
+                        remoteFolders: remoteFolders.then(function (folders) {
+                            // Map the remote folders to easy look up if it's present or not
                             return folders.map(function (folder) {
                                 return folder.folder_id;
                             });
@@ -280,6 +289,9 @@
                     return Codevoid.Utilities.serialize(currentFolders, function (folder) {
                         if (!isDefaultFolder(folder.folder_id)
                             && (data.remoteFolders.indexOf(folder.folder_id) === -1)) {
+                            // If it's not a default folder, and the folder we're trying to sync
+                            // isn't available remotely (E.g it's been deleted, or it's not there yet)
+                            // we're going to give up for this specific folder
                             return;
                         }
 
@@ -582,6 +594,7 @@
                         folder: options.folder,
                         skipOrphanCleanup: options.skipOrphanCleanup,
                         _testPerFolderCallback: options._testPerFolderCallback,
+                        didSyncFolders: options.folders,
                     });
                 }.bind(this)).then(function () {
                     this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.end });
