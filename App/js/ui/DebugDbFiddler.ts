@@ -41,34 +41,63 @@
         public getCommands(): WinJS.Binding.List<IFiddleCommand> {
             var commands = [
                 {
-                    label: "Add", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                    label: "Add",
+                    handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
-                            operation: "add"
+                            operation: InstapaperDB.BookmarkChangeTypes.ADD,
                         });
-                    })
+                    }
                 },
                 {
-                    label: "Remove", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                    label: "Remove",
+                    handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
-                            operation: "remove"
+                            operation: InstapaperDB.BookmarkChangeTypes.DELETE,
                         });
-                    })
+                    }
                 },
                 {
-                    label: "Mutate Title", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                    label: "Mutate Title",
+                    handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
-                            operation: "update"
+                            operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
                         });
-                    })
+                    }
                 },
                 {
-                    label: "Mutate Progress", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                    label: "Mutate Progress",
+                    handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
-                            operation: "update"
+                            operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
                         });
-                    })
+                    }
                 },
+                {
+                    label: "Move",
+                    handler: () => {
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: InstapaperDB.BookmarkChangeTypes.MOVE,
+                        });
+                    }
+                },
+                {
+                    label: "Change Home Folder title",
+                    handler: () => {
+                        this._db.dispatchEvent("folderschanged", {
+                            operation: InstapaperDB.FolderChangeTypes.UPDATE,
+                            folder_dbid: this._db.commonFolderDbIds.unread,
+                            folder: {
+                                id: this._db.commonFolderDbIds.unread,
+                                title: "New Title",
+                            }
+                        });
+                    }
+                }
             ];
+
+            commands.forEach((command: IFiddleCommand) => {
+                command.handler = WinJS.Utilities.markSupportedForProcessing(command.handler);
+            });
 
             return new WinJS.Binding.List(commands);
         }

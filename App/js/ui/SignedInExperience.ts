@@ -53,6 +53,25 @@
             this._dbOpened = false;
         }
 
+        private _handleFoldersChanged(detail: IFoldersChangedEvent): void {
+            // We only care about updates
+            if (detail.operation !== InstapaperDB.FolderChangeTypes.UPDATE) {
+                return;
+            }
+
+            // Only care if it's for the folder we're currently on
+            if (detail.folder_dbid !== this._currentFolderId) {
+                return;
+            }
+
+            // If it's not changed, we don't care.
+            if (detail.folder.title === this._currentFolder.folder.title) {
+                return;
+            }
+
+            this._eventSource.dispatchEvent("foldertitleupdated", detail.folder);
+        }
+
         public initializeDB(): WinJS.Promise<void> {
             if (this._dbOpened) {
                 return WinJS.Promise.as(null);
@@ -67,11 +86,12 @@
 
             this._handlersToCleanUp.push(Utilities.addEventListeners(this._instapaperDB, {
                 folderschanged: (e: Utilities.EventObject<IFoldersChangedEvent>) => {
-                    Utilities.Logging.instance.log("Folder Changed: " + e.detail.operation);
-                    debugger;
+                    Utilities.Logging.instance.log("Folder Changed: " + e.detail.operation + ", for Folder: " + e.detail.folder_dbid);
+
+                    this._handleFoldersChanged(e.detail);
                 },
                 bookmarkschanged: (e: Utilities.EventObject<IBookmarksChangedEvent>) => {
-                    Utilities.Logging.instance.log("Bookmark Changed: " + e.detail.operation);
+                    Utilities.Logging.instance.log("Bookmark Changed: " + e.detail.operation + ", for Bookmark: " + e.detail.bookmark_id);
                     debugger;
                 },
             }));
@@ -303,7 +323,7 @@
         }
 
         public changeSortTo(newSort: SortOption): void {
-            if (this._currentSort == newSort) {
+            if (this._currentSort === newSort) {
                 return;
             }
 
@@ -389,6 +409,9 @@
                 },
                 folderchanged: (e: { detail: IFolderDetails }) => {
                     this._renderFolderDetails(e.detail);
+                },
+                foldertitleupdated: (e: { detail: IFolder }) => {
+                    this._folderNameElement.textContent = e.detail.title;
                 },
                 sortchanged: (e: { detail: SortOption }) => {
                     this._sortsElement.value = e.detail.toString();

@@ -474,7 +474,7 @@
                         }
                     });
 
-                    if (indexOfExistingUrl != -1) {
+                    if (indexOfExistingUrl !== -1) {
                         sourceUrls.splice(indexOfExistingUrl, 1);
                     }
                 });
@@ -548,7 +548,7 @@
                     }
                 });
 
-                if (expectedBookmarkIndex != -1) {
+                if (expectedBookmarkIndex !== -1) {
                     expectedBookmarks.splice(expectedBookmarkIndex, 1);
                 }
 
@@ -1210,7 +1210,7 @@
             return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread);
         }).then(function (currentBookmarks) {
             currentBookmarks = currentBookmarks.filter(function (b) {
-                return b.bookmark_id != fakeAddedBookmark.bookmark_id;
+                return b.bookmark_id !== fakeAddedBookmark.bookmark_id;
             });
 
             ok(currentBookmarks.length, "not enough bookmarks: " + currentBookmarks.length);
