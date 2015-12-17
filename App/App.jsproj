@@ -127,6 +127,10 @@
     <Content Include="js\shareTarget.js">
       <DependentUpon>shareTarget.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\DebugDbFiddler.ts" />
+    <Content Include="js\ui\DebugDbFiddler.js">
+      <DependentUpon>DebugDbFiddler.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
     <Content Include="js\ui\SignedInExperience.js">
       <DependentUpon>SignedInExperience.ts</DependentUpon>

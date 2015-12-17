@@ -60,5 +60,15 @@
                     data-event="{ click: startLogin }">Login</button>
         </div>
     </div>
+    <div data-templateid="dbFiddler"
+         class="dbFiddler-container"
+         data-win-control="WinJS.Binding.Template">
+        <div class="dbFiddler-buttons"
+             data-part="fiddleCommands"
+             data-event="{ click: fiddleCommandInvoked }"
+             data-win-control="WinJS.UI.Repeater">
+            <button data-win-bind="textContent: label; payload: this"></button>
+        </div>
+    </div>
 </body>
 </html>

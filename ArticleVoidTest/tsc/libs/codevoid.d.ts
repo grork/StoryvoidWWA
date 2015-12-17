@@ -102,7 +102,6 @@ declare module Codevoid.ArticleVoid {
         static Operation: SyncOperation;
     }
 
-
     export interface IFolder {
         title: string;
         localOnly: boolean;
