@@ -108,6 +108,7 @@ declare module Codevoid.ArticleVoid {
         localOnly: boolean;
         folder_id: string;
         id: number;
+        position: number;
     }
 
     export interface IBookmark {
