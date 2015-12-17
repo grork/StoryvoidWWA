@@ -187,6 +187,10 @@
             });
         }
 
+        public showDbFiddler(): void {
+            Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new DbFiddlerViewModel(this._instapaperDB));
+        }
+
         public listFolders(): WinJS.Promise<Codevoid.ArticleVoid.IFolder[]> {
             return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
                 return folders.filter((item) => {
@@ -448,6 +452,10 @@
                 Utilities.Logging.instance.log("Not dumped");
             });
         }
+
+        public showDbFiddler(): void {
+            this.viewModel.showDbFiddler();
+        }
         
         static folderIdToIcon: any;
         static restrictProgressTo5PercentOrMore: any;
@@ -462,6 +470,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.handleSortsChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showDbFiddler);
 
     SignedInExperience.folderIdToIcon = WinJS.Binding.converter((folder: string) => {
         var result = "\uE8B7"; // hollow folder icon

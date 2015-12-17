@@ -26,6 +26,7 @@
     <script src="/js/ui/SignedOutExperience.js"></script>
     <script src="/js/ui/SignedInExperience.js"></script>
     <script src="/js/AppThatCanSignIn.js"></script>
+    <script src="/js/ui/DebugDbFiddler.js"></script>
     <script src="/js/default.js"></script>
 </head>
 <body class="win-type-body">
@@ -78,6 +79,9 @@
                     <div data-win-control="WinJS.UI.SplitViewCommand"
                          data-event="{ invoked: dumpDb }"
                          data-win-options="{ label: 'Dump DB', icon: '\uE105'}"></div>
+                    <div data-win-control="WinJS.UI.SplitViewCommand"
+                         data-event="{ invoked: showDbFiddler }"
+                         data-win-options="{ label: 'Fiddle DB', icon: '\uE109'}"></div>
                     <div data-win-control="WinJS.UI.SplitViewCommand"
                          data-event="{ invoked: startSync }"
                          data-win-options="{ label: 'Sync', icon: '\uE117'}"></div>

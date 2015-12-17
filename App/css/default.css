@@ -422,3 +422,16 @@ body {
     -ms-grid-column-align: center;
     -ms-grid-row-align: center;
 }
+
+.dbFiddler-container {
+    position: absolute;
+    background-color: red;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    padding: 12px 6px 12px 6px;
+}
+
+    .dbFiddler-buttons > button {
+        margin: 0px 6px 0px 6px;
+    }
