@@ -167,6 +167,7 @@
                         operation: Codevoid.ArticleVoid.InstapaperDB.FolderChangeTypes.ADD,
                         folder_dbid: data.id,
                         title: data.title,
+                        folder: data,
                     });
                     return data;
                 }.bind(this));
