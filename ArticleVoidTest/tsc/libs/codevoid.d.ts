@@ -43,6 +43,10 @@ declare module Codevoid.Utilities {
         progress(progressInfo: any);
     }
 
+    export interface EventObject<T> {
+        detail: T;
+    }
+
     export class EventSource {
         //#region Methods
 
@@ -117,6 +121,21 @@ declare module Codevoid.ArticleVoid {
         url: string;
     }
 
+    export interface IFoldersChangedEvent {
+        operation: string;
+        folder_dbid: number;
+        title: string;
+        folder: IFolder;
+    }
+
+    export interface IBookmarksChangedEvent {
+        operation: string;
+        bookmark_id: number;
+        bookmark: IBookmark;
+        destinationfolder_dbid: number;
+        sourcefolder_dbid: number;
+    }
+
     export class InstapaperDB {
         constructor();
         initialize(): WinJS.Promise<InstapaperDB>;
@@ -131,7 +150,17 @@ declare module Codevoid.ArticleVoid {
             orphaned: number;
         };
 
-        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>
+        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
+
+        addEventListener(type: "folderschanged", listener: (e: Utilities.EventObject<IFoldersChangedEvent>) => any): void;
+        addEventListener(type: "bookmarkschanged", listener: (e: Utilities.EventObject<IBookmarksChangedEvent>) => any): void;
+        addEventListener(type: string, listener: (e: any) => void): void;
+
+        dispatchEvent(type: "folderschanged", detail: IFoldersChangedEvent): void;
+        dispatchEvent(type: "bookmarkschanged", detail: IBookmarksChangedEvent): void;
+        dispatchEvent(type: string, detail: any): void;
+
+        removeEventListener(type: string, listener: any): void;
 
         static DBVersion: number;
         static DBName: string;
@@ -142,6 +171,21 @@ declare module Codevoid.ArticleVoid {
             Unread: string;
             Orphaned: string;
         };
+
+        static FolderChangeTypes: {
+            ADD: string;
+            DELETE: string;
+            UPDATE: string,
+        }
+
+        static BookmarkChangeTypes: {
+            ADD: string;
+            DELETE: string;
+            MOVE: string;
+            LIKE: string;
+            UNLIKE: string;
+            UPDATE: string;
+        }
     }
 }
 

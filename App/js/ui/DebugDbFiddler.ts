@@ -40,10 +40,34 @@
 
         public getCommands(): WinJS.Binding.List<IFiddleCommand> {
             var commands = [
-                { label: "Add", handler: WinJS.Utilities.markSupportedForProcessing(() => { debugger; }) },
-                { label: "Remove", handler: WinJS.Utilities.markSupportedForProcessing(() => { debugger }) },
-                { label: "Mutate Title", handler: WinJS.Utilities.markSupportedForProcessing(() => { debugger }) },
-                { label: "Mutate Progress", handler: WinJS.Utilities.markSupportedForProcessing(() => { debugger }) },
+                {
+                    label: "Add", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: "add"
+                        });
+                    })
+                },
+                {
+                    label: "Remove", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: "remove"
+                        });
+                    })
+                },
+                {
+                    label: "Mutate Title", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: "update"
+                        });
+                    })
+                },
+                {
+                    label: "Mutate Progress", handler: WinJS.Utilities.markSupportedForProcessing(() => {
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: "update"
+                        });
+                    })
+                },
             ];
 
             return new WinJS.Binding.List(commands);

@@ -21,6 +21,7 @@
 
     export class SignedInViewModel implements Codevoid.ArticleVoid.UI.ISignedInViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
+        private _handlersToCleanUp: Utilities.ICancellable[] = [];
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _instapaperDB: Codevoid.ArticleVoid.InstapaperDB;
         private _dbOpened: boolean;
@@ -41,6 +42,12 @@
                 return;
             }
 
+            // Clean up listeners
+            this._handlersToCleanUp.forEach((cancellable: Utilities.ICancellable) => {
+                cancellable.cancel();
+            });
+
+            this._handlersToCleanUp = null;
             this._instapaperDB.dispose();
             this._instapaperDB = null;
             this._dbOpened = false;
@@ -57,6 +64,17 @@
 
             this._pendingDbOpen = new Utilities.Signal();
             this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
+
+            this._handlersToCleanUp.push(Utilities.addEventListeners(this._instapaperDB, {
+                folderschanged: (e: Utilities.EventObject<IFoldersChangedEvent>) => {
+                    Utilities.Logging.instance.log("Folder Changed: " + e.detail.operation);
+                    debugger;
+                },
+                bookmarkschanged: (e: Utilities.EventObject<IBookmarksChangedEvent>) => {
+                    Utilities.Logging.instance.log("Bookmark Changed: " + e.detail.operation);
+                    debugger;
+                },
+            }));
 
             this._instapaperDB.initialize().done((result) => {
                 this._dbOpened = true;
