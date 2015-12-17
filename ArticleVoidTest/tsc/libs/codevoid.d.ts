@@ -95,14 +95,22 @@ declare module Codevoid.ArticleVoid {
         folder: string;
         bookmark: string;
     }
+
     export interface ISyncStatusUpdate {
         operation: string;
         title: string;
     }
+
+    export interface ISyncOptions {
+        dbInstance: InstapaperDB;
+        folders: boolean,
+        bookmarks: boolean,
+    }
+
     export class InstapaperSync {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
         addEventListener(name: string, handler: (eventData: { detail: ISyncStatusUpdate }) => void);
-        sync(): WinJS.Promise<void>;
+        sync(syncOptions?: ISyncOptions): WinJS.Promise<void>;
         static Operation: SyncOperation;
     }
 
@@ -119,6 +127,9 @@ declare module Codevoid.ArticleVoid {
         progress: number;
         title: string;
         url: string;
+        folder_id: string;
+        folder_dbid: number;
+        time: number;
     }
 
     export interface IFoldersChangedEvent {
