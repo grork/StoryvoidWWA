@@ -299,7 +299,6 @@
                         Utilities.Logging.instance.log("Unknown Event: " + eventData.detail.operation);
                         break;
                 }
-
             });
 
             sync.sync({
@@ -462,9 +461,43 @@
             this.refreshCurrentFolder();
         }
 
+        public getCommandsForSelection(bookmarks: IBookmark[]): WinJS.UI.ICommand[] {
+            var commands = [];
+
+            if (this._currentFolderId === this.commonFolderDbIds.liked) {
+                var unlikeCommand = new WinJS.UI.Command(null, {
+                    label: "Unlike",
+                    icon: "\uEA92",
+                    onclick: () => {
+                        this.unlike(bookmarks);
+                    }
+                });
+
+                commands.push(unlikeCommand);
+            } else {
+                var deleteCommand = new WinJS.UI.Command(null, {
+                    label: "Delete",
+                    icon: "delete",
+                    onclick: () => {
+                        this.delete(bookmarks);
+                    },
+                });
+
+                commands.push(deleteCommand);
+            }
+
+            return commands;
+        }
+
         public delete(bookmarksToDelete: IBookmark[]): void {
-            Codevoid.Utilities.serialize(bookmarksToDelete, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+            Utilities.serialize(bookmarksToDelete, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
                 return this._instapaperDB.removeBookmark(bookmark.bookmark_id);
+            });
+        }
+
+        public unlike(bookmarksToUnlike: IBookmark[]): void {
+            Utilities.serialize(bookmarksToUnlike, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+                return this._instapaperDB.unlikeBookmark(bookmark.bookmark_id);
             });
         }
 

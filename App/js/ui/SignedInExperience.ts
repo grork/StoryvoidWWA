@@ -115,7 +115,11 @@
 
         public contentListSelectionChanged(e: UIEvent): void {
             if (this._contentList.selection.count() > 0) {
-                this._constructToolBar();
+                this._contentList.selection.getItems().then((items: WinJS.UI.IItem<IBookmark>[]) => {
+                    var bookmarks = items.map((item: WinJS.UI.IItem<IBookmark>) => item.data);
+                    var commands = this.viewModel.getCommandsForSelection(bookmarks);
+                    this._updateToolbarFor(commands);
+                });
             } else {
                 this._removeToolBar();
             }
@@ -146,10 +150,12 @@
             this._inSelectionMode = false;
         }
 
-        private _constructToolBar(): void {
+        private _updateToolbarFor(commands: WinJS.UI.ICommand[]): void {
+            var commandList = new WinJS.Binding.List(commands);
             // If we've already constructed the toolbar,
             // theres no need to construct it again
             if (this._toolBar) {
+                this._toolBar.data = commandList
                 return;
             }
 
@@ -160,23 +166,7 @@
 
             // Construct the actual toolbar, and assign it's command
             this._toolBar = new WinJS.UI.ToolBar(toolBarElement);
-            this._toolBar.data = new WinJS.Binding.List<WinJS.UI.ICommand>([
-                new WinJS.UI.Command(null, {
-                    type: "button",
-                    label: "Delete",
-                    icon: "delete",
-                    onclick: () => {
-                        this._contentList.selection.getItems().done((items: WinJS.UI.IItem<IBookmark>[]) => {
-                            var realItems = items.map((item: WinJS.UI.IItem<IBookmark>) => {
-                                return item.data;
-                            });
-
-                            this.viewModel.delete(realItems);
-                        });
-                        
-                    }
-                }),
-            ]);
+            this._toolBar.data = commandList;
         }
 
         private _removeToolBar(): void {
