@@ -107,16 +107,27 @@
                                 data-part="_sorts">
                             <option data-win-bind="textContent: label; value: sort"></option>
                         </select>
+
+                        <button class="commands-selectmode"
+                                data-part="_selectModeToggle"
+                                data-event="{ click: toggleSelectionMode }"
+                                data-win-control="WinJS.UI.Command"
+                                data-win-options="{type: 'button', icon: 'bullets'}"></button>
                     </div>
                 </div>
                 <div class="signedIn-content">
                     <div class="signedIn-articleList"
+                         data-event="{ selectionchanged: contentListSelectionChanged }"
                          data-win-control="WinJS.UI.ListView"
                          data-win-options="{
                             itemTemplate: select('.template-article'),
                             layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
                          }"
                          data-part="_contentList"></div>
+                </div>
+                <div data-part="_toolBarContainer"
+                     class="signedIn-selectioncommands-container">
+
                 </div>
             </div>
         </div>

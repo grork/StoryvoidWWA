@@ -28,6 +28,17 @@ html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
     background-color: rgba(255, 255, 255, 0.34);
 }
 
+html.win-hoverable button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph,
+html.win-hoverable button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph:hover,
+button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph,
+button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph:hover {
+    color: white;
+}
+
+.win-selectioncheckmark {
+    color: white;
+}
+
 .signedOut-container {
     background-color: lightblue;
 }

@@ -114,7 +114,6 @@ body {
     flex-wrap: nowrap;
     align-items: center;
     margin-left: 6px;
-    margin-right: 6px;
 }
 
     .header-commands > div {
@@ -127,9 +126,9 @@ body {
     border-width: 1px;
     color: white;
     margin: 0px;
-    margin-right: 6px;
     margin-top: 2px;
     background-color: transparent;
+    height: 44px;
 }
 
     .commands-sort:hover {
@@ -145,12 +144,28 @@ body {
         color: white;
     }
 
+button.commands-selectmode .win-commandicon {
+    margin-right: 12px;
+    margin-left: 12px;
+}
+
+button.commands-selectmode .win-commandimage {
+    font-size: 16px;
+}
+
 .signedIn-content {
     -ms-grid-column: 1;
     -ms-grid-row: 2;
     height: 100%;
     width: 100%;
     overflow-y: auto;
+}
+
+.signedIn-selectioncommands-container {
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+    -ms-grid-row-align: end;
+    width: 100%;
 }
 
 .signedIn-articleList {
@@ -173,6 +188,15 @@ body {
     margin-right: 6px;
     margin-top: 6px;
     margin-bottom: 6px;
+}
+
+.win-selectionmode .win-itemcontainer.win-container .win-itembox::after,
+.win-selectionmode.win-itemcontainer.win-container .win-itembox::after,
+.win-listview .win-surface.win-selectionmode .win-itembox::after,
+.win-selectioncheckmark,
+.win-selectioncheckmarkbackground {
+  right: 8px;
+  top: 8px;
 }
 
 .article {
@@ -396,7 +420,7 @@ body {
 }
 
 .share-article-url {
-    word-wrap:break-word;
+    word-wrap: break-word;
     font-size: 24px;
     padding: 8px;
     padding-top: 0px;
@@ -432,6 +456,6 @@ body {
     padding: 12px 6px 12px 6px;
 }
 
-    .dbFiddler-buttons > button {
-        margin: 0px 6px 0px 6px;
-    }
+.dbFiddler-buttons > button {
+    margin: 0px 6px 0px 6px;
+}
