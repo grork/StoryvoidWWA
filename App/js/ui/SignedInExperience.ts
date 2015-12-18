@@ -48,6 +48,10 @@
             });
 
             this._handlersToCleanUp = [];
+            this._currentFolder = null;
+            this._currentFolderId = -1;
+            this._currentBookmarks = null;
+            this._currentSort = SortOption.Oldest;
             this._instapaperDB.dispose();
             this._instapaperDB = null;
             this._dbOpened = false;
@@ -460,6 +464,12 @@
             this.refreshCurrentFolder();
         }
 
+        public delete(bookmarksToDelete: IBookmark[]): void {
+            Codevoid.Utilities.serialize(bookmarksToDelete, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+                return this._instapaperDB.removeBookmark(bookmark.bookmark_id);
+            });
+        }
+
         public static get sorts(): ISortsInfo[]{
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [
@@ -509,9 +519,13 @@
         private _contentList: WinJS.UI.ListView<any>;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
+        private _selectModeToggle: WinJS.UI.Command;
         private _folderList: WinJS.UI.Repeater;
         private _sorts: WinJS.UI.Repeater;
         private _sortsElement: HTMLSelectElement;
+        private _toolBarContainer: HTMLDivElement;
+        private _toolBar: WinJS.UI.ToolBar;
+        private _inSelectionMode: boolean = false;
         private viewModel: SignedInViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -568,6 +582,8 @@
         }
 
         public handleSortsChanged(e: UIEvent) {
+            this._exitSelectionMode();
+
             var rawSortOption = parseInt(this._sortsElement.value);
             this.viewModel.changeSortTo(<SortOption>rawSortOption);
         }
@@ -579,7 +595,10 @@
         }
 
         public signOut(): void {
+            this._exitSelectionMode();
+
             this._folderList.data = null;
+            this._splitView.closePane();
             this._contentList.itemDataSource = null;
             this.viewModel.signOut();
         }
@@ -596,13 +615,96 @@
         }
 
         public startSync(): void {
+            this._exitSelectionMode();
+
             this.viewModel.startSync();
         }
 
         public folderClicked(e: any): void {
+            this._exitSelectionMode();
+
             var button: UI.SplitViewCommandWithData = e.target.winControl;
             this.viewModel.switchCurrentFolderTo(button.dataContext.id);
+
             this._splitView.closePane();
+        }
+
+        public contentListSelectionChanged(e: UIEvent): void {
+            if (this._contentList.selection.count() > 0) {
+                this._constructToolBar();
+            } else {
+                this._removeToolBar();
+            }
+        }
+
+        public toggleSelectionMode(): void {
+            if (!this._inSelectionMode) {
+                this._contentList.selectionMode = WinJS.UI.SelectionMode.multi;
+                this._contentList.tapBehavior = WinJS.UI.TapBehavior.toggleSelect;
+                this._selectModeToggle.icon = "cancel";
+                this._inSelectionMode = true;
+            } else {
+                this._exitSelectionMode();
+            }
+        }
+
+        private _exitSelectionMode(): void {
+            if (!this._inSelectionMode) {
+                return;
+            }
+
+            this._contentList.selection.clear();
+            this._contentList.selectionMode = WinJS.UI.SelectionMode.none;
+            this._contentList.tapBehavior = WinJS.UI.TapBehavior.invokeOnly;
+            this._removeToolBar();
+
+            this._selectModeToggle.icon = "bullets";
+            this._inSelectionMode = false;
+        }
+
+        private _constructToolBar(): void {
+            // If we've already constructed the toolbar,
+            // theres no need to construct it again
+            if (this._toolBar) {
+                return;
+            }
+
+            // Construct the toolbar element and add it to the tree
+            var toolBarElement = document.createElement("div");
+            toolBarElement.setAttribute("data-win-control", "WinJS.UI.ToolBar");
+            this._toolBarContainer.appendChild(toolBarElement);
+
+            // Construct the actual toolbar, and assign it's command
+            this._toolBar = new WinJS.UI.ToolBar(toolBarElement);
+            this._toolBar.data = new WinJS.Binding.List<WinJS.UI.ICommand>([
+                new WinJS.UI.Command(null, {
+                    type: "button",
+                    label: "Delete",
+                    icon: "delete",
+                    onclick: () => {
+                        this._contentList.selection.getItems().done((items: WinJS.UI.IItem<IBookmark>[]) => {
+                            var realItems = items.map((item: WinJS.UI.IItem<IBookmark>) => {
+                                return item.data;
+                            });
+
+                            this.viewModel.delete(realItems);
+                        });
+                        
+                    }
+                }),
+            ]);
+        }
+
+        private _removeToolBar(): void {
+            if (!this._toolBar) {
+                return;
+            }
+
+            // Remove the toolbar by clearing it's state
+            // and disposing of it's UI elements
+            this._toolBar = null;
+            WinJS.Utilities.disposeSubTree(this._toolBarContainer);
+            this._toolBarContainer.textContent = "";
         }
 
         public clearDb(): void {
@@ -635,6 +737,8 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.contentListSelectionChanged);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.toggleSelectionMode);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.handleSortsChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
