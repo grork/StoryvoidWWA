@@ -70,8 +70,6 @@
         }
 
         public handleSortsChanged(e: UIEvent) {
-            this._exitSelectionMode();
-
             var rawSortOption = parseInt(this._sortsElement.value);
             this.viewModel.changeSortTo(<SortOption>rawSortOption);
         }
@@ -98,19 +96,17 @@
         public _renderFolderDetails(folderDetails: IFolderDetails): void {
             Utilities.Logging.instance.log("Bookmarks for: " + folderDetails.folder.folder_id);
 
+            this._exitSelectionMode();
+
             this._folderNameElement.textContent = folderDetails.folder.title;
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
         }
 
         public startSync(): void {
-            this._exitSelectionMode();
-
             this.viewModel.startSync();
         }
 
         public folderClicked(e: any): void {
-            this._exitSelectionMode();
-
             var button: UI.SplitViewCommandWithData = e.target.winControl;
             this.viewModel.switchCurrentFolderTo(button.dataContext.id);
 
