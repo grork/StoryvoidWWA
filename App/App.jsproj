@@ -135,6 +135,10 @@
     <Content Include="js\ui\SignedInExperience.js">
       <DependentUpon>SignedInExperience.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\SignedInViewModel.ts" />
+    <Content Include="js\ui\SignedInViewModel.js">
+      <DependentUpon>SignedInViewModel.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\SignedOutExperience.ts" />
     <Content Include="js\ui\SignedOutExperience.js">
       <DependentUpon>SignedOutExperience.ts</DependentUpon>
