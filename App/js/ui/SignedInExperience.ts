@@ -348,7 +348,6 @@
 
                 return WinJS.Promise.join(tablePromises);
             }).then(() => {
-                database.close();
                 return JSON.stringify(dumpData, null, 2);
             });
         }
