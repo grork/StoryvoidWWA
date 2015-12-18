@@ -12,6 +12,13 @@
             titleBar.foregroundColor = textColour;
             titleBar.inactiveBackgroundColor = primaryColour;
             titleBar.buttonInactiveBackgroundColor = primaryColour;
+
+            if (Windows.UI.ViewManagement.StatusBar) {
+                var statusBar = Windows.UI.ViewManagement.StatusBar.getForCurrentView();
+                statusBar.showAsync();
+                statusBar.backgroundColor = Windows.UI.Colors.red;
+                statusBar.backgroundOpacity = 1.0;
+            }
         }
 
         public initialize(): void {
