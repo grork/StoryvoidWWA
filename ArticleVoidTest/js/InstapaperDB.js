@@ -618,7 +618,8 @@
                         return f.then(function (bookmark) {
                             this.dispatchEvent("bookmarkschanged", {
                                 operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.LIKE,
-                                bookmark_id: updatedBookmark.bookmark_id
+                                bookmark_id: updatedBookmark.bookmark_id,
+                                bookmark: updatedBookmark,
                             });
                         }.bind(this));
                     }.bind(this));
@@ -686,7 +687,8 @@
                 return unlikedBookmark.then(function () {
                     this.dispatchEvent("bookmarkschanged", {
                         operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.UNLIKE,
-                        bookmark_id: updatedBookmark.bookmark_id
+                        bookmark_id: updatedBookmark.bookmark_id,
+                        bookmark: bookmark,
                     });
                     return updatedBookmark;
                 }.bind(this));

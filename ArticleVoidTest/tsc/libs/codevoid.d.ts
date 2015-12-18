@@ -174,6 +174,7 @@ declare module Codevoid.ArticleVoid {
         removeEventListener(type: string, listener: any): void;
 
         removeBookmark(bookmark_id: number): WinJS.Promise<void>;
+        unlikeBookmark(bookmark_id: number): WinJS.Promise<void>;
 
         static DBVersion: number;
         static DBName: string;
