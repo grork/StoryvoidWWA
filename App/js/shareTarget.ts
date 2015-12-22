@@ -1,5 +1,7 @@
 ﻿module Codevoid.ArticleVoid {
     export class ShareTargetApp extends UI.AppThatCanSignIn {
+        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation;
+
         public initialize(): void {
             super.initialize();
 
@@ -11,7 +13,12 @@
                     // We really need to yield to the browser before we go lala on getting
                     // data and potentially doing any more operations, so bounce around a timeout.
                     WinJS.Promise.timeout().done(() => {
-                        viewModel.shareDetailsAvailabile(shareArgs.shareOperation);
+                        var shareOperation = shareArgs.shareOperation;
+                        if (viewModel) {
+                            viewModel.shareDetailsAvailabile(shareOperation);
+                        } else {
+                            this._shareOperation = shareOperation;
+                        }
                     });
                 } else {
                     // We're testing since we shouldn't see this activation kind
@@ -22,7 +29,14 @@
         }
 
         protected getSignedInViewModel(): UI.ISignedInViewModel {
-            return new UI.ShareTargetSignedInViewModel(this);
+            var newViewModel = new UI.ShareTargetSignedInViewModel(this);
+
+            if (this._shareOperation) {
+                newViewModel.shareDetailsAvailabile(this._shareOperation);
+                this._shareOperation = null;
+            }
+
+            return newViewModel;
         }
     }
 
