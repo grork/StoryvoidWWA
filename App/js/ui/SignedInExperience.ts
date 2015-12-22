@@ -47,16 +47,6 @@
                 },
             }));
 
-            this.viewModel.initializeDB().done(() => {
-                this._handleDBInitialized();
-            });
-
-            this._sorts.data = new WinJS.Binding.List(SignedInViewModel.sorts);
-            this._sortsElement = <HTMLSelectElement>this._sorts.element;
-            this._sortsElement.selectedIndex = 0;
-        }
-
-        private _handleDBInitialized(): void {
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
                 contentanimating: (eventObject) => {
                     if (eventObject.detail.type === "entrance") {
@@ -66,7 +56,11 @@
                 }
             });
 
-            this.viewModel.refreshCurrentFolder();
+            this._sorts.data = new WinJS.Binding.List(SignedInViewModel.sorts);
+            this._sortsElement = <HTMLSelectElement>this._sorts.element;
+            this._sortsElement.selectedIndex = 0;
+
+            this.viewModel.readyForEvents();
         }
 
         public handleSortsChanged(e: UIEvent) {

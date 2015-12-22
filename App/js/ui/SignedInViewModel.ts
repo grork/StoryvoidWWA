@@ -29,6 +29,7 @@
         private _currentFolder: IFolderDetails;
         private _currentBookmarks: WinJS.Binding.List<IBookmark>;
         private _currentSort: SortOption = SortOption.Oldest;
+        private _readyForEvents: Utilities.Signal = new Utilities.Signal();
         private static _sorts: ISortsInfo[];
 
         constructor(private _app: IAppWithAbilityToSignIn) {
@@ -238,6 +239,10 @@
             return this._pendingDbOpen.promise;
         }
 
+        public readyForEvents(): void {
+            this._readyForEvents.complete();
+        }
+
         public signOut(): void {
             this.disposeDB();
             Codevoid.ArticleVoid.Authenticator.clearClientInformation();
@@ -251,9 +256,20 @@
             });
         }
 
-        public signedIn() {
+        public signedIn(usingSavedCredentials: boolean) {
             this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
-            this.initializeDB();
+            WinJS.Promise.join({
+                db: this.initializeDB(),
+                uiReady: this._readyForEvents.promise,
+            }).done(() => {
+                this.refreshCurrentFolder();
+
+                // We just signed in, we should probably start a sync.
+                // Probably need to factor something in w/ startup
+                if (!usingSavedCredentials) {
+                    this.startSync();
+                }
+            });
         }
 
         public startSync(): void {

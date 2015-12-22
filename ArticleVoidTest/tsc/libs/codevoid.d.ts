@@ -232,10 +232,10 @@ declare module Codevoid.ArticleVoid.UI {
 
     export interface IAppWithAbilityToSignIn {
         signOut(): void;
-        signedIn(credentials: OAuth.ClientInformation): void;
+        signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): void;
     }
 
     export interface ISignedInViewModel extends UICore.ViewModel {
-        signedIn(): void;
+        signedIn(usingSavedCredentials: boolean): void;
     }
 }

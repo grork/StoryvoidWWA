@@ -31,7 +31,7 @@
 
         public startLogin(): WinJS.Promise<void> {
             return Codevoid.ArticleVoid.Authenticator.getClientInformation().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
-                this._app.signedIn(clientInfo);
+                this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);
             });
         }
     }

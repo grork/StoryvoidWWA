@@ -9,7 +9,7 @@
             if (!credentials) {
                 this.signOut();
             } else {
-                this.signedIn(credentials);
+                this.signedIn(credentials, true /*usingSavedCredentials*/);
             }
         }
 
@@ -20,14 +20,14 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this._signedOutViewModel);
         }
 
-        public signedIn(credentials: OAuth.ClientInformation): void {
+        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): void {
             var signedInElement = <HTMLElement>document.body.firstElementChild;
             if (!this._signedInViewModel) {
                 this._signedInViewModel = this.getSignedInViewModel(this);
                 (<Codevoid.UICore.WwaExperienceHost>Codevoid.UICore.Experiences.currentHost).createExperienceWithModel(signedInElement, this._signedInViewModel);
             }
 
-            this._signedInViewModel.signedIn();
+            this._signedInViewModel.signedIn(usingSavedCredentials);
 
             WinJS.Utilities.removeClass(signedInElement, "hide");
 
