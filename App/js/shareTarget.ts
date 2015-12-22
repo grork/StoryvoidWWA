@@ -72,7 +72,7 @@ module Codevoid.ArticleVoid.UI {
             }
         }
 
-        public signedIn(): void {
+        public signedIn(usingSavedCredentials: boolean): void {
             this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
         }
 
