@@ -7,7 +7,7 @@
     var token = "ildNcJmVDn4O5F5Z2V5X8TSNc1pC1aqY98pCOYObAmoc4lGQSD";
     var secret = "gcl8m34CfruNsYEKuRCdvClxqMOC5rxiTpXfrThV6sCgwMktsf";
 
-    var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperApi Tests";
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
@@ -30,7 +30,7 @@
     module("instapaperApiAccounts");
 
     function canGetAccessToken() {
-        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
+        var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
         var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
         stop();
@@ -59,7 +59,7 @@
     test("canGetAccessToken", canGetAccessToken);
 
     promiseTest("can'tGetAccessTokenWhenUsingBadCredentials", function () {
-        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
+        var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
         var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
         return accounts.getAccessToken("test@codevoid.net", "IncorrectPassword").then(function () {
@@ -73,7 +73,7 @@
     test("canVerifyCredentials", canVerifyCredentials);
 
     promiseTest("verifyingBadCredentialsFails", function () {
-        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token + "3", secret + "a");
+        var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token + "3", secret + "a");
         var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
         return accounts.verifyCredentials().then(function () {
@@ -85,13 +85,13 @@
     });
 
     test("nonSubscriptionAccountTokenAndHasNoActiveSub", function () {
-        var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret);
+        var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
         var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
         stop();
         accounts.getAccessToken("test2@codevoid.net", "TestPassword").then(function (tokenInfo) {
             var accounts2 = new Codevoid.ArticleVoid.InstapaperApi.Accounts(
-                new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokenInfo.oauth_token, tokenInfo.oauth_token_secret));
+                new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokenInfo.oauth_token, tokenInfo.oauth_token_secret));
             return accounts2.verifyCredentials();
         }).done(function (userInfo) {
             strictEqual(userInfo.subscription_is_active, "0", "Subscription shouldn't be active");

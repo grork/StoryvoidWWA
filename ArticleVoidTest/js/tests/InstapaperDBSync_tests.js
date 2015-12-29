@@ -7,7 +7,7 @@
     var token = "ildNcJmVDn4O5F5Z2V5X8TSNc1pC1aqY98pCOYObAmoc4lGQSD";
     var secret = "gcl8m34CfruNsYEKuRCdvClxqMOC5rxiTpXfrThV6sCgwMktsf";
 
-    var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperSync Tests";
 
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;

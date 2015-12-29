@@ -81,7 +81,7 @@
     });
 
     WinJS.Namespace.define("Codevoid.OAuth", {
-        ClientInfomation: WinJS.Class.define(function ClientSecretConstructor(id, secret, token, tokenSecret) {
+        ClientInformation: WinJS.Class.define(function ClientSecretConstructor(id, secret, token, tokenSecret) {
             appassert(id, "ID Required");
             appassert(secret, "secret required");
 
