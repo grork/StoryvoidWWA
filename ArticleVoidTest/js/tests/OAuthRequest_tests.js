@@ -119,4 +119,36 @@
             start();
         });
     });
+
+    test("unreachableHostsFailPredictablyForPostRequest", function unreachableHostsFailPredictablyForPostRequest() {
+        var url = "https://a/1.1/statuses/update.json"; // Not real
+        var request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url);
+
+        request.data = [{ key: "status", value: "Test@Status %78 update: " + Date.now() }];
+
+        stop();
+        request.send().done(function (resultData) {
+            ok(false, "Shouldn't have been successful");
+            start();
+        },
+        function (theXhr) {
+            ok(true, "Expected request error state");
+            start();
+        });
+    });
+
+    test("unreachableHostsFailPredictablyForGetRequest", function unreachableHostsFailPredictablyForPostRequest() {
+        var url = "https://a/1.1/account/verify_credentials.json";
+        var request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url, "GET");
+
+        stop();
+        request.send().done(function (resultData) {
+            ok(false, "Didn't expect query to succeed");
+            start();
+        },
+        function (theXhr) {
+            ok(true, "Expected request error state");
+            start();
+        });
+    })
 })();
