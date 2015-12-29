@@ -93,6 +93,16 @@
     </Content>
     <Content Include="js\Utilities.js" />
     <Content Include="packages.config" />
+    <Content Include="RemoteTestContent\SampleImage1.png" />
+    <Content Include="RemoteTestContent\TestPage1.html" />
+    <Content Include="RemoteTestContent\TestPage2.html" />
+    <Content Include="RemoteTestContent\TestPage3.html" />
+    <Content Include="RemoteTestContent\TestPage4.html" />
+    <Content Include="RemoteTestContent\TestPage5.html" />
+    <Content Include="RemoteTestContent\TestPage6.html" />
+    <Content Include="RemoteTestContent\TestPage7.html" />
+    <Content Include="RemoteTestContent\TestPage8.html" />
+    <Content Include="RemoteTestContent\TestPage9.html" />
     <Content Include="tests.html" />
     <Content Include="default.html" />
     <Content Include="images\logo.png" />
