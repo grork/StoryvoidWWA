@@ -688,7 +688,7 @@
                     this.dispatchEvent("bookmarkschanged", {
                         operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.UNLIKE,
                         bookmark_id: updatedBookmark.bookmark_id,
-                        bookmark: bookmark,
+                        bookmark: updatedBookmark,
                     });
                     return updatedBookmark;
                 }.bind(this));
