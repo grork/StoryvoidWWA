@@ -197,6 +197,7 @@
         
         static folderIdToIcon: any;
         static restrictProgressTo5PercentOrMore: any;
+        static showTitleOrUrl: any;
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
@@ -241,5 +242,9 @@
         }
 
         return 0;
+    });
+
+    SignedInExperience.showTitleOrUrl = WinJS.Binding.converter((bookmark: IBookmark) => {
+        return (bookmark.title || bookmark.url);
     });
 }
