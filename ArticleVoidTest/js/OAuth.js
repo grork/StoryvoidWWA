@@ -94,6 +94,7 @@
             _secret: null,
             _token: null,
             _tokenSecret: null,
+            _userAgentHeaderInstance: null,
             clientId: {
                 get: function clientId_get() {
                     return this._id;
@@ -113,7 +114,16 @@
                 get: function clientTokenSecret_get() {
                     return this._tokenSecret;
                 }
-            }
+            },
+            productName: "Codevoid OAuth Helper",
+            productVersion: "0.1",
+            getUserAgentHeader: function getUserAgentHeader() {
+                if (!this._userAgentHeader) {
+                    this._userAgentHeader = new Windows.Web.Http.Headers.HttpProductInfoHeaderValue(this.productName, this.productVersion);
+                }
+
+                return this._userAgentHeader;
+            },
         }),
         OAuthRequest: WinJS.Class.define(function OAuthRequestConstructor(clientInformation, url, operation) {
             appassert(clientInformation, "no client information supplied");
@@ -121,7 +131,17 @@
 
             this._clientInformation = clientInformation;
             this._url = url;
-            this._operation = operation || "POST"; // Default to post request
+
+            switch (operation) {
+                case Codevoid.OAuth.OAuthRequest.Operations.GET:
+                    this._operation = Windows.Web.Http.HttpMethod.get;
+                    break;
+
+                case Codevoid.OAuth.OAuthRequest.Operations.POST:
+                default:
+                    this._operation = Windows.Web.Http.HttpMethod.post;
+                    break;
+            }
         },
         {
             _clientInformation: null,
@@ -170,7 +190,7 @@
                 var headerEncoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true, delimeter: ", " });
 
                 // Get header string
-                var header = "OAuth " + headerEncoder.getEncodedStringForData(authOAuthHeaders);
+                var header = headerEncoder.getEncodedStringForData(authOAuthHeaders);
                 return header;
             },
             _getSignatureForString: function _getSignatureForString(data) {
@@ -187,39 +207,81 @@
                 return signature;
             },
             send: function send() {
-                var headers = {
-                    Authorization: this._generateAuthHeader(),
-                    "Content-Type": "application/x-www-form-urlencoded",
-                };
-
-                var bodyDataEncoder = new Codevoid.OAuth.ParameterEncoder();
-                var data;
+                // Calculate the data state (E.g. body or URL pay load)
+                // Note that this does not use HttpFormUrlEncodedContent to handle the encoding, because
+                // of the way we need to handle the headers, and body encoding & payload to calcuate
+                // the OAuth hash to authenticate the request. Alternative here would be to drop down
+                // to C++/C# and implement message filters ourselves. We're in JS; that's something for
+                // consideration another day.
                 var url = this._url;
+                var bodyDataEncoder = new Codevoid.OAuth.ParameterEncoder();
+                var content;
+
                 if (this._data) {
-                    switch (this._operation.toLowerCase()) {
-                        case "get":
+                    switch (this._operation) {
+                        case Windows.Web.Http.HttpMethod.get:
                             url += "?" + bodyDataEncoder.getEncodedStringForData(this._data);
                             break;
 
-                        case "post":
-                            data = bodyDataEncoder.getEncodedStringForData(this._data);
+                        case Windows.Web.Http.HttpMethod.post:
+                            content = new Windows.Web.Http.HttpStringContent(bodyDataEncoder.getEncodedStringForData(this._data));
+                            content.headers.contentType.mediaType = "application/x-www-form-urlencoded";
                             break;
                     }
-                } else {
-                    data = "";
                 }
 
-                return WinJS.xhr({ type: this._operation, url: url, headers: headers, data: data }).then(function oauthXhrSuccess(xhrResult) {
-                    return xhrResult.responseText;
-                }, function oauthXhrFailure(xhrError) {
-                    var error = {
-                        status: xhrError.status,
-                        response: xhrError.responseText,
-                        xhr: xhrError,
-                    };
-                    return WinJS.Promise.wrapError(error);
+                // Set up the request with the operation type, authentication header, user agentm & other headers if needed
+                var request = new Windows.Web.Http.HttpRequestMessage(this._operation, new Windows.Foundation.Uri(url));
+                var authHeaderPayload = this._generateAuthHeader();
+                var authHeader = new Windows.Web.Http.Headers.HttpCredentialsHeaderValue("OAuth", authHeaderPayload);
+                request.headers.authorization = authHeader;
+                request.headers.userAgent.append(this._clientInformation.getUserAgentHeader());
+
+                // Don't attach the content if we don't have any; this will confuse the crap out of the
+                // HttpClient goo and might set "null" or "undefined" as string payload if we tried to
+                // set the content property to those values.
+                if (content) {
+                    request.content = content;
+                }
+
+                // Note that we're using sendRequestAsync rather than getRequestAsync/postRequestAsync
+                // versions to allow for a more linear code path, rather than splitting the method calls
+                // themselves.
+                var operation = httpClient.sendRequestAsync(request).then(function (responseMessage) {
+                    var error;
+
+                    try {
+                        // Makes sure that we've got something approaching success
+                        responseMessage.ensureSuccessStatusCode();
+                    }
+                    catch (e) {
+                        // When we barf, start the error
+                        // payload to look normative
+                        error = {
+                            status: responseMessage.statusCode,
+                        };
+                    }
+
+                    return WinJS.Promise.join({
+                        error: error, // shuffle the shell of error objects on the way down
+                        data: responseMessage.content.readAsStringAsync(),
+                    });
+                }).then(function (result) {
+                    if (result.error) {
+                        result.error.response = result.data;
+                        return WinJS.Promise.wrapError(result.error);
+                    }
+
+                    return result.data;
                 });
+
+                return operation;
             }
+        }, {
+            Operations: {
+                GET: "GET",
+                POST: "POST",
+            },
         })
     });
 })();
