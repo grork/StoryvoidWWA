@@ -1,12 +1,12 @@
 ﻿(function() {
     "use strict";
 
-    var fakeClientInfo = new Codevoid.OAuth.ClientInfomation("xvz1evFS4wEEPTGEFPHBog", /* Client ID */
+    var fakeClientInfo = new Codevoid.OAuth.ClientInformation("xvz1evFS4wEEPTGEFPHBog", /* Client ID */
                                                              "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw", /* Client Secret */
                                                              "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb", /* Token */
                                                              "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"); /* Token Secret */
 
-    var realClientInfo = new Codevoid.OAuth.ClientInfomation("PLACEHOLDER", /* client id */
+    var realClientInfo = new Codevoid.OAuth.ClientInformation("PLACEHOLDER", /* client id */
                                                              "PLACEHOLDER", /* Client secret */
                                                              "PLACEHOLDER", /* access token */
                                                              "PLACEHOLDER" /* token secret */);
@@ -31,7 +31,7 @@
     function xAuthAuthenticationHeaderCorrectlyGenerated() {
         var url = "https://api.twitter.com/oauth/access_token";
 
-        var clientInfo = new Codevoid.OAuth.ClientInfomation("JvyS7DO2qd6NNTsXJ4E7zA",
+        var clientInfo = new Codevoid.OAuth.ClientInformation("JvyS7DO2qd6NNTsXJ4E7zA",
                                                              "9z6157pUbOBqtbm0A0q4r29Y2EYzIHlUwbF4Cl9c");
         var data = [{ key: "x_auth_username", value: "oauth_test_exec" },
                     { key: "x_auth_password", value: "twitter-xauth" },

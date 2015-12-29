@@ -7,7 +7,7 @@
     var token = "PLACEHOLDER";
     var secret = "PLACEHOLDER";
 
-    var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperSync Tests";
 
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;

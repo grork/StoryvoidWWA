@@ -31,7 +31,7 @@
             if(tokens
                 && tokens.hasKey(tokenSettingName)
                 && tokens.hasKey(tokenSecretSettingName)) {
-                return Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
+                return Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
             }
 
             return null;
@@ -56,7 +56,7 @@
                 userTokens[tokenSecretSettingName] = result.oauth_token_secret;
                 store.values[tokenInformationSettingName] = userTokens;
 
-                return new Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
+                return new Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
             });
         },
         clearClientInformation: function clearClientInformation() {
@@ -119,7 +119,7 @@
                 }
             },
             _tryAuthenticate: function (credentialPromise, retry) {
-                var clientInformation = Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
+                var clientInformation = Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret));
                 var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
                 credentialPromise.then(function () {
