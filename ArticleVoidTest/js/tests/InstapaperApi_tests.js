@@ -8,6 +8,8 @@
     var secret = "gcl8m34CfruNsYEKuRCdvClxqMOC5rxiTpXfrThV6sCgwMktsf";
 
     var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    clientInformation.productName = "Codevoid InstapaperApi Tests";
+
     var promiseTest = InstapaperTestUtilities.promiseTest;
 
     function failedPromiseHandler(req) {
@@ -95,39 +97,6 @@
             strictEqual(userInfo.subscription_is_active, "0", "Subscription shouldn't be active");
             start();
         }, failedPromiseHandler);
-    });
-
-    promiseTest("canGetTokenAndSubscriberStatusForSubscriber", function () {
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
-        return accounts.getAccessTokenVerifyIsSubscriber("test@codevoid.net", "TestPassword").then(function (tokenInfo) {
-            ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
-            strictEqual(tokenInfo.oauth_token, token, "token didn't match");
-
-            ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
-            strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
-
-            ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
-        });
-    });
-
-    promiseTest("canGetTokenAndSubscriberStatusForNonSubscriber", function () {
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
-        return accounts.getAccessTokenVerifyIsSubscriber("test2@codevoid.net", "TestPassword").then(function (tokenInfo) {
-            ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
-            ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
-
-            ok(tokenInfo.hasOwnProperty("isSubscriber"), "Didn't have subscriber status");
-        });
-    });
-
-    promiseTest("gettingAccessTokenVerifyIsSubscriberWithIncorrectCredentialsErrors", function () {
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
-        return accounts.getAccessTokenVerifyIsSubscriber("test2@codevoid.net", "IncorrectPassword").then(function (tokenInfo) {
-            ok(false, "Should have failed");
-        }, function (err) {
-            ok(true, "Shouldn't have succeeded");
-            strictEqual(err.status, 401, "Should have failed auth");
-        });
     });
 
     module("instapaperApiBookmarksHaveConversion");

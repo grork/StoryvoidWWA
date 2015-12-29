@@ -8,6 +8,8 @@
     var secret = "gcl8m34CfruNsYEKuRCdvClxqMOC5rxiTpXfrThV6sCgwMktsf";
 
     var clientInformation = new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, token, secret);
+    clientInformation.productName = "Codevoid InstapaperSync Tests";
+
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
     var defaultFolderIds = InstapaperTestUtilities.defaultFolderIds.concat([]);
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;

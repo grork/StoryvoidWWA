@@ -15,6 +15,15 @@
             token: tokenSettingName,
             secret: tokenSecretSettingName,
         },
+        applyUserAgentSettings: function applyUserAgentSettings(clientInformation) {
+            var packageVersion = Windows.ApplicationModel.Package.current.id.version;
+            var versionAsString = packageVersion.major + "." + packageVersion.minor + "." + packageVersion.build + "." + packageVersion.revision;
+
+            clientInformation.productName = "Codevoid ArticleVoid";
+            clientInformation.productVersion = versionAsString;
+
+            return clientInformation;
+        },
         getStoredCredentials: function getStoredCredentials() {
             var store = Windows.Storage.ApplicationData.current.localSettings;
             var tokens = store.values[tokenInformationSettingName];
@@ -22,7 +31,7 @@
             if(tokens
                 && tokens.hasKey(tokenSettingName)
                 && tokens.hasKey(tokenSecretSettingName)) {
-                return new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]);
+                return Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
             }
 
             return null;
@@ -47,7 +56,7 @@
                 userTokens[tokenSecretSettingName] = result.oauth_token_secret;
                 store.values[tokenInformationSettingName] = userTokens;
 
-                return new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]);
+                return new Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
             });
         },
         clearClientInformation: function clearClientInformation() {
@@ -110,11 +119,12 @@
                 }
             },
             _tryAuthenticate: function (credentialPromise, retry) {
-                var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
+                var clientInformation = Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInfomation(clientID, clientSecret));
+                var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
-                    return accounts.getAccessTokenVerifyIsSubscriber(this.username, this.password);
+                    return accounts.getAccessToken(this.username, this.password);
                 }.bind(this)).done(function (result) {
                     Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
                     this.isWorking = false;
