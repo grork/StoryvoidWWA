@@ -244,6 +244,8 @@
                     request.content = content;
                 }
 
+                var httpClient = new Windows.Web.Http.HttpClient();
+
                 // Note that we're using sendRequestAsync rather than getRequestAsync/postRequestAsync
                 // versions to allow for a more linear code path, rather than splitting the method calls
                 // themselves.
