@@ -207,6 +207,14 @@
                 return signature;
             },
             send: function send() {
+                return this._sendCore().then(function (content) {
+                    return content.readAsStringAsync();
+                });
+            },
+            retrieveRawContent: function retrieveRawContent() {
+                return this._sendCore();
+            },
+            _sendCore: function _sendCore() {
                 // Calculate the data state (E.g. body or URL pay load)
                 // Note that this does not use HttpFormUrlEncodedContent to handle the encoding, because
                 // of the way we need to handle the headers, and body encoding & payload to calcuate
@@ -259,22 +267,15 @@
                     catch (e) {
                         // When we barf, start the error
                         // payload to look normative
-                        error = {
+                        return WinJS.Promise.join({
                             status: responseMessage.statusCode,
-                        };
+                            response: responseMessage.content.readAsStringAsync(),
+                        }).then(function (result) {
+                            return WinJS.Promise.wrapError(result);
+                        });
                     }
 
-                    return WinJS.Promise.join({
-                        error: error, // shuffle the shell of error objects on the way down
-                        data: responseMessage.content.readAsStringAsync(),
-                    });
-                }).then(function (result) {
-                    if (result.error) {
-                        result.error.response = result.data;
-                        return WinJS.Promise.wrapError(result.error);
-                    }
-
-                    return result.data;
+                    return responseMessage.content;
                 });
 
                 return operation;

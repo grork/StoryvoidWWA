@@ -324,6 +324,35 @@
                     return response;
                 }, handleSingleItemJSONError);
             },
+            getTextAndSaveToFileInDirectory: function getTextAndSaveToFilePath(bookmark_id, destinationDirectory) {
+                if (!bookmark_id) {
+                    throw new Error("bookmark ID required");
+                }
+
+                if (!destinationDirectory) {
+                    throw new Error("Directory required");
+                }
+
+                var data = [{ key: "bookmark_id", value: bookmark_id }];
+                var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.getText);
+                request.data = data;
+
+                var content = request.retrieveRawContent().then(null, handleSingleItemJSONError);
+
+                var targetFileName = bookmark_id + ".html";
+                var fileOutputStream = destinationDirectory.createFileAsync(targetFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+                    return file.openAsync(Windows.Storage.FileAccessMode.readWrite);
+                });
+
+                return WinJS.Promise.join({
+                    outputStream: fileOutputStream,
+                    inputStream: content,
+                }).then(function (result) {
+                    return result.inputStream.writeToStreamAsync(result.outputStream);
+                }).then(function () {
+                    return destinationDirectory.getFileAsync(targetFileName);
+                });
+            },
         }, {
             haveToString: function _convertHaveToString(have) {
                 if (!isNaN(have)) {
