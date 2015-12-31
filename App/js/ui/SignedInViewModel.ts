@@ -502,6 +502,19 @@
                 commands.push(deleteCommand);
             }
 
+            var downloadCommand = new WinJS.UI.Command(null, {
+                label: "Download",
+                ucon: "download",
+                onclick: () => {
+                    var instapaperAPI = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation);
+                    instapaperAPI.getTextAndSaveToFileInDirectory(bookmarks[0].bookmark_id, Windows.Storage.ApplicationData.current.temporaryFolder).done((file) => {
+                        Utilities.Logging.instance.log("File saved to: " + file.path);
+                    });
+                }
+            });
+
+            commands.push(downloadCommand);
+
             return commands;
         }
 

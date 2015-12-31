@@ -207,6 +207,7 @@ declare module Codevoid.ArticleVoid.InstapaperApi {
     export class Bookmarks {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
         add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<void>;
+        getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
     }
 }
 
