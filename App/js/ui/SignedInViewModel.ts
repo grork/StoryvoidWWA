@@ -504,7 +504,7 @@
 
             var downloadCommand = new WinJS.UI.Command(null, {
                 label: "Download",
-                ucon: "download",
+                icon: "download",
                 onclick: () => {
                     var instapaperAPI = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation);
                     instapaperAPI.getTextAndSaveToFileInDirectory(bookmarks[0].bookmark_id, Windows.Storage.ApplicationData.current.temporaryFolder).done((file) => {
