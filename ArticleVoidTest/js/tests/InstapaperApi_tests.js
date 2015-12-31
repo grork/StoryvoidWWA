@@ -174,8 +174,6 @@
         }, "Should throw if the URL isn't included");
     }
 
-    var justAddedId;
-
     function listIsEmpty() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
@@ -190,6 +188,7 @@
         }, failedPromiseHandler);
     }
 
+    var justAddedId;
     var justAddedBookmark;
 
     function addAddsUrlReturnsCorrectObject() {
@@ -454,6 +453,37 @@
         }, failedPromiseHandler);
     }
 
+    function getTextToDirectory() {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        stop();
+
+        var destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
+        var targetFileName = justAddedId + ".html";
+        var openedFile;
+
+        destinationDirectory.tryGetItemAsync(targetFileName).then(function (fileToDelete) {
+            if (!fileToDelete) {
+                return;
+            }
+
+            return fileToDelete.deleteAsync();
+        }).then(function() {
+            return bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory);
+        }).then(function (storageFile) {
+            ok(storageFile, "Expected to get actual data back");
+            openedFile = storageFile;
+
+            return storageFile.getBasicPropertiesAsync();
+        }).then(function (basicProperties) {
+            notStrictEqual(basicProperties.size, 0, "Shouldn't have had file written to disk");
+
+            return openedFile.deleteAsync();
+        }).done(function() {
+            start();
+        }, failedPromiseHandler);
+    }
+
     function getText_nonExistantBookmark() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
@@ -511,6 +541,7 @@
     test("unarchive", unarchive);
     test("listInArchiveFolderExpectingNoArchivedItems2", listInArchiveFolderExpectingNoArchivedItems);
     test("getText", getText);
+    test("getTextToDirectory", getTextToDirectory);
     test("deleteAddedUrl", deletedAddedUrl);
     test("deleteNonExistantUrl", deleteNonExistantUrl);
     test("getText_nonExistantBookmark", getText_nonExistantBookmark);
