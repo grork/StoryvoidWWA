@@ -96,7 +96,7 @@
 
         this.query = function Server_Query(table) {
             if (closed) {
-                throw 'Database has been closed';
+                throw "Database has been closed";
             }
             return new Query(table, localDb);
         };

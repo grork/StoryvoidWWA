@@ -116,7 +116,15 @@
     <Content Include="WinJS\fonts\Symbols.ttf" />
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
+    <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
+    <Content Include="js\InstapaperArticleSync.js">
+      <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
+    <TypeScriptCompile Include="js\tests\InstapaperArticleSync_tests.ts" />
+    <Content Include="js\Tests\InstapaperArticleSync_tests.js">
+      <DependentUpon>InstapaperArticleSync_tests.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
