@@ -157,8 +157,19 @@ declare module Codevoid.ArticleVoid {
         initialize(): WinJS.Promise<InstapaperDB>;
         deleteAllData(): WinJS.Promise<any>;
         dispose(): void;
+
+        // Folder Interface
         listCurrentFolders(): WinJS.Promise<IFolder[]>;
         listCurrentBookmarks(folder_id: number): WinJS.Promise<IBookmark[]>;
+        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
+
+        // Bookmark interface
+        removeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
+        unlikeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
+        updateBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
+        getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
+        
+
         commonFolderDbIds: {
             archive: number;
             liked: number;
@@ -166,8 +177,7 @@ declare module Codevoid.ArticleVoid {
             orphaned: number;
         };
 
-        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
-
+        // Event Source interface
         addEventListener(type: "folderschanged", listener: (e: Utilities.EventObject<IFoldersChangedEvent>) => any): void;
         addEventListener(type: "bookmarkschanged", listener: (e: Utilities.EventObject<IBookmarksChangedEvent>) => any): void;
         addEventListener(type: string, listener: (e: any) => void): void;
@@ -178,10 +188,7 @@ declare module Codevoid.ArticleVoid {
 
         removeEventListener(type: string, listener: any): void;
 
-        removeBookmark(bookmark_id: number): WinJS.Promise<void>;
-        unlikeBookmark(bookmark_id: number): WinJS.Promise<void>;
-        getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
-
+        // Statics
         static DBVersion: number;
         static DBName: string;
 
