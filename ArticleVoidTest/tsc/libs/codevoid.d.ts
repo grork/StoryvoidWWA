@@ -134,6 +134,7 @@ declare module Codevoid.ArticleVoid {
         folder_id: string;
         folder_dbid: number;
         time: number;
+        contentAvailableLocally: boolean;
     }
 
     export interface IFoldersChangedEvent {
@@ -179,6 +180,7 @@ declare module Codevoid.ArticleVoid {
 
         removeBookmark(bookmark_id: number): WinJS.Promise<void>;
         unlikeBookmark(bookmark_id: number): WinJS.Promise<void>;
+        getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
 
         static DBVersion: number;
         static DBName: string;

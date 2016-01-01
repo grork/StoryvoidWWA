@@ -356,7 +356,9 @@
             }),
             addBookmark: checkDb(function addBookmark(bookmark) {
                 appassert(bookmark.folder_dbid, "No Folder DB ID provided");
-
+                if(!Object.hasOwnProperty(bookmark)) {
+                    bookmark.contentAvailableLocally = false;
+                }
                 return this._db.add(Codevoid.ArticleVoid.InstapaperDB.DBBookmarksTable, bookmark).then(extractFirstItemInArray).then(function (added) {
                     this.dispatchEvent("bookmarkschanged", {
                         operation: Codevoid.ArticleVoid.InstapaperDB.BookmarkChangeTypes.ADD,
