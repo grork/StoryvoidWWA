@@ -21,8 +21,11 @@
     var articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage9.html";
     var articleWithImageId: number;
 
+    var articlesFolder: st.StorageFolder;
+
     function deleteAllLocalFiles(): WinJS.Promise<any> {
         return st.ApplicationData.current.temporaryFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
+            articlesFolder = folder;
             return folder.getFilesAsync();
         }).then((files: Windows.Foundation.Collections.IVectorView<st.StorageFile>) => {
             var deletes = files.map((file: st.StorageFile) => {
@@ -34,11 +37,6 @@
     }
 
     QUnit.module("InstapaperArticleSyncTests");
-
-    test("canInstantiateArticleSync", () => {
-        var syncEngine = new av.InstapaperArticleSync(clientInformation);
-        notStrictEqual(syncEngine, null, "Should have constructed new article sync engine");
-    });
 
     // Remove remote data for known state
     promiseTest("setupLocalAndRemoteState", () => {
@@ -71,6 +69,22 @@
         });
     });
 
+    test("canInstantiateArticleSync", () => {
+        var syncEngine = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+        notStrictEqual(syncEngine, null, "Should have constructed new article sync engine");
+    });
+
+    test("constructorThrowsIfFolderMissing", () => {
+        var exceptionThrown = false;
+        try {
+            var syncEngine = new av.InstapaperArticleSync(clientInformation, null);
+        } catch (e) {
+            exceptionThrown = true;
+        }
+
+        strictEqual(exceptionThrown, true, "Constructor should throw if no folder supplied");
+    });
+
     promiseTest("checkDefaultStateOfArticleBeforeSyncing", () => {
         var instapaperDB = new av.InstapaperDB();
 
@@ -78,6 +92,21 @@
             return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+        });
+    });
+
+    promiseTest("syncingSimpleItemLocallySetsContentAvailabilityCorrectly", () => {
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
+        return instapaperDB.initialize().then(() => {
+            return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
+        }).then((bookmark: av.IBookmark) => {
+            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+
+            return articleSync.syncSingleArticle(normalArticleId, instapaperDB);
+        }).then((syncedBookmark: av.IBookmark) => {
+            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
         });
     });
 }
