@@ -70,4 +70,14 @@
             dbInstance.dispose();
         });
     });
+
+    promiseTest("checkDefaultStateOfArticleBeforeSyncing", () => {
+        var instapaperDB = new av.InstapaperDB();
+
+        return instapaperDB.initialize().then(() => {
+            return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
+        }).then((bookmark: av.IBookmark) => {
+            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+        });
+    });
 }
