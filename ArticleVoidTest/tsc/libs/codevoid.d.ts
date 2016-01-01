@@ -80,6 +80,8 @@ declare module Codevoid.Utilities {
 
 declare module Codevoid.OAuth {
     export class ClientInformation {
+        constructor(id: string, secret: string, token?: string, tokenSecret?: string);
+        productName: string;
     }
 }
 
@@ -105,6 +107,8 @@ declare module Codevoid.ArticleVoid {
         dbInstance: InstapaperDB;
         folders: boolean,
         bookmarks: boolean,
+        singleFolder?: boolean,
+        folder?: number,
     }
 
     export class InstapaperSync {
@@ -206,7 +210,9 @@ declare module Codevoid.ArticleVoid {
 declare module Codevoid.ArticleVoid.InstapaperApi {
     export class Bookmarks {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
-        add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<void>;
+        add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<IBookmark>;
+        deleteBookmark(bookmark_id: number): WinJS.Promise<any>;
+        list({ folder_id: string }): WinJS.Promise<{ bookmarks: IBookmark[] }>;
         getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
     }
 }

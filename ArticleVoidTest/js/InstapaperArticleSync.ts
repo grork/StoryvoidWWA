@@ -1,6 +1,8 @@
 ﻿module Codevoid.ArticleVoid {
+    import oauth = Codevoid.OAuth;
+
     export class InstapaperArticleSync {
-        constructor() {
+        constructor(private _clientInformation: oauth.ClientInformation) {
         }
     }
 }

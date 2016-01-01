@@ -13,8 +13,6 @@
     var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
     var defaultFolderIds = InstapaperTestUtilities.defaultFolderIds.concat([]);
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
-    var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
-    var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
