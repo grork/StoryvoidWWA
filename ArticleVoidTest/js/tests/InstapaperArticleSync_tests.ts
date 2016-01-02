@@ -22,6 +22,7 @@
     var articleWithImageId: number;
 
     var articlesFolder: st.StorageFolder;
+    var stateConfigured = false;
 
     function deleteAllLocalFiles(): WinJS.Promise<any> {
         return st.ApplicationData.current.localFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
@@ -38,8 +39,12 @@
 
     QUnit.module("InstapaperArticleSyncTests");
 
-    // Remove remote data for known state
-    promiseTest("setupLocalAndRemoteState", () => {
+
+    function setupLocalAndRemoteState(): WinJS.Promise<any> {
+        if (stateConfigured) {
+            return WinJS.Promise.timeout();
+        }
+
         var dbInstance = new av.InstapaperDB();
 
         var api = new av.InstapaperApi.Bookmarks(clientInformation);
@@ -66,8 +71,14 @@
             });
         }).then(() => {
             dbInstance.dispose();
+            stateConfigured = true;
+
+            return WinJS.Promise.timeout();
         });
-    });
+    }
+
+    // Remove remote data for known state
+    promiseTest("setupLocalAndRemoteState", setupLocalAndRemoteState);
 
     promiseTest("checkDefaultStateOfArticleBeforeSyncing", () => {
         var instapaperDB = new av.InstapaperDB();
@@ -80,10 +91,14 @@
     });
 
     promiseTest("syncingSimpleItemLocallySetsContentAvailabilityCorrectly", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
         var instapaperDB = new av.InstapaperDB();
         var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
 
-        return instapaperDB.initialize().then(() => {
+        return setupCompleted.then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
             return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
@@ -92,6 +107,7 @@
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            strictEqual(syncedBookmark.hasImages, false, "Didn't expect images");
         });
     });
 }

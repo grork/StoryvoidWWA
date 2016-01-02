@@ -348,8 +348,14 @@
                     outputStream: fileOutputStream,
                     inputStream: content,
                 }).then(function (result) {
-                    return result.inputStream.writeToStreamAsync(result.outputStream);
-                }).then(function () {
+                    return result.inputStream.writeToStreamAsync(result.outputStream).then(() => {
+                        return result;
+                    });
+                }).then(function (result) {
+                    // Close the two streams we read so we can
+                    // open the file and hand it to someone else.
+                    result.outputStream.close();
+                    result.inputStream.close();
                     return destinationDirectory.getFileAsync(targetFileName);
                 });
             },
