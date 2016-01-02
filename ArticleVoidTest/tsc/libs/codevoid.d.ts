@@ -135,6 +135,7 @@ declare module Codevoid.ArticleVoid {
         folder_dbid: number;
         time: number;
         contentAvailableLocally: boolean;
+        localFolderRelativePath: string;
     }
 
     export interface IFoldersChangedEvent {
