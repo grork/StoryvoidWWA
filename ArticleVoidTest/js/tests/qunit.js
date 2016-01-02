@@ -731,7 +731,8 @@ extend( QUnit, {
 		message = "<span class='test-message'>" + message + "</span>";
 		output = message;
 
-		if ( !result ) {
+		if (!result) {
+		    debugger;
 			expected = escapeInnerText( QUnit.jsDump.parse(expected) );
 			actual = escapeInnerText( QUnit.jsDump.parse(actual) );
 			output += "<table><tr class='test-expected'><th>Expected: </th><td><pre>" + expected + "</pre></td></tr>";
