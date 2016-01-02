@@ -24,7 +24,7 @@
     var articlesFolder: st.StorageFolder;
 
     function deleteAllLocalFiles(): WinJS.Promise<any> {
-        return st.ApplicationData.current.temporaryFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
+        return st.ApplicationData.current.localFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
             articlesFolder = folder;
             return folder.getFilesAsync();
         }).then((files: Windows.Foundation.Collections.IVectorView<st.StorageFile>) => {
@@ -33,7 +33,7 @@
             });
 
             return WinJS.Promise.join(deletes);
-        });
+           });
     }
 
     QUnit.module("InstapaperArticleSyncTests");
@@ -69,22 +69,6 @@
         });
     });
 
-    test("canInstantiateArticleSync", () => {
-        var syncEngine = new av.InstapaperArticleSync(clientInformation, articlesFolder);
-        notStrictEqual(syncEngine, null, "Should have constructed new article sync engine");
-    });
-
-    test("constructorThrowsIfFolderMissing", () => {
-        var exceptionThrown = false;
-        try {
-            var syncEngine = new av.InstapaperArticleSync(clientInformation, null);
-        } catch (e) {
-            exceptionThrown = true;
-        }
-
-        strictEqual(exceptionThrown, true, "Constructor should throw if no folder supplied");
-    });
-
     promiseTest("checkDefaultStateOfArticleBeforeSyncing", () => {
         var instapaperDB = new av.InstapaperDB();
 
@@ -107,6 +91,7 @@
             return articleSync.syncSingleArticle(normalArticleId, instapaperDB);
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
         });
     });
 }
