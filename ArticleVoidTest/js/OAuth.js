@@ -260,11 +260,7 @@
                 var operation = httpClient.sendRequestAsync(request).then(function (responseMessage) {
                     var error;
 
-                    try {
-                        // Makes sure that we've got something approaching success
-                        responseMessage.ensureSuccessStatusCode();
-                    }
-                    catch (e) {
+                    if(!responseMessage.isSuccessStatusCode) {
                         // When we barf, start the error
                         // payload to look normative
                         return WinJS.Promise.join({

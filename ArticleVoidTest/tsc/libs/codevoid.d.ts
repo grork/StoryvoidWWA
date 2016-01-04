@@ -13,7 +13,7 @@ declare module Codevoid.Utilities {
     }
 
     export function addEventListeners(source: { addEventListener: any, removeEventListener: any }, handlers: any): ICancellable;
-    export function serialize(items: any[], work: (item: any, index: number) => WinJS.Promise<any>);
+    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>);
 
     export interface IIndexedDatabase {
         objectStoreNames: string[];
@@ -82,6 +82,8 @@ declare module Codevoid.OAuth {
     export class ClientInformation {
         constructor(id: string, secret: string, token?: string, tokenSecret?: string);
         productName: string;
+        productVersion: string;
+        getUserAgentHeader(): Windows.Web.Http.Headers.HttpProductInfoHeaderValue;
     }
 }
 
