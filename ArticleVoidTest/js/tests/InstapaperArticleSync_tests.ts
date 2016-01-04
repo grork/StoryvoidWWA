@@ -18,7 +18,7 @@
     // Sample, known articles
     var normalArticleUrl = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
     var normalArticleId: number;
-    var articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage9.html";
+    var articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage11.html";
     var articleWithImageId: number;
 
     var articlesFolder: st.StorageFolder;
@@ -27,18 +27,17 @@
     function deleteAllLocalFiles(): WinJS.Promise<any> {
         return st.ApplicationData.current.localFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
             articlesFolder = folder;
-            return folder.getFilesAsync();
+            return folder.getItemsAsync();
         }).then((files: Windows.Foundation.Collections.IVectorView<st.StorageFile>) => {
-            var deletes = files.map((file: st.StorageFile) => {
+            var deletes = files.map((file: st.IStorageItem) => {
                 return file.deleteAsync();
             });
 
             return WinJS.Promise.join(deletes);
-           });
+        });
     }
 
     QUnit.module("InstapaperArticleSyncTests");
-
 
     function setupLocalAndRemoteState(): WinJS.Promise<any> {
         if (stateConfigured) {
@@ -90,7 +89,7 @@
         });
     });
 
-    promiseTest("syncingSimpleItemLocallySetsContentAvailabilityCorrectly", () => {
+    promiseTest("syncingSimpleItemLocallySetsItemInformationCorrectly", () => {
         var setupCompleted = setupLocalAndRemoteState();
 
         var instapaperDB = new av.InstapaperDB();
@@ -103,11 +102,58 @@
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(normalArticleId, instapaperDB);
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
             strictEqual(syncedBookmark.hasImages, false, "Didn't expect images");
+        });
+    });
+
+    promiseTest("syncingItemWithImagesLocallySetsItemInformationCorrectly", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
+        return setupCompleted.then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
+            return instapaperDB.getBookmarkByBookmarkId(articleWithImageId);
+        }).then((bookmark: av.IBookmark) => {
+            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+        }).then((syncedBookmark: av.IBookmark) => {
+            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            strictEqual(syncedBookmark.hasImages, true, "Didn't expect images");
+
+            return articlesFolder.getFolderAsync(articleWithImageId.toString());
+        }).then((imagesSubFolder: st.StorageFolder) => {
+            return imagesSubFolder.getFilesAsync();
+        }).then((files) => {
+            strictEqual(files.size, 2, "Unexpected number of files");
+            files.forEach((file, index) => {
+                var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
+                strictEqual(nameAsNumber, index, "Incorrect filename");
+            });
+
+            return articlesFolder.getFileAsync(articleWithImageId + ".html");
+        }).then((articleFile: st.StorageFile) => {
+            return st.FileIO.readTextAsync(articleFile);
+        }).then((articleContent: string) => {
+            var parser = new DOMParser();
+            var articleDocument = parser.parseFromString(articleContent, "text/html");
+            var images = WinJS.Utilities.query("img", articleDocument.body);
+
+            strictEqual(images.length, 2, "Wrong number of images compared to filename");
+            
+            var expectedPath = "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/0.png";
+            strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
+
+            expectedPath = "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/1.jpg";
+            strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });
 }
