@@ -648,6 +648,20 @@
         });
     }
 
+    function gettingInvalidIdReturnsNull() {
+        ok(currentServer, "need current server");
+
+        var done = false;
+        currentServer.get("test", 7).done(function (data) {
+            ok(data === undefined, "Didn't expect to get any data");
+            done = true;
+        });
+
+        return waitFor(function () {
+            return done;
+        });
+    };
+
     function canGetAll() {
         ok(currentServer, "need current server");
 
@@ -765,6 +779,7 @@
 
     test("canGetById", dbTestWrapperCreateDb(canGetById));
     test("canGetAll", dbTestWrapperCreateDb(canGetAll));
+    test("gettingInvalidIdReturnsNull", dbTestWrapperCreateDb(gettingInvalidIdReturnsNull));
     test("canQueryASingleProperty", dbTestWrapperCreateDb(canQueryASingleProperty));
     test("canQueryUsingFilterFunction", dbTestWrapperCreateDb(canQueryUsingFilterFunction));
 
