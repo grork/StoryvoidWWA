@@ -881,6 +881,54 @@
         });
     }
 
+    function canQueryDbIndexForNonExistantItem() {
+        var item1 = {
+            firstName: "Aaron",
+            lastName: "Powell"
+        };
+
+
+        db.open({
+            server: dbName,
+            version: 1,
+            schema: {
+                test: {
+                    key: {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    },
+                    indexes: {
+                        firstName: {}
+                    }
+                }
+            }
+        }).done(function (s) {
+            ok(s, "Expected a completed DB");
+            currentServer = s;
+        });
+        var done;
+
+        return waitFor(function () { return currentServer; }).then(function () {
+
+            currentServer.add("test", [item1]).done(function () {
+                done = true;
+            });
+
+            return waitFor(function () { return done; });
+        }).then(function () {
+            ok(done, "Previous data wasn't complete")
+            done = false;
+            currentServer.index("test", "firstName").only("Bob").done(function (results) {
+                ok(results, "Expected a result set");
+                strictEqual(results.length, 0, "didn't get back expected record counts");
+                done = true;
+            });
+
+            return waitFor(function () { return done; });
+        });
+    }
+
     test("canCreateDbWithIndexes", dbTestWrapper(canCreateDbWithIndexes));
     test("canQueryDbUsingIndexes", dbTestWrapper(canQueryDbUsingIndexes));
+    test("canQueryDbIndexForNonExistantItem", dbTestWrapper(canQueryDbIndexForNonExistantItem));
 })();
