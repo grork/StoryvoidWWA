@@ -10,6 +10,8 @@
         hasImages: boolean;
     }
 
+    interface IBookmarkHash { [id: number]: string };
+
     export class InstapaperArticleSync {
         private _bookmarksApi: api.Bookmarks;
         private _localFolderPathLength: number;
@@ -46,6 +48,52 @@
                 result.localBookmark.hasImages = result.articleInformation.hasImages;
 
                 return dbInstance.updateBookmark(result.localBookmark);
+            });
+        }
+
+        public removeFilesForNotPresentArticles(instapaperDB: av.InstapaperDB): WinJS.Promise<any> {
+            var files = this._destinationFolder.getFilesAsync();
+
+            var currentBookmarkIds = instapaperDB.listCurrentBookmarks().then((bookmarks) => {
+                var bookmark_ids: IBookmarkHash = {};
+
+                bookmarks.forEach((bookmark) => {
+                    bookmark_ids[bookmark.bookmark_id] = "";
+                });
+
+                return bookmark_ids;
+            });
+
+            return WinJS.Promise.join({
+                currentBookmarkIds: currentBookmarkIds,
+                files: files,
+            }).then((result: { currentBookmarkIds: IBookmarkHash, files: Windows.Foundation.Collections.IVectorView<st.StorageFile> }) => {
+                var deletions: Windows.Foundation.IAsyncAction[] = [];
+
+                result.files.forEach((file: st.StorageFile) => {
+                    // If the local file isn't HTML, then it's not of interest to us
+                    if (!(file.fileType.toLowerCase() === ".html")) {
+                        return;
+                    }
+
+                    // Do magic to conver the filename (which includes the extension) into
+                    // a number we can use to look up the ID
+                    var bookmarkIdPartOfFileName = file.name.replace(file.fileType, "");
+                    var bookmark_id: number = Number(bookmarkIdPartOfFileName);
+                    if (isNaN(bookmark_id)) {
+                        return;
+                    }
+
+                    // If the bookmark ID isn't in the list
+                    if (result.currentBookmarkIds.hasOwnProperty(bookmark_id.toString())) {
+                        return;
+                    }
+
+                    // Delete the the file
+                    deletions.push(file.deleteAsync());
+                });
+
+                return WinJS.Promise.join(deletions);
             });
         }
 

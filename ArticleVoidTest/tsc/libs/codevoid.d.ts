@@ -164,7 +164,7 @@ declare module Codevoid.ArticleVoid {
 
         // Folder Interface
         listCurrentFolders(): WinJS.Promise<IFolder[]>;
-        listCurrentBookmarks(folder_id: number): WinJS.Promise<IBookmark[]>;
+        listCurrentBookmarks(folder_id?: number): WinJS.Promise<IBookmark[]>;
         getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
 
         // Bookmark interface

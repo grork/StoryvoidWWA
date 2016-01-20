@@ -1487,7 +1487,6 @@ declare module Windows {
                 export interface IShareOperation {
                     data: Windows.ApplicationModel.DataTransfer.DataPackageView;
                     quickLinkId: string;
-                    dismissUI(): void;
                     removeThisQuickLink(): void;
                     reportStarted(): void;
                     reportDataRetrieved(): void;
@@ -1499,7 +1498,6 @@ declare module Windows {
                 export class ShareOperation implements Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation {
                     data: Windows.ApplicationModel.DataTransfer.DataPackageView;
                     quickLinkId: string;
-                    dismissUI(): void;
                     removeThisQuickLink(): void;
                     reportStarted(): void;
                     reportDataRetrieved(): void;
@@ -11670,14 +11668,6 @@ declare module Windows {
                 titleBar: ApplicationViewTitleBar;
             }
 
-            export class StatusBar {
-                static getForCurrentView(): StatusBar;
-                hideAsync(): Windows.Foundation.IAsyncAction;
-                showAsync(): Windows.Foundation.IAsyncAction;
-                backgroundColor: Windows.UI.Color;
-                backgroundOpacity: number;
-            }
-
 			/**
 			 * Defines the set of display orientation modes for a window (app view).
 			**/
@@ -14332,6 +14322,51 @@ declare module Windows {
         }
         export class WebError {
             static getStatus(hresult: number): Windows.Web.WebErrorStatus;
+        }
+
+        export module Http {
+            export module Headers {
+                export class HttpProductInfoHeaderValue {
+                    constructor(productName: string, productVersion: string);
+                }
+
+                export class HttpRequestHeaderCollection {
+                    userAgent: Windows.Foundation.Collections.IVector<HttpProductInfoHeaderValue>;
+                }
+            }
+
+            export class HttpMediaTypeHeaderValue {
+                mediaType: string;
+            }
+
+            export class HttpContentHeaderCollection {
+                contentType: HttpMediaTypeHeaderValue;
+            }
+
+            export interface IHttpContent extends Windows.Foundation.IClosable {
+                writeToStreamAsync(outputStream: Windows.Storage.Streams.IOutputStream): Windows.Foundation.IAsyncOperationWithProgress<number, number>;
+                headers: HttpContentHeaderCollection;
+            }
+
+            export class HttpResponseMessage {
+                isSuccessStatusCode();
+                statusCode: number;
+                content: IHttpContent;
+            }
+
+            export class HttpProgress {
+                bytesReceived: number;
+                bytesSent: number;
+                retries: number;
+                stage: any;
+                totalBytesToReceive: number;
+                totalBytesToSent: number;
+            }
+
+            export class HttpClient {
+                defaultRequestHeaders: Windows.Web.Http.Headers.HttpRequestHeaderCollection;
+                getAsync(uri: Windows.Foundation.Uri): Windows.Foundation.IAsyncOperationWithProgress<HttpResponseMessage, HttpProgress>;
+            }
         }
     }
 }

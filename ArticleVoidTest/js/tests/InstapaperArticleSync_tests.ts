@@ -156,4 +156,38 @@
             strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });
+
+    promiseTest("filesFromMissingBookmarksAreCleanedup", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
+        return setupCompleted.then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
+            // Create Fake File, and sync two articles so there are files
+            // present that *SHOULD* be there.
+            return WinJS.Promise.join([
+                articlesFolder.createFileAsync("1.html", st.CreationCollisionOption.replaceExisting),
+                articleSync.syncSingleArticle(articleWithImageId, instapaperDB),
+                articleSync.syncSingleArticle(normalArticleId, instapaperDB)
+            ]);
+        }).then(() => {
+            return articleSync.removeFilesForNotPresentArticles(instapaperDB).then(() => articlesFolder.getFilesAsync());
+        }).then((files) => {
+            strictEqual(files.length, 2, "only expected two files");
+            
+            // Validate that the two remaining files are the correct ones
+            var fileNames = files.map((file: st.StorageFile) => {
+                return file.name.toLowerCase();
+            });
+
+            var imageArticleIndex = fileNames.indexOf(articleWithImageId + ".html");
+            var normalArticleIndex = fileNames.indexOf(normalArticleId + ".html");
+
+            notStrictEqual(imageArticleIndex, -1, "Image article file not found");
+            notStrictEqual(normalArticleIndex, -1, "Normal article file not found");
+        });
+    });
 }
