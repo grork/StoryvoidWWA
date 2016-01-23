@@ -4,6 +4,7 @@
     import api = Codevoid.ArticleVoid.InstapaperApi;
     import st = Windows.Storage;
     import http = Windows.Web.Http;
+    import c = Windows.Foundation.Collections;
 
     interface IProcessedArticleInformation {
         relativePath: string;
@@ -11,6 +12,7 @@
     }
 
     interface IBookmarkHash { [id: number]: string };
+    interface IFolderMap { [name: string]: st.StorageFolder };
 
     export class InstapaperArticleSync {
         private _bookmarksApi: api.Bookmarks;
@@ -64,10 +66,21 @@
                 return bookmark_ids;
             });
 
+            var folderMap = this._destinationFolder.getFoldersAsync().then((folders: c.IVectorView<st.StorageFolder>) => {
+                var map: IFolderMap = {};
+
+                folders.forEach((folder) => {
+                    map[folder.name] = folder;
+                });
+
+                return map;
+            });
+
             return WinJS.Promise.join({
                 currentBookmarkIds: currentBookmarkIds,
+                folderMap: folderMap,
                 files: files,
-            }).then((result: { currentBookmarkIds: IBookmarkHash, files: Windows.Foundation.Collections.IVectorView<st.StorageFile> }) => {
+            }).then((result: { currentBookmarkIds: IBookmarkHash, files: c.IVectorView<st.StorageFile>, folderMap: IFolderMap }) => {
                 var deletions: Windows.Foundation.IAsyncAction[] = [];
 
                 result.files.forEach((file: st.StorageFile) => {
@@ -76,7 +89,7 @@
                         return;
                     }
 
-                    // Do magic to conver the filename (which includes the extension) into
+                    // Do magic to convert the filename (which includes the extension) into
                     // a number we can use to look up the ID
                     var bookmarkIdPartOfFileName = file.name.replace(file.fileType, "");
                     var bookmark_id: number = Number(bookmarkIdPartOfFileName);
@@ -91,6 +104,14 @@
 
                     // Delete the the file
                     deletions.push(file.deleteAsync());
+
+                    // if theres a folder matching it, delete that too
+                    var folderToDelete = result.folderMap[bookmark_id.toString()];
+                    if (!folderToDelete) {
+                        return;
+                    }
+
+                    deletions.push(folderToDelete.deleteAsync());
                 });
 
                 return WinJS.Promise.join(deletions);
