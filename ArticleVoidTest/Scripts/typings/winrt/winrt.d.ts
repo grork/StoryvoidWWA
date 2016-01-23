@@ -11668,6 +11668,14 @@ declare module Windows {
                 titleBar: ApplicationViewTitleBar;
             }
 
+            export class StatusBar {
+                static getForCurrentView(): StatusBar;
+                hideAsync(): Windows.Foundation.IAsyncAction;
+                showAsync(): Windows.Foundation.IAsyncAction;
+                backgroundColor: Windows.UI.Color;
+                backgroundOpacity: number;
+            }
+
 			/**
 			 * Defines the set of display orientation modes for a window (app view).
 			**/
