@@ -1,5 +1,6 @@
 ﻿module CodevoidTests.InstapaperArticleSyncTests {
     import st = Windows.Storage;
+    import c = Windows.Foundation.Collections;
     import av = Codevoid.ArticleVoid;
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
@@ -170,12 +171,27 @@
             // present that *SHOULD* be there.
             return WinJS.Promise.join([
                 articlesFolder.createFileAsync("1.html", st.CreationCollisionOption.replaceExisting),
+                articlesFolder.createFileAsync("2.html", st.CreationCollisionOption.replaceExisting),
+                articlesFolder.createFolderAsync("2", st.CreationCollisionOption.replaceExisting).then((articleFolder: st.StorageFolder) => {
+                    return WinJS.Promise.join([
+                        articleFolder.createFileAsync("1.png", st.CreationCollisionOption.replaceExisting),
+                        articleFolder.createFileAsync("2.png", st.CreationCollisionOption.replaceExisting),
+                    ]);
+                }),
                 articleSync.syncSingleArticle(articleWithImageId, instapaperDB),
                 articleSync.syncSingleArticle(normalArticleId, instapaperDB)
             ]);
         }).then(() => {
-            return articleSync.removeFilesForNotPresentArticles(instapaperDB).then(() => articlesFolder.getFilesAsync());
-        }).then((files) => {
+            return articleSync.removeFilesForNotPresentArticles(instapaperDB).then(() => {
+                return WinJS.Promise.join({
+                    files: articlesFolder.getFilesAsync(),
+                    folders: articlesFolder.getFoldersAsync(),
+                });
+            });
+        }).then((result: { files: c.IVectorView<st.StorageFile>, folders: c.IVectorView<st.StorageFolder> }) => {
+            var files = result.files;
+            var folders = result.folders;
+
             strictEqual(files.length, 2, "only expected two files");
             
             // Validate that the two remaining files are the correct ones
@@ -188,6 +204,9 @@
 
             notStrictEqual(imageArticleIndex, -1, "Image article file not found");
             notStrictEqual(normalArticleIndex, -1, "Normal article file not found");
+
+            strictEqual(folders.length, 1, "Only expected one folder");
+            strictEqual(folders.getAt(0).name, articleWithImageId + "", "Incorrect folder left behind");
         });
     });
 }
