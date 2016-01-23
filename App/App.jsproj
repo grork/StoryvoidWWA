@@ -151,7 +151,6 @@
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
     <None Include="App_TemporaryKey.pfx" />
-    <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
