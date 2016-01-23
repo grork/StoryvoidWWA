@@ -506,9 +506,11 @@
                 label: "Download",
                 icon: "download",
                 onclick: () => {
-                    var instapaperAPI = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation);
-                    instapaperAPI.getTextAndSaveToFileInDirectory(bookmarks[0].bookmark_id, Windows.Storage.ApplicationData.current.temporaryFolder).done((file) => {
-                        Utilities.Logging.instance.log("File saved to: " + file.path);
+                    Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
+                        var articleSync = new Codevoid.ArticleVoid.InstapaperArticleSync(this._clientInformation, folder);
+                        articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB).then((bookmark) => {
+                            Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
+                        });
                     });
                 }
             });

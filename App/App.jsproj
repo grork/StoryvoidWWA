@@ -84,6 +84,13 @@
     <Content Include="..\ArticleVoidTest\js\InstapaperSync.js">
       <Link>js\InstapaperSync.js</Link>
     </Content>
+    <TypeScriptCompile Include="..\ArticleVoidTest\js\InstapaperArticleSync.ts">
+      <Link>js\InstapaperArticleSync.ts</Link>
+    </TypeScriptCompile>
+    <Content Include="..\ArticleVoidTest\js\InstapaperArticleSync.js">
+      <Link>js\InstapaperArticleSync.js</Link>
+      <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
+    </Content>
     <Content Include="..\ArticleVoidTest\js\OAuth.js">
       <Link>js\OAuth.js</Link>
     </Content>
@@ -114,6 +121,9 @@
     </Content>
     <TypeScriptCompile Include="..\ArticleVoidTest\Scripts\typings\winjs\winjs.d.ts">
       <Link>Scripts\typings\winjs\winjs.d.ts</Link>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="..\ArticleVoidTest\Scripts\typings\winrt\winrt.d.ts">
+      <Link>Scripts\typings\winrt\winrt.d.ts</Link>
     </TypeScriptCompile>
     <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
     <Content Include="js\AppThatCanSignIn.js">
