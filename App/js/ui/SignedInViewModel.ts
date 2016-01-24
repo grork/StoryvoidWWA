@@ -1,4 +1,6 @@
 ﻿module Codevoid.ArticleVoid.UI {
+    var ARTICLES_FOLDER_NAME = "Articles";
+
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
@@ -10,8 +12,7 @@
         Progress
     }
 
-    interface ISortsInfo
-    {
+    interface ISortsInfo {
         label: string;
         sort: SortOption;
         comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
@@ -199,6 +200,17 @@
             this._currentBookmarks.splice(indexOfBookmark, 1);
         }
 
+        private _cleanupDownloadedArticles(): WinJS.Promise<any> {
+            return Windows.Storage.ApplicationData.current.localFolder.getFolderAsync(ARTICLES_FOLDER_NAME).then((folder) => {
+                return folder.deleteAsync();
+            }).then(() => {
+                // Nothing to do on success
+            }, () => {
+                // Kill all the errors!
+                // Specifically, if it doesn't exist it'll fail to get the folder.
+            });
+        }
+
         public initializeDB(): WinJS.Promise<void> {
             if (this._dbOpened) {
                 return WinJS.Promise.as(null);
@@ -249,7 +261,10 @@
 
             var idb = new Codevoid.ArticleVoid.InstapaperDB();
             idb.initialize().then(() => {
-                return idb.deleteAllData();
+                return WinJS.Promise.join([
+                    idb.deleteAllData(),
+                    this._cleanupDownloadedArticles()
+                ]);
             }).done(() => {
                 this._clientInformation = null;
                 this._app.signOut();
@@ -532,7 +547,7 @@
             });
         }
 
-        public static get sorts(): ISortsInfo[]{
+        public static get sorts(): ISortsInfo[] {
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [
                     { label: "Oldest", sort: SortOption.Oldest, comparer: SignedInViewModel.sortOldestFirst },
