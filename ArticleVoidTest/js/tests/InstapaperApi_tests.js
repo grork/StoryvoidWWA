@@ -484,6 +484,41 @@
         }, failedPromiseHandler);
     }
 
+    function getTextToDirectoryForUnavailableBookmarkDoesntWriteFile() {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
+        var badBookmarkId;
+        var targetFileName;
+
+        stop();
+
+        bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then(function(bookmark) {
+            targetFileName = bookmark.bookmark_id + ".html";
+            badBookmarkId = bookmark.bookmark_id;
+
+            return destinationDirectory.tryGetItemAsync(targetFileName);
+        }).then(function (fileToDelete) {
+            if (!fileToDelete) {
+                return;
+            }
+
+            return fileToDelete.deleteAsync();
+        }).then(function () {
+            return bookmarks.getTextAndSaveToFileInDirectory(badBookmarkId, destinationDirectory);
+        }).then(function () {
+            ok(false, "didn't expect success for this bookmark");
+        }, function () {
+            return destinationDirectory.tryGetItemAsync(targetFileName);
+        }).then(function (storageFile) {
+            strictEqual(storageFile, null, "Didn't expect any storage file");
+
+            // Clean up the bad bookmark we added
+            return bookmarks.deleteBookmark(badBookmarkId);
+        }).done(function () {
+            start();
+        }, failedPromiseHandler);
+    }
+
     function getText_nonExistantBookmark() {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
@@ -493,6 +528,27 @@
             start();
         }, function (e) {
             strictEqual(e.error, 1241, "Unexpected error code");
+            start();
+        });
+    }
+
+    function getText_unavailableBookmark() {
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var badBookmarkId;
+
+        stop();
+
+        // This URL isn't actually a valid URL, so should fail
+        bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then((bookmark) => {
+            badBookmarkId = bookmark.bookmark_id;
+            return bookmarks.getText(bookmark.bookmark_id);
+        }).then((data) => {
+            ok(false, "Expected failed handler to be called, not success");
+        }, (e) => {
+            strictEqual(e.error, 1550, "Unexpected error code");
+        }).then(() => {
+            return bookmarks.deleteBookmark(badBookmarkId);
+        }).done(() => {
             start();
         });
     }
@@ -542,9 +598,11 @@
     test("listInArchiveFolderExpectingNoArchivedItems2", listInArchiveFolderExpectingNoArchivedItems);
     test("getText", getText);
     test("getTextToDirectory", getTextToDirectory);
+    test("getTextToDirectoryForUnavailableBookmarkDoesntWriteFile", getTextToDirectoryForUnavailableBookmarkDoesntWriteFile);
     test("deleteAddedUrl", deletedAddedUrl);
     test("deleteNonExistantUrl", deleteNonExistantUrl);
     test("getText_nonExistantBookmark", getText_nonExistantBookmark);
+    test("getText_unavailableBookmark", getText_unavailableBookmark);
     test("addWithAdditionalParameters", addWithAdditionalParameters);
 
     module("instapaperApiFolderTests");

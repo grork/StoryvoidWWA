@@ -38,6 +38,8 @@
         });
     }
 
+    interface IBookmarkHash { [id: number]: string };
+
     QUnit.module("InstapaperArticleSyncTests");
 
     function setupLocalAndRemoteState(): WinJS.Promise<any> {
@@ -149,7 +151,7 @@
             var images = WinJS.Utilities.query("img", articleDocument.body);
 
             strictEqual(images.length, 2, "Wrong number of images compared to filename");
-            
+
             var expectedPath = "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/0.png";
             strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
@@ -207,6 +209,60 @@
 
             strictEqual(folders.length, 1, "Only expected one folder");
             strictEqual(folders.getAt(0).name, articleWithImageId + "", "Incorrect folder left behind");
+        });
+    });
+
+    promiseTest("syncsAllArticles", () => {
+        // Because we want to sync everything, lets make sure we clean
+        // our state. We do this by resetting the flag that
+        // setupLocalAndRemoteState uses to decide if it needs to rerun.
+        stateConfigured = false;
+
+        var idb = new av.InstapaperDB();
+
+        return setupLocalAndRemoteState().then(() => {
+            return idb.initialize();
+        }).then(() => {
+            var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+            return articleSync.syncAllArticlesNotDownloaded(idb);
+        }).then(() => {
+
+            var files = articlesFolder.getFilesAsync().then((files) => {
+                var bookmark_hash: IBookmarkHash = {};
+
+                files.forEach((file) => {
+                    // If the local file isn't HTML, then it's not of interest to us
+                    if (!(file.fileType.toLowerCase() === ".html")) {
+                        return;
+                    }
+
+                    // Do magic to convert the filename (which includes the extension) into
+                    // a number we can use to look up the ID
+                    var bookmarkIdPartOfFileName = file.name.replace(file.fileType, "");
+                    var bookmark_id: number = Number(bookmarkIdPartOfFileName);
+
+                    bookmark_hash[bookmark_id] = file.path;
+                });
+
+                return bookmark_hash;
+            });
+
+            var bookmarks = idb.listCurrentBookmarks();
+
+            return WinJS.Promise.join({
+                bookmarks: bookmarks,
+                fileMap: files,
+            });
+        }).then((result: { bookmarks: av.IBookmark[], fileMap: IBookmarkHash }) => {
+            result.bookmarks.forEach((bookmark) => {
+                var isInHash = result.fileMap.hasOwnProperty(bookmark.bookmark_id.toString());
+
+                if (bookmark.contentAvailableLocally) {
+                    ok(isInHash, "Didn't find bookmark in filesystem");
+                } else {
+                    ok(!isInHash, "Shouldn't have found bookmark locally");
+                }
+            });
         });
     });
 }

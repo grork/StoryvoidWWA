@@ -36,6 +36,19 @@
             this._bookmarksApi = new api.Bookmarks(this._clientInformation);
         }
 
+        public syncAllArticlesNotDownloaded(idb: InstapaperDB): WinJS.Promise<any> {
+            return idb.listCurrentBookmarks().then((bookmarks) => {
+                var notDownloadedBookmarks = bookmarks.filter((bookmark) => {
+                    return !bookmark.contentAvailableLocally;
+                });
+
+                return Codevoid.Utilities.serialize(notDownloadedBookmarks, (item: IBookmark) => {
+                    return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => {
+                    });
+                });
+            });
+        }
+
         public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB): WinJS.Promise<IBookmark> {
             var processArticle = this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then(
                 (file: st.StorageFile) => this._processArticle(file));
