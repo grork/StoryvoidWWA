@@ -42,7 +42,24 @@
                     return !bookmark.contentAvailableLocally;
                 });
 
-                return Codevoid.Utilities.serialize(notDownloadedBookmarks, (item: IBookmark) => {
+                var articlesByUnreadFirst = notDownloadedBookmarks.sort((bookmarkA, bookmarkB) => {
+                    // if they're both in the same folder, it's fine, just leave it as is.
+                    if (bookmarkA.folder_dbid === bookmarkB.folder_dbid) {
+                        return 0;
+                    }
+
+                    if (bookmarkA.folder_dbid === idb.commonFolderDbIds.unread) {
+                        return -1;
+                    }
+
+                    if (bookmarkB.folder_dbid === idb.commonFolderDbIds.unread) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
+
+                return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
                     return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => {
                     });
                 });
