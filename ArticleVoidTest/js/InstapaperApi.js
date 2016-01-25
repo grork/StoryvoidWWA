@@ -340,13 +340,16 @@
                 var content = request.retrieveRawContent().then(null, handleSingleItemJSONError);
 
                 var targetFileName = bookmark_id + ".html";
-                var fileOutputStream = destinationDirectory.createFileAsync(targetFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                    return file.openAsync(Windows.Storage.FileAccessMode.readWrite);
-                });
 
-                return WinJS.Promise.join({
-                    outputStream: fileOutputStream,
-                    inputStream: content,
+                return content.then((content) => {
+                    var fileOutputStream = destinationDirectory.createFileAsync(targetFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+                        return file.openAsync(Windows.Storage.FileAccessMode.readWrite);
+                    });
+
+                    return WinJS.Promise.join({
+                        outputStream: fileOutputStream,
+                        inputStream: content,
+                    });
                 }).then(function (result) {
                     return result.inputStream.writeToStreamAsync(result.outputStream).then(() => {
                         return result;
