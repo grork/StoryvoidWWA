@@ -139,6 +139,8 @@ declare module Codevoid.ArticleVoid {
         contentAvailableLocally: boolean;
         hasImages: boolean;
         localFolderRelativePath: string;
+        description: string;
+        extractedDescription: string;
     }
 
     export interface IFoldersChangedEvent {
