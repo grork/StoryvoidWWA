@@ -96,11 +96,12 @@
         var setupCompleted = setupLocalAndRemoteState();
 
         var instapaperDB = new av.InstapaperDB();
-        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+        var articleSync;
 
         return setupCompleted.then(() => {
             return instapaperDB.initialize();
         }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
             return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
@@ -117,11 +118,13 @@
         var setupCompleted = setupLocalAndRemoteState();
 
         var instapaperDB = new av.InstapaperDB();
-        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+        var articleSync;
 
         return setupCompleted.then(() => {
             return instapaperDB.initialize();
         }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
             return instapaperDB.getBookmarkByBookmarkId(articleWithImageId);
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
@@ -164,11 +167,12 @@
         var setupCompleted = setupLocalAndRemoteState();
 
         var instapaperDB = new av.InstapaperDB();
-        var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+        var articleSync;
 
         return setupCompleted.then(() => {
             return instapaperDB.initialize();
         }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
             // Create Fake File, and sync two articles so there are files
             // present that *SHOULD* be there.
             return WinJS.Promise.join([
@@ -209,6 +213,97 @@
 
             strictEqual(folders.length, 1, "Only expected one folder");
             strictEqual(folders.getAt(0).name, articleWithImageId + "", "Incorrect folder left behind");
+        });
+    });
+
+    promiseTest("eventsFiredForSingleArticle", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync;
+
+        var happenings: { event: string, bookmark_id: number }[] = [];
+
+        return setupCompleted.then(() => {
+            return deleteAllLocalFiles();
+        }).then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+            Codevoid.Utilities.addEventListeners(articleSync.events, {
+                syncingarticlestarting: (args) => {
+                    happenings.push({
+                        event: "syncstart",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+                syncingarticlecompleted: (args) => {
+                    happenings.push({
+                        event: "syncstop",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+                processingimagesstarting: (args) => {
+                    happenings.push({
+                        event: "imagesstarting",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+                processingimagescompleted: (args) => {
+                    happenings.push({
+                        event: "imagesstop",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+                processingimagestarting: (args) => {
+                    happenings.push({
+                        event: "imagestart",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+                processingimagecompleted: (args) => {
+                    happenings.push({
+                        event: "imagestop",
+                        bookmark_id: args.detail.bookmark_id,
+                    });
+                },
+            });
+
+            return articleSync.syncSingleArticle(articleWithImageId, instapaperDB);
+        }).then(() => {
+            strictEqual(happenings.length, 8, "incorrect number of events");
+
+            var first = happenings[0];
+            strictEqual(first.event, "syncstart", "incorrect first event");
+            strictEqual(first.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var second = happenings[1];
+            strictEqual(second.event, "imagesstarting", "incorrect second event");
+            strictEqual(second.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var third = happenings[2];
+            strictEqual(third.event, "imagestart", "incorrect third event");
+            strictEqual(third.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var fourth = happenings[3];
+            strictEqual(fourth.event, "imagestop", "incorrect fourth event");
+            strictEqual(fourth.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var fifth = happenings[4];
+            strictEqual(fifth.event, "imagestart", "incorrect fifth event");
+            strictEqual(fifth.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var sixth = happenings[5];
+            strictEqual(sixth.event, "imagestop", "incorrect sixth event");
+            strictEqual(sixth.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var seventh = happenings[6];
+            strictEqual(seventh.event, "imagesstop", "incorrect seventh event");
+            strictEqual(seventh.bookmark_id, articleWithImageId, "Incorrect ID");
+
+            var eigth = happenings[7];
+            strictEqual(eigth.event, "syncstop", "incorrect eigth event");
+            strictEqual(eigth.bookmark_id, articleWithImageId, "Incorrect ID");
         });
     });
 
