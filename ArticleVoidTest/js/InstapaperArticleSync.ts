@@ -9,6 +9,7 @@
     interface IProcessedArticleInformation {
         relativePath: string;
         hasImages: boolean;
+        extractedDescription: string;
     }
 
     interface IBookmarkHash { [id: number]: string };
@@ -85,6 +86,7 @@
                 result.localBookmark.contentAvailableLocally = true;
                 result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
                 result.localBookmark.hasImages = result.articleInformation.hasImages;
+                result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
 
                 return dbInstance.updateBookmark(result.localBookmark);
             }).then((bookmark) => {
@@ -172,6 +174,7 @@
             var processedInformation = {
                 hasImages: false,
                 relativePath: filePath,
+                extractedDescription: null,
             };
 
             return fileContentsOperation.then((contents: string) => {
@@ -196,6 +199,13 @@
                         this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
                         return articleWasAltered;
                     });
+                }
+                
+                // If the article actually has some content, extract the first 200 or so
+                // characters, and allow them to be persisted into the DB later.
+                var documentContentAsText = articleDocument.body.innerText;
+                if (documentContentAsText) {
+                    processedInformation.extractedDescription = documentContentAsText.substr(0, 200);
                 }
 
                 return articleCompleted;
