@@ -17,6 +17,7 @@
     export class InstapaperArticleSync {
         private _bookmarksApi: api.Bookmarks;
         private _localFolderPathLength: number;
+        private _eventSource: Utilities.EventSource;
 
         constructor(
             private _clientInformation: oauth.ClientInformation,
@@ -34,9 +35,12 @@
 
             this._localFolderPathLength = st.ApplicationData.current.localFolder.path.length;
             this._bookmarksApi = new api.Bookmarks(this._clientInformation);
+            this._eventSource = new Utilities.EventSource();
         }
 
         public syncAllArticlesNotDownloaded(idb: InstapaperDB): WinJS.Promise<any> {
+            this._eventSource.dispatchEvent("allarticlesstarting", null);
+
             return idb.listCurrentBookmarks().then((bookmarks) => {
                 var notDownloadedBookmarks = bookmarks.filter((bookmark) => {
                     return !bookmark.contentAvailableLocally;
@@ -60,15 +64,18 @@
                 });
 
                 return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
-                    return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => {
-                    });
+                    return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => { /* Eat errors */ });
                 });
+            }).then(() => {
+                this._eventSource.dispatchEvent("allarticlescompleted", null);
             });
         }
 
         public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB): WinJS.Promise<IBookmark> {
+            this._eventSource.dispatchEvent("syncingarticlestarting", { bookmark_id: bookmark_id });
+
             var processArticle = this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then(
-                (file: st.StorageFile) => this._processArticle(file));
+                (file: st.StorageFile) => this._processArticle(file, bookmark_id));
 
             return WinJS.Promise.join({
                 articleInformation: processArticle,
@@ -80,6 +87,10 @@
                 result.localBookmark.hasImages = result.articleInformation.hasImages;
 
                 return dbInstance.updateBookmark(result.localBookmark);
+            }).then((bookmark) => {
+                this._eventSource.dispatchEvent("syncingarticlecompleted", { bookmark_id: bookmark_id });
+
+                return bookmark;
             });
         }
 
@@ -148,7 +159,11 @@
             });
         }
 
-        private _processArticle(file: st.StorageFile): WinJS.Promise<IProcessedArticleInformation> {
+        public get events() {
+            return this._eventSource;
+        }
+
+        private _processArticle(file: st.StorageFile, bookmark_id: number): WinJS.Promise<IProcessedArticleInformation> {
             var fileContentsOperation = st.FileIO.readTextAsync(file);
             var parser = new DOMParser();
             var articleDocument: Document;
@@ -174,10 +189,13 @@
                     // from whatever the actual article file name.
                     var imagesFolderName = file.name.replace(file.fileType, "")
 
-    
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this , yo.
-                    articleCompleted = this._processImagesInArticle(<HTMLImageElement[]><any>images, imagesFolderName);
+                    this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
+                    articleCompleted = this._processImagesInArticle(<HTMLImageElement[]><any>images, imagesFolderName, bookmark_id).then((articleWasAltered) => {
+                        this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
+                        return articleWasAltered;
+                    });
                 }
 
                 return articleCompleted;
@@ -193,11 +211,12 @@
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string): WinJS.Promise<boolean> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<boolean> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
 
             return imagesFolder.then((folder: st.StorageFolder) => {
                 return Utilities.serialize(images, (image: HTMLImageElement, index: number) => {
+                    this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
                     var sourceUrl = new Windows.Foundation.Uri(image.src);
 
                     // Download the iamge from the service and then rewrite
@@ -205,6 +224,8 @@
                     // image
                     return this._downloadImageToDisk(sourceUrl, index, folder).then((fileName: string) => {
                         image.src = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
+
+                        this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
                     });
                 });
             }).then(() => true);
