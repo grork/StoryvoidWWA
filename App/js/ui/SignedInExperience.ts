@@ -250,6 +250,10 @@
     });
 
     SignedInExperience.showDescriptionOrExtractedDescription = WinJS.Binding.converter((bookmark: IBookmark) => {
+        if (bookmark.failedToDownload) {
+            return "Unable to download";
+        }
+
         return (bookmark.description || bookmark.extractedDescription || "");
     });
 }
