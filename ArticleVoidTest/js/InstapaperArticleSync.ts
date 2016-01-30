@@ -10,6 +10,7 @@
         relativePath: string;
         hasImages: boolean;
         extractedDescription: string;
+        failedToDownload: boolean;
     }
 
     interface IBookmarkHash { [id: number]: string };
@@ -79,14 +80,21 @@
                 (file: st.StorageFile) => this._processArticle(file, bookmark_id));
 
             return WinJS.Promise.join({
-                articleInformation: processArticle,
+                articleInformation: processArticle.then(null, () => {
+                    return {
+                        failedToDownload: true,
+                    };
+                }),
                 localBookmark: dbInstance.getBookmarkByBookmarkId(bookmark_id)
             }).then((result: { articleInformation: IProcessedArticleInformation, localBookmark: av.IBookmark }) => {
-
-                result.localBookmark.contentAvailableLocally = true;
-                result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
-                result.localBookmark.hasImages = result.articleInformation.hasImages;
-                result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
+                if (result.articleInformation.failedToDownload) {
+                    result.localBookmark.failedToDownload = true;
+                } else {
+                    result.localBookmark.contentAvailableLocally = true;
+                    result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
+                    result.localBookmark.hasImages = result.articleInformation.hasImages;
+                    result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
+                }
 
                 return dbInstance.updateBookmark(result.localBookmark);
             }).then((bookmark) => {

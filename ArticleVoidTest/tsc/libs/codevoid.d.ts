@@ -141,6 +141,7 @@ declare module Codevoid.ArticleVoid {
         localFolderRelativePath: string;
         description: string;
         extractedDescription: string;
+        failedToDownload: boolean;
     }
 
     export interface IFoldersChangedEvent {

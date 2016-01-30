@@ -10032,6 +10032,7 @@ declare module Windows {
             createFolderAsync(desiredName: string, options: Windows.Storage.CreationCollisionOption): Windows.Foundation.IAsyncOperation<Windows.Storage.StorageFolder>;
             getFileAsync(name: string): Windows.Foundation.IAsyncOperation<Windows.Storage.StorageFile>;
             getFolderAsync(name: string): Windows.Foundation.IAsyncOperation<Windows.Storage.StorageFolder>;
+            tryGetItemAsync(name: string): Windows.Foundation.IAsyncOperation<Windows.Storage.IStorageItem>;
             getItemAsync(name: string): Windows.Foundation.IAsyncOperation<Windows.Storage.IStorageItem>;
             getFilesAsync(): Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IVectorView<Windows.Storage.StorageFile>>;
             getFoldersAsync(): Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IVectorView<Windows.Storage.StorageFolder>>;
