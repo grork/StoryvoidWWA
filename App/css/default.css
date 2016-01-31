@@ -224,7 +224,7 @@ button.commands-selectmode .win-commandimage {
     line-height: 30px;
     border-bottom-width: 4px;
     border-bottom-style: solid;
-    box-shadow: 8px 0px 0px red, -8px 0px 0px red; /* Set fo' realz by .setShadow*/
+    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
 }
 
 .article-summary {
@@ -236,11 +236,21 @@ button.commands-selectmode .win-commandimage {
     margin-bottom: 4px;
 }
 
+.article-image {
+    -ms-grid-row: 1;
+    overflow: hidden;
+    -ms-grid-column: 1;
+    -ms-grid-row-span: 3;
+	background-size: cover;
+    height: 100%;
+}
+
 .article-progress {
     -ms-grid-row: 3;
     -ms-grid-row-align: end;
     height: 2px;
     width: 100%;
+    position: relative;
 }
 
 .article-footer {
@@ -257,6 +267,21 @@ button.commands-selectmode .win-commandimage {
         position: relative;
         display: inline;
         font-size: 12px;
+    }
+
+.article.with-image > .article-footer {
+    padding-right: 8px;
+    margin: 0px;
+    margin-left: 8px;
+    max-height: inherit;
+}
+
+    .article.with-image > .article-footer > span {
+        padding-right: 0px;
+        padding-bottom: 8px;
+        padding-top: 8px;
+        box-shadow: -8px 0px 0px black, 8px 0px 0px black;
+        line-height: 28px;
     }
 
 .authenticator {
@@ -416,8 +441,7 @@ button.commands-selectmode .win-commandimage {
     line-height: 48px;
     border-bottom-width: 4px;
     border-bottom-style: solid;
-    box-shadow: 8px 0px 0px red, -8px 0px 0px red; /* Set fo' realz by .setShadow*/
-}
+    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
 
 .share-article-url {
     word-wrap: break-word;

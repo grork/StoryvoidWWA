@@ -9,6 +9,7 @@
     interface IProcessedArticleInformation {
         relativePath: string;
         hasImages: boolean;
+        firstImagePath: string,
         extractedDescription: string;
         failedToDownload: boolean;
     }
@@ -94,6 +95,7 @@
                     result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
                     result.localBookmark.hasImages = result.articleInformation.hasImages;
                     result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
+                    result.localBookmark.firstImagePath = result.articleInformation.firstImagePath;
                 }
 
                 return dbInstance.updateBookmark(result.localBookmark);
@@ -181,13 +183,14 @@
             var filePath = file.path.substr(this._localFolderPathLength).replace(/\\/g, "/");
             var processedInformation = {
                 hasImages: false,
+                firstImagePath: undefined,
                 relativePath: filePath,
                 extractedDescription: null,
             };
 
             return fileContentsOperation.then((contents: string) => {
                 articleDocument = parser.parseFromString(contents, "text/html");
-                var images = WinJS.Utilities.query("img", articleDocument.body);
+                var images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
 
                 var articleCompleted: any = WinJS.Promise.as(false);
 
@@ -203,7 +206,8 @@
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this , yo.
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
-                    articleCompleted = this._processImagesInArticle(<HTMLImageElement[]><any>images, imagesFolderName, bookmark_id).then((articleWasAltered) => {
+                    articleCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((articleWasAltered) => {
+                        processedInformation.firstImagePath = images[0].src;
                         this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
                         return articleWasAltered;
                     });

@@ -34,7 +34,8 @@
 <body class="win-type-body">
     <div class="signedIn-container">
         <div class="template-article"
-             data-win-control="WinJS.Binding.Template">
+             data-win-control="WinJS.Binding.Template"
+             data-part="_articleTemplate">
             <div class="article">
                 <div class="article-title">
                     <span class="article-title-text setShadow"
@@ -49,8 +50,30 @@
                 </progress>
 
                 <div class="article-footer">
-                    <span data-win-bind="textContent: title"></span>
+                    <span data-win-bind="textContent: url Codevoid.ArticleVoid.UI.SignedInExperience.extractDomainFromUrl"></span>
                 </div>
+            </div>
+        </div>
+
+        <div class="template-imagearticle"
+             data-win-control="WinJS.Binding.Template"
+             data-part="_imageArticleTemplate">
+            <div class="article with-image">
+                <div class="article-title">
+                    <span class="article-title-text setShadow"
+                          data-win-bind="textContent: this Codevoid.ArticleVoid.UI.SignedInExperience.showTitleOrUrl"></span>
+                </div>
+
+                <div class="article-image"
+                     data-win-bind="style.backgroundImage: firstImagePath Codevoid.ArticleVoid.UI.SignedInExperience.createCssUrlPath"></div>
+
+                <div class="article-footer">
+                    <span data-win-bind="textContent: url Codevoid.ArticleVoid.UI.SignedInExperience.extractDomainFromUrl"></span>
+                </div>
+
+                <progress class="article-progress"
+                          data-win-bind="value: progress Codevoid.ArticleVoid.UI.SignedInExperience.restrictProgressTo5PercentOrMore">
+                </progress>
             </div>
         </div>
 
@@ -122,7 +145,6 @@
                          data-event="{ selectionchanged: contentListSelectionChanged }"
                          data-win-control="WinJS.UI.ListView"
                          data-win-options="{
-                            itemTemplate: select('.template-article'),
                             layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
                          }"
                          data-part="_contentList"></div>
