@@ -138,6 +138,7 @@ declare module Codevoid.ArticleVoid {
         time: number;
         contentAvailableLocally: boolean;
         hasImages: boolean;
+        firstImagePath: string;
         localFolderRelativePath: string;
         description: string;
         extractedDescription: string;

@@ -4,6 +4,8 @@
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _folderNameElement: HTMLElement;
+        private _articleTemplate: WinJS.Binding.Template;
+        private _imageArticleTemplate: WinJS.Binding.Template;
         private _contentList: WinJS.UI.ListView<any>;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
@@ -93,6 +95,9 @@
             this._exitSelectionMode();
 
             this._folderNameElement.textContent = folderDetails.folder.title;
+
+            // Set the item template before you set the data source
+            this._contentList.itemTemplate = this._renderItem.bind(this);
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
         }
 
@@ -128,6 +133,23 @@
             } else {
                 this._exitSelectionMode();
             }
+        }
+
+        private _renderItem(itemPromise: WinJS.Promise<WinJS.UI.IItem<IBookmark>>): { element: HTMLElement, renderComplete: WinJS.Promise<any> } {
+            var element = document.createElement("div");
+            return {
+                element: element,
+                renderComplete: itemPromise.then((item) => {
+                    // Default to the article template, but if the article has images,
+                    // then use the iamge template instead.
+                    var renderer = this._articleTemplate;
+                    if (item.data.hasImages) {
+                        renderer = this._imageArticleTemplate;
+                    }
+
+                    return renderer.render(item.data, element);
+                }),
+            };
         }
 
         private _exitSelectionMode(): void {
@@ -199,6 +221,8 @@
         static restrictProgressTo5PercentOrMore: any;
         static showTitleOrUrl: any;
         static showDescriptionOrExtractedDescription: any;
+        static createCssUrlPath: any;
+        static extractDomainFromUrl: any;
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
@@ -255,5 +279,18 @@
         }
 
         return (bookmark.description || bookmark.extractedDescription || "");
+    });
+
+    SignedInExperience.createCssUrlPath = WinJS.Binding.converter((imageUrl: string) => {
+        return "url(" + imageUrl + ")";
+    });
+
+    SignedInExperience.extractDomainFromUrl = WinJS.Binding.converter((url: string) => {
+        // RegEx from:
+        // https://regex101.com/r/wN6cZ7/63
+        var regEx = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)/igm
+        var matches = regEx.exec(url);
+
+        return matches[1];
     });
 }

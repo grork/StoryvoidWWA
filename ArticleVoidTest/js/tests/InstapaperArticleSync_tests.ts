@@ -135,6 +135,7 @@
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
             strictEqual(syncedBookmark.hasImages, true, "Didn't expect images");
+            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/0.png", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(articleWithImageId.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
@@ -198,6 +199,8 @@
             return articlesFolder.tryGetItemAsync(badBookmarkId + ".html");
         }).then((articleFile: st.IStorageItem) => {
             ok(articleFile == null, "Shouldn't have downloaded article");
+
+            return bookmarksApi.deleteBookmark(badBookmarkId);
         });
     });
 

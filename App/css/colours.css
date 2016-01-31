@@ -57,12 +57,13 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
     color: white;
 }
 
-    .article-title-text .setShadow {
-        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
-    }
-
 .article-footer {
     color: gray;
+}
+
+.article.with-image > .article-footer > span {
+    background-color: black;
+    color: white;
 }
 
 progress.article-progress {
@@ -93,10 +94,6 @@ progress.article-progress {
     border-bottom-color: red;
     color: white;
 }
-
-    .share-article-title-text .setShadow {
-        box-shadow: 8px 0px 0px red, -8px 0px 0px red;
-    }
 
 .share-article-url {
     color: gray;
