@@ -289,6 +289,8 @@
 
         public startSync(): void {
             var sync = new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
+            var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
+            var articleSync: Codevoid.ArticleVoid.InstapaperArticleSync;
 
             Utilities.Logging.instance.log("Starting Sync");
 
@@ -332,14 +334,22 @@
                 }
             });
 
-            sync.sync({
-                dbInstance: this._instapaperDB,
-                folders: true,
-                bookmarks: true,
+            WinJS.Promise.join({
+                sync: sync.sync({
+                    dbInstance: this._instapaperDB,
+                    folders: true,
+                    bookmarks: true,
+                }),
+                folder: folderOperation,
+            }).then((result) => {
+                articleSync = new Codevoid.ArticleVoid.InstapaperArticleSync(this._clientInformation, result.folder);
+
+                return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB);
+            }).then(() => {
+                return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
             }).done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
-
             }, (e) => {
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
