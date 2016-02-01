@@ -284,6 +284,43 @@ button.commands-selectmode .win-commandimage {
         line-height: 28px;
     }
 
+.syncProgress-root {
+    display: -ms-grid;
+    -ms-grid-rows: 36px;
+    -ms-grid-columns: 12px auto 8px 1fr 8px;
+    padding-top: 8px;
+}
+
+    .syncProgress-root .syncProgress-progress,
+    .syncProgress-root .syncProgress-checkmark {
+        -ms-grid-row: 1;
+        -ms-grid-column: 2;
+        -ms-grid-column-align: center;
+        -ms-grid-row-align: center;
+        width: 24px;
+        height: 24px;
+    }
+
+    .syncProgress-root .syncProgress-checkmark {
+        font-family: "Segoe MDL2 Assets", "Symbols";
+        font-size: 20px;
+    }
+
+        .syncProgress-root .syncProgress-checkmark::after {
+            content: "\E008";
+            line-height: 1.33em;
+            font-weight: 400;
+        }
+
+    .syncProgress-root .syncProgress-message {
+        -ms-grid-row: 1;
+        -ms-grid-column: 4;
+        -ms-grid-row-align: center;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
 .authenticator {
     display: -ms-grid;
     /* 1    2    3    4    5    6    7    8    9    10   11   12   13 */
@@ -346,7 +383,6 @@ button.commands-selectmode .win-commandimage {
             -ms-grid-column-align: center;
             -ms-grid-row-align: center;
         }
-
 
 .codevoid-logviewer {
     position: absolute;

@@ -25,6 +25,7 @@
     <script src="/js/ui/core.js"></script>
     <script src="/js/ui/authenticator.js"></script>
     <script src="/js/ui/SignedOutExperience.js"></script>
+    <script src="/js/ui/SyncProgressControl.js"></script>
     <script src="/js/ui/SignedInViewModel.js"></script>
     <script src="/js/ui/SignedInExperience.js"></script>
     <script src="/js/AppThatCanSignIn.js"></script>
@@ -74,6 +75,19 @@
                 <progress class="article-progress"
                           data-win-bind="value: progress Codevoid.ArticleVoid.UI.SignedInExperience.restrictProgressTo5PercentOrMore">
                 </progress>
+            </div>
+        </div>
+
+        <div class="template-syncprogresscontrol"
+             data-win-control="WinJS.Binding.Template"
+             data-part="_progressTemplate">
+            <div class="syncProgress-root">
+                <progress class="win-progress-ring win-small syncProgress-progress"
+                          data-part="_spinner"></progress>
+                <div class="hide syncProgress-checkmark"
+                     data-part="_checkMark"></div>
+
+                <div class="syncProgress-message" data-part="_messageContainer"></div>
             </div>
         </div>
 

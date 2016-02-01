@@ -75,7 +75,14 @@
         }
 
         public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB): WinJS.Promise<IBookmark> {
-            this._eventSource.dispatchEvent("syncingarticlestarting", { bookmark_id: bookmark_id });
+            var localBookmark = dbInstance.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
+                this._eventSource.dispatchEvent("syncingarticlestarting", {
+                    bookmark_id: bookmark_id,
+                    title: bookmark.title,
+                });
+
+                return bookmark;
+            });
 
             var processArticle = this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then(
                 (file: st.StorageFile) => this._processArticle(file, bookmark_id));
@@ -86,7 +93,7 @@
                         failedToDownload: true,
                     };
                 }),
-                localBookmark: dbInstance.getBookmarkByBookmarkId(bookmark_id)
+                localBookmark: localBookmark,
             }).then((result: { articleInformation: IProcessedArticleInformation, localBookmark: av.IBookmark }) => {
                 if (result.articleInformation.failedToDownload) {
                     result.localBookmark.failedToDownload = true;

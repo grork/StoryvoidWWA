@@ -6,6 +6,7 @@
         private _folderNameElement: HTMLElement;
         private _articleTemplate: WinJS.Binding.Template;
         private _imageArticleTemplate: WinJS.Binding.Template;
+        private _progressTemplate: WinJS.Binding.Template;
         private _contentList: WinJS.UI.ListView<any>;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
@@ -46,6 +47,9 @@
                 },
                 sortchanged: (e: { detail: SortOption }) => {
                     this._sortsElement.value = e.detail.toString();
+                },
+                syncstarting: (e: { detail: { message: string } }) => {
+                    this._createProgressHeader(e.detail.message);
                 },
             }));
 
@@ -101,7 +105,20 @@
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
         }
 
+        private _createProgressHeader(initialMessage: string): void {
+            var headerContainer = document.createElement("div");
+            var syncProgress = new Codevoid.ArticleVoid.UI.SyncProgressControl(headerContainer, {
+                initialMessage: initialMessage,
+                template: this._progressTemplate,
+                eventSource: this.viewModel.events,
+                owningListView: this._contentList,
+            });
+
+            this._contentList.header = headerContainer;
+        }
+        
         public startSync(): void {
+            this._splitView.closePane();
             this.viewModel.startSync();
         }
 

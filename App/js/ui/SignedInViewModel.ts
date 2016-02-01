@@ -297,6 +297,8 @@
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
                     case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
+                        this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
+
                         Utilities.Logging.instance.log("Started");
                         break;
 
@@ -343,6 +345,14 @@
                 folder: folderOperation,
             }).then((result) => {
                 articleSync = new Codevoid.ArticleVoid.InstapaperArticleSync(this._clientInformation, result.folder);
+
+                Codevoid.Utilities.addEventListeners(articleSync.events, {
+                    syncingarticlestarting: (e: { detail: { title: string } }) => {
+                        this.events.dispatchEvent("syncprogressupdate", {
+                            message: "Syncing \"" + e.detail.title + "\"",
+                        });
+                    },
+                });
 
                 return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB);
             }).then(() => {
