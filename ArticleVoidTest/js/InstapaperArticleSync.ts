@@ -12,6 +12,7 @@
         firstImagePath: string,
         extractedDescription: string;
         failedToDownload: boolean;
+        articleUnavailable: boolean;
     }
 
     interface IBookmarkHash { [id: number]: string };
@@ -46,7 +47,7 @@
 
             return idb.listCurrentBookmarks().then((bookmarks) => {
                 var notDownloadedBookmarks = bookmarks.filter((bookmark) => {
-                    return !bookmark.contentAvailableLocally;
+                    return !bookmark.contentAvailableLocally && !bookmark.articleUnavailable;
                 });
 
                 var articlesByUnreadFirst = notDownloadedBookmarks.sort((bookmarkA, bookmarkB) => {
@@ -88,15 +89,16 @@
                 (file: st.StorageFile) => this._processArticle(file, bookmark_id));
 
             return WinJS.Promise.join({
-                articleInformation: processArticle.then(null, () => {
+                articleInformation: processArticle.then(null, (e) => {
                     return {
+                        articleUnavailable: (e.error === 1550),
                         failedToDownload: true,
                     };
                 }),
                 localBookmark: localBookmark,
             }).then((result: { articleInformation: IProcessedArticleInformation, localBookmark: av.IBookmark }) => {
                 if (result.articleInformation.failedToDownload) {
-                    result.localBookmark.failedToDownload = true;
+                    result.localBookmark.articleUnavailable = result.articleInformation.articleUnavailable;
                 } else {
                     result.localBookmark.contentAvailableLocally = true;
                     result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;

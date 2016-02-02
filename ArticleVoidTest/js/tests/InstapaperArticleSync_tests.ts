@@ -194,7 +194,7 @@
             ok(!syncedBookmark.contentAvailableLocally, "Expected bookmark to be unavailable locally");
             strictEqual(syncedBookmark.localFolderRelativePath, undefined, "File path incorrect");
             ok(!syncedBookmark.hasImages, "Didn't expect images");
-            ok(syncedBookmark.failedToDownload, "File should indicate error");
+            ok(syncedBookmark.articleUnavailable, "File should indicate error");
 
             return articlesFolder.tryGetItemAsync(badBookmarkId + ".html");
         }).then((articleFile: st.IStorageItem) => {
