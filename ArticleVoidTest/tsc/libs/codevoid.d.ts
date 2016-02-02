@@ -143,7 +143,7 @@ declare module Codevoid.ArticleVoid {
         localFolderRelativePath: string;
         description: string;
         extractedDescription: string;
-        failedToDownload: boolean;
+        articleUnavailable: boolean;
     }
 
     export interface IFoldersChangedEvent {

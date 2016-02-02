@@ -291,7 +291,7 @@
     });
 
     SignedInExperience.showDescriptionOrExtractedDescription = WinJS.Binding.converter((bookmark: IBookmark) => {
-        if (bookmark.failedToDownload) {
+        if (bookmark.articleUnavailable) {
             return "Unable to download";
         }
 
