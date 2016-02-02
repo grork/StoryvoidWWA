@@ -242,6 +242,8 @@ button.commands-selectmode .win-commandimage {
     -ms-grid-column: 1;
     -ms-grid-row-span: 3;
 	background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
     height: 100%;
 }
 
