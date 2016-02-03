@@ -45,28 +45,80 @@
         public syncAllArticlesNotDownloaded(idb: InstapaperDB): WinJS.Promise<any> {
             this._eventSource.dispatchEvent("allarticlesstarting", null);
 
-            return idb.listCurrentBookmarks().then((bookmarks) => {
-                var notDownloadedBookmarks = bookmarks.filter((bookmark) => {
-                    return !bookmark.contentAvailableLocally && !bookmark.articleUnavailable;
-                });
-
-                var articlesByUnreadFirst = notDownloadedBookmarks.sort((bookmarkA, bookmarkB) => {
-                    // if they're both in the same folder, it's fine, just leave it as is.
-                    if (bookmarkA.folder_dbid === bookmarkB.folder_dbid) {
-                        return 0;
+            // First list all the current folders, and then sort them by 
+            // ID (E.g. well known first)
+            return idb.listCurrentFolders().then((folders) => {
+                folders.sort((firstFolder: IFolder, secondFolder: IFolder): number => {
+                    if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
+                        // Assume we're sorting pre-canned folders. Sort by "id"
+                        if (firstFolder.id < secondFolder.id) {
+                            return -1;
+                        } else if (firstFolder.id > secondFolder.id) {
+                            return 1;
+                        } else {
+                            return;
+                        }
                     }
 
-                    if (bookmarkA.folder_dbid === idb.commonFolderDbIds.unread) {
+                    if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
+                        // Assume it's a pre-canned folder against a user folder. Pre-canned
+                        // always go first
                         return -1;
                     }
 
-                    if (bookmarkB.folder_dbid === idb.commonFolderDbIds.unread) {
-                        return -1;
+                    if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
+                        // Assume it's a user folder against a pre-canned folder. User folders
+                        // always come after.
+                        return 1;
                     }
 
-                    return 0;
+                    // Since we've got user folders, sort soley by the users ordering preference
+                    if (firstFolder.position < secondFolder.position) {
+                        return -1;
+                    } else if (firstFolder.position > secondFolder.position) {
+                        return 1;
+                    } else {
+                        return 1;
+                    }
                 });
 
+                // Get the bookmarks from each folder, and sort them by highest ID
+                // first. Also remove any that are available locally / aren't
+                // available through the service.
+                var bookmarks = folders.map((folder) => {
+                    return idb.listCurrentBookmarks(folder.id).then((bookmarks) => {
+                        bookmarks = bookmarks.filter((bookmark) => {
+                            return !bookmark.contentAvailableLocally && !bookmark.articleUnavailable;
+                        });
+
+                        bookmarks.sort((bookmarkA, bookmarkB) => {
+                            if (bookmarkA.bookmark_id < bookmarkB.bookmark_id) {
+                                return -1;
+                            }
+
+                            if (bookmarkA.bookmark_id > bookmarkB.bookmark_id) {
+                                return 1;
+                            }
+
+                            return 0;
+                        });
+
+                        return bookmarks;
+                    });
+                });
+
+                return WinJS.Promise.join(bookmarks);
+            }).then((bookmarksByFolder: IBookmark[][]) => {
+                // Flatten them all into on big array, assuming that
+                // they're implicitly sorted now
+                var bookmarksAsFlatList = [];
+
+                bookmarksByFolder.forEach((bookmarks: IBookmark[]) => {
+                    bookmarksAsFlatList = bookmarksAsFlatList.concat(bookmarks);
+                });
+
+                return bookmarksAsFlatList;
+            }).then((articlesByUnreadFirst) => {
                 return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
                     return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => { /* Eat errors */ });
                 }, 4);
@@ -306,6 +358,19 @@
 
                     case "image/png":
                         destinationFileName = destinationFileNumber + ".png";
+                        break;
+
+                    case "image/svg+xml":
+                        destinationFileName = destinationFileNumber + ".svg";
+                        break;
+
+                    case "image/gif":
+                        destinationFileName = destinationFileNumber + ".gif";
+                        break;
+
+                    default:
+                        debugger;
+                        destinationFileName = destinationFileNumber + "";
                         break;
                 }
 
