@@ -137,9 +137,11 @@
         }), WinJS.Utilities.eventMixin),
         EventSource: WinJS.Class.mix(WinJS.Class.define(function() {
         }), WinJS.Utilities.eventMixin),
-        serialize: function serialize(items, work) {
+        serialize: function serialize(items, work, concurrentWorkLimit) {
+            concurrentWorkLimit = (!concurrentWorkLimit) ? 1 : concurrentWorkLimit;
             var results = [];
             var signals = [];
+            var numberInFlight = 0;
 
             function doWork() {
                 // Start the "cascade"
@@ -147,8 +149,10 @@
                     return;
                 }
 
-                var signal = signals.shift();
-                signal.complete();
+                while ((numberInFlight < concurrentWorkLimit) && signals.length) {
+                    var signal = signals.shift();
+                    signal.complete();
+                }
             }
 
             // Set up all the signals so that as each one
@@ -159,11 +163,14 @@
                 signals.push(signal);
 
                 results.push(signal.promise.then(function () {
+                    numberInFlight++;
                     return WinJS.Promise.as(work(item, index));
                 }).then(function (value) {
+                    numberInFlight--;
                     doWork();
                     return value;
                 }, function (error) {
+                    numberInFlight--;
                     doWork();
                     return WinJS.Promise.wrapError(error);
                 }));
