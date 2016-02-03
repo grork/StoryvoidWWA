@@ -267,6 +267,26 @@
         });
     });
 
+    promiseTest("workIsPerformedUnderWorkLimit", function () {
+        var promiseExecuting = 0;
+        var completedPromises = 0;
+        var data = [1, 2, 3, 4, 5, 6, 8, 9, 10];
+
+        var doWork = function () {
+            promiseExecuting++;
+            ok(promiseExecuting < 3, "Only expected up to to promises")
+            return WinJS.Promise.timeout(10).then(function () {
+                promiseExecuting--;
+                completedPromises++;
+            });
+        };
+
+        return Codevoid.Utilities.serialize(data, doWork, 2).then(function () {
+            strictEqual(promiseExecuting, 0, "All promises should be complete");
+            strictEqual(completedPromises, data.length);
+        });
+    });
+
     promiseTest("stillCompletesIfOneErrors", function () {
         var doWork = function (item) {
             if (item === 5) {

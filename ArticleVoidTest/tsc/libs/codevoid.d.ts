@@ -14,7 +14,7 @@ declare module Codevoid.Utilities {
     }
 
     export function addEventListeners(source: { addEventListener: any, removeEventListener: any }, handlers: any): ICancellable;
-    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>);
+    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number): WinJS.Promise<any>;
 
     export interface IIndexedDatabase {
         objectStoreNames: string[];

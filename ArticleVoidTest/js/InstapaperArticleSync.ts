@@ -69,7 +69,7 @@
 
                 return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
                     return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => { /* Eat errors */ });
-                });
+                }, 4);
             }).then(() => {
                 this._eventSource.dispatchEvent("allarticlescompleted", null);
             });
@@ -215,10 +215,10 @@
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this shit, yo.
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
-                    articleCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((articleWasAltered) => {
-                        processedInformation.firstImagePath = images[0].src;
+                    articleCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((firstImagePath) => {
+                        processedInformation.firstImagePath = firstImagePath;
                         this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
-                        return articleWasAltered;
+                        return true;
                     });
                 }
                 
@@ -242,24 +242,42 @@
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<boolean> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<string> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
+            var firstSuccessfulImage = "";
 
             return imagesFolder.then((folder: st.StorageFolder) => {
                 return Utilities.serialize(images, (image: HTMLImageElement, index: number) => {
-                    this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
-                    var sourceUrl = new Windows.Foundation.Uri(image.src);
+                    try {
+                        if (!image.src ||
+                            (image.src.indexOf(document.location.origin) === 0) ||
+                            (image.src.indexOf("data:") === 0)) {
+                            return;
+                        }
+                    } catch (e) {
+                        return;
+                    }
 
+                    var sourceUrl = new Windows.Foundation.Uri(image.src);
+                    this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
                     // Download the iamge from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded
                     // image
                     return this._downloadImageToDisk(sourceUrl, index, folder).then((fileName: string) => {
                         image.src = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
 
+                        if (!firstSuccessfulImage) {
+                            firstSuccessfulImage = image.src;
+                        }
+
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
+                    }, (e: { errorCode: number }) => {
+                        if (e.errorCode !== 404) {
+                            return WinJS.Promise.wrapError(e);
+                        }
                     });
-                });
-            }).then(() => true);
+                }, 4);
+            }).then(() => firstSuccessfulImage);
         }
 
         private _downloadImageToDisk(

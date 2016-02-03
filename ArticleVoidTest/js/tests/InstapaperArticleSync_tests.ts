@@ -327,11 +327,11 @@
             strictEqual(third.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var fourth = happenings[3];
-            strictEqual(fourth.event, "imagestop", "incorrect fourth event");
+            strictEqual(fourth.event, "imagestart", "incorrect fourth event");
             strictEqual(fourth.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var fifth = happenings[4];
-            strictEqual(fifth.event, "imagestart", "incorrect fifth event");
+            strictEqual(fifth.event, "imagestop", "incorrect fifth event");
             strictEqual(fifth.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var sixth = happenings[5];
