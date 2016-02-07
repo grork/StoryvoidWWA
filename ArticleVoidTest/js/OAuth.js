@@ -161,8 +161,9 @@
                 var nonce = this._nonce || Math.floor(Math.random() * 1000000000);
                 var timestamp = this._timestamp || Math.round(new Date().getTime() / 1000.0);
 
-                console.log("OAuth nonce: " + nonce);
-                console.log("OAuth timestamp: " + timestamp);
+                // Uncomment for better debugging
+                //console.log("OAuth nonce: " + nonce);
+                //console.log("OAuth timestamp: " + timestamp);
 
                 // Build OAuth Items
                 var oAuthHeaders = [
