@@ -118,6 +118,8 @@ declare module Codevoid.ArticleVoid {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
         addEventListener(name: string, handler: (eventData: { detail: ISyncStatusUpdate }) => void);
         sync(syncOptions?: ISyncOptions): WinJS.Promise<void>;
+        perFolderBookmarkLimits: { [id: string]: number };
+        defaultBookmarkLimit: number;
         static Operation: SyncOperation;
     }
 
