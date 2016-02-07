@@ -292,6 +292,9 @@
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
             var articleSync: Codevoid.ArticleVoid.InstapaperArticleSync;
 
+            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = 10;
+            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = 10;
+
             Utilities.Logging.instance.log("Starting Sync");
 
             sync.addEventListener("syncstatusupdate", (eventData) => {
