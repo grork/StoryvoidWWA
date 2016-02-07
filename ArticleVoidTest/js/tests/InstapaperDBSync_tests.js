@@ -58,7 +58,6 @@
 
     module("InstapaperSync");
 
-
     promiseTest("destoryRemoteDataOnStart", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("deleteDbOnStart", deleteDb, defaultTestDelay);
 
@@ -66,14 +65,40 @@
         setSampleFolders();
         var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
 
-        var addPromises = [];
+        var foldersNeedingToBeAdded = [];
 
-        return Codevoid.Utilities.serialize(addedRemoteFolders, function (folder, index) {
-            return folders.add(folder.title).then(function (remoteFolder) {
-                addedRemoteFolders[index] = remoteFolder;
+        return folders.list().then((remoteFolders) => {
+            // Loop through each folder remotely available, and
+            // if there is a folder w/ the same name, replace with
+            // the remote folder information
+            remoteFolders.forEach((folder) => {
+                addedRemoteFolders.forEach((expectedFolder, index) => {
+                    if (expectedFolder.title === folder.title) {
+                        // Replace at index so we get all the info.
+                        addedRemoteFolders[index] = folder;
+                    }
+                });
+            });
+        }).then(() => {
+            return Codevoid.Utilities.serialize(addedRemoteFolders, function (folder, index) {
+                if (folder.folder_id !== undefined) {
+                    // assume we've already got the info
+                    return WinJS.Promise.as();
+                }
+
+                return folders.add(folder.title).then(function (remoteFolder) {
+                    addedRemoteFolders[index] = remoteFolder;
+                });
             });
         }).then(function () {
             ok(true, "Folders added");
+        }, (errors) => {
+            var foundNonAlreadyThereError = false;
+            foundNonAlreadyThereError = errors.some((item) => {
+                return (item.error != undefined) && (item.error === 1251);
+            });
+
+            ok(!foundNonAlreadyThereError, "Unexpected error when adding folders");
         });
     }
 
@@ -451,9 +476,9 @@
     promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders, defaultTestDelay);
     promiseTest("addsFoldersOnFirstSightBeforeBookmarks", addsFoldersOnFirstSight, defaultTestDelay);
 
-    function addDefaultBookmarks() {
+    function addDefaultBookmarks(neededBookmarks) {
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
-        var minNumberOfBookmarks = 2;
+        var minNumberOfBookmarks = neededBookmarks || 2;
         resetSourceUrls();
 
         // Get the remote bookmarks so we can add, update, cache etc as needed
@@ -465,7 +490,7 @@
             // that they have from the "source" URLs
             if (remoteBookmarks && remoteBookmarks.length) {
                 // For the remote urls we have, find any in the local
-                // set and remove them from that table.
+                // set and remove them from that array.
                 remoteBookmarks.forEach(function (rb) {
                     var indexOfExistingUrl = -1;
                     sourceUrls.forEach(function (sb, index) {
@@ -485,7 +510,7 @@
                 return remoteBookmarks;
             }
 
-            // We dont have enough remote Bookmarks, so lets add enough.
+            // We dont have enough remote Bookmarks, so lets add more.
             var needToAdd = minNumberOfBookmarks;
             if (remoteBookmarks && remoteBookmarks.length) {
                 needToAdd -= remoteBookmarks.length;
@@ -509,6 +534,13 @@
             addedRemoteBookmarks = currentRemoteBookmarks;
             ok(addedRemoteBookmarks, "No remotebookmarks!");
             ok(addedRemoteBookmarks.length, "No remote bookmarks!");
+
+            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+        }).then((result) => {
+            // Reset all remote likes.
+            return Codevoid.Utilities.serialize(result.bookmarks, (item) => {
+                return bookmarks.unstar(item.bookmark_id);
+            });
         });
     };
 
@@ -1076,7 +1108,7 @@
 
     promiseTest("syncRespectsLimits", function () {
         var sync = getNewSyncEngine();
-        sync.bookmarkLimit = 1;
+        sync.defaultBookmarkLimit = 1;
 
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
@@ -1095,7 +1127,7 @@
 
     promiseTest("syncingOnlyOneBookmarkWithOneLikeNotInOneBookmarkBoundaryDoesn'tFailSync", function () {
         var sync = getNewSyncEngine();
-        sync.bookmarkLimit = 1;
+        sync.defaultBookmarkLimit = 1;
 
         var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
 
@@ -1113,9 +1145,80 @@
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
             strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
-            strictEqual(localBookmarks[0].starred, 0, "Didn't expect it to be starred")
+            strictEqual(localBookmarks[0].starred, 0, "Didn't expect it to be starred");
         });
     }, defaultTestDelay);
+
+    // We need to clean up before we futz with more limits
+    promiseTest("deleteLocalDBBeforeSyncingWithLimits", deleteDb, defaultTestDelay);
+    promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks.bind(null, 8), defaultTestDelay);
+    promiseTest("addDefaultRemoteFolders", addDefaultRemoteFolders, defaultTestDelay);
+
+    promiseTest("perFolderLimitsOnBookmarksAreApplied", () => {
+        var sync = getNewSyncEngine();
+        sync.defaultBookmarkLimit = 1;
+        var remoteFolder1 = addedRemoteFolders[0].folder_id;
+        var remoteFolder2 = addedRemoteFolders[1].folder_id;
+
+        var folderSyncLimits = {};
+        folderSyncLimits[InstapaperDB.CommonFolderIds.Liked] = 2;
+        folderSyncLimits[remoteFolder1] = 2;
+        folderSyncLimits[remoteFolder2] = 2;
+
+        sync.perFolderBookmarkLimits = folderSyncLimits;
+
+        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+
+        return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            ok(rb.bookmarks.length >= 8, "Not enough Bookmarks remotely: " + rb.length);
+
+            var itemsInSampleFolder1 = [];
+            itemsInSampleFolder1.push(rb.bookmarks[0].bookmark_id);
+            itemsInSampleFolder1.push(rb.bookmarks[1].bookmark_id);
+            itemsInSampleFolder1.push(rb.bookmarks[2].bookmark_id);
+
+            var itemsInSampleFolder2 = [];
+            itemsInSampleFolder2.push(rb.bookmarks[3].bookmark_id);
+            itemsInSampleFolder2.push(rb.bookmarks[4].bookmark_id);
+            itemsInSampleFolder2.push(rb.bookmarks[5].bookmark_id);
+
+            var moves = Codevoid.Utilities.serialize(itemsInSampleFolder1, (item) => {
+                return bookmarks.move({ bookmark_id: item, destination: remoteFolder1 });
+            });
+
+            var moves2 = Codevoid.Utilities.serialize(itemsInSampleFolder2, (item) => {
+                return bookmarks.move({ bookmark_id: item, destination: remoteFolder2 });
+            });
+
+            return WinJS.Promise.join([moves, moves2]);
+        }).then(function () {
+            return sync.sync();
+        }).then(function () {
+            return getNewInstapaperDBAndInit();
+        }).then(function (idb) {
+            return WinJS.Promise.join({
+                unread: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
+                folder1: idb.listCurrentFolders().then((folders) => {
+                    folders = folders.filter((folder) => {
+                        return folder.folder_id === remoteFolder1;
+                    });
+
+                    return idb.listCurrentBookmarks(folders[0].id);
+                }),
+                folder2: idb.listCurrentFolders().then((folders) => {
+                    folders = folders.filter((folder) => {
+                        return folder.folder_id === remoteFolder2;
+                    });
+
+                    return idb.listCurrentBookmarks(folders[0].id);
+                }),
+            });
+        }).then(function (result) {
+            strictEqual(result.unread.length, 1, "Only expected on bookmark");
+            strictEqual(result.folder1.length, 2, "Only expected two out of three bookmarks synced");
+            strictEqual(result.folder2.length, 2, "Only expected two out of three bookmarks synced");
+        });
+    });
 
     module("InstapaperSyncBookmarkDeletes");
 

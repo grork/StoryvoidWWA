@@ -28,6 +28,7 @@
     WinJS.Namespace.define("Codevoid.ArticleVoid", {
         InstapaperSync: WinJS.Class.mix(WinJS.Class.define(function (clientInformation) {
             this._clientInformation = clientInformation;
+            this.perFolderBookmarkLimits = {};
         }, {
             _clientInformation: null,
             _foldersStorage: null,
@@ -438,7 +439,7 @@
                     return b.list({
                         folder_id: folderId,
                         have: haves,
-                        limit: this.bookmarkLimit,
+                        limit: this.perFolderBookmarkLimits[folderId] ||  this.defaultBookmarkLimit,
                     });
                 }.bind(this)).then(function (result) {
                     // Now we've told the server what our local state is, and it's telling
@@ -544,10 +545,11 @@
                         return data;
                     }, []);
 
+                    var folderId = InstapaperDB.CommonFolderIds.Liked;
                     return b.list({
-                        folder_id: InstapaperDB.CommonFolderIds.Liked,
+                        folder_id: folderId,
                         have: haves,
-                        limit: this.bookmarkLimit,
+                        limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
                     });
                 }.bind(this)).then(function (remoteData) {
                     var rb = remoteData.bookmarks;
@@ -569,7 +571,8 @@
                     return WinJS.Promise.join(operations);
                 });
             },
-            bookmarkLimit: 25,
+            defaultBookmarkLimit: 25,
+            perFolderBookmarkLimits: null,
             sync: function sync(options) {
                 options = options || { folders: true, bookmarks: true };
                 var syncFolders = options.folders;

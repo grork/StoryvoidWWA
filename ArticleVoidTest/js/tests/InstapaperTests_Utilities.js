@@ -181,13 +181,23 @@
         }).then(function () {
             return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
         }).then(function (remoteBookmarks) {
-            return Codevoid.Utilities.serialize(remoteBookmarks.bookmarks, function (rb) {
+            // Delete *some* of the remote URLs, but not all of them.
+            var toRemove = remoteBookmarks.bookmarks.slice(4);
+            var toReset = remoteBookmarks.bookmarks.slice(0, 4);
+            
+            var removals = Codevoid.Utilities.serialize(toRemove, (item) => {
+                return bookmarks.deleteBookmark(item.bookmark_id);
+            });
+
+            var progressReset = Codevoid.Utilities.serialize(toReset, function (rb) {
                 return bookmarks.updateReadProgress({
                     bookmark_id: rb.bookmark_id,
                     progress: 0.0,
                     progress_timestamp: Date.now(),
                 });
             });
+
+            return WinJS.Promise.join([removals, progressReset]);
         }).then(function () {
             ok(true, "It went very very wrong");
         });
