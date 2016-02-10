@@ -555,6 +555,17 @@
                 });
 
                 commands.push(downloadCommand);
+
+                var openArticle = new WinJS.UI.Command(null, {
+                    label: "Open",
+                    icon: "openfile",
+                    onclick: () => {
+                        var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel();
+                        Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
+                    },
+                });
+
+                commands.push(openArticle);
             }
 
             return commands;

@@ -112,6 +112,12 @@
     <Content Include="css\default.css" />
     <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
+    <Content Include="..\ArticleVoidTest\WinJS\js\base.js">
+      <Link>WinJS\js\base.js</Link>
+    </Content>
+    <Content Include="..\ArticleVoidTest\WinJS\js\intrinsics.js">
+      <Link>WinJS\js\intrinsics.js</Link>
+    </Content>
     <TypeScriptCompile Include="..\ArticleVoidTest\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
     </TypeScriptCompile>
@@ -137,6 +143,10 @@
     <Content Include="js\shareTarget.js">
       <DependentUpon>shareTarget.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\ArticleViewerExperience.ts" />
+    <Content Include="js\ui\ArticleViewerExperience.js">
+      <DependentUpon>ArticleViewerExperience.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\DebugDbFiddler.ts" />
     <Content Include="js\ui\DebugDbFiddler.js">
       <DependentUpon>DebugDbFiddler.ts</DependentUpon>
@@ -158,8 +168,6 @@
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
     <Content Include="WinJS\js\en-US\ui.strings.js" />
-    <Content Include="WinJS\js\base.js" />
-    <Content Include="WinJS\js\intrinsics.js" />
     <None Include="App_TemporaryKey.pfx" />
     <TypeScriptCompile Include="js\ui\SyncProgressControl.ts" />
     <Content Include="js\ui\SyncProgressControl.js">

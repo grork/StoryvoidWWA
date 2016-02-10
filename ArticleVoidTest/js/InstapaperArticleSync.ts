@@ -352,6 +352,7 @@
                 // Detect what the file type is from the contentType that the
                 // service responded with.
                 switch (response.content.headers.contentType.mediaType.toLocaleLowerCase()) {
+                    case "image/jpg":
                     case "image/jpeg":
                         destinationFileName = destinationFileNumber + ".jpg";
                         break;
