@@ -8147,6 +8147,7 @@ define('WinJS/Utilities/_Dispose',[
             _ElementUtilities.addClass(element, "win-disposable");
 
             var disposable = element.winControl || element;
+            var baseDispose = disposable.dispose;
             disposable.dispose = function () {
                 if (disposed) {
                     return;
@@ -8156,6 +8157,10 @@ define('WinJS/Utilities/_Dispose',[
                 disposeSubTree(element);
                 if (disposeImpl) {
                     disposeImpl();
+                }
+
+                if (baseDispose) {
+                    baseDispose.call(disposable);
                 }
             };
         }
