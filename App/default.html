@@ -157,7 +157,10 @@
                 </div>
                 <div class="signedIn-content">
                     <div class="signedIn-articleList"
-                         data-event="{ selectionchanged: contentListSelectionChanged }"
+                         data-event="{
+                            selectionchanged: contentListSelectionChanged,
+                            iteminvoked: listItemInvoked
+                         }"
                          data-win-control="WinJS.UI.ListView"
                          data-win-options="{
                             layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }

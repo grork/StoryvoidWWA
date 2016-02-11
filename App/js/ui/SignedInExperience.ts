@@ -141,6 +141,12 @@
             }
         }
 
+        public listItemInvoked(e: UIEvent): void {
+            (<any>e.detail).itemPromise.then((item: WinJS.UI.IItem<IBookmark>) => {
+                this.viewModel.showArticle(item.data);
+            });
+        }
+
         public toggleSelectionMode(): void {
             if (!this._inSelectionMode) {
                 this._contentList.selectionMode = WinJS.UI.SelectionMode.multi;
@@ -249,6 +255,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.contentListSelectionChanged);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listItemInvoked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.toggleSelectionMode);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.handleSortsChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);

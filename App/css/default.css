@@ -328,7 +328,46 @@ button.commands-selectmode .win-commandimage {
     height: 100vh;
     background-color: white;
     display: block;
+    z-index: 4000;
 }
+
+.articleViewer-header-container {
+    width: 100%;
+    height: 48px;
+    display: -ms-grid;
+    -ms-grid-columns: 12px auto 12px 1fr 12px auto;
+}
+
+.articleViewer-title {
+    -ms-grid-column: 4;
+    -ms-grid-column-align: center;
+    -ms-grid-row-align: center;
+}
+
+.articleViewer-dismiss {
+    -ms-grid-column: 6;
+    -ms-grid-row: 1;
+    -ms-grid-column-align: end;
+
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 1fr;
+    font-family: "Segoe MDL2 Assets", "Symbols";
+    font-size: 18px;
+    width: 48px;
+    height: 48px;
+    text-align: center;
+}
+
+    .articleViewer-dismiss > div {
+        -ms-grid-column-align: center;
+        -ms-grid-row-align: center;
+    }
+
+    .articleViewer-dismiss > div::after {
+        content: "\E711";
+        font-weight: 400;
+    }
 
 .authenticator {
     display: -ms-grid;

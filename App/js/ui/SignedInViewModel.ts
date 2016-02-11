@@ -555,17 +555,6 @@
                 });
 
                 commands.push(downloadCommand);
-
-                var openArticle = new WinJS.UI.Command(null, {
-                    label: "Open",
-                    icon: "openfile",
-                    onclick: () => {
-                        var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel();
-                        Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
-                    },
-                });
-
-                commands.push(openArticle);
             }
 
             return commands;
@@ -581,6 +570,11 @@
             Utilities.serialize(bookmarksToUnlike, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
                 return this._instapaperDB.unlikeBookmark(bookmark.bookmark_id);
             });
+        }
+
+        public showArticle(bookmark: IBookmark): void {
+            var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel(bookmark);
+            Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
         }
 
         public static get sorts(): ISortsInfo[] {
