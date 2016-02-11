@@ -63,7 +63,10 @@
 
     <div data-win-control="WinJS.Binding.Template"
          data-templateid="articleViewer">
-        <button data-event="{ click: close }">Close</button>
+        <div class="articleViewer-header-container">
+            <div class="articleViewer-dismiss" tabindex="0" data-event="{ click: close }"><div></div></div>
+            <div class="articleViewer-title" data-win-bind="textContent: bookmark.title"></div>
+        </div>
     </div>
 
     <div data-templateid="dbFiddler"

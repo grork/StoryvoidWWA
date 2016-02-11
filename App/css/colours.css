@@ -102,3 +102,7 @@ progress.article-progress {
 .share-success {
     color: gray;
 }
+
+.articleViewer-dismiss:hover {
+    background-color: lightgray;
+}
