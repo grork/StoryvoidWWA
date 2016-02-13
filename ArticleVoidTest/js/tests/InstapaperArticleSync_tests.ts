@@ -157,10 +157,11 @@
 
             strictEqual(images.length, 2, "Wrong number of images compared to filename");
 
-            var expectedPath = "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/0.png";
+            var package = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
+            var expectedPath = "ms-appx://" + package + "/" + articleWithImageId + "/0.png";
             strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
-            expectedPath = "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/1.jpg";
+            expectedPath = "ms-appx://" + package + "/" + articleWithImageId + "/1.jpg";
             strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });

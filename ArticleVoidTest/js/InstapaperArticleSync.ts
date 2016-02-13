@@ -316,10 +316,10 @@
                     // the URL on the image tag to point to the now downloaded
                     // image
                     return this._downloadImageToDisk(sourceUrl, index, folder).then((fileName: string) => {
-                        image.src = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
+                        image.src = imagesFolderName + "/" + fileName;
 
                         if (!firstSuccessfulImage) {
-                            firstSuccessfulImage = image.src;
+                            firstSuccessfulImage = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
                         }
 
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
