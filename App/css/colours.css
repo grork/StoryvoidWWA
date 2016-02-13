@@ -103,6 +103,10 @@ progress.article-progress {
     color: gray;
 }
 
+.articleViewer-dialog.dialog {
+    background: white;
+}
+
 .articleViewer-dismiss:hover {
     background-color: lightgray;
 }

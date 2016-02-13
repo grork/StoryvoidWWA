@@ -3,6 +3,7 @@
 
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
+        private _content: MSHTMLWebViewElement;
         private viewModel: ArticleViewerViewModel;
         private _previousPrimaryColour: Windows.UI.Color;
         private _previousTextColour: Windows.UI.Color;
@@ -10,7 +11,7 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            WinJS.Utilities.addClass(element, "articleViewer-container");
+            WinJS.Utilities.addClass(element, "articleViewer-dialog");
             WinJS.Utilities.addClass(element, "dialog");
             WinJS.Utilities.addClass(element, "win-disposable");
             WinJS.Utilities.addClass(element, "hide");
@@ -32,10 +33,19 @@
                     }
                 }));
 
+                // unhide it, and make it invisible
+                // This is to allow the control to layout itself so that
+                // when the actual webview is animated, it's rendered correctly
+                // Without this, the web view is rendered "zoomed" during
+                // the slide in animation.
+                WinJS.Utilities.removeClass(element, "hide");
+                element.style.opacity = "0.0";
                 WinJS.Promise.timeout().done(() => {
-                    WinJS.Utilities.removeClass(element, "hide");
                     this._setTitleBarForArticle();
+                    element.style.opacity = ""; // Allow default styles to sort themselves out
                     WinJS.UI.Animation.slideUp(this.element);
+
+                    this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
                 });
             });
         }
