@@ -112,6 +112,7 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
+    <Content Include="TestWebViewTarget.html" />
     <Content Include="WinJS\css\ui-light-intrinsics.css" />
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
@@ -126,7 +127,19 @@
     <Content Include="js\Tests\InstapaperArticleSync_tests.js">
       <DependentUpon>InstapaperArticleSync_tests.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
+    <Content Include="js\tests\WebViewMessengerTests.js">
+      <DependentUpon>WebViewMessengerTests.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\core.ts" />
+    <TypeScriptCompile Include="js\WebViewMessenger.ts" />
+    <Content Include="js\WebViewMessenger.js">
+      <DependentUpon>WebViewMessenger.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="js\WebViewMessenger_client.ts" />
+    <Content Include="js\WebViewMessenger_client.js">
+      <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoid.d.ts" />
