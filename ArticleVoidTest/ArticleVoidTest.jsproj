@@ -81,6 +81,7 @@
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
     <Content Include="js\tests\qunit.js" />
+    <Content Include="js\tests\WebViewTestScript.js" />
     <Content Include="js\tests\testdefault.js" />
     <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
