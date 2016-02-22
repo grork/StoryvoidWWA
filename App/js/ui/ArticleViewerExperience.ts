@@ -8,6 +8,7 @@
         private _previousPrimaryColour: Windows.UI.Color;
         private _previousTextColour: Windows.UI.Color;
         private _messenger: Codevoid.Utilities.WebViewMessenger;
+        private _container: HTMLElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -33,6 +34,18 @@
                         this.close();
                     }
                 }));
+
+                // Create the webview programmatically, because when it was created in markup
+                // via the template, there are some really f'up things going on with transitioning
+                // in and out of tablet mode *WHEN REMOVING THE PHYSICAL KEYBOARD*. Not just
+                // when you transition through sofware, but requiring a physical removal & re-attachcment
+                //
+                // E.g Remove keyboard,
+                //     attach keyboard
+                //     spin for ever and eat all the cpu.
+                this._content = document.createElement("x-ms-webview");
+                this._content.className = "articleViewer-content";
+                this._container.appendChild(this._content);
 
                 // Attach handlers for cross-page messaging
                 this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
