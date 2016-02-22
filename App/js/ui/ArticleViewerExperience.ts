@@ -7,6 +7,7 @@
         private viewModel: ArticleViewerViewModel;
         private _previousPrimaryColour: Windows.UI.Color;
         private _previousTextColour: Windows.UI.Color;
+        private _messenger: Codevoid.Utilities.WebViewMessenger;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -33,21 +34,39 @@
                     }
                 }));
 
-                // unhide it, and make it invisible
-                // This is to allow the control to layout itself so that
-                // when the actual webview is animated, it's rendered correctly
-                // Without this, the web view is rendered "zoomed" during
-                // the slide in animation.
-                WinJS.Utilities.removeClass(element, "hide");
-                element.style.opacity = "0.0";
-                WinJS.Promise.timeout().done(() => {
-                    this._setTitleBarForArticle();
-                    element.style.opacity = ""; // Allow default styles to sort themselves out
-                    WinJS.UI.Animation.slideUp(this.element);
+                // Attach handlers for cross-page messaging
+                this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
 
-                    this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
-                });
+                this._openPage();
             });
+        }
+
+        private _openPage(): void {
+            // unhide it, and make it invisible
+
+            // This is to allow the control to layout itself so that
+            // when the actual webview is animated, it's rendered correctly
+            // Without this, the web view is rendered "zoomed" during
+            // the slide in animation.
+            WinJS.Utilities.removeClass(this.element, "hide");
+            this.element.style.opacity = "0.0";
+
+            var readyHandler = Codevoid.Utilities.addEventListeners(this._messenger.events, {
+                ready: () => {
+                    readyHandler.cancel();
+
+                    this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css").done(() => {
+                        this.element.style.opacity = ""; // Allow default styles to sort themselves out
+                        
+                        // Update the titlebar style to match the document
+                        this._setTitleBarForArticle();
+
+                        WinJS.UI.Animation.slideUp(this.element);
+                    });
+                }
+            });
+
+            this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
         }
 
         private _setTitleBarForArticle(): void {

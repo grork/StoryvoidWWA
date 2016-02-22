@@ -2,12 +2,22 @@
     export class WebViewMessenger {
         private _events: EventSource = new EventSource();
         private _handlers: ICancellable;
+        private _messageBridge: CodevoidN.Utilities.WebViewNotifier;
         private _nextMessageId: number = 0;
         private _waitingForResponse: { [id: number]: Signal } = {};
 
         constructor(private _webView: MSHTMLWebViewElement) {
-            this._handlers = addEventListeners(this._webView, {
-                MSWebViewScriptNotify: this._onNotifyMessage.bind(this),
+            this._messageBridge = new CodevoidN.Utilities.WebViewNotifier();
+
+            this._handlers = addEventListeners(this._messageBridge, {
+                mswebviewscriptnotify: this._onNotifyMessage.bind(this),
+            });
+
+            var firstNavigationStarting = addEventListeners(this._webView, {
+                MSWebViewNavigationStarting: () => {
+                    firstNavigationStarting.cancel();
+                    this._webView.addWebAllowedObject("MessageBridge", this._messageBridge);
+                }
             });
         }
 
@@ -15,8 +25,8 @@
             return this._events;
         }
 
-        private _onNotifyMessage(e: { value: string }) {
-            var payload = JSON.parse(e.value);
+        private _onNotifyMessage(e: { value: string, target: string }) {
+            var payload = JSON.parse(e.value || e.target);
 
             switch (payload.message) {
                 case "ready":
@@ -36,6 +46,10 @@
 
         public addAdditionalScriptInsideWebView(fullScriptPath: string): WinJS.Promise<any> {
             return this.invokeForResult("addscript", { url: fullScriptPath });
+        }
+
+        public addStyleSheet(fullStyleSheetPath: string): WinJS.Promise<any> {
+            return this.invokeForResult("addstylesheet", { url: fullStyleSheetPath });
         }
 
         public invokeForResult(message: string, payload?: any): WinJS.Promise<any> {
