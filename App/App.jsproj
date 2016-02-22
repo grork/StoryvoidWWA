@@ -101,6 +101,7 @@
       <Link>js\Utilities.js</Link>
     </Content>
     <Content Include="css\colours.css" />
+    <Content Include="css\viewer.css" />
     <Content Include="default.html" />
     <Content Include="images\LockScreenLogo.scale-200.png" />
     <Content Include="images\SplashScreen.scale-200.png" />
@@ -173,12 +174,29 @@
     <Content Include="js\ui\SyncProgressControl.js">
       <DependentUpon>SyncProgressControl.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="..\ArticleVoidTest\js\WebViewMessenger.ts">
+      <Link>js\WebViewMessenger.ts</Link>
+    </TypeScriptCompile>
+    <Content Include="..\ArticleVoidTest\js\WebViewMessenger.js">
+      <Link>js\WebViewMessenger.js</Link>
+      <DependentUpon>WebViewMessenger.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="..\ArticleVoidTest\js\WebViewMessenger_client.ts">
+      <Link>js\WebViewMessenger_client.ts</Link>
+    </TypeScriptCompile>
+    <Content Include="..\ArticleVoidTest\js\WebViewMessenger_client.js">
+      <Link>js\WebViewMessenger_client.js</Link>
+      <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Scripts\typings\winjs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NativeInfrastructure\NativeInfrastructure.vcxproj" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />

@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "ArticleVoidTest", "ArticleVoidTest\ArticleVoidTest.jsproj", "{75649025-5099-4C32-9F57-084461404DDF}"
 EndProject
 Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "App", "App\App.jsproj", "{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeInfrastructure", "NativeInfrastructure\NativeInfrastructure.vcxproj", "{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,12 +69,26 @@ Global
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.ActiveCfg = Release|x86
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.Build.0 = Release|x86
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.Deploy.0 = Release|x86
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|ARM.ActiveCfg = Debug|ARM
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|ARM.Build.0 = Debug|ARM
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|x64.ActiveCfg = Debug|x64
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|x64.Build.0 = Debug|x64
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|x86.ActiveCfg = Debug|Win32
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|x86.Build.0 = Debug|Win32
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|Any CPU.ActiveCfg = Release|Win32
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|ARM.ActiveCfg = Release|ARM
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|ARM.Build.0 = Release|ARM
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|x64.ActiveCfg = Release|x64
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|x64.Build.0 = Release|x64
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|x86.ActiveCfg = Release|Win32
+		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://codevoid.visualstudio.com/defaultcollection
 		SccLocalPath0 = .
@@ -82,5 +98,8 @@ Global
 		SccProjectUniqueName2 = App\\App.jsproj
 		SccProjectName2 = App
 		SccLocalPath2 = App
+		SccProjectUniqueName3 = NativeInfrastructure\\NativeInfrastructure.vcxproj
+		SccProjectName3 = NativeInfrastructure
+		SccLocalPath3 = NativeInfrastructure
 	EndGlobalSection
 EndGlobal

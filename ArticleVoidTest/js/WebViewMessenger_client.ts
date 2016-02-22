@@ -23,6 +23,10 @@
                     this._addScript(data.payload.url, data.responseId);
                     break;
 
+                case "addstylesheet":
+                    this._addStyleSheet(data.payload.url, data.responseId);
+                    break;
+
                 default:
                     var handler = this._messageHandlers[data.message];
                     if (handler) {
@@ -49,6 +53,18 @@
             document.head.appendChild(scriptTag);
         }
 
+        private _addStyleSheet(scriptPath: string, responseId: number): void {
+            var styleSheetTag = document.createElement("link");
+            styleSheetTag.addEventListener("load", () => {
+                this.sendMessage("response", null, responseId);
+            });
+
+            styleSheetTag.rel = "stylesheet";
+            styleSheetTag.href = scriptPath;
+
+            document.head.appendChild(styleSheetTag);
+        }
+
         public initialize(): void {
             document.addEventListener("DOMContentLoaded", () => {
                 this.sendMessage("ready", null);
@@ -64,7 +80,8 @@
                 responseId: responseId
             };
 
-            (<any>window.external).notify(JSON.stringify(notifyData));
+            var bridge = (<any>window).MessageBridge || window.external;
+            bridge.notify(JSON.stringify(notifyData));
         }
 
         public addHandlerForMessage(message: string, handler: (payload: any, completion: (payload: any) => void) => any) {

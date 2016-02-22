@@ -1,4 +1,9 @@
-﻿
+﻿declare module CodevoidN.Utilities {
+    export class WebViewNotifier extends Codevoid.Utilities.EventSource {
+        notify(payload: string): void;
+    }
+}
+
 declare module Codevoid.Utilities.DOM {
     export function disposeOfControl(control: any): void;
     export function removeChild(parent: HTMLElement, child: HTMLElement): HTMLElement;

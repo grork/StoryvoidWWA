@@ -253,7 +253,14 @@
                 articleDocument = parser.parseFromString(contents, "text/html");
                 var images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
 
-                var articleCompleted: any = WinJS.Promise.as(false);
+                var imagesCompleted: WinJS.Promise<any> = WinJS.Promise.as();
+
+                // Apppend messaging bootstrapper to allow two way
+                // messaging between the webview we load this in,
+                // and the host page.
+                var scriptTag = articleDocument.createElement("script");
+                scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
+                articleDocument.head.appendChild(scriptTag);
 
                 // No point in processing the document if we don't have any images.
                 if (images.length > 0) {
@@ -267,10 +274,9 @@
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this shit, yo.
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
-                    articleCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((firstImagePath) => {
+                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((firstImagePath) => {
                         processedInformation.firstImagePath = firstImagePath;
                         this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
-                        return true;
                     });
                 }
                 
@@ -281,20 +287,16 @@
                     processedInformation.extractedDescription = documentContentAsText.substr(0, 200);
                 }
 
-                return articleCompleted;
-            }).then((articleWasAltered: boolean) => {
-                if (!articleWasAltered) {
-                    return;
-                }
-
+                return imagesCompleted;
+            }).then(() => {
                 // Since we processed the article in some form, we need to
                 // barf it back out disk w/ the modifications
                 var rewrittenArticleContent = articleDocument.documentElement.outerHTML;
-                st.FileIO.writeTextAsync(file, rewrittenArticleContent);
+                st.FileIO.writeTextAsync(file, rewrittenArticleContent, st.Streams.UnicodeEncoding.utf8);
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<string> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<any> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
             var firstSuccessfulImage = "";
 
