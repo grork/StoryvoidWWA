@@ -148,6 +148,10 @@
     <Content Include="js\ui\ArticleViewerExperience.js">
       <DependentUpon>ArticleViewerExperience.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\ArticleViewer_client.ts" />
+    <Content Include="js\ui\ArticleViewer_client.js">
+        <DependentUpon>ArticleViewer_client.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\DebugDbFiddler.ts" />
     <Content Include="js\ui\DebugDbFiddler.js">
       <DependentUpon>DebugDbFiddler.ts</DependentUpon>

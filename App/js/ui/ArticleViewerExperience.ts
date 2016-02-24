@@ -84,7 +84,12 @@
 
                     readyHandler.cancel();
 
-                    this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css").done(() => {
+                    WinJS.Promise.join([
+                        this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
+                        this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
+                    ]).done(() => {
+                        this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
+
                         this.element.style.opacity = ""; // Allow default styles to sort themselves out
                         
                         // Update the titlebar style to match the document
@@ -92,8 +97,14 @@
 
                         WinJS.UI.Animation.slideUp(this.element);
                     });
-                }
+                },
             });
+
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._messenger.events, {
+                progresschanged: (e) => {
+                    this.viewModel.updateProgress(e.detail);
+                },
+            }));
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
         }
@@ -140,7 +151,13 @@
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.ArticleViewerExperience" };
-        constructor(public bookmark: IBookmark) {
+        constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
+        }
+
+        public updateProgress(progress: number): void {
+            this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).done((bookmark) => {
+                this.bookmark = bookmark;
+            });
         }
     }
 

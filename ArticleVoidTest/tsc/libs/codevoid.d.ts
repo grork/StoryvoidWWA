@@ -183,6 +183,7 @@ declare module Codevoid.ArticleVoid {
         removeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
         unlikeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
         updateBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
+        updateReadProgress(bookmark_id: number, progress: number): WinJS.Promise<IBookmark>;
         getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
         
 
