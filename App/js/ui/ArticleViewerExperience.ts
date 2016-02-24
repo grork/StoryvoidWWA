@@ -9,6 +9,7 @@
         private _previousTextColour: Windows.UI.Color;
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
+        private _pageReady: boolean = false;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -47,11 +48,24 @@
                 this._content.className = "articleViewer-content";
                 this._container.appendChild(this._content);
 
+                // Attach a handler so we can prevent the default link handling behaviour.
+                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._content, {
+                    MSWebViewNavigationStarting: this._preventNavigations.bind(this)
+                }));
+
                 // Attach handlers for cross-page messaging
                 this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
 
                 this._openPage();
             });
+        }
+
+        private _preventNavigations(e: Event): void {
+            if (!this._pageReady) {
+                return;
+            }
+
+            e.preventDefault();
         }
 
         private _openPage(): void {
@@ -66,6 +80,8 @@
 
             var readyHandler = Codevoid.Utilities.addEventListeners(this._messenger.events, {
                 ready: () => {
+                    this._pageReady = true;
+
                     readyHandler.cancel();
 
                     this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css").done(() => {
