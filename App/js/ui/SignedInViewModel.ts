@@ -573,7 +573,7 @@
         }
 
         public showArticle(bookmark: IBookmark): void {
-            var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel(bookmark);
+            var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel(bookmark, this._instapaperDB);
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
         }
 

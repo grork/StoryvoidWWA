@@ -41,6 +41,10 @@
                     delete this._waitingForResponse[payload.responseId];
                     signal.complete(payload.payload);
                     break;
+
+                default:
+                    // For unknown events, dispatch to anyone listening
+                    this.events.dispatchEvent(payload.message, payload.payload);
             }
         }
 
