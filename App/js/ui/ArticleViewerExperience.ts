@@ -10,9 +10,12 @@
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
         private _pageReady: boolean = false;
+        private _navigationManager: Windows.UI.Core.SystemNavigationManager;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
+
+            this._navigationManager = Windows.UI.Core.SystemNavigationManager.getForCurrentView();
 
             WinJS.Utilities.addClass(element, "articleViewer-dialog");
             WinJS.Utilities.addClass(element, "dialog");
@@ -32,7 +35,7 @@
                             return;
                         }
 
-                        this.close();
+                        this.close(null);
                     }
                 }));
 
@@ -96,6 +99,12 @@
                         this._setTitleBarForArticle();
 
                         WinJS.UI.Animation.slideUp(this.element);
+
+                        // Setup OS back button support
+                        this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
+                        this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
+                            backrequested: this.close.bind(this),
+                        }));
                     });
                 },
             });
@@ -133,8 +142,14 @@
             titleBar.buttonInactiveBackgroundColor = primaryColour;
         }
 
-        public close(): void {
+        public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
+            if (args != null) {
+                args.handled = true; // Make sure the OS doesn't handle it.
+            }
+
+            this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
+
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
             });
