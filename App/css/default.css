@@ -342,7 +342,8 @@ button.commands-selectmode .win-commandimage {
     height: 48px;
     display: -ms-grid;
     -ms-grid-row: 1;
-    -ms-grid-columns: 12px auto 12px 1fr 12px auto;
+    -ms-grid-rows: 1fr;
+    -ms-grid-columns: 48px 1fr 48px;
 }
 
 .articleViewer-content {
@@ -352,10 +353,9 @@ button.commands-selectmode .win-commandimage {
 }
 
 .articleViewer-title {
-    -ms-grid-column: 4;
+    -ms-grid-column: 2;
     -ms-grid-column-align: center;
     -ms-grid-row-align: center;
-    margin-left: 12px;
     width: 100%;
     text-align: center;
     white-space: nowrap;
