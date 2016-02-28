@@ -91,6 +91,11 @@
                         this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
                         this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
                     ]).done(() => {
+                        this._messenger.invokeForResult("inserttitle", {
+                            title: this.viewModel.bookmark.title,
+                            domain: this._extractDomainFromUrl(this.viewModel.bookmark.url)
+                        });
+
                         this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
 
                         this.element.style.opacity = ""; // Allow default styles to sort themselves out
@@ -129,6 +134,15 @@
 
         private _restoreTitlebar(): void {
             this._setTitleBar(this._previousPrimaryColour, this._previousTextColour);
+        }
+
+        private _extractDomainFromUrl(url: string): string {
+            // RegEx from:
+            // https://regex101.com/r/wN6cZ7/63
+            var regEx = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)/igm
+            var matches = regEx.exec(url);
+
+            return matches[1];
         }
 
         private _setTitleBar(primaryColour: Windows.UI.Color, textColour: Windows.UI.Color): void {

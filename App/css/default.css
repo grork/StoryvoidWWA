@@ -334,16 +334,7 @@ button.commands-selectmode .win-commandimage {
     width: 100vw;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 48px 1fr;
-}
-
-.articleViewer-header-container {
-    width: 100%;
-    height: 48px;
-    display: -ms-grid;
-    -ms-grid-row: 1;
-    -ms-grid-rows: 1fr;
-    -ms-grid-columns: 48px 1fr 48px;
+    -ms-grid-rows: auto 1fr;
 }
 
 .articleViewer-content {
@@ -351,42 +342,6 @@ button.commands-selectmode .win-commandimage {
     width: 100%;
     -ms-grid-row: 2;
 }
-
-.articleViewer-title {
-    -ms-grid-column: 2;
-    -ms-grid-column-align: center;
-    -ms-grid-row-align: center;
-    width: 100%;
-    text-align: center;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-.articleViewer-dismiss {
-    -ms-grid-column: 6;
-    -ms-grid-row: 1;
-    -ms-grid-column-align: end;
-
-    display: -ms-grid;
-    -ms-grid-columns: 1fr;
-    -ms-grid-rows: 1fr;
-    font-family: "Segoe MDL2 Assets", "Symbols";
-    font-size: 18px;
-    width: 48px;
-    height: 48px;
-    text-align: center;
-}
-
-    .articleViewer-dismiss > div {
-        -ms-grid-column-align: center;
-        -ms-grid-row-align: center;
-    }
-
-    .articleViewer-dismiss > div::after {
-        content: "\E711";
-        font-weight: 400;
-    }
 
 .authenticator {
     display: -ms-grid;

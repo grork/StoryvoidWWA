@@ -6,6 +6,7 @@
             this._scrollingElement = document.body;
 
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -15,6 +16,22 @@
             // Now we've restored the scroll position, we're able to handle pushing scroll
             // changes back to the parent.
             document.addEventListener("scroll", this._handleScroll.bind(this));
+        }
+
+        private _insertTitle(data: { title: string, domain: string }) {
+            var headerContainer = document.createElement("div");
+            headerContainer.className = "articleViewer-header-container";
+
+            var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            title.className = "articleViewer-title";
+
+            var subTitle = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            subTitle.className = "articleViewer-subTitle";
+
+            title.textContent = data.title;
+            subTitle.textContent = data.domain;
+
+            document.body.insertBefore(headerContainer, document.body.firstChild);
         }
 
         private _handleScroll(): void {
