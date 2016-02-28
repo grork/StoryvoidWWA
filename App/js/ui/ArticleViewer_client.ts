@@ -38,6 +38,10 @@
             // Calculate the % that we're scrolled
             var progress = this._scrollingElement.scrollTop / this._scrollingElement.scrollHeight;
 
+            if ((this._scrollingElement.scrollTop + this._scrollingElement.clientHeight) >= this._scrollingElement.scrollHeight) {
+                progress = 1.0;
+            }
+
             // Tell everyone that it's scrolled.
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("progresschanged", progress);
         }
