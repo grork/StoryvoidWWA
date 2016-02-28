@@ -29,3 +29,39 @@ img {
 pre {
     overflow-x: auto;
 }
+
+/* App UI */
+
+.articleViewer-header-container {
+    width: 100%;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    display: -ms-grid;
+    -ms-grid-rows: auto auto;
+    -ms-grid-columns: 1fr;
+    font-family: Cambria;
+}
+
+.articleViewer-title {
+    -ms-grid-row: 1;
+    -ms-grid-column: 1;
+    -ms-grid-column-align: start;
+    -ms-grid-row-align: center;
+    width: 100%;
+    overflow: hidden;
+    font-weight: bolder;
+    font-size: 20px;
+}
+
+.articleViewer-subTitle {
+    -ms-grid-row: 2;
+    -ms-grid-column: 1;
+    -ms-grid-column-align: start;
+    -ms-grid-row-align: center;
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 16px;
+    color: grey;
+}
