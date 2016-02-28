@@ -161,10 +161,24 @@
                 args.handled = true; // Make sure the OS doesn't handle it.
             }
 
+            if (this._messenger) {
+                this._messenger.dispose();
+                this._messenger = null;
+            }
+
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
 
             WinJS.UI.Animation.slideDown(this.element).done(() => {
+                // Flip this flag to allow the next navigate to complete, because
+                // we're normally supressing navigations after the first load.
+                this._pageReady = false;
+
+                // Navigate blank to immediately stop the audio from a video
+                // that might be playing, otherwise it'll wait till it gets
+                // GC'd. :(
+                this._content.navigate("about:blank");
+
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
             });
         }

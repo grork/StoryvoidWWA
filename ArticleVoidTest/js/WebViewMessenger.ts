@@ -21,6 +21,15 @@
             });
         }
 
+        public dispose(): void {
+            if (this._handlers) {
+                this._handlers.cancel();
+                this._handlers = null;
+            }
+
+            this._messageBridge = null;
+        }
+
         public get events(): EventSource {
             return this._events;
         }
