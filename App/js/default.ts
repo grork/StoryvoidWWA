@@ -1,7 +1,10 @@
 ﻿module Codevoid.ArticleVoid {
     export class App extends UI.AppThatCanSignIn {
         private configureTitlebar(): void {
-            var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
+            var applicationView = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            applicationView.setPreferredMinSize({ height: 320, width: 320 });
+
+            var titleBar = applicationView.titleBar;
 
             var primaryColour = Windows.UI.Colors.red;
             var textColour = Windows.UI.Colors.white;

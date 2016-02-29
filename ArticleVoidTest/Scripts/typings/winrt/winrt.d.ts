@@ -11667,6 +11667,8 @@ declare module Windows {
                  * Gets the title bar of the app.
                 **/
                 titleBar: ApplicationViewTitleBar;
+
+                setPreferredMinSize(size: { height: number, width: number });
             }
 
             export class StatusBar {

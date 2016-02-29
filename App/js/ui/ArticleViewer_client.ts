@@ -14,8 +14,10 @@
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
 
-            // Handle key down to disable zooming via ctrl+ plus / minus
-            document.addEventListener("keydown", this._handleKeyDown);
+            // Handle key down to disable zooming via ctrl+ plus /
+            document.addEventListener("keydown", this._handleKeyDown.bind(this));
+
+            document.addEventListener("click", this._handleClick.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -51,16 +53,28 @@
             ev.preventDefault();
         }
 
+        private _handleClick(ev: MouseEvent) {
+            if (ev.button == 0) {
+                this._toggleToolbar();
+            }
+        }
+
         private _handleKeyDown(ev: KeyboardEvent): void {
-            if (!ev.ctrlKey) {
+            // Handle these keys as 
+            if (((ev.keyCode === KEY_PLUS) || (ev.keyCode === KEY_MINUS)) && ev.ctrlKey) {
+                ev.preventDefault();
                 return;
             }
 
-            if (!((ev.keyCode === KEY_PLUS) || (ev.keyCode === KEY_MINUS))) {
-                return;
-            }
+            switch (ev.key.toLowerCase()) {
+                case "esc":
+                    Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("dismiss", null);
+                    break;
 
-            ev.preventDefault();
+                case "alt":
+                    this._toggleToolbar();
+                    break;
+            }
         }
 
         private _handleScroll(): void {
@@ -73,6 +87,10 @@
 
             // Tell everyone that it's scrolled.
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("progresschanged", progress);
+        }
+
+        private _toggleToolbar(): void {
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("toggletoolbar", null);
         }
     }
 

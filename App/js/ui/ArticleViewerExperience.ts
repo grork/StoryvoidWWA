@@ -4,12 +4,17 @@
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
+        private _toolbarContainer: HTMLElement;
         private viewModel: ArticleViewerViewModel;
         private _previousPrimaryColour: Windows.UI.Color;
         private _previousTextColour: Windows.UI.Color;
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
+        private _title: HTMLElement;
+        private primaryToolbar: WinJS.UI.ToolBar;
+        private secondaryToolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
+        private _toolbarVisible: boolean = true;
         private _navigationManager: Windows.UI.Core.SystemNavigationManager;
 
         constructor(element: HTMLElement, options: any) {
@@ -23,7 +28,7 @@
             WinJS.Utilities.addClass(element, "hide");
 
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
-                return template.render(this.viewModel, element);
+                return template.render({}, element);
             }).done(() => {
                 DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
@@ -31,11 +36,15 @@
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
                     keyup: (e: KeyboardEvent) => {
-                        if (e.keyCode != WinJS.Utilities.Key.escape) {
-                            return;
-                        }
+                        switch (e.key.toLowerCase()) {
+                            case "esc":
+                                this.close(null);
+                                break;
 
-                        this.close(null);
+                            case "alt":
+                                this._toggleToolbar();
+                                break;
+                        }
                     }
                 }));
 
@@ -72,8 +81,9 @@
         }
 
         private _openPage(): void {
-            // unhide it, and make it invisible
+            this._title.textContent = this.viewModel.bookmark.title;
 
+            // unhide it, and make it invisible
             // This is to allow the control to layout itself so that
             // when the actual webview is animated, it's rendered correctly
             // Without this, the web view is rendered "zoomed" during
@@ -86,6 +96,7 @@
                     this._pageReady = true;
 
                     readyHandler.cancel();
+                    readyHandler = null;
 
                     WinJS.Promise.join([
                         this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
@@ -103,6 +114,10 @@
                         // Update the titlebar style to match the document
                         this._setTitleBarForArticle();
 
+                        // Set commands to the toolbar controls to handle primary/secondary scenarios
+                        this.primaryToolbar.data = this.viewModel.getPrimaryCommands();
+                        this.secondaryToolbar.data = this.viewModel.getSecondaryCommands();
+
                         WinJS.UI.Animation.slideUp(this.element);
 
                         // Setup OS back button support
@@ -118,6 +133,10 @@
                 progresschanged: (e) => {
                     this.viewModel.updateProgress(e.detail);
                 },
+                dismiss: () => {
+                    this.close(null);
+                },
+                toggletoolbar: this._toggleToolbar.bind(this),
             }));
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
@@ -156,6 +175,38 @@
             titleBar.buttonInactiveBackgroundColor = primaryColour;
         }
 
+        private _toggleToolbar(): void {
+            var offset = {
+                top: null,
+                left: "0px",
+            };
+
+            // Adjust the multiplier  for the offset depending on if we're at the bottom
+            // or the top of the screen (as determined by window width
+            var directionMultiplier = -1;
+            if (window.innerWidth <= 640) {
+                directionMultiplier = 1;
+            }
+
+            if (this._toolbarVisible) {
+                offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+
+                WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
+                    WinJS.Utilities.addClass(this._toolbarContainer, "hide");
+                    this._toolbarVisible = false;
+                });
+            } else {
+                // Remove the class before getting the client width, otherwise it'll
+                // be a big fat 0.
+                WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
+                offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+
+                WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
+                    this._toolbarVisible = true;
+                });
+            }
+        }
+
         public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
             if (args != null) {
                 args.handled = true; // Make sure the OS doesn't handle it.
@@ -189,6 +240,7 @@
             });
 
             this._handlersToCleanup = null;
+            this._content = null;
         }
     }
 
@@ -201,6 +253,47 @@
             this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).done((bookmark) => {
                 this.bookmark = bookmark;
             });
+        }
+
+        public getPrimaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
+            var commands = [];
+
+            var like = new WinJS.UI.Command(null, {
+                tooltip: "Like",
+                icon: "like",
+                onclick: () => {
+                    this._toggleLike();
+                }
+            });
+
+            commands.push(like);
+
+            return new WinJS.Binding.List(commands);
+        }
+
+        public getSecondaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
+            var commands = [];
+
+            var deleteCommand = new WinJS.UI.Command(null, {
+                tooltip: "Delete",
+                icon: "delete",
+                onclick: () => {
+                    this._delete();
+                }
+            });
+
+            commands.push(deleteCommand);
+
+            return new WinJS.Binding.List(commands);
+        }
+
+
+        private _toggleLike(): void {
+            // TODO: Toggle the like
+        }
+
+        private _delete(): void {
+            // TODO: Close & delete
         }
     }
 

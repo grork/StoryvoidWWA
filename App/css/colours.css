@@ -107,6 +107,10 @@ progress.article-progress {
     background: white;
 }
 
-.articleViewer-dismiss:hover {
-    background-color: lightgray;
+.articleViewer-toolbar-container {
+    background-color: white;
+}
+
+.articleViewer-toolbar-container .win-commandingsurface .win-commandingsurface-actionarea {
+    background-color: transparent;
 }
