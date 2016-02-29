@@ -1,6 +1,7 @@
 ﻿html {
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
 body {
@@ -31,12 +32,16 @@ pre {
     overflow-x: auto;
 }
 
+p {
+    word-break: break-word;
+}
+
 /* App UI */
 
 .articleViewer-header-container {
     width: 100%;
-    margin-top: 12px;
-    margin-bottom: 12px;
+    margin-top: 48px;
+    margin-bottom: 48px;
     display: -ms-grid;
     -ms-grid-rows: auto auto;
     -ms-grid-columns: 1fr;
@@ -65,4 +70,11 @@ pre {
     overflow: hidden;
     font-size: 16px;
     color: grey;
+}
+
+@media all and (max-width: 640px) {
+    body {
+        margin-left: 17px;
+        margin-right: 17px;
+    }
 }

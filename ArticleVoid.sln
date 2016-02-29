@@ -7,7 +7,7 @@ Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "ArticleVoidTest", "ArticleV
 EndProject
 Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "App", "App\App.jsproj", "{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeInfrastructure", "NativeInfrastructure\NativeInfrastructure.vcxproj", "{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CodevoidN", "NativeInfrastructure\NativeInfrastructure.vcxproj", "{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
