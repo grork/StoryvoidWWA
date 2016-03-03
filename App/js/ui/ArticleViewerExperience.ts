@@ -69,6 +69,10 @@
                 this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
 
                 this._openPage();
+
+                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
+                    removed: this.close.bind(this),
+                }));
             });
         }
 
@@ -220,6 +224,11 @@
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
 
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            if (view.isFullScreen) {
+                view.exitFullScreenMode();
+            }
+
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Flip this flag to allow the next navigate to complete, because
                 // we're normally supressing navigations after the first load.
@@ -246,7 +255,24 @@
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.ArticleVoid.UI.ArticleViewerExperience" };
+        private _toggleLikeCommand: WinJS.UI.Command;
+        private _deleteCommand: WinJS.UI.Command;
+        private _archiveCommand: WinJS.UI.Command;
+        private _fullScreenCommand: WinJS.UI.Command;
+        private _eventSource: Utilities.EventSource;
+
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
+            this._eventSource = new Utilities.EventSource();
+
+            this._initializeToggleCommand();
+            this._initializeArchiveCommand();
+            this._initializeFullScreenCommand();
+
+            this._deleteCommand = new WinJS.UI.Command(null, {
+                tooltip: "Delete",
+                icon: "delete",
+                onclick: this._delete.bind(this),
+            });
         }
 
         public updateProgress(progress: number): void {
@@ -258,15 +284,8 @@
         public getPrimaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
             var commands = [];
 
-            var like = new WinJS.UI.Command(null, {
-                tooltip: "Like",
-                icon: "like",
-                onclick: () => {
-                    this._toggleLike();
-                }
-            });
-
-            commands.push(like);
+            commands.push(this._toggleLikeCommand);
+            commands.push(this._archiveCommand);
 
             return new WinJS.Binding.List(commands);
         }
@@ -274,26 +293,158 @@
         public getSecondaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
             var commands = [];
 
-            var deleteCommand = new WinJS.UI.Command(null, {
-                tooltip: "Delete",
-                icon: "delete",
-                onclick: () => {
-                    this._delete();
-                }
-            });
-
-            commands.push(deleteCommand);
+            commands.push(this._fullScreenCommand);
+            commands.push(this._deleteCommand);
 
             return new WinJS.Binding.List(commands);
         }
 
+        public get eventSource(): Utilities.EventSource {
+            return this._eventSource;
+        }
+
+        private _initializeToggleCommand() {
+            this._toggleLikeCommand = new WinJS.UI.Command(null, {
+                onclick: this._toggleLike.bind(this),
+            });
+
+            if (this.bookmark.starred === 1) {
+                this._setToggleLikeToUnlike();
+            } else {
+                this._setToggleLikeToLike();
+            }
+        }
+
+        private _setToggleLikeToUnlike() {
+            this._toggleLikeCommand.tooltip = "Unlike";
+            this._toggleLikeCommand.icon = "\uE00B";
+        }
+
+        private _setToggleLikeToLike() {
+            this._toggleLikeCommand.tooltip = "Like";
+            this._toggleLikeCommand.icon = "\uE006";
+        }
 
         private _toggleLike(): void {
-            // TODO: Toggle the like
+            var updateBookmark;
+
+            if (this.bookmark.starred === 1) {
+                updateBookmark = this._instapaperDB.unlikeBookmark(this.bookmark.bookmark_id);
+            } else {
+                updateBookmark = this._instapaperDB.likeBookmark(this.bookmark.bookmark_id);
+            }
+
+            updateBookmark.done((bookmark) => {
+                this.bookmark = bookmark;
+
+                if (this.bookmark.starred === 1) {
+                    this._setToggleLikeToUnlike();
+                } else {
+                    this._setToggleLikeToLike();
+                }
+            });
         }
 
         private _delete(): void {
-            // TODO: Close & delete
+            this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).done(() => {
+                this._eventSource.dispatchEvent("removed", null);
+            });
+        }
+
+        private _initializeArchiveCommand(): void {
+            this._archiveCommand = new WinJS.UI.Command(null, {
+                onclick: this._archive.bind(this),
+            });
+
+            if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.archive) {
+                this._archiveCommand.tooltip = "Move to unread";
+                this._archiveCommand.icon = "\uEC51";
+            } else {
+                this._archiveCommand.tooltip = "Archive";
+                this._archiveCommand.icon = "\uEC50";
+            }
+        }
+
+        private _archive(): void {
+            var destinationFolder: number;
+            if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.archive) {
+                destinationFolder = this._instapaperDB.commonFolderDbIds.unread;
+            } else {
+                destinationFolder = this._instapaperDB.commonFolderDbIds.archive;
+            }
+
+            this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder).done(() => {
+                this._eventSource.dispatchEvent("removed", null);
+            });
+        }
+
+        private _initializeFullScreenCommand(): void {
+            this._fullScreenCommand = new WinJS.UI.Command(null, {
+                onclick: this._toggleFullScreen.bind(this),
+            });
+
+            this._updateFullScreenButtonState();
+        }
+
+        private _updateFullScreenButtonState(): void {
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            if (view.isFullScreen) {
+                this._setFullScreenCommandToExit();
+            } else {
+                this._setFullScreenCommandToEnter();
+            }
+        }
+
+        private _toggleFullScreen() {
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+
+            if (!view.isFullScreen) {
+                var transitionedToFullScreen = view.tryEnterFullScreenMode();
+                if (transitionedToFullScreen) {
+                    this._handleTransitionToFullScreen();
+                }
+            } else {
+                view.exitFullScreenMode();
+            }
+        }
+
+        private _handleTransitionToFullScreen() {
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+
+            // Full screen isn't correct for a short while after we have actually transitioned.
+            // So, we need to wait for the resize to get to full screen, and *then* we need to
+            // listen for another resize event to see if we exited the fullscreen mode.
+            var initialResizeHandler = Codevoid.Utilities.addEventListeners(window, {
+                resize: () => {
+                    if (!view.isFullScreen) {
+                        return;
+                    }
+
+                    initialResizeHandler.cancel();
+                    this._updateFullScreenButtonState();
+
+                    var windowResizeHandler = Codevoid.Utilities.addEventListeners(window, {
+                        resize: () => {
+                            if (view.isFullScreen) {
+                                return;
+                            }
+
+                            windowResizeHandler.cancel();
+                            this._setFullScreenCommandToEnter();
+                        }
+                    });
+                }
+            });
+        }
+
+        private _setFullScreenCommandToExit(): void {
+            this._fullScreenCommand.tooltip = "Exit Full Screen";
+            this._fullScreenCommand.icon = "\uE1D8";
+        }
+
+        private _setFullScreenCommandToEnter(): void {
+            this._fullScreenCommand.tooltip = "Exit Full Screen";
+            this._fullScreenCommand.icon = "\uE1D9";
         }
     }
 
