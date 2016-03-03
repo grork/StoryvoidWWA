@@ -151,6 +151,7 @@ declare module Codevoid.ArticleVoid {
         description: string;
         extractedDescription: string;
         articleUnavailable: boolean;
+        starred: number;
     }
 
     export interface IFoldersChangedEvent {
@@ -180,7 +181,9 @@ declare module Codevoid.ArticleVoid {
         getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
 
         // Bookmark interface
+        moveBookmark(bookmark_id: number, destinationfolder_dbid: number): WinJS.Promise<IBookmark>;
         removeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
+        likeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
         unlikeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
         updateBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
         updateReadProgress(bookmark_id: number, progress: number): WinJS.Promise<IBookmark>;

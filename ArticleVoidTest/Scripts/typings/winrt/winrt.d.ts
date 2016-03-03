@@ -11669,6 +11669,8 @@ declare module Windows {
                 titleBar: ApplicationViewTitleBar;
 
                 setPreferredMinSize(size: { height: number, width: number });
+                tryEnterFullScreenMode(): boolean;
+                exitFullScreenMode(): void;
             }
 
             export class StatusBar {
