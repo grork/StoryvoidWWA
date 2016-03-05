@@ -180,6 +180,7 @@ module Codevoid.Storyvoid.UI {
         private articleTitle: HTMLSpanElement;
         private articleUrl: HTMLDivElement;
         private informationLabel: HTMLDivElement;
+        private saveButton: HTMLButtonElement;
         private successMessage: HTMLDivElement;
         private progressRing: HTMLProgressElement;
         private details: HTMLDivElement;
@@ -234,7 +235,8 @@ module Codevoid.Storyvoid.UI {
         private _handleSharingStateChanged(state: SharingState): void {
             switch (state) {
                 case SharingState.Started:
-                    WinJS.Utilities.addClass(this.details, "hide");
+                    WinJS.Utilities.addClass(this.informationLabel, "hide");
+                    WinJS.Utilities.addClass(this.saveButton, "hide");
                     WinJS.Utilities.removeClass(this.progressRing, "hide");
                     break;
 
@@ -245,7 +247,8 @@ module Codevoid.Storyvoid.UI {
 
                 case SharingState.Error:
                     WinJS.Utilities.addClass(this.progressRing, "hide");
-                    WinJS.Utilities.removeClass(this.details, "hide");
+                    WinJS.Utilities.removeClass(this.informationLabel, "hide");
+                    WinJS.Utilities.removeClass(this.saveButton, "hide");
                     break;
 
                 default:
