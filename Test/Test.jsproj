@@ -51,7 +51,7 @@
     <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>ArticleVoidTest_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>Test_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>CB5DB13FEA5B0104F47B255DB6F08F05DCD5E5AE</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -61,7 +61,7 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="ArticleVoidTest_TemporaryKey.pfx" />
+    <None Include="Test_TemporaryKey.pfx" />
     <Content Include="css\tests\qunit.css" />
     <Content Include="HtmlTemplates.html" />
     <Content Include="js\AuthenticatorService.js" />
