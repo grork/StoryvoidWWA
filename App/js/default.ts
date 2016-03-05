@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid {
+﻿module Codevoid.Storyvoid {
     export class App extends UI.AppThatCanSignIn {
         private configureTitlebar(): void {
             var applicationView = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();

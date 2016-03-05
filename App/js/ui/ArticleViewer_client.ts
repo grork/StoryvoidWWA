@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     var KEY_PLUS = 187;
     var KEY_MINUS = 189;
 

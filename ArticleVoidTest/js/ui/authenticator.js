@@ -2,7 +2,7 @@
     "use strict";
     var msfp = Codevoid.Utilities.DOM.msfp;
 
-    WinJS.Namespace.define("Codevoid.ArticleVoid.UI", {
+    WinJS.Namespace.define("Codevoid.Storyvoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {
             this._handlersToCleanup = [];
             this.base(element, options);
@@ -15,7 +15,7 @@
                 // Make sure we set the attribute after, since when we render
                 // the template on our own element, it'll process the win-control
                 // attribute and create two of them. This would be bad, mmmkay?
-                Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.Authenticator");
+                Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.Authenticator");
 
                 this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(element, this));
                 Codevoid.Utilities.DOM.marryPartsToControl(element, this);
@@ -118,7 +118,7 @@
             }),
         }, {
             showAuthenticator: function () {
-                return Codevoid.ArticleVoid.Authenticator.getClientInformation();
+                return Codevoid.Storyvoid.Authenticator.getClientInformation();
             },
         }),
     });

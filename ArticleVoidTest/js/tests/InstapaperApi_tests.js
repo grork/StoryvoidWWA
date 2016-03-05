@@ -31,7 +31,7 @@
 
     function canGetAccessToken() {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         stop();
         accounts.getAccessToken("test@codevoid.net", "TestPassword").done(function (tokenInfo) {
@@ -45,7 +45,7 @@
     }
 
     function canVerifyCredentials() {
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         stop();
         accounts.verifyCredentials().done(function (verifiedCreds) {
@@ -60,7 +60,7 @@
 
     promiseTest("can'tGetAccessTokenWhenUsingBadCredentials", function () {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         return accounts.getAccessToken("test@codevoid.net", "IncorrectPassword").then(function () {
             ok(false, "shouldn't succeed");
@@ -74,7 +74,7 @@
 
     promiseTest("verifyingBadCredentialsFails", function () {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token + "3", secret + "a");
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         return accounts.verifyCredentials().then(function () {
             ok(false, "Should have failed");
@@ -86,11 +86,11 @@
 
     test("nonSubscriptionAccountTokenAndHasNoActiveSub", function () {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
-        var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         stop();
         accounts.getAccessToken("test2@codevoid.net", "TestPassword").then(function (tokenInfo) {
-            var accounts2 = new Codevoid.ArticleVoid.InstapaperApi.Accounts(
+            var accounts2 = new Codevoid.Storyvoid.InstapaperApi.Accounts(
                 new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokenInfo.oauth_token, tokenInfo.oauth_token_secret));
             return accounts2.verifyCredentials();
         }).done(function (userInfo) {
@@ -102,21 +102,21 @@
     module("instapaperApiBookmarksHaveConversion");
 
     function numberHaveReturnsString() {
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(12345);
+        var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(12345);
 
         strictEqual(result, "12345", "Expected string back from function. Got something else");
     }
 
     function haveWithHashReturnsCorrectString() {
         var have = { id: 12345, hash: "OjMuzFp6" };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+        var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "12345:OjMuzFp6", "Incorrect stringification of have value");
     }
 
     function haveWithProgressReturnsCorrectString() {
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5, progressLastChanged: 1288584076 };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+        var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "12345:OjMuzFp6:0.5:1288584076", "Incorrect stringification of have value");
     }
@@ -125,7 +125,7 @@
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5 };
 
         raises(function () {
-            Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+            Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
         }, null, "no exception was thrown");
     }
     test("numberHaveReturnsString", numberHaveReturnsString);
@@ -134,14 +134,14 @@
     test("haveWithProgressButNoProgressTimestampThrows", haveWithProgressButNoProgressTimestampThrows);
     test("haveWithZeroProgressAndValidTimestampReturnsString", function () {
         var have = { id: 1234, hash: "ABCDEF", progress: 0, progressLastChanged: 12344565 };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+        var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "1234:ABCDEF:0:12344565", "incorrect stringification of value");
     });
 
     test("haveWithZeroProgressAndZeroTimestampHasNoProgressInformation", function () {
         var have = { id: 1234, hash: "ABCDEF", progress: 0, progressLastChanged: 0 };
-        var result = Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have);
+        var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         strictEqual(result, "1234:ABCDEF", "incorrect stringification of value");
     });
@@ -149,7 +149,7 @@
     module("instapaperApiBookmarks");
 
     test("clearRemoteData", function () {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         InstapaperTestUtilities.destroyRemoteData(clientInformation).then(function () {
@@ -165,7 +165,7 @@
     });
 
     function addThrowsWhenNoUrl() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         raises(function () {
             bookmarks.add({});
@@ -175,7 +175,7 @@
     }
 
     function listIsEmpty() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list().done(function (data) {
@@ -192,7 +192,7 @@
     var justAddedBookmark;
 
     function addAddsUrlReturnsCorrectObject() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
         stop();
         bookmarks.add({ url: urlToAdd }).done(function (data) {
@@ -210,7 +210,7 @@
     }
 
     function addWithAdditionalParameters() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage2.html";
         var bookmarkToCleanup;
 
@@ -230,7 +230,7 @@
     }
 
     function listShowsAddedBookmark() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list().done(function (data) {
@@ -253,7 +253,7 @@
     }
 
     function listShowsNoDataWithUptodateHaveData() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({
@@ -271,10 +271,10 @@
 
     var updatedProgressHash;
     function updateProgress() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
-        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50 }).done(function (data) {
+        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50 }).done(function (data) {
             strictEqual(data.type, "bookmark");
             equal(data.progress, 0.2);
             updatedProgressHash = data.hash;
@@ -284,7 +284,7 @@
     }
 
     function listWithHaveProgressInfoUpdatesProgress() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         var newProgress = (Math.round(Math.random() * 100) / 100);
@@ -296,7 +296,7 @@
                 hash: "X", // Set hash to something random that causes the service to give us back the new hash.
                            // If we don't do this and hand up the "current" hash that we currently have, it updates
                            // the current state, but doesn't tell us that it recomputed the hash.
-                progressLastChanged: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
+                progressLastChanged: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
             }]
         }).done(function (data) {
             ok(Array.isArray(data.bookmarks), "Expected an array of data")
@@ -316,27 +316,27 @@
     }
 
     function updateProgressMoreThan1() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
     }
 
     function updateProgressLessThan0() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
     }
 
     function listInStarredFolderExpectingNoStarredItems() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: "starred" }).done(function (data) {
@@ -347,7 +347,7 @@
     }
 
     function star() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.star(justAddedId).done(function (data) {
@@ -357,7 +357,7 @@
     }
 
     function listInStarredFolderExpectingSingleStarredItem() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: "starred" }).done(function (data) {
@@ -376,7 +376,7 @@
     }
 
     function unstar() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.unstar(justAddedId).done(function (data) {
@@ -386,7 +386,7 @@
     }
 
     function listInArchiveFolderExpectingNoArchivedItems() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: "archive" }).done(function (data) {
@@ -397,7 +397,7 @@
     }
 
     function archive() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.archive(justAddedId).done(function (data) {
@@ -411,7 +411,7 @@
     }
 
     function listInArchiveFolderExpectingSingleArchivedItem() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: "archive" }).done(function (data) {
@@ -430,7 +430,7 @@
     }
 
     function unarchive() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.unarchive(justAddedId).done(function (data) {
@@ -444,7 +444,7 @@
     }
 
     function getText() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.getText(justAddedId).done(function (data) {
@@ -454,7 +454,7 @@
     }
 
     function getTextToDirectory() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
 
@@ -485,7 +485,7 @@
     }
 
     function getTextToDirectoryForUnavailableBookmarkDoesntWriteFile() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
         var badBookmarkId;
         var targetFileName;
@@ -520,7 +520,7 @@
     }
 
     function getText_nonExistantBookmark() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.getText(justAddedId).done(function (data) {
@@ -533,7 +533,7 @@
     }
 
     function getText_unavailableBookmark() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var badBookmarkId;
 
         stop();
@@ -554,7 +554,7 @@
     }
 
     function deletedAddedUrl() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.deleteBookmark(justAddedId).done(function (data) {
@@ -565,7 +565,7 @@
     }
 
     function deleteNonExistantUrl() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         stop();
         bookmarks.deleteBookmark(justAddedId).done(function (data) {
@@ -616,7 +616,7 @@
     var addedFolderId;
 
     function listDefaultShouldBeEmpty() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         stop();
         folders.list().done(function (folders) {
@@ -628,7 +628,7 @@
     }
 
     function addNewFolder() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         stop();
 
@@ -641,11 +641,11 @@
     }
     
     function addDuplicateFolderReturnsError() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         stop();
 
-        var title = Codevoid.ArticleVoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + "";
+        var title = Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + "";
 
         folders.add(title).then(function () {
             return folders.add(title);
@@ -659,7 +659,7 @@
     }
 
     function listWithAddedFolders() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         stop();
         folders.list().done(function (folders) {
@@ -684,7 +684,7 @@
 
     var bookmarkAddedToFolderId;
     function addToFolder() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage3.html";
 
@@ -705,7 +705,7 @@
 
     var bookmarkAddedToFolderId2;
     function moveBookmarkIntoFolder() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
 
@@ -734,7 +734,7 @@
     }
 
     function listContentsOfAFolder() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.list({ folder_id: addedFolderId }).done(function (data) {
@@ -768,7 +768,7 @@
     }
 
     function moveBookmarkOutOfArchive() {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         stop();
 
         bookmarks.archive(bookmarkAddedToFolderId2).then(function() {
@@ -784,8 +784,8 @@
     }
 
     function deleteFolder() {
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         // delete book mark 'cause it ends up in the archieve folder
         stop();
@@ -811,7 +811,7 @@
     test("moveBookmarkIntoFolder", moveBookmarkIntoFolder);
     test("listContentsOfAFolder", listContentsOfAFolder);
     test("moveBookmarkToUnread", function () {
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
 
         stop();

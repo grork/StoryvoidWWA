@@ -40,7 +40,7 @@
 
         if (objectData.length === 1) {
             if (objectData[0].type === "error") {
-                return new Codevoid.ArticleVoid.InstapaperApi.InstapaperApiException(objectData[0].error_code, objectData[0].message);
+                return new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(objectData[0].error_code, objectData[0].message);
             }
 
             if (reduceSingleItemToObject) {
@@ -67,7 +67,7 @@
         return WinJS.Promise.wrapError(result);
     }
 
-    WinJS.Namespace.define("Codevoid.ArticleVoid.InstapaperApi", {
+    WinJS.Namespace.define("Codevoid.Storyvoid.InstapaperApi", {
         InstapaperApiException: WinJS.Class.derive(Error, function InstapaperApiException_Constructor(error, message) {
             this.error = error;
             this.message = message;
@@ -168,7 +168,7 @@
 
                         var haveStrings = [];
                         parameters.have.forEach(function (have) {
-                            haveStrings.push(Codevoid.ArticleVoid.InstapaperApi.Bookmarks.haveToString(have));
+                            haveStrings.push(Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have));
                         });
 
                         appassert(haveStrings.length > 0, "didn't get any have strings to send");
@@ -404,7 +404,7 @@
                 request.data = [{ key: "title", value: title }];
                 return request.send().then(extractSingleItemFromJSONArray).then(function (data) {
                     if (!data.folder_id) {
-                        return WinJS.Promise.wrapError(new Codevoid.ArticleVoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
+                        return WinJS.Promise.wrapError(new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
                     }
 
                     return data;

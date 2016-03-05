@@ -93,7 +93,7 @@ declare module Codevoid.OAuth {
     }
 }
 
-declare module Codevoid.ArticleVoid {
+declare module Codevoid.Storyvoid {
     export class SyncOperation {
         start: string;
         end: string;
@@ -236,7 +236,7 @@ declare module Codevoid.ArticleVoid {
     }
 }
 
-declare module Codevoid.ArticleVoid.InstapaperApi {
+declare module Codevoid.Storyvoid.InstapaperApi {
     export class Bookmarks {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
         add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<IBookmark>;
@@ -246,7 +246,7 @@ declare module Codevoid.ArticleVoid.InstapaperApi {
     }
 }
 
-declare module Codevoid.ArticleVoid.Authenticator {
+declare module Codevoid.Storyvoid.Authenticator {
     export function getStoredCredentials(): Codevoid.OAuth.ClientInformation;
     export function clearClientInformation(): void;
     export function getClientInformation(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
@@ -257,7 +257,7 @@ declare module Codevoid.ArticleVoid.Authenticator {
     }
 }
 
-declare module Codevoid.ArticleVoid.UI {
+declare module Codevoid.Storyvoid.UI {
     export class Authenticator {
         static showAuthenticator(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
     }

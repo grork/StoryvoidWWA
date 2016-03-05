@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     export class SyncProgressControl extends Codevoid.UICore.Control {
@@ -14,7 +14,7 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SyncProgressControl");
+            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SyncProgressControl");
 
             this.template.render({}, this.element).done(() => {
                 DOM.marryPartsToControl(this.element, this);

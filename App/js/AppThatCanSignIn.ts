@@ -1,11 +1,11 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     export class AppThatCanSignIn implements IAppWithAbilityToSignIn {
-        private _signedOutViewModel: Codevoid.ArticleVoid.UI.SignedOutViewModel;
-        private _signedInViewModel: Codevoid.ArticleVoid.UI.ISignedInViewModel;
+        private _signedOutViewModel: Codevoid.Storyvoid.UI.SignedOutViewModel;
+        private _signedInViewModel: Codevoid.Storyvoid.UI.ISignedInViewModel;
         public initialize(): void {
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
-            var credentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            var credentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             if (!credentials) {
                 this.signOut();
             } else {
@@ -16,7 +16,7 @@
         public signOut(): void {
             var signedInElement = <HTMLElement>document.body.firstElementChild;
             WinJS.Utilities.addClass(signedInElement, "hide");
-            this._signedOutViewModel = new Codevoid.ArticleVoid.UI.SignedOutViewModel(this);
+            this._signedOutViewModel = new Codevoid.Storyvoid.UI.SignedOutViewModel(this);
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this._signedOutViewModel);
         }
 

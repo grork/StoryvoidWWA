@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
@@ -30,7 +30,7 @@
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
             }).done(() => {
-                DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedOutExperience");
+                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedOutExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 
@@ -254,7 +254,7 @@
     }
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
-        public experience = { wwa: "Codevoid.ArticleVoid.UI.ArticleViewerExperience" };
+        public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
         private _toggleLikeCommand: WinJS.UI.Command;
         private _deleteCommand: WinJS.UI.Command;
         private _archiveCommand: WinJS.UI.Command;

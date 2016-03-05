@@ -1,7 +1,7 @@
 ﻿(function () {
     "use strict";
     
-    var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
+    var InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
     var pendingDbs = [];
     
     function cleanUpOpenDbs() {
@@ -127,8 +127,8 @@
         /// clean & happy.
         /// Finally, we also need to reset the progress.
         /// </summary>
-        var folders = new Codevoid.ArticleVoid.InstapaperApi.Folders(clientInformation);
-        var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(clientInformation);
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         // Remove all the folders. If there are any bookmarks in these folders
         // when this happens, the back end will move them to "Archive".
