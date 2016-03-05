@@ -29,18 +29,19 @@
             document.addEventListener("scroll", this._handleScroll.bind(this));
         }
 
-        private _insertTitle(data: { title: string, domain: string }) {
+        private _insertTitle(data: { title: string, domain: string, url: string }) {
             var headerContainer = document.createElement("div");
             headerContainer.className = "articleViewer-header-container";
 
             var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
             title.className = "articleViewer-title";
 
-            var subTitle = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            var subTitle = <HTMLAnchorElement>headerContainer.appendChild(document.createElement("a"));
             subTitle.className = "articleViewer-subTitle";
 
             title.textContent = data.title;
             subTitle.textContent = data.domain;
+            subTitle.href = data.url;
 
             document.body.insertBefore(headerContainer, document.body.firstChild);
         }
@@ -54,9 +55,32 @@
         }
 
         private _handleClick(ev: MouseEvent) {
-            if (ev.button == 0) {
-                this._toggleToolbar();
+            // We're only going to do anything on left-clik
+            if (ev.button != 0) {
+                return;
             }
+
+            // We need to see if this click was on an element that was a "a" tag, or
+            // was the child of an A tag.
+            var wasInsideAnchor = false;
+            var parentElement = <HTMLElement>ev.target;
+            while (parentElement != null) {
+                if (parentElement.tagName.toLowerCase() === 'a') {
+                    wasInsideAnchor = true;
+                    break;
+                }
+
+                parentElement = parentElement.parentElement;
+            }
+
+            // If we were inside an anchor element, we don't want
+            // to "toggle" anything; we just want notify that a link was clicked
+            if (wasInsideAnchor) {
+                Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("linkinvoked", (<HTMLAnchorElement>parentElement).href);
+                return;
+            }
+
+            this._toggleToolbar();
         }
 
         private _handleKeyDown(ev: KeyboardEvent): void {
