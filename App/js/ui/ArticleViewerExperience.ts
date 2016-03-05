@@ -108,7 +108,8 @@
                     ]).done(() => {
                         this._messenger.invokeForResult("inserttitle", {
                             title: this.viewModel.bookmark.title,
-                            domain: this._extractDomainFromUrl(this.viewModel.bookmark.url)
+                            domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
+                            url: this.viewModel.bookmark.url,
                         });
 
                         this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
@@ -141,6 +142,9 @@
                     this.close(null);
                 },
                 toggletoolbar: this._toggleToolbar.bind(this),
+                linkinvoked: (e) => {
+                    this._handleLinkInvocation(e.detail);
+                }
             }));
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
@@ -209,6 +213,21 @@
                     this._toolbarVisible = true;
                 });
             }
+        }
+
+        private _handleLinkInvocation(url: string): void {;
+            var uri;
+            try {
+                // URL might be badly formed, so we're going to try and parse it. If it fails,
+                // Well, screw it.
+                uri = new Windows.Foundation.Uri(url);
+            }
+            catch (e) {
+                Utilities.Logging.instance.log("Tried to navigate to bad URL: " + url);
+                return;
+            }
+
+            Windows.System.Launcher.launchUriAsync(uri);
         }
 
         public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
