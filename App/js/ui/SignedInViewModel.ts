@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     var ARTICLES_FOLDER_NAME = "Articles";
 
     export interface IFolderDetails {
@@ -18,11 +18,11 @@
         comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
     }
 
-    export class SignedInViewModel implements Codevoid.ArticleVoid.UI.ISignedInViewModel {
-        public experience = { wwa: "Codevoid.ArticleVoid.UI.SignedInExperience" };
+    export class SignedInViewModel implements Codevoid.Storyvoid.UI.ISignedInViewModel {
+        public experience = { wwa: "Codevoid.Storyvoid.UI.SignedInExperience" };
         private _handlersToCleanUp: Utilities.ICancellable[] = [];
         private _clientInformation: Codevoid.OAuth.ClientInformation;
-        private _instapaperDB: Codevoid.ArticleVoid.InstapaperDB;
+        private _instapaperDB: Codevoid.Storyvoid.InstapaperDB;
         private _dbOpened: boolean;
         private _pendingDbOpen: Utilities.Signal;
         private _eventSource: Utilities.EventSource;
@@ -221,7 +221,7 @@
             }
 
             this._pendingDbOpen = new Utilities.Signal();
-            this._instapaperDB = new Codevoid.ArticleVoid.InstapaperDB();
+            this._instapaperDB = new Codevoid.Storyvoid.InstapaperDB();
 
             this._handlersToCleanUp.push(Utilities.addEventListeners(this._instapaperDB, {
                 folderschanged: (e: Utilities.EventObject<IFoldersChangedEvent>) => {
@@ -257,9 +257,9 @@
 
         public signOut(): void {
             this.disposeDB();
-            Codevoid.ArticleVoid.Authenticator.clearClientInformation();
+            Codevoid.Storyvoid.Authenticator.clearClientInformation();
 
-            var idb = new Codevoid.ArticleVoid.InstapaperDB();
+            var idb = new Codevoid.Storyvoid.InstapaperDB();
             idb.initialize().then(() => {
                 return WinJS.Promise.join([
                     idb.deleteAllData(),
@@ -272,7 +272,7 @@
         }
 
         public signedIn(usingSavedCredentials: boolean) {
-            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             WinJS.Promise.join({
                 db: this.initializeDB(),
                 uiReady: this._readyForEvents.promise,
@@ -288,9 +288,9 @@
         }
 
         public startSync(): void {
-            var sync = new Codevoid.ArticleVoid.InstapaperSync(this._clientInformation);
+            var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
-            var articleSync: Codevoid.ArticleVoid.InstapaperArticleSync;
+            var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
 
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = 10;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = 10;
@@ -299,37 +299,37 @@
 
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.start:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.start:
                         this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
 
                         Utilities.Logging.instance.log("Started");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.end:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.end:
                         Utilities.Logging.instance.log("Ended");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart:
                         Utilities.Logging.instance.log("Folders Started");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersEnd:
                         Utilities.Logging.instance.log("Folders Ended");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksStart:
                         Utilities.Logging.instance.log("Bookmarks Start");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksEnd:
                         Utilities.Logging.instance.log("Bookmarks End");
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarkFolder:
                         Utilities.Logging.instance.log("Syncing Folder: " + eventData.detail.title);
                         break;
 
-                    case Codevoid.ArticleVoid.InstapaperSync.Operation.folder:
+                    case Codevoid.Storyvoid.InstapaperSync.Operation.folder:
                         Utilities.Logging.instance.log("Folder Synced: " + eventData.detail.title);
                         break;
 
@@ -347,7 +347,7 @@
                 }),
                 folder: folderOperation,
             }).then((result) => {
-                articleSync = new Codevoid.ArticleVoid.InstapaperArticleSync(this._clientInformation, result.folder);
+                articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
                     syncingarticlestarting: (e: { detail: { title: string } }) => {
@@ -371,7 +371,7 @@
 
         public clearDb(): WinJS.Promise<any> {
             this.disposeDB();
-            var idb = new Codevoid.ArticleVoid.InstapaperDB();
+            var idb = new Codevoid.Storyvoid.InstapaperDB();
             return idb.initialize().then(() => {
 
             }, () => {
@@ -386,8 +386,8 @@
             var dumpData = {};
 
             return db.open({
-                server: Codevoid.ArticleVoid.InstapaperDB.DBName,
-                version: Codevoid.ArticleVoid.InstapaperDB.DBVersion,
+                server: Codevoid.Storyvoid.InstapaperDB.DBName,
+                version: Codevoid.Storyvoid.InstapaperDB.DBVersion,
             }).then((openedDb) => {
                 database = openedDb;
 
@@ -411,7 +411,7 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new DbFiddlerViewModel(this._instapaperDB));
         }
 
-        public listFolders(): WinJS.Promise<Codevoid.ArticleVoid.IFolder[]> {
+        public listFolders(): WinJS.Promise<Codevoid.Storyvoid.IFolder[]> {
             return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
                 return folders.filter((item) => {
                     if (item.localOnly) {
@@ -546,7 +546,7 @@
                     icon: "download",
                     onclick: () => {
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
-                            var articleSync = new Codevoid.ArticleVoid.InstapaperArticleSync(this._clientInformation, folder);
+                            var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
                             articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB).then((bookmark) => {
                                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                             });
@@ -573,7 +573,7 @@
         }
 
         public showArticle(bookmark: IBookmark): void {
-            var viewer = new Codevoid.ArticleVoid.UI.ArticleViewerViewModel(bookmark, this._instapaperDB);
+            var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark, this._instapaperDB);
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
         }
 

@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     export class SignedInExperience extends Codevoid.UICore.Control {
@@ -22,7 +22,7 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.SignedInExperience");
+            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedInExperience");
 
             WinJS.UI.processAll(element).done(() => {
                 this._initialize();
@@ -107,7 +107,7 @@
 
         private _createProgressHeader(initialMessage: string): void {
             var headerContainer = document.createElement("div");
-            var syncProgress = new Codevoid.ArticleVoid.UI.SyncProgressControl(headerContainer, {
+            var syncProgress = new Codevoid.Storyvoid.UI.SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
                 template: this._progressTemplate,
                 eventSource: this.viewModel.events,

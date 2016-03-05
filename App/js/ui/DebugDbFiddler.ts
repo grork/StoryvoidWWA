@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid.UI {
+﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     interface IFiddleCommand {
@@ -17,7 +17,7 @@
             DOM.loadTemplate("/HtmlTemplates.html", "dbFiddler").then((template) => {
                 return template.render(null, element);
             }).done(() => {
-                DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.DbFiddler");
+                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.DbFiddler");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 
@@ -34,7 +34,7 @@
     }
 
     export class DbFiddlerViewModel implements Codevoid.UICore.ViewModel {
-        public experience = { wwa: "Codevoid.ArticleVoid.UI.DbFiddlerExperience" };
+        public experience = { wwa: "Codevoid.Storyvoid.UI.DbFiddlerExperience" };
         constructor(private _db: InstapaperDB) {
         }
 

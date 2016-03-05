@@ -1,7 +1,7 @@
-﻿module Codevoid.ArticleVoid {
+﻿module Codevoid.Storyvoid {
     import oauth = Codevoid.OAuth;
-    import av = Codevoid.ArticleVoid;
-    import api = Codevoid.ArticleVoid.InstapaperApi;
+    import av = Codevoid.Storyvoid;
+    import api = Codevoid.Storyvoid.InstapaperApi;
     import st = Windows.Storage;
     import http = Windows.Web.Http;
     import c = Windows.Foundation.Collections;

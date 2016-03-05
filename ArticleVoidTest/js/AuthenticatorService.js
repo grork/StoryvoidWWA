@@ -9,7 +9,7 @@
     var tokenSettingName = "token";
     var tokenSecretSettingName = "secret";
 
-    WinJS.Namespace.define("Codevoid.ArticleVoid.Authenticator", {
+    WinJS.Namespace.define("Codevoid.Storyvoid.Authenticator", {
         _tokenSettingInformation: {
             root: tokenInformationSettingName,
             token: tokenSettingName,
@@ -19,7 +19,7 @@
             var packageVersion = Windows.ApplicationModel.Package.current.id.version;
             var versionAsString = packageVersion.major + "." + packageVersion.minor + "." + packageVersion.build + "." + packageVersion.revision;
 
-            clientInformation.productName = "Codevoid ArticleVoid";
+            clientInformation.productName = "Codevoid Storyvoid";
             clientInformation.productVersion = versionAsString;
 
             return clientInformation;
@@ -31,7 +31,7 @@
             if(tokens
                 && tokens.hasKey(tokenSettingName)
                 && tokens.hasKey(tokenSecretSettingName)) {
-                return Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
+                return Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
             }
 
             return null;
@@ -39,12 +39,12 @@
         getClientInformation: function getClientInformation(overrideCredentials) {
             var store = Windows.Storage.ApplicationData.current.localSettings;
             
-            var storedCredentials = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            var storedCredentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             if (storedCredentials) {
                 return WinJS.Promise.as(storedCredentials);
             }
 
-            var authenticator = new Codevoid.ArticleVoid.Authenticator.AuthenticatorViewModel();
+            var authenticator = new Codevoid.Storyvoid.Authenticator.AuthenticatorViewModel();
             if (overrideCredentials) {
                 authenticator.username = overrideCredentials.user;
                 authenticator.password = overrideCredentials.password;
@@ -56,7 +56,7 @@
                 userTokens[tokenSecretSettingName] = result.oauth_token_secret;
                 store.values[tokenInformationSettingName] = userTokens;
 
-                return new Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
+                return new Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
             });
         },
         clearClientInformation: function clearClientInformation() {
@@ -95,7 +95,7 @@
             this.addEventListener("authenticationErrorChanged", this._authenticationErrorChanged);
         }, {
             experience: {
-                wwa: "Codevoid.ArticleVoid.UI.Authenticator",
+                wwa: "Codevoid.Storyvoid.UI.Authenticator",
             },
             username: property("username", null),
             password: property("password", null),
@@ -119,8 +119,8 @@
                 }
             },
             _tryAuthenticate: function (credentialPromise, retry) {
-                var clientInformation = Codevoid.ArticleVoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret));
-                var accounts = new Codevoid.ArticleVoid.InstapaperApi.Accounts(clientInformation);
+                var clientInformation = Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret));
+                var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
                 credentialPromise.then(function () {
                     this.isWorking = true;
@@ -162,7 +162,7 @@
                 }
             },
             _authenticationErrorChanged: function () {
-                var message = Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(this.authenticationError);
+                var message = Codevoid.Storyvoid.Authenticator.friendlyMessageForError(this.authenticationError);
                 if (this.authenticationErrorMessage === message) {
                     return;
                 }

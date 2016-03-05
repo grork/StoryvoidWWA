@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="Codevoid.ArticleVoid" Version="0.5.0.0" Publisher="CN=Codevoid" />
+  <Identity Name="Codevoid.Storyvoid" Version="0.5.0.0" Publisher="CN=Codevoid" />
   <mp:PhoneIdentity PhoneProductId="84fd802d-0f7c-4b15-a01a-8cd4377eb8fe" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>ArticleVoid</DisplayName>
+    <DisplayName>Storyvoid</DisplayName>
     <PublisherDisplayName>Codevoid</PublisherDisplayName>
     <Logo>images\storelogo.png</Logo>
   </Properties>
@@ -15,14 +15,14 @@
   </Resources>
   <Applications>
     <Application Id="App" StartPage="default.html">
-      <uap:VisualElements DisplayName="ArticleVoid" Description="ArticleVoid: An Instapaper client for Windows 10" BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
+      <uap:VisualElements DisplayName="Storyvoid" Description="Storyvoid: An Instapaper client for Windows 10" BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
         <uap:DefaultTile Wide310x150Logo="images\Wide310x150Logo.png">
         </uap:DefaultTile>
         <uap:SplashScreen Image="images\splashscreen.png" />
       </uap:VisualElements>
       <Extensions>
         <uap:Extension Category="windows.shareTarget" StartPage="shareTarget.html">
-          <uap:ShareTarget Description="Add links to your Instapaper account with ArticleVoid">
+          <uap:ShareTarget Description="Add links to your Instapaper account with Storyvoid">
             <uap:DataFormat>URI</uap:DataFormat>
           </uap:ShareTarget>
         </uap:Extension>

@@ -5,7 +5,7 @@
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
     var cleanupExperienceHost = InstapaperTestUtilities.cleanupExperienceHost;
-    var authenticator = Codevoid.ArticleVoid.Authenticator;
+    var authenticator = Codevoid.Storyvoid.Authenticator;
     var testCredentials = {
         user: "PLACEHOLDER",
         password: "PLACEHOLDER"
@@ -388,7 +388,7 @@
             var xp = host.getExperienceForModel(vm);
             ok(xp, "Expected to find the experience");
             strictEqual(vm.authenticationError, 401, "Expected auth error");
-            strictEqual(vm.authenticationErrorMessage, Codevoid.ArticleVoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
+            strictEqual(vm.authenticationErrorMessage, Codevoid.Storyvoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
             ok(true, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
     });

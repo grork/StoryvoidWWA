@@ -1,7 +1,7 @@
 ﻿module CodevoidTests.InstapaperArticleSyncTests {
     import st = Windows.Storage;
     import c = Windows.Foundation.Collections;
-    import av = Codevoid.ArticleVoid;
+    import av = Codevoid.Storyvoid;
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
     var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;

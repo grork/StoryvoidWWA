@@ -1,4 +1,4 @@
-﻿module Codevoid.ArticleVoid {
+﻿module Codevoid.Storyvoid {
     export class ShareTargetApp extends UI.AppThatCanSignIn {
         private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation;
 
@@ -46,7 +46,7 @@
     });
 }
 
-module Codevoid.ArticleVoid.UI {
+module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     interface IArticleDetails {
@@ -64,7 +64,7 @@ module Codevoid.ArticleVoid.UI {
     var QUICK_LINK_ID = "unread";
 
     export class ShareTargetSignedInViewModel implements ISignedInViewModel {
-        public experience = { wwa: "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience" };
+        public experience = { wwa: "Codevoid.Storyvoid.UI.ShareTargetSignedInExperience" };
         private _app: ShareTargetApp;
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _eventSource: Utilities.EventSource;
@@ -87,11 +87,11 @@ module Codevoid.ArticleVoid.UI {
         }
 
         public signedIn(usingSavedCredentials: boolean): void {
-            this._clientInformation = Codevoid.ArticleVoid.Authenticator.getStoredCredentials();
+            this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
         }
 
         public saveToInstapaper(): void {
-            var bookmarks = new Codevoid.ArticleVoid.InstapaperApi.Bookmarks(this._clientInformation);
+            var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(this._clientInformation);
             this._savingToService = true;
 
             this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Started);
@@ -189,7 +189,7 @@ module Codevoid.ArticleVoid.UI {
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            DOM.setControlAttribute(element, "Codevoid.ArticleVoid.UI.ShareTargetSignedInExperience");
+            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ShareTargetSignedInExperience");
 
             WinJS.UI.processAll(element).done(() => {
                 this._initialize();

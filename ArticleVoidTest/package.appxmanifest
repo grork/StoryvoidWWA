@@ -5,13 +5,13 @@
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   IgnorableNamespaces="uap mp">
 
-  <Identity Name="Codevoid.ArticleVoidTest" Version="1.0.0.0" Publisher="CN=Codevoid" />
+  <Identity Name="Codevoid.StoryvoidTest" Version="1.0.0.0" Publisher="CN=Codevoid" />
   
   <mp:PhoneIdentity PhoneProductId="07e8e7e7-dbd8-4a78-b4c1-2da884a2d8fd" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>ArticleVoidTest</DisplayName>
-    <Description>ArticleVoid</Description>
+    <DisplayName>StoryvoidTest</DisplayName>
+    <Description>Storyvoid</Description>
     <PublisherDisplayName>Codevoid</PublisherDisplayName>
     <Logo>images\storelogo.png</Logo>
   </Properties>
@@ -29,8 +29,8 @@
         <uap:Rule Match="https://api.twitter.com" Type="include" WindowsRuntimeAccess="none" />
       </uap:ApplicationContentUriRules>
       <uap:VisualElements
-        DisplayName="ArticleVoidTest"
-        Description="ArticleVoidTest"
+        DisplayName="StoryvoidTest"
+        Description="StoryvoidTest"
         BackgroundColor="transparent"
         Square150x150Logo="images\logo.png"
         Square44x44Logo="images\smalllogo.png">

@@ -1,7 +1,7 @@
 ﻿(function () {
     "use strict";
 
-    var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
+    var InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
     var Signal = Codevoid.Utilities.Signal;
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];

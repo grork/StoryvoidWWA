@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "ArticleVoidTest", "ArticleVoidTest\ArticleVoidTest.jsproj", "{75649025-5099-4C32-9F57-084461404DDF}"
+Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "Test", "ArticleVoidTest\Test.jsproj", "{75649025-5099-4C32-9F57-084461404DDF}"
 EndProject
 Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "App", "App\App.jsproj", "{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}"
 EndProject
@@ -91,15 +91,15 @@ Global
 		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://codevoid.visualstudio.com/defaultcollection
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = ArticleVoidTest\\ArticleVoidTest.jsproj
-		SccProjectName1 = ArticleVoidTest
-		SccLocalPath1 = ArticleVoidTest
-		SccProjectUniqueName2 = App\\App.jsproj
-		SccProjectName2 = App
-		SccLocalPath2 = App
-		SccProjectUniqueName3 = NativeInfrastructure\\NativeInfrastructure.vcxproj
-		SccProjectName3 = NativeInfrastructure
-		SccLocalPath3 = NativeInfrastructure
+		SccProjectUniqueName0 = App\\App.jsproj
+		SccProjectName0 = App
+		SccLocalPath0 = App
+		SccProjectUniqueName1 = NativeInfrastructure\\NativeInfrastructure.vcxproj
+		SccProjectName1 = NativeInfrastructure
+		SccLocalPath1 = NativeInfrastructure
+		SccProjectUniqueName2 = ArticleVoidTest\\Test.jsproj
+		SccProjectName2 = ArticleVoidTest
+		SccLocalPath2 = ArticleVoidTest
+		SccLocalPath3 = .
 	EndGlobalSection
 EndGlobal

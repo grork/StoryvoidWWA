@@ -1,8 +1,8 @@
 ﻿(function () {
     "use strict";
 
-    var InstapaperApi = Codevoid.ArticleVoid.InstapaperApi;
-    var InstapaperDB = Codevoid.ArticleVoid.InstapaperDB;
+    var InstapaperApi = Codevoid.Storyvoid.InstapaperApi;
+    var InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
 
     function isDefaultFolder(id) {
         switch (id) {
@@ -25,7 +25,7 @@
         return WinJS.Promise.wrapError(err);
     }
 
-    WinJS.Namespace.define("Codevoid.ArticleVoid", {
+    WinJS.Namespace.define("Codevoid.Storyvoid", {
         InstapaperSync: WinJS.Class.mix(WinJS.Class.define(function (clientInformation) {
             this._clientInformation = clientInformation;
             this.perFolderBookmarkLimits = {};
@@ -107,7 +107,7 @@
                 });
             },
             _syncFolders: function _syncFolders(db, folders) {
-                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.foldersStart });
+                this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart });
 
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
                     var syncs = [];
@@ -148,7 +148,7 @@
 
                             // Notify that the remote folder w/ name had some changes
                             this._raiseStatusChanged({
-                                operation: Codevoid.ArticleVoid.InstapaperSync.Operation.folder,
+                                operation: Codevoid.Storyvoid.InstapaperSync.Operation.folder,
                                 title: rf.title,
                             });
 
@@ -196,7 +196,7 @@
                     // sync'd everything.
 
                     return db.getPendingFolderEdits().then(function (edits) {
-                        this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.foldersEnd });
+                        this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.foldersEnd });
                         // No edits? NO worries!
                         if (!edits || (edits.length < 1)) {
                             return;
@@ -209,7 +209,7 @@
             },
             syncBookmarks: function syncBookmarks(db, options) {
                 var promise = WinJS.Promise.as();
-                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksStart });
+                this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksStart });
 
                 if (!options.singleFolder) {
                     promise = this._syncBookmarkPendingAdds(db).then(function () {
@@ -296,7 +296,7 @@
                             return;
                         }
 
-                        this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarkFolder, title: folder.title });
+                        this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.bookmarkFolder, title: folder.title });
                         return this._syncBookmarksForFolder(db, folder.id).then(function () {
                             if (options._testPerFolderCallback) {
                                 options._testPerFolderCallback(folder.id);
@@ -331,7 +331,7 @@
                         mergedEdits.concat(edits[p]);
                     });
 
-                    this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.bookmarksEnd });
+                    this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksEnd });
 
                     if (!mergedEdits.length) {
                         return;
@@ -581,7 +581,7 @@
                 var db = options.dbInstance || new InstapaperDB();
                 var initialize = options.dbInstance ? WinJS.Promise.as(db) : db.initialize();
 
-                this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.start });
+                this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.start });
                 return initialize.then(function startSync() {
                     if (!syncFolders) {
                         return;
@@ -601,7 +601,7 @@
                         didSyncFolders: options.folders,
                     });
                 }.bind(this)).then(function () {
-                    this._raiseStatusChanged({ operation: Codevoid.ArticleVoid.InstapaperSync.Operation.end });
+                    this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.end });
                     return WinJS.Promise.timeout();
                 }.bind(this));
             },
