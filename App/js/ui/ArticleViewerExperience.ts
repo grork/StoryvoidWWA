@@ -11,8 +11,8 @@
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
         private _title: HTMLElement;
-        private primaryToolbar: WinJS.UI.ToolBar;
-        private secondaryToolbar: WinJS.UI.ToolBar;
+        private _subtitle: HTMLAnchorElement;
+        private toolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
         private _toolbarVisible: boolean = true;
         private _navigationManager: Windows.UI.Core.SystemNavigationManager;
@@ -120,8 +120,7 @@
                         this._setTitleBarForArticle();
 
                         // Set commands to the toolbar controls to handle primary/secondary scenarios
-                        this.primaryToolbar.data = this.viewModel.getPrimaryCommands();
-                        this.secondaryToolbar.data = this.viewModel.getSecondaryCommands();
+                        this.toolbar.data = this.viewModel.getCommands();
 
                         WinJS.UI.Animation.slideUp(this.element);
 
@@ -300,18 +299,11 @@
             });
         }
 
-        public getPrimaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
+        public getCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
             var commands = [];
 
             commands.push(this._toggleLikeCommand);
             commands.push(this._archiveCommand);
-
-            return new WinJS.Binding.List(commands);
-        }
-
-        public getSecondaryCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
-            var commands = [];
-
             commands.push(this._fullScreenCommand);
             commands.push(this._deleteCommand);
 

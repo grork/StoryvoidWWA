@@ -7,7 +7,7 @@
 body {
     margin-left: 48px;
     margin-right: 48px;
-    margin-top: 24px;
+    margin-top: 0px;
     margin-bottom: 144px;
     font-family: Cambria;
     line-height: 32px;
@@ -40,16 +40,15 @@ p {
 
 .articleViewer-header-container {
     width: 100%;
-    margin-top: 48px;
-    margin-bottom: 48px;
     display: -ms-grid;
     -ms-grid-rows: auto auto;
     -ms-grid-columns: 1fr;
     font-family: Cambria;
+    margin-top:  48px;
 }
 
 .articleViewer-title {
-    -ms-grid-row: 1;
+    -ms-grid-row: 2;
     -ms-grid-column: 1;
     -ms-grid-column-align: start;
     -ms-grid-row-align: center;
@@ -60,7 +59,7 @@ p {
 }
 
 .articleViewer-subTitle {
-    -ms-grid-row: 2;
+    -ms-grid-row: 1;
     -ms-grid-column: 1;
     -ms-grid-column-align: start;
     -ms-grid-row-align: center;

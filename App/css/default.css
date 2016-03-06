@@ -343,7 +343,7 @@ button.commands-selectmode .win-commandimage {
     -ms-grid-row-align: start;
 
     display: -ms-grid;
-    -ms-grid-columns: auto 1fr auto;
+    -ms-grid-columns: 12px 1fr auto;
 
     margin-right: 36px;
     margin-left: 36px;
@@ -363,25 +363,22 @@ button.commands-selectmode .win-commandimage {
         display: none;
     }
 
-.articleViewer-primaryToolbar {
-    -ms-grid-column: 1;
+.articleViewer-toolbar {
+    -ms-grid-column: 3;
+    -ms-grid-column-align: end;
     -ms-grid-row-align: start;
 }
 
 .articleViewer-title {
     -ms-grid-column: 2;
-    -ms-grid-column-align: center;
+    -ms-grid-column-align: start;
     -ms-grid-row-align: center;
     width: 100%;
-    text-align: center;
+    overflow: hidden;
+    font-size: 20px;
+    text-wrap: none;
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-.articleViewer-secondaryToolbar {
-    -ms-grid-column: 3;
-    -ms-grid-row-align: end;
 }
 
 @media all and (max-width: 640px) {
@@ -395,8 +392,10 @@ button.commands-selectmode .win-commandimage {
         display: none;
     }
 
-    .articleViewer-secondaryToolbar {
-        display: none;
+    .articleViewer-toolbar {
+        -ms-grid-column: 2;
+        -ms-grid-column-align: center;
+        -ms-grid-row-align: center;
     }
 }
 
