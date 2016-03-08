@@ -73,6 +73,54 @@
                      data-win-control="WinJS.UI.ToolBar"
                      data-part="toolbar">
                 </div>
+
+                <div data-win-control="WinJS.UI.Flyout"
+                     data-part="_displaySettingsFlyout">
+                    <div class="articleViewer-displaySettings-container">
+                        <div>Font</div>
+                        <div class="fontsettings-container">
+                            <select class="typeface-selector">
+                                <option style="font-family: Arial">Arial</option>
+                                <option style="font-family: Calibri">Calibri</option>
+                                <option style="font-family: Cambria">Cambria</option>
+                                <option style="font-family: Constantia">Constantia</option>
+                                <option style="font-family: Georgia">Georgia</option>
+                                <option style="font-family: 'Segoe Print'">Segoe Print</option>
+                                <option style="font-family: 'Segoe Script'">Segoe Script</option>
+                            </select>
+                        </div>
+                        <div class="typeface-size-container">
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="font-decrease"
+                                    data-win-options="{ tooltip: 'Make text smaller', icon:'A'}"></button>
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="font-increase"
+                                    data-win-options="{ tooltip: 'Make text larger', icon:'A'}"></button>
+                        </div>
+                        <div>Spacing</div>
+                        <div>
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="linespacing-decrease"
+                                    data-win-options="{ tooltip: 'Decrease line height', icon:'\uE700'}"></button>
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="linespacing-increase"
+                                    data-win-options="{ tooltip: 'Increase line height', icon:'\uE700'}"></button>
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="margin-decrease"
+                                    data-win-options="{ tooltip: 'Decrease margins', icon:'\uE1D8'}"></button>
+                            <button data-win-control="WinJS.UI.Command"
+                                    class="margin-increase"
+                                    data-win-options="{ tooltip: 'Increase margins', icon:'\uE1D9'}"></button>
+                        </div>
+                        <div>Colours</div>
+                        <div class="theme-container">
+                            <button class="theme-white win-command"></button>
+                            <button class="theme-sepia win-command"></button>
+                            <button class="theme-grey win-command"></button>
+                            <button class="theme-black win-command"></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

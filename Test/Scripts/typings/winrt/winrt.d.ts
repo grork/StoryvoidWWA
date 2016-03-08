@@ -11646,7 +11646,7 @@ declare module Windows {
 				/**
 				 * Gets whether the window(app view) is full screen or not.
 				**/
-                isFullScreen: boolean;
+                isFullScreenMode: boolean;
 
 				/**
 				 * Gets the current ID of the window (app view) .

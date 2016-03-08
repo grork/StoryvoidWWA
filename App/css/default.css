@@ -195,8 +195,8 @@ button.commands-selectmode .win-commandimage {
 .win-listview .win-surface.win-selectionmode .win-itembox::after,
 .win-selectioncheckmark,
 .win-selectioncheckmarkbackground {
-  right: 8px;
-  top: 8px;
+    right: 8px;
+    top: 8px;
 }
 
 .article {
@@ -241,7 +241,7 @@ button.commands-selectmode .win-commandimage {
     overflow: hidden;
     -ms-grid-column: 1;
     -ms-grid-row-span: 3;
-	background-size: cover;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
     height: 100%;
@@ -326,7 +326,7 @@ button.commands-selectmode .win-commandimage {
 .articleViewer-dialog.dialog {
     width: 100vw;
     height: 100vh;
-    z-index: 4000;
+    z-index: 500;
 }
 
 .articleViewer-container {
@@ -341,16 +341,14 @@ button.commands-selectmode .win-commandimage {
     -ms-grid-column: 1;
     -ms-grid-row: 1;
     -ms-grid-row-align: start;
-
     display: -ms-grid;
     -ms-grid-columns: 12px 1fr auto;
-
     margin-right: 36px;
     margin-left: 36px;
-
     position: relative;
     z-index: 100;
 }
+
     .articleViewer-toolbar-container button.win-command {
         min-width: initial;
     }
@@ -398,6 +396,113 @@ button.commands-selectmode .win-commandimage {
         -ms-grid-row-align: center;
     }
 }
+
+.articleViewer-displaySettings-container {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+    .articleViewer-displaySettings-container > div {
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .articleViewer-displaySettings-container button.win-command {
+        width: 48px;
+    }
+
+    .articleViewer-displaySettings-container button.win-command .win-commandicon {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+@media all and (max-width: 380px) {
+    .articleViewer-displaySettings-container {
+        margin-left: initial;
+        margin-right: initial;
+    }
+
+        .articleViewer-displaySettings-container > div {
+            margin-top: initial;
+            margin-bottom: initial;
+        }
+}
+
+.typeface-size-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.typeface-selector {
+    width: 100%;
+    max-height: 32px;
+    margin-right: 8px;
+}
+
+button.font-increase .win-commandimage {
+    font-size: 28px;
+    margin-top: -5px;
+}
+
+button.font-decrease .win-commandimage {
+    margin-top: -3px;
+}
+
+button.linespacing-increase .win-commandimage {
+    font-size: 24px;
+    margin-top: -3px;
+    margin-right: -3px;
+}
+
+button.linespacing-decrease .win-commandimage {
+    font-size: 24px;
+    transform: scaleY(0.65);
+    margin-top: -2px;
+}
+
+button.margin-decrease .win-commandimage,
+button.margin-increase .win-commandimage {
+    transform: rotate(45deg);
+    transform-origin: center;
+    margin-top: -2px;
+}
+
+.theme-container > button.win-command {
+    position: relative;
+    height: 48px;
+    width: 48px;
+    min-width: initial;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+}
+
+    .theme-container > button.win-command:hover:active {
+        opacity: 0.5;
+    }
+
+.theme-white.win-command,
+.theme-white.win-command:hover {
+    background-color: white !important;
+}
+
+
+.theme-sepia.win-command,
+.theme-sepia.win-command:hover {
+    background-color: wheat !important;
+}
+
+.theme-grey.win-command,
+.theme-grey.win-command:hover {
+    background-color: darkslategrey !important;
+}
+
+.theme-black.win-command,
+.theme-black.win-command:hover {
+    background-color: black !important;
+}
+
 
 .articleViewer-content {
     position: relative;
