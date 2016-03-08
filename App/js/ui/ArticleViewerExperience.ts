@@ -11,7 +11,7 @@
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
         private _title: HTMLElement;
-        private _subtitle: HTMLAnchorElement;
+        private _displaySettingsFlyout: WinJS.UI.Flyout;
         private toolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
         private _toolbarVisible: boolean = true;
@@ -73,6 +73,9 @@
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
                     removed: this.close.bind(this),
                 }));
+
+                document.body.appendChild(this._displaySettingsFlyout.element);
+                this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
             });
         }
 
@@ -243,9 +246,12 @@
             this._restoreTitlebar();
 
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            if (view.isFullScreen) {
+            if (view.isFullScreenMode) {
                 view.exitFullScreenMode();
             }
+
+            Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
+                this._displaySettingsFlyout.element);
 
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Flip this flag to allow the next navigate to complete, because
@@ -273,6 +279,7 @@
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
+        private _displaySettingsCommand: WinJS.UI.Command;
         private _toggleLikeCommand: WinJS.UI.Command;
         private _deleteCommand: WinJS.UI.Command;
         private _archiveCommand: WinJS.UI.Command;
@@ -291,6 +298,13 @@
                 icon: "delete",
                 onclick: this._delete.bind(this),
             });
+
+            this._displaySettingsCommand = new WinJS.UI.Command(null, {
+                tooltip: "Display Settings",
+                icon: WinJS.UI.AppBarIcon.font,
+                type: 'flyout',
+                onclick: () => { },
+            });
         }
 
         public updateProgress(progress: number): void {
@@ -302,6 +316,7 @@
         public getCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
             var commands = [];
 
+            commands.push(this._displaySettingsCommand);
             commands.push(this._toggleLikeCommand);
             commands.push(this._archiveCommand);
             commands.push(this._fullScreenCommand);
@@ -312,6 +327,10 @@
 
         public get eventSource(): Utilities.EventSource {
             return this._eventSource;
+        }
+
+        public setDisplaySettingsFlyout(flyout: WinJS.UI.Flyout) {
+            this._displaySettingsCommand.flyout = flyout;
         }
 
         private _initializeToggleCommand() {
@@ -399,7 +418,7 @@
 
         private _updateFullScreenButtonState(): void {
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            if (view.isFullScreen) {
+            if (view.isFullScreenMode) {
                 this._setFullScreenCommandToExit();
             } else {
                 this._setFullScreenCommandToEnter();
@@ -409,7 +428,7 @@
         private _toggleFullScreen() {
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
 
-            if (!view.isFullScreen) {
+            if (!view.isFullScreenMode) {
                 var transitionedToFullScreen = view.tryEnterFullScreenMode();
                 if (transitionedToFullScreen) {
                     this._handleTransitionToFullScreen();
@@ -427,7 +446,7 @@
             // listen for another resize event to see if we exited the fullscreen mode.
             var initialResizeHandler = Codevoid.Utilities.addEventListeners(window, {
                 resize: () => {
-                    if (!view.isFullScreen) {
+                    if (!view.isFullScreenMode) {
                         return;
                     }
 
@@ -436,7 +455,7 @@
 
                     var windowResizeHandler = Codevoid.Utilities.addEventListeners(window, {
                         resize: () => {
-                            if (view.isFullScreen) {
+                            if (view.isFullScreenMode) {
                                 return;
                             }
 
