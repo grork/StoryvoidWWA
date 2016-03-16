@@ -10,6 +10,7 @@
 
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setfontfamily", this._updateFont.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -29,7 +30,7 @@
             document.addEventListener("scroll", this._handleScroll.bind(this));
         }
 
-        private _insertTitle(data: { title: string, domain: string, url: string }) {
+        private _insertTitle(data: { title: string, domain: string, url: string }): void {
             var headerContainer = document.createElement("div");
             headerContainer.className = "articleViewer-header-container";
 
@@ -44,6 +45,10 @@
             subTitle.href = data.url;
 
             document.body.insertBefore(headerContainer, document.body.firstChild);
+        }
+
+        private _updateFont(data: { fontFamily: string }): void {
+            document.body.style.fontFamily = data.fontFamily;
         }
 
         private _handleWheel(ev: MouseWheelEvent): void {
