@@ -284,7 +284,22 @@
             this._handlersToCleanup = null;
             this._content = null;
         }
+
+        public decreaseFontSize(): void {
+            this.viewModel.displaySettings.decreaseFontSize();
+        }
+
+        public increaseFontSize(): void {
+            this.viewModel.displaySettings.increaseFontSize();
+        }
     }
+
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.close);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.displaySettingsFlyoutOpening);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.fontSelectionChanged);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseFontSize);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseFontSize);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
@@ -533,8 +548,12 @@
         }
     }
 
+    var MAX_FONT_SIZE = 36;
+    var MIN_FONT_SIZE = 12;
+
     export class DisplaySettingsViewModel {
         private _messenger: Utilities.WebViewMessenger;
+        private _fontSize: number = 20;
 
         public setMessenger(messenger: Utilities.WebViewMessenger): void {
             this._messenger = messenger;
@@ -547,9 +566,25 @@
         public updateFont(newFontIndex: number): void {
             var fontChoice = DisplaySettingsViewModel.fontChoices[newFontIndex];
 
-            this._messenger.invokeForResult("setfontfamily", {
-                fontFamily: fontChoice.fontFamily
-            });
+            this._messenger.invokeForResult("setfontfamily", fontChoice.fontFamily);
+        }
+
+        public decreaseFontSize(): void {
+            if (this._fontSize <= MIN_FONT_SIZE) {
+                return;
+            }
+
+            this._fontSize -= 1;
+            this._messenger.invokeForResult("setfontsize", this._fontSize);
+        }
+
+        public increaseFontSize(): void {
+            if (this._fontSize >= MAX_FONT_SIZE) {
+                return;
+            }
+
+            this._fontSize += 1;
+            this._messenger.invokeForResult("setfontsize", this._fontSize);
         }
 
         private static _fontChoices: IFontChoice[];
@@ -566,10 +601,5 @@
 
             return DisplaySettingsViewModel._fontChoices;
         }
-    } 
-
-    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
-    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.close);
-    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.displaySettingsFlyoutOpening);
-    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.fontSelectionChanged);
+    }
 }
