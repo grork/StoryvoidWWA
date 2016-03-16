@@ -1,6 +1,11 @@
 ﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
+    interface IFontChoice {
+        label: string;
+        fontFamily: string;
+    }
+
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
@@ -16,6 +21,9 @@
         private _pageReady: boolean = false;
         private _toolbarVisible: boolean = true;
         private _navigationManager: Windows.UI.Core.SystemNavigationManager;
+        private _fontSelector: HTMLSelectElement;
+        private _fonts: WinJS.UI.Repeater;
+        private _flyoutInitialized: boolean = false;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -137,17 +145,14 @@
             });
 
             this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._messenger.events, {
-                progresschanged: (e) => {
-                    this.viewModel.updateProgress(e.detail);
-                },
                 dismiss: () => {
                     this.close(null);
                 },
                 toggletoolbar: this._toggleToolbar.bind(this),
-                linkinvoked: (e) => {
-                    this._handleLinkInvocation(e.detail);
-                }
             }));
+
+            this.viewModel.setMessenger(this._messenger);
+            this.viewModel.displaySettings.setMessenger(this._messenger);
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
         }
@@ -217,19 +222,20 @@
             }
         }
 
-        private _handleLinkInvocation(url: string): void {;
-            var uri;
-            try {
-                // URL might be badly formed, so we're going to try and parse it. If it fails,
-                // Well, screw it.
-                uri = new Windows.Foundation.Uri(url);
-            }
-            catch (e) {
-                Utilities.Logging.instance.log("Tried to navigate to bad URL: " + url);
+        public fontSelectionChanged(e: UIEvent): void {
+            this.viewModel.displaySettings.updateFont(this._fontSelector.selectedIndex);
+        }
+
+        public displaySettingsFlyoutOpening(e: Event) {
+            if (this._flyoutInitialized) {
                 return;
             }
 
-            Windows.System.Launcher.launchUriAsync(uri);
+            this._fonts.data = new WinJS.Binding.List<IFontChoice>(DisplaySettingsViewModel.fontChoices);
+            this._fontSelector = <HTMLSelectElement>this._fonts.element;
+            this._fontSelector.selectedIndex = 0;
+
+            this._flyoutInitialized = true;
         }
 
         public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
@@ -241,6 +247,8 @@
                 this._messenger.dispose();
                 this._messenger = null;
             }
+
+            this.viewModel.dispose();
 
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
@@ -264,6 +272,7 @@
                 this._content.navigate("about:blank");
 
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
+                this.viewModel = null;
             });
         }
 
@@ -285,6 +294,9 @@
         private _archiveCommand: WinJS.UI.Command;
         private _fullScreenCommand: WinJS.UI.Command;
         private _eventSource: Utilities.EventSource;
+        private _remoteEventHandlers: Utilities.ICancellable;
+        private _messenger: Utilities.WebViewMessenger;
+        private _displaySettings: DisplaySettingsViewModel = new DisplaySettingsViewModel();
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
             this._eventSource = new Utilities.EventSource();
@@ -304,6 +316,30 @@
                 icon: WinJS.UI.AppBarIcon.font,
                 type: 'flyout',
                 onclick: () => { },
+            });
+        }
+
+        public dispose(): void {
+            if (this._remoteEventHandlers) {
+                this._remoteEventHandlers.cancel();
+                this._remoteEventHandlers = null;
+            }
+
+            this._messenger = null;
+            this._displaySettings.dispose();
+            this._displaySettings = null;
+        }
+
+        public setMessenger(messenger: Utilities.WebViewMessenger) {
+            this._messenger = messenger;
+
+            this._remoteEventHandlers = Utilities.addEventListeners(messenger.events, {
+                progresschanged: (e) => {
+                    this.updateProgress(e.detail);
+                },
+                linkinvoked: (e) => {
+                    this._handleLinkInvocation(e.detail);
+                }
             });
         }
 
@@ -331,6 +367,10 @@
 
         public setDisplaySettingsFlyout(flyout: WinJS.UI.Flyout) {
             this._displaySettingsCommand.flyout = flyout;
+        }
+
+        public get displaySettings(): DisplaySettingsViewModel {
+            return this._displaySettings;
         }
 
         private _initializeToggleCommand() {
@@ -476,8 +516,60 @@
             this._fullScreenCommand.tooltip = "Exit Full Screen";
             this._fullScreenCommand.icon = "\uE1D9";
         }
+
+        private _handleLinkInvocation(url: string): void {
+            var uri;
+            try {
+                // URL might be badly formed, so we're going to try and parse it. If it fails,
+                // Well, screw it.
+                uri = new Windows.Foundation.Uri(url);
+            }
+            catch (e) {
+                Utilities.Logging.instance.log("Tried to navigate to bad URL: " + url);
+                return;
+            }
+
+            Windows.System.Launcher.launchUriAsync(uri);
+        }
     }
+
+    export class DisplaySettingsViewModel {
+        private _messenger: Utilities.WebViewMessenger;
+
+        public setMessenger(messenger: Utilities.WebViewMessenger): void {
+            this._messenger = messenger;
+        }
+
+        public dispose(): void {
+            this._messenger = null;
+        }
+
+        public updateFont(newFontIndex: number): void {
+            var fontChoice = DisplaySettingsViewModel.fontChoices[newFontIndex];
+
+            this._messenger.invokeForResult("setfontfamily", {
+                fontFamily: fontChoice.fontFamily
+            });
+        }
+
+        private static _fontChoices: IFontChoice[];
+        public static get fontChoices(): IFontChoice[] {
+            if (!DisplaySettingsViewModel._fontChoices) {
+                DisplaySettingsViewModel._fontChoices = [
+                    { label: "Arial", fontFamily: "Arial" },
+                    { label: "Calibri", fontFamily: "Calibri" },
+                    { label: "Cambria", fontFamily: "Cambria" },
+                    { label: "Constantia", fontFamily: "Constantia" },
+                    { label: "Georgia", fontFamily: "Georgia" },
+                ];
+            }
+
+            return DisplaySettingsViewModel._fontChoices;
+        }
+    } 
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.close);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.displaySettingsFlyoutOpening);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.fontSelectionChanged);
 }

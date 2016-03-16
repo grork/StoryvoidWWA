@@ -75,18 +75,16 @@
                 </div>
 
                 <div data-win-control="WinJS.UI.Flyout"
-                     data-part="_displaySettingsFlyout">
+                     data-part="_displaySettingsFlyout"
+                     data-event="{ beforeshow: displaySettingsFlyoutOpening }">
                     <div class="articleViewer-displaySettings-container">
                         <div>Font</div>
                         <div class="fontsettings-container">
-                            <select class="typeface-selector">
-                                <option style="font-family: Arial">Arial</option>
-                                <option style="font-family: Calibri">Calibri</option>
-                                <option style="font-family: Cambria">Cambria</option>
-                                <option style="font-family: Constantia">Constantia</option>
-                                <option style="font-family: Georgia">Georgia</option>
-                                <option style="font-family: 'Segoe Print'">Segoe Print</option>
-                                <option style="font-family: 'Segoe Script'">Segoe Script</option>
+                            <select class="typeface-selector"
+                                    data-part="_fonts"
+                                    data-event="{ change: fontSelectionChanged }"
+                                    data-win-control="WinJS.UI.Repeater">
+                                <option data-win-bind="textContent: label; style.fontFamily: fontFamily"></option>
                             </select>
                         </div>
                         <div class="typeface-size-container">
