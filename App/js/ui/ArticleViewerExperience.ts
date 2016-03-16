@@ -292,6 +292,14 @@
         public increaseFontSize(): void {
             this.viewModel.displaySettings.increaseFontSize();
         }
+
+        public decreaseLineHeight(): void {
+            this.viewModel.displaySettings.decreaseLineHeight();
+        }
+
+        public increaseLineHeight(): void {
+            this.viewModel.displaySettings.increaseLineHeight();
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
@@ -300,6 +308,8 @@
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.fontSelectionChanged);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseFontSize);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseFontSize);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseLineHeight);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseLineHeight);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
@@ -550,10 +560,14 @@
 
     var MAX_FONT_SIZE = 36;
     var MIN_FONT_SIZE = 12;
+    var MIN_LINE_HEIGHT = 1.0;
+    var MAX_LINE_HEIGHT = 3.0;
+    var LINE_HEIGHT_INCREMENT = 0.1;
 
     export class DisplaySettingsViewModel {
         private _messenger: Utilities.WebViewMessenger;
         private _fontSize: number = 20;
+        private _lineHeight: number = 1.6;
 
         public setMessenger(messenger: Utilities.WebViewMessenger): void {
             this._messenger = messenger;
@@ -575,7 +589,7 @@
             }
 
             this._fontSize -= 1;
-            this._messenger.invokeForResult("setfontsize", this._fontSize);
+            this._messenger.invokeForResult("setfontsize", this._fontSize + "px");
         }
 
         public increaseFontSize(): void {
@@ -584,7 +598,25 @@
             }
 
             this._fontSize += 1;
-            this._messenger.invokeForResult("setfontsize", this._fontSize);
+            this._messenger.invokeForResult("setfontsize", this._fontSize + "px");
+        }
+
+        public decreaseLineHeight(): void {
+            if (this._lineHeight <= MIN_LINE_HEIGHT) {
+                return;
+            }
+
+            this._lineHeight -= LINE_HEIGHT_INCREMENT;
+            this._messenger.invokeForResult("setlineheight", this._lineHeight + "em");
+        }
+
+        public increaseLineHeight(): void {
+            if (this._lineHeight >= MAX_LINE_HEIGHT) {
+                return;
+            }
+
+            this._lineHeight += LINE_HEIGHT_INCREMENT;
+            this._messenger.invokeForResult("setlineheight", this._lineHeight + "em");
         }
 
         private static _fontChoices: IFontChoice[];
