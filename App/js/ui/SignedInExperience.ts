@@ -75,9 +75,14 @@
         }
 
         public splitViewOpening() {
+            WinJS.Utilities.addClass(this._splitToggle.element, "splitView-open");
             this.viewModel.listFolders().done((folders: IFolder[]) => {
                 this._folderList.data = new WinJS.Binding.List(folders);
             });
+        }
+
+        public splitViewClosing() {
+            WinJS.Utilities.removeClass(this._splitToggle.element, "splitView-open");
         }
 
         public signOut(): void {
@@ -249,6 +254,7 @@
     }
 
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewClosing);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);

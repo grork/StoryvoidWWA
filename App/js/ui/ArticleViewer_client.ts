@@ -10,9 +10,7 @@
 
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setfontfamily", this._updateFontFamily.bind(this));
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setfontsize", this._updateFontSize.bind(this));
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setlineheight", this._updateLineHeight.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setbodycssproperty", this._setBodyCssProperty.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -49,16 +47,8 @@
             document.body.insertBefore(headerContainer, document.body.firstChild);
         }
 
-        private _updateFontFamily(fontFamily: string): void {
-            document.body.style.fontFamily = fontFamily;
-        }
-
-        private _updateFontSize(fontSize: string): void {
-            document.body.style.fontSize = fontSize;
-        }
-
-        private _updateLineHeight(lineHeight: string): void {
-            document.body.style.lineHeight = lineHeight;
+        private _setBodyCssProperty(propertyToSet: { property: string, value: string }): void {
+            document.body.style[propertyToSet.property] = propertyToSet.value;
         }
 
         private _handleWheel(ev: MouseWheelEvent): void {

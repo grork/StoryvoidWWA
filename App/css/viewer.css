@@ -5,19 +5,20 @@
 }
 
 body {
-    margin-left: 48px;
-    margin-right: 48px;
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 0px;
     margin-bottom: 144px;
     font-family: Cambria;
     line-height: 1.6em;
     font-size: 20px;
     -ms-content-zooming: none;
+    max-width: 80vw;
 }
 
 /* Center the image horizontally */
 img {
-    max-width: 80vw;
+    max-width: 95%;
     display: block;
     margin-left: auto;
     margin-right: auto 
@@ -70,11 +71,4 @@ p {
     color: grey;
     display: block;
     text-decoration: none;
-}
-
-@media all and (max-width: 640px) {
-    body {
-        margin-left: 17px;
-        margin-right: 17px;
-    }
 }
