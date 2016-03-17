@@ -43,8 +43,13 @@ body {
         -ms-grid-row: 1;
         -ms-grid-column: 1;
         position: relative;
-        z-index: 2000;
+        z-index: 100;
     }
+
+        .signedIn-container > .win-splitviewpanetoggle.splitView-open {
+            z-index: 1100;
+        }
+
 
 .signedIn-splitview {
     -ms-grid-row: 1;
@@ -342,9 +347,8 @@ button.commands-selectmode .win-commandimage {
     -ms-grid-row: 1;
     -ms-grid-row-align: start;
     display: -ms-grid;
-    -ms-grid-columns: 12px 1fr auto;
-    margin-right: 36px;
-    margin-left: 36px;
+    -ms-grid-columns: 48px 1fr auto 36px;
+    margin-right: 16px;
     position: relative;
     z-index: 100;
 }

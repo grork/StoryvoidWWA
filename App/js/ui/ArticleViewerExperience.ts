@@ -233,7 +233,7 @@
 
             this._fonts.data = new WinJS.Binding.List<IFontChoice>(DisplaySettingsViewModel.fontChoices);
             this._fontSelector = <HTMLSelectElement>this._fonts.element;
-            this._fontSelector.selectedIndex = 0;
+            this._fontSelector.selectedIndex = 2;
 
             this._flyoutInitialized = true;
         }
@@ -300,6 +300,14 @@
         public increaseLineHeight(): void {
             this.viewModel.displaySettings.increaseLineHeight();
         }
+
+        public decreaseMargins(): void {
+            this.viewModel.displaySettings.decreaseArticleWidth();
+        }
+
+        public increaseMargins(): void {
+            this.viewModel.displaySettings.increaseArticleWidth();
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
@@ -310,6 +318,8 @@
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseFontSize);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseLineHeight);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseLineHeight);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseMargins);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseMargins);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
@@ -563,11 +573,15 @@
     var MIN_LINE_HEIGHT = 1.0;
     var MAX_LINE_HEIGHT = 3.0;
     var LINE_HEIGHT_INCREMENT = 0.1;
+    var ARTICLE_WIDTH_INCREMENT = 2;
+    var MAX_ARTICLE_WIDTH = 95;
+    var MIN_ARTICLE_WIDTH = 70;
 
     export class DisplaySettingsViewModel {
         private _messenger: Utilities.WebViewMessenger;
         private _fontSize: number = 20;
         private _lineHeight: number = 1.6;
+        private _articleWidth: number = 80;
 
         public setMessenger(messenger: Utilities.WebViewMessenger): void {
             this._messenger = messenger;
@@ -580,7 +594,7 @@
         public updateFont(newFontIndex: number): void {
             var fontChoice = DisplaySettingsViewModel.fontChoices[newFontIndex];
 
-            this._messenger.invokeForResult("setfontfamily", fontChoice.fontFamily);
+            this._messenger.invokeForResult("setbodycssproperty", { property: "fontFamily", value: fontChoice.fontFamily });
         }
 
         public decreaseFontSize(): void {
@@ -589,7 +603,7 @@
             }
 
             this._fontSize -= 1;
-            this._messenger.invokeForResult("setfontsize", this._fontSize + "px");
+            this._messenger.invokeForResult("setbodycssproperty", { property: "fontSize", value: this._fontSize + "px" });
         }
 
         public increaseFontSize(): void {
@@ -598,7 +612,7 @@
             }
 
             this._fontSize += 1;
-            this._messenger.invokeForResult("setfontsize", this._fontSize + "px");
+            this._messenger.invokeForResult("setbodycssproperty", { property: "fontSize", value: this._fontSize + "px" });
         }
 
         public decreaseLineHeight(): void {
@@ -607,7 +621,7 @@
             }
 
             this._lineHeight -= LINE_HEIGHT_INCREMENT;
-            this._messenger.invokeForResult("setlineheight", this._lineHeight + "em");
+            this._messenger.invokeForResult("setbodycssproperty", { property: "lineHeight", value: this._lineHeight + "em" });
         }
 
         public increaseLineHeight(): void {
@@ -616,7 +630,25 @@
             }
 
             this._lineHeight += LINE_HEIGHT_INCREMENT;
-            this._messenger.invokeForResult("setlineheight", this._lineHeight + "em");
+            this._messenger.invokeForResult("setbodycssproperty", { property: "lineHeight", value: this._lineHeight + "em" });
+        }
+
+        public decreaseArticleWidth(): void {
+            if (this._articleWidth <= MIN_ARTICLE_WIDTH) {
+                return;
+            }
+
+            this._articleWidth -= ARTICLE_WIDTH_INCREMENT;
+            this._messenger.invokeForResult("setbodycssproperty", { property: "maxWidth", value: this._articleWidth + "vw" });
+        }
+
+        public increaseArticleWidth(): void {
+            if (this._articleWidth >= MAX_ARTICLE_WIDTH) {
+                return;
+            }
+
+            this._articleWidth += ARTICLE_WIDTH_INCREMENT;
+            this._messenger.invokeForResult("setbodycssproperty", { property: "maxWidth", value: this._articleWidth + "vw" });
         }
 
         private static _fontChoices: IFontChoice[];
