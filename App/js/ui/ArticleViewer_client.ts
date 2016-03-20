@@ -11,6 +11,7 @@
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setbodycssproperty", this._setBodyCssProperty.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settheme", this._setTheme.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -49,6 +50,16 @@
 
         private _setBodyCssProperty(propertyToSet: { property: string, value: string }): void {
             document.body.style[propertyToSet.property] = propertyToSet.value;
+        }
+
+        private _setTheme(theme: string): void {
+            var themeClass = "theme-" + theme;
+
+            // This will intentionally overwrite any existing classes that might
+            // be on the body element. This is intentional, since we don't want
+            // to have to think hard about the CSS classes involved & if they
+            // maybe have previously been set.
+            document.body.className = themeClass;
         }
 
         private _handleWheel(ev: MouseWheelEvent): void {

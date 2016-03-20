@@ -204,6 +204,11 @@ button.commands-selectmode .win-commandimage {
     top: 8px;
 }
 
+/* Make sure tooltips in the flyouts show up infront of the flyout */
+.win-tooltip {
+    z-index: 20000;
+}
+
 .article {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: -ms-grid;
@@ -485,28 +490,6 @@ button.margin-increase .win-commandimage {
     .theme-container > button.win-command:hover:active {
         opacity: 0.5;
     }
-
-.theme-white.win-command,
-.theme-white.win-command:hover {
-    background-color: white !important;
-}
-
-
-.theme-sepia.win-command,
-.theme-sepia.win-command:hover {
-    background-color: wheat !important;
-}
-
-.theme-grey.win-command,
-.theme-grey.win-command:hover {
-    background-color: darkslategrey !important;
-}
-
-.theme-black.win-command,
-.theme-black.win-command:hover {
-    background-color: black !important;
-}
-
 
 .articleViewer-content {
     position: relative;
