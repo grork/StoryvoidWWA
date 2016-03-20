@@ -125,6 +125,9 @@
 
                         this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
 
+                        // Set the theme on the UI before we reveal it.
+                        this._setTheme("day");
+
                         this.element.style.opacity = ""; // Allow default styles to sort themselves out
                         
                         // Update the titlebar style to match the document
@@ -168,6 +171,11 @@
 
         private _restoreTitlebar(): void {
             this._setTitleBar(this._previousPrimaryColour, this._previousTextColour);
+        }
+
+        private _setTheme(theme: string): void {
+            this._messenger.invokeForResult("settheme", theme);
+            this._toolbarContainer.setAttribute("data-theme", theme);
         }
 
         private _extractDomainFromUrl(url: string): string {
@@ -308,6 +316,14 @@
         public increaseMargins(): void {
             this.viewModel.displaySettings.increaseArticleWidth();
         }
+
+        public switchThemeToDay(): void {
+            this._setTheme("day");
+        }
+
+        public switchThemeToNight(): void {
+            this._setTheme("night");
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
@@ -320,6 +336,8 @@
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseLineHeight);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseMargins);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseMargins);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToDay);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToNight);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };

@@ -107,8 +107,44 @@ progress.article-progress {
     background: white;
 }
 
-.articleViewer-toolbar-container {
+[data-theme='day'].articleViewer-toolbar-container {
     background-color: white;
+    color: black;
+}
+
+[data-theme='night'].articleViewer-toolbar-container {
+    background-color: black;
+    color: white;
+}
+
+[data-theme='night'].articleViewer-toolbar-container button:enabled.win-command:hover {
+    background-color: grey;
+    color: white;
+}
+
+[data-theme='night'] button.win-command,
+[data-theme='night'] button .win-commandimage {
+    color: lightgrey;
+}
+
+.theme-day.win-command,
+.theme-day.win-command:hover {
+    background-color: white !important;
+}
+
+.theme-paper.win-command,
+.theme-paper.win-command:hover {
+    background-color: wheat !important;
+}
+
+.theme-dusk.win-command,
+.theme-dusk.win-command:hover {
+    background-color: darkslategrey !important;
+}
+
+.theme-night.win-command,
+.theme-night.win-command:hover {
+    background-color: black !important;
 }
 
 .articleViewer-toolbar-container .win-commandingsurface .win-commandingsurface-actionarea {

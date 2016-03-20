@@ -72,3 +72,56 @@ p {
     display: block;
     text-decoration: none;
 }
+
+a:active,
+a:visited {
+    text-decoration: none;
+}
+
+/* Colors */
+.theme-day {
+    background-color: white;
+    color: black;
+}
+
+    .theme-day .articleViewer-subTitle {
+        color: grey;
+    }
+
+    .theme-day a {
+        color: blue;
+    }
+
+        .theme-day a:active {
+            color: lightblue;
+        }
+
+        .theme-day a:visited {
+            color: darkblue;
+        }
+
+        .theme-day a:hover {
+            color: navy;
+        }
+
+.theme-night {
+    background-color: black;
+    color: darkgrey;
+}
+
+    .theme-night .articleViewer-subTitle {
+        color: grey;
+    }
+
+    .theme-night a {
+        color: grey;
+    }
+
+        .theme-night a:active,
+        .theme-night a:visited {
+            color: lightgrey;
+        }
+
+        .theme-night a:hover {
+            color: white;
+        }

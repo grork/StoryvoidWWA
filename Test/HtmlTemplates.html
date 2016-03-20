@@ -118,10 +118,20 @@
                         </div>
                         <div>Colours</div>
                         <div class="theme-container">
-                            <button class="theme-white win-command"></button>
-                            <button class="theme-sepia win-command"></button>
-                            <button class="theme-grey win-command"></button>
-                            <button class="theme-black win-command"></button>
+                            <button class="theme-day win-command"
+                                    data-win-control="WinJS.UI.Command"
+                                    data-event="{click: switchThemeToDay }"
+                                    data-win-options="{ tooltip: 'Day theme'}"></button>
+                            <button class="theme-paper win-command"
+                                    data-win-control="WinJS.UI.Command"
+                                    data-win-options="{ tooltip: 'Paper theme'}"></button>
+                            <button class="theme-dusk win-command"
+                                    data-win-control="WinJS.UI.Command"
+                                    data-win-options="{ tooltip: 'Dusk theme'}"></button>
+                            <button class="theme-night win-command"
+                                    data-win-control="WinJS.UI.Command"
+                                    data-event="{click: switchThemeToNight }"
+                                    data-win-options="{ tooltip: 'Night theme'}"></button>
                         </div>
                     </div>
                 </div>
