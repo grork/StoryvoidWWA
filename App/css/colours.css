@@ -109,7 +109,25 @@ progress.article-progress {
 
 [data-theme='day'].articleViewer-toolbar-container {
     background-color: white;
-    color: black;
+}
+
+[data-theme='paper'].articleViewer-toolbar-container {
+    background-color: wheat;
+}
+
+[data-theme='dusk'].articleViewer-toolbar-container {
+    background-color: darkslategrey;
+    color: lightgray;
+}
+
+[data-theme='dusk'].articleViewer-toolbar-container button:enabled.win-command:hover {
+    background-color: grey;
+    color: lightgrey;
+}
+
+[data-theme='dusk'] button.win-command,
+[data-theme='dusk'] button .win-commandimage {
+    color: darkgray;
 }
 
 [data-theme='night'].articleViewer-toolbar-container {
