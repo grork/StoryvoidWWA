@@ -21,7 +21,7 @@ img {
     max-width: 95%;
     display: block;
     margin-left: auto;
-    margin-right: auto 
+    margin-right: auto;
 }
 
 /* Ensure that pre-elements get their
@@ -45,7 +45,7 @@ p {
     -ms-grid-rows: auto auto;
     -ms-grid-columns: 1fr;
     font-family: Cambria;
-    margin-top:  48px;
+    margin-top: 48px;
 }
 
 .articleViewer-title {
@@ -102,6 +102,54 @@ a:visited {
 
         .theme-day a:hover {
             color: navy;
+        }
+
+.theme-paper {
+    background-color: wheat;
+    color: black;
+}
+
+    .theme-paper .articleViewer-subTitle {
+        color: grey;
+    }
+
+    .theme-paper a {
+        color: blue;
+    }
+
+        .theme-paper a:active {
+            color: lightblue;
+        }
+
+        .theme-paper a:visited {
+            color: darkblue;
+        }
+
+        .theme-paper a:hover {
+            color: navy;
+        }
+
+
+.theme-dusk {
+    background-color: darkslategrey;
+    color: lightgrey;
+}
+
+    .theme-dusk .articleViewer-subTitle {
+        color: grey;
+    }
+
+    .theme-dusk a {
+        color: grey;
+    }
+
+        .theme-dusk a:active,
+        .theme-dusk a:visited {
+            color: lightgrey;
+        }
+
+        .theme-night a:hover {
+            color: white;
         }
 
 .theme-night {

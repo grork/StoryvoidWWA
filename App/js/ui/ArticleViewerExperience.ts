@@ -1,11 +1,6 @@
 ﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
-    interface IFontChoice {
-        label: string;
-        fontFamily: string;
-    }
-
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
@@ -34,6 +29,10 @@
             WinJS.Utilities.addClass(element, "dialog");
             WinJS.Utilities.addClass(element, "win-disposable");
             WinJS.Utilities.addClass(element, "hide");
+
+            // Update the titlebar style to match the document
+            // NB: Must be done before setting theme;
+            this._saveCurrentTitleBarColours();
 
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
@@ -82,6 +81,10 @@
                     removed: this.close.bind(this),
                 }));
 
+                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
+                    settheme: this._handleThemeChange.bind(this),
+                }));
+
                 document.body.appendChild(this._displaySettingsFlyout.element);
                 this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
             });
@@ -123,19 +126,15 @@
                             url: this.viewModel.bookmark.url,
                         });
 
+                        // Set initial states
                         this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
-
-                        // Set the theme on the UI before we reveal it.
-                        this._setTheme("day");
-
-                        this.element.style.opacity = ""; // Allow default styles to sort themselves out
+                        this.viewModel.displaySettings.setTheme(Theme.Day);
+                        Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
                         
-                        // Update the titlebar style to match the document
-                        this._setTitleBarForArticle();
-
                         // Set commands to the toolbar controls to handle primary/secondary scenarios
                         this.toolbar.data = this.viewModel.getCommands();
 
+                        this.element.style.opacity = ""; // Allow default styles to sort themselves out
                         WinJS.UI.Animation.slideUp(this.element);
 
                         // Setup OS back button support
@@ -160,22 +159,22 @@
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
         }
 
-        private _setTitleBarForArticle(): void {
+        private _saveCurrentTitleBarColours(): void {
             var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
 
             this._previousPrimaryColour = titleBar.backgroundColor;
             this._previousTextColour = titleBar.foregroundColor;
-
-            this._setTitleBar(Windows.UI.Colors.white, Windows.UI.Colors.gray);
         }
 
         private _restoreTitlebar(): void {
             this._setTitleBar(this._previousPrimaryColour, this._previousTextColour);
         }
 
-        private _setTheme(theme: string): void {
-            this._messenger.invokeForResult("settheme", theme);
-            this._toolbarContainer.setAttribute("data-theme", theme);
+        private _handleThemeChange(e: { detail: IThemeDetails }): void {
+            this._toolbarContainer.setAttribute("data-theme", e.detail.viewerCssClass);
+
+            var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
+            this._setTitleBar(e.detail.titlebarBackground, e.detail.titlebarForeground);
         }
 
         private _extractDomainFromUrl(url: string): string {
@@ -187,15 +186,15 @@
             return matches[1];
         }
 
-        private _setTitleBar(primaryColour: Windows.UI.Color, textColour: Windows.UI.Color): void {
+        private _setTitleBar(backgroundColour: Windows.UI.Color, textColour: Windows.UI.Color): void {
             var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
 
-            titleBar.backgroundColor = primaryColour;
-            titleBar.buttonBackgroundColor = primaryColour;
+            titleBar.backgroundColor = backgroundColour;
+            titleBar.buttonBackgroundColor = backgroundColour;
             titleBar.buttonForegroundColor = textColour;
             titleBar.foregroundColor = textColour;
-            titleBar.inactiveBackgroundColor = primaryColour;
-            titleBar.buttonInactiveBackgroundColor = primaryColour;
+            titleBar.inactiveBackgroundColor = backgroundColour;
+            titleBar.buttonInactiveBackgroundColor = backgroundColour;
         }
 
         private _toggleToolbar(): void {
@@ -266,6 +265,9 @@
                 view.exitFullScreenMode();
             }
 
+            // Reset the title to the default
+            view.title = "";
+
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
@@ -318,11 +320,19 @@
         }
 
         public switchThemeToDay(): void {
-            this._setTheme("day");
+            this.viewModel.displaySettings.setTheme(Theme.Day);
+        }
+
+        public switchThemeToPaper(): void {
+            this.viewModel.displaySettings.setTheme(Theme.Paper);
+        }
+
+        public switchThemeToDusk(): void {
+            this.viewModel.displaySettings.setTheme(Theme.Dusk);
         }
 
         public switchThemeToNight(): void {
-            this._setTheme("night");
+            this.viewModel.displaySettings.setTheme(Theme.Night);
         }
     }
 
@@ -337,6 +347,8 @@
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseMargins);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.increaseMargins);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToDay);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToPaper);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToDusk);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToNight);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
@@ -595,14 +607,38 @@
     var MAX_ARTICLE_WIDTH = 95;
     var MIN_ARTICLE_WIDTH = 70;
 
+    enum Theme {
+        Day,
+        Paper,
+        Dusk,
+        Night,
+    }
+
+    interface IFontChoice {
+        label: string;
+        fontFamily: string;
+    }
+
+    interface IThemeDetails {
+        theme: Theme;
+        viewerCssClass: string;
+        titlebarForeground: Windows.UI.Color;
+        titlebarBackground: Windows.UI.Color;
+    }
+
     export class DisplaySettingsViewModel {
         private _messenger: Utilities.WebViewMessenger;
         private _fontSize: number = 20;
         private _lineHeight: number = 1.6;
         private _articleWidth: number = 80;
+        private _eventSource: Utilities.EventSource = new Utilities.EventSource();
 
         public setMessenger(messenger: Utilities.WebViewMessenger): void {
             this._messenger = messenger;
+        }
+
+        public get eventSource(): Utilities.EventSource {
+            return this._eventSource;
         }
 
         public dispose(): void {
@@ -669,6 +705,22 @@
             this._messenger.invokeForResult("setbodycssproperty", { property: "maxWidth", value: this._articleWidth + "vw" });
         }
 
+        public setTheme(theme: Theme): void {
+            var themeDetails: IThemeDetails;
+            // Find the theme details we want
+            DisplaySettingsViewModel.themeDetails.forEach((details) => {
+                if (details.theme != theme) {
+                    return;
+                }
+
+                themeDetails = details;
+            });
+
+            // tell everyone
+            this._messenger.invokeForResult("settheme", themeDetails.viewerCssClass);
+            this._eventSource.dispatchEvent("settheme", themeDetails);
+        }
+
         private static _fontChoices: IFontChoice[];
         public static get fontChoices(): IFontChoice[] {
             if (!DisplaySettingsViewModel._fontChoices) {
@@ -682,6 +734,20 @@
             }
 
             return DisplaySettingsViewModel._fontChoices;
+        }
+
+        private static _themeDetails: IThemeDetails[];
+        private static get themeDetails(): IThemeDetails[] {
+            if (!DisplaySettingsViewModel._themeDetails) {
+                DisplaySettingsViewModel._themeDetails = [
+                    { theme: Theme.Day, viewerCssClass: "day", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.white },
+                    { theme: Theme.Paper, viewerCssClass: "paper", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.wheat },
+                    { theme: Theme.Dusk, viewerCssClass: "dusk", titlebarForeground: Windows.UI.Colors.lightGray, titlebarBackground: Windows.UI.Colors.darkSlateGray },
+                    { theme: Theme.Night, viewerCssClass: "night", titlebarForeground: Windows.UI.Colors.white, titlebarBackground: Windows.UI.Colors.black },
+                ];
+            }
+
+            return DisplaySettingsViewModel._themeDetails;
         }
     }
 }
