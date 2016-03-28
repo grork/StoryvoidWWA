@@ -606,6 +606,7 @@
     var ARTICLE_WIDTH_INCREMENT = 2;
     var MAX_ARTICLE_WIDTH = 95;
     var MIN_ARTICLE_WIDTH = 70;
+    var MAX_ARTICLE_PX_WIDTH = 1400;
 
     enum Theme {
         Day,
@@ -693,16 +694,16 @@
             }
 
             this._articleWidth -= ARTICLE_WIDTH_INCREMENT;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "maxWidth", value: this._articleWidth + "vw" });
+            this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
         }
 
         public increaseArticleWidth(): void {
-            if (this._articleWidth >= MAX_ARTICLE_WIDTH) {
+            if ((this._articleWidth >= MAX_ARTICLE_WIDTH) || (window.outerWidth * (this._articleWidth / 100)) >= MAX_ARTICLE_PX_WIDTH) {
                 return;
             }
 
             this._articleWidth += ARTICLE_WIDTH_INCREMENT;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "maxWidth", value: this._articleWidth + "vw" });
+            this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
         }
 
         public setTheme(theme: Theme): void {
