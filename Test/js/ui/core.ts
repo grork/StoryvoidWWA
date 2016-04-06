@@ -88,6 +88,7 @@ module Codevoid.UICore {
             for (var i = 0; i < this.host.children.length; i++) {
                 if (viewModel === (<HTMLExperienceElement>this.host.children[i]).model) {
                     return <HTMLExperienceElement>this.host.children[i];
+                    break;
                 }
             }
 
