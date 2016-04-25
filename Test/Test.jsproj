@@ -123,10 +123,18 @@
     <Content Include="js\InstapaperArticleSync.js">
       <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\SettingsCore.ts" />
+    <Content Include="js\SettingsCore.js">
+      <DependentUpon>SettingsCore.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\tests\InstapaperArticleSync_tests.ts" />
     <Content Include="js\Tests\InstapaperArticleSync_tests.js">
       <DependentUpon>InstapaperArticleSync_tests.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="js\tests\Settings_Tests.ts" />
+    <Content Include="js\tests\Settings_Tests.js">
+      <DependentUpon>Settings_Tests.ts</DependentUpon>
     </Content>
     <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
     <Content Include="js\tests\WebViewMessengerTests.js">
