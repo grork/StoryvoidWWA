@@ -13,6 +13,14 @@
         public get hasCreated(): boolean {
             return this.getValueOrDefault("hasCreated", true);
         }
+
+        public get otherProperty(): string {
+            return this.getValueOrDefault("otherProperty", null);
+        }
+
+        public set otherProperty(value: string) {
+            this.setValue("otherProperty", value);
+        }
     }
 
     function getSettings(name?: string): SettingsTest {
@@ -46,7 +54,7 @@
         ok(!hasContainer, "Didn't expect container to be created");
     });
 
-    settingsTest("ContainerCreatedOnPropertyAccess", (settings: SettingsTest) => {
+    settingsTest("ContainerCreatedOnPropertyAccess", (settings) => {
         var value = settings.hasCreated;
         ok(value, "Setting returned in correctly");
 
@@ -54,14 +62,38 @@
         ok(containerExists, "Container should have been created");
     });
 
-    settingsTest("DefaultValueReturnedWhenValueNotSet", (settings: SettingsTest) => {
+    settingsTest("DefaultValueReturnedWhenValueNotSet", (settings) => {
         ok(settings.hasCreated, "Expected default value");
     });
 
-    settingsTest("StoredValueReturnedFromSettings", (settings: SettingsTest) => {
+    settingsTest("StoredValueReturnedFromSettings", (settings) => {
         var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
         container.values["hasCreated"] = false;
 
         ok(!settings.hasCreated, "Expected value to be false");
+    });
+
+    settingsTest("ValueCanBeStoredAndRetrieved", (settings) => {
+        var now = Date.now() + "";
+
+        settings.otherProperty = now;
+
+        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+        strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        strictEqual(settings.otherProperty, now, "Retreived value differs");
+    });
+
+    settingsTest("ValueCanBeStoredSecondTime", (settings) => {
+        var now = Date.now() + "";
+
+        settings.otherProperty = now;
+
+        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+        strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        strictEqual(settings.otherProperty, now, "Retreived value differs");
+
+        now = (Date.now() + 10) + "";
+        settings.otherProperty = now;
+        strictEqual(settings.otherProperty, now, "Second written value incorrect");
     });
 }
