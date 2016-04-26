@@ -119,6 +119,13 @@
     <Content Include="..\Test\WinJS\js\intrinsics.js">
       <Link>WinJS\js\intrinsics.js</Link>
     </Content>
+    <TypeScriptCompile Include="..\Test\js\SettingsCore.ts">
+      <Link>js\SettingsCore.ts</Link>
+    </TypeScriptCompile>
+    <Content Include="..\Test\js\SettingsCore.js">
+      <Link>js\SettingsCore.js</Link>
+      <DependentUpon>SettingsCore.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="..\Test\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
     </TypeScriptCompile>
@@ -150,7 +157,7 @@
     </Content>
     <TypeScriptCompile Include="js\ui\ArticleViewer_client.ts" />
     <Content Include="js\ui\ArticleViewer_client.js">
-        <DependentUpon>ArticleViewer_client.ts</DependentUpon>
+      <DependentUpon>ArticleViewer_client.ts</DependentUpon>
     </Content>
     <TypeScriptCompile Include="js\ui\DebugDbFiddler.ts" />
     <Content Include="js\ui\DebugDbFiddler.js">
@@ -191,6 +198,10 @@
     <Content Include="..\Test\js\WebViewMessenger_client.js">
       <Link>js\WebViewMessenger_client.js</Link>
       <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="js\ViewerSettings.ts" />
+    <Content Include="js\ViewerSettings.js">
+      <DependentUpon>ViewerSettings.ts</DependentUpon>
     </Content>
   </ItemGroup>
   <ItemGroup>
