@@ -28,6 +28,10 @@
             return settingValue;
         }
 
+        protected setValue<T>(name: string, value: T): void {
+            this.container.values.insert(name, value);
+        } 
+
         public removeAllSettings(): void {
             if (!this._settingsContainer) {
                 return;
