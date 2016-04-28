@@ -1,5 +1,6 @@
 ﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
+    import Settings = Codevoid.Storyvoid.Settings;
 
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
@@ -128,7 +129,8 @@
 
                         // Set initial states
                         this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
-                        this.viewModel.displaySettings.setTheme(Theme.Day);
+                        this.viewModel.displaySettings.restoreSettings();
+
                         Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
                         
                         // Set commands to the toolbar controls to handle primary/secondary scenarios
@@ -230,7 +232,8 @@
         }
 
         public fontSelectionChanged(e: UIEvent): void {
-            this.viewModel.displaySettings.updateFont(this._fontSelector.selectedIndex);
+            var font = <Settings.Font>parseInt(this._fontSelector.value);
+            this.viewModel.displaySettings.updateTypeface(font);
         }
 
         public displaySettingsFlyoutOpening(e: Event) {
@@ -240,8 +243,8 @@
 
             this._fonts.data = new WinJS.Binding.List<IFontChoice>(DisplaySettingsViewModel.fontChoices);
             this._fontSelector = <HTMLSelectElement>this._fonts.element;
-            this._fontSelector.selectedIndex = 2;
-
+            this._fontSelector.selectedIndex = (<number>this.viewModel.displaySettings.currentFont) -1;
+            
             this._flyoutInitialized = true;
         }
 
@@ -320,19 +323,19 @@
         }
 
         public switchThemeToDay(): void {
-            this.viewModel.displaySettings.setTheme(Theme.Day);
+            this.viewModel.displaySettings.setTheme(Settings.Theme.Day);
         }
 
         public switchThemeToPaper(): void {
-            this.viewModel.displaySettings.setTheme(Theme.Paper);
+            this.viewModel.displaySettings.setTheme(Settings.Theme.Paper);
         }
 
         public switchThemeToDusk(): void {
-            this.viewModel.displaySettings.setTheme(Theme.Dusk);
+            this.viewModel.displaySettings.setTheme(Settings.Theme.Dusk);
         }
 
         public switchThemeToNight(): void {
-            this.viewModel.displaySettings.setTheme(Theme.Night);
+            this.viewModel.displaySettings.setTheme(Settings.Theme.Night);
         }
     }
 
@@ -598,30 +601,24 @@
         }
     }
 
-    var MAX_FONT_SIZE = 36;
-    var MIN_FONT_SIZE = 12;
-    var MIN_LINE_HEIGHT = 1.0;
-    var MAX_LINE_HEIGHT = 3.0;
-    var LINE_HEIGHT_INCREMENT = 0.1;
-    var ARTICLE_WIDTH_INCREMENT = 2;
-    var MAX_ARTICLE_WIDTH = 95;
-    var MIN_ARTICLE_WIDTH = 70;
-    var MAX_ARTICLE_PX_WIDTH = 1400;
-
-    enum Theme {
-        Day,
-        Paper,
-        Dusk,
-        Night,
-    }
+    const MAX_FONT_SIZE = 36;
+    const MIN_FONT_SIZE = 12;
+    const MIN_LINE_HEIGHT = 1.0;
+    const MAX_LINE_HEIGHT = 3.0;
+    const LINE_HEIGHT_INCREMENT = 0.1;
+    const ARTICLE_WIDTH_INCREMENT = 2;
+    const MAX_ARTICLE_WIDTH = 95;
+    const MIN_ARTICLE_WIDTH = 70;
+    const MAX_ARTICLE_PX_WIDTH = 1400;
 
     interface IFontChoice {
+        font: Settings.Font;
         label: string;
         fontFamily: string;
     }
 
     interface IThemeDetails {
-        theme: Theme;
+        theme: Settings.Theme;
         viewerCssClass: string;
         titlebarForeground: Windows.UI.Color;
         titlebarBackground: Windows.UI.Color;
@@ -633,6 +630,7 @@
         private _lineHeight: number = 1.6;
         private _articleWidth: number = 80;
         private _eventSource: Utilities.EventSource = new Utilities.EventSource();
+        private _settings: Settings.ViewerSettings = new Settings.ViewerSettings();
 
         public setMessenger(messenger: Utilities.WebViewMessenger): void {
             this._messenger = messenger;
@@ -646,19 +644,31 @@
             this._messenger = null;
         }
 
-        public updateFont(newFontIndex: number): void {
-            var fontChoice = DisplaySettingsViewModel.fontChoices[newFontIndex];
+        public updateTypeface(newFont: Settings.Font): void {
+            var fontChoice: IFontChoice;
+            DisplaySettingsViewModel.fontChoices.forEach((details) => {
+                if (details.font != newFont) {
+                    return;
+                }
+
+                fontChoice = details;
+            });
 
             this._messenger.invokeForResult("setbodycssproperty", { property: "fontFamily", value: fontChoice.fontFamily });
+
+            this._settings.currentTypeface = newFont;
+        }
+
+        public get currentFont(): Settings.Font {
+            return this._settings.currentTypeface;
         }
 
         public decreaseFontSize(): void {
             if (this._fontSize <= MIN_FONT_SIZE) {
                 return;
             }
-
-            this._fontSize -= 1;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "fontSize", value: this._fontSize + "px" });
+            
+            this._setFontSize(this._fontSize - 1);
         }
 
         public increaseFontSize(): void {
@@ -666,7 +676,12 @@
                 return;
             }
 
-            this._fontSize += 1;
+            this._setFontSize(this._fontSize + 1);
+        }
+
+        private _setFontSize(fontSize: number) {
+            this._fontSize = fontSize;
+            this._settings.currentFontSize = fontSize;
             this._messenger.invokeForResult("setbodycssproperty", { property: "fontSize", value: this._fontSize + "px" });
         }
 
@@ -675,16 +690,20 @@
                 return;
             }
 
-            this._lineHeight -= LINE_HEIGHT_INCREMENT;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "lineHeight", value: this._lineHeight + "em" });
+            this._setLineHeight(this._lineHeight - LINE_HEIGHT_INCREMENT);
         }
 
         public increaseLineHeight(): void {
             if (this._lineHeight >= MAX_LINE_HEIGHT) {
                 return;
             }
+            
+            this._setLineHeight(this._lineHeight + LINE_HEIGHT_INCREMENT);
+        }
 
-            this._lineHeight += LINE_HEIGHT_INCREMENT;
+        private _setLineHeight(lineHeight: number) {
+            this._lineHeight = lineHeight;
+            this._settings.currentLineHeight = lineHeight;
             this._messenger.invokeForResult("setbodycssproperty", { property: "lineHeight", value: this._lineHeight + "em" });
         }
 
@@ -693,8 +712,7 @@
                 return;
             }
 
-            this._articleWidth -= ARTICLE_WIDTH_INCREMENT;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
+            this._setArticleWidth(this._articleWidth - ARTICLE_WIDTH_INCREMENT);
         }
 
         public increaseArticleWidth(): void {
@@ -702,11 +720,16 @@
                 return;
             }
 
-            this._articleWidth += ARTICLE_WIDTH_INCREMENT;
+            this._setArticleWidth(this._articleWidth + ARTICLE_WIDTH_INCREMENT);
+        }
+
+        private _setArticleWidth(articleWidth: number) {
+            this._articleWidth = articleWidth;
+            this._settings.currentArticleWidth = articleWidth;
             this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
         }
 
-        public setTheme(theme: Theme): void {
+        public setTheme(theme: Settings.Theme): void {
             var themeDetails: IThemeDetails;
             // Find the theme details we want
             DisplaySettingsViewModel.themeDetails.forEach((details) => {
@@ -719,18 +742,27 @@
 
             // tell everyone
             this._messenger.invokeForResult("settheme", themeDetails.viewerCssClass);
+            this._settings.currentTheme = theme;
             this._eventSource.dispatchEvent("settheme", themeDetails);
+        }
+
+        public restoreSettings(): void {
+            this.setTheme(this._settings.currentTheme);
+            this.updateTypeface(this._settings.currentTypeface);
+            this._setFontSize(this._settings.currentFontSize);
+            this._setLineHeight(this._settings.currentLineHeight);
+            this._setArticleWidth(this._settings.currentArticleWidth);
         }
 
         private static _fontChoices: IFontChoice[];
         public static get fontChoices(): IFontChoice[] {
             if (!DisplaySettingsViewModel._fontChoices) {
                 DisplaySettingsViewModel._fontChoices = [
-                    { label: "Arial", fontFamily: "Arial" },
-                    { label: "Calibri", fontFamily: "Calibri" },
-                    { label: "Cambria", fontFamily: "Cambria" },
-                    { label: "Constantia", fontFamily: "Constantia" },
-                    { label: "Georgia", fontFamily: "Georgia" },
+                    { font: Settings.Font.Arial, label: "Arial", fontFamily: "Arial" },
+                    { font: Settings.Font.Calibri, label: "Calibri", fontFamily: "Calibri" },
+                    { font: Settings.Font.Cambria, label: "Cambria", fontFamily: "Cambria" },
+                    { font: Settings.Font.Constantia, label: "Constantia", fontFamily: "Constantia" },
+                    { font: Settings.Font.Georgia, label: "Georgia", fontFamily: "Georgia" },
                 ];
             }
 
@@ -741,10 +773,10 @@
         private static get themeDetails(): IThemeDetails[] {
             if (!DisplaySettingsViewModel._themeDetails) {
                 DisplaySettingsViewModel._themeDetails = [
-                    { theme: Theme.Day, viewerCssClass: "day", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.white },
-                    { theme: Theme.Paper, viewerCssClass: "paper", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.wheat },
-                    { theme: Theme.Dusk, viewerCssClass: "dusk", titlebarForeground: Windows.UI.Colors.lightGray, titlebarBackground: Windows.UI.Colors.darkSlateGray },
-                    { theme: Theme.Night, viewerCssClass: "night", titlebarForeground: Windows.UI.Colors.white, titlebarBackground: Windows.UI.Colors.black },
+                    { theme: Settings.Theme.Day, viewerCssClass: "day", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.white },
+                    { theme: Settings.Theme.Paper, viewerCssClass: "paper", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.wheat },
+                    { theme: Settings.Theme.Dusk, viewerCssClass: "dusk", titlebarForeground: Windows.UI.Colors.lightGray, titlebarBackground: Windows.UI.Colors.darkSlateGray },
+                    { theme: Settings.Theme.Night, viewerCssClass: "night", titlebarForeground: Windows.UI.Colors.white, titlebarBackground: Windows.UI.Colors.black },
                 ];
             }
 
