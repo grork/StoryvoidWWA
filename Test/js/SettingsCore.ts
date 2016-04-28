@@ -48,11 +48,11 @@
         } 
 
         public removeAllSettings(): void {
-            if (!this._settingsContainer) {
+            if (!this.containerCreated) {
                 return;
             }
 
-            this._parentContainer.deleteContainer(this._settingsContainer.name);
+            this._parentContainer.deleteContainer(this._containerName);
         }
     }
 }

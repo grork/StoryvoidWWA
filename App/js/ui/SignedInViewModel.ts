@@ -267,6 +267,10 @@
                 ]);
             }).done(() => {
                 this._clientInformation = null;
+
+                var viewerSettings = new Codevoid.Storyvoid.Settings.ViewerSettings();
+                viewerSettings.removeAllSettings();
+
                 this._app.signOut();
             });
         }
