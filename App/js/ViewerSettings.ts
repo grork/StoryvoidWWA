@@ -16,11 +16,20 @@
 
     export class ViewerSettings extends Codevoid.Utilities.SettingsCore {
         constructor() {
-            super("ViewerSettings", Windows.Storage.ApplicationData.current.localSettings);
+            super("ViewerSettings",
+                Windows.Storage.ApplicationData.current.localSettings,
+                {
+                    currentTheme: Theme.Day,
+                    currentTypeface: Font.Cambria,
+                    currentFontSize: 20,
+                    currentLineHeight: 1.6,
+                    currentArticleWidth: 80,
+                });
+
         }
 
         public get currentTheme(): Theme {
-            return this.getValueOrDefault("currentTheme", Theme.Day);
+            return this.getValueOrDefault<Theme>("currentTheme");
         }
 
         public set currentTheme(value: Theme) {
@@ -28,7 +37,7 @@
         }
 
         public get currentTypeface(): Font {
-            return this.getValueOrDefault("currentTypeface", Font.Cambria);
+            return this.getValueOrDefault<Font>("currentTypeface");
         }
 
         public set currentTypeface(value: Font) {
@@ -36,7 +45,7 @@
         }
 
         public get currentFontSize(): number {
-            return this.getValueOrDefault("currentFontSize", 20);
+            return this.getValueOrDefault<number>("currentFontSize");
         }
 
         public set currentFontSize(value: number) {
@@ -44,7 +53,7 @@
         }
 
         public get currentLineHeight(): number {
-            return this.getValueOrDefault("currentLineHeight", 1.6);
+            return this.getValueOrDefault<number>("currentLineHeight");
         }
 
         public set currentLineHeight(value: number) {
@@ -52,7 +61,7 @@
         }
 
         public get currentArticleWidth(): number {
-            return this.getValueOrDefault("currentArticleWidth", 80);
+            return this.getValueOrDefault<number>("currentArticleWidth");
         }
 
         public set currentArticleWidth(value: number) {

@@ -3,7 +3,10 @@
 
     class SettingsTest extends Codevoid.Utilities.SettingsCore {
         constructor(name: string) {
-            super(name, st.ApplicationData.current.localSettings);
+            super(name, st.ApplicationData.current.localSettings, {
+                hasCreated: true,
+                otherProperty: null,
+            });
         }
 
         public get name(): string {
@@ -11,11 +14,11 @@
         }
 
         public get hasCreated(): boolean {
-            return this.getValueOrDefault("hasCreated", true);
+            return this.getValueOrDefault<boolean>("hasCreated");
         }
 
         public get otherProperty(): string {
-            return this.getValueOrDefault("otherProperty", null);
+            return this.getValueOrDefault<string>("otherProperty");
         }
 
         public set otherProperty(value: string) {
@@ -54,12 +57,22 @@
         ok(!hasContainer, "Didn't expect container to be created");
     });
 
-    settingsTest("ContainerCreatedOnPropertyAccess", (settings) => {
+    settingsTest("ContainerNotCreatedOnPropertyRead", (settings) => {
         var value = settings.hasCreated;
-        ok(value, "Setting returned in correctly");
+        ok(value, "Setting returned incorrectly");
 
         var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
-        ok(containerExists, "Container should have been created");
+        ok(!containerExists, "Container should have been created");
+    });
+
+    settingsTest("ContainerNotCreatedOnWritingValueSameAsDefault", (settings) => {
+        var value = settings.hasCreated;
+        ok(value, "Setting returned incorrectly");
+
+        settings.hasCreated = true;
+
+        var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
+        ok(!containerExists, "Container should have been created");
     });
 
     settingsTest("DefaultValueReturnedWhenValueNotSet", (settings) => {
