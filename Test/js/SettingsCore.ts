@@ -45,7 +45,7 @@
             }
 
             this.container.values.insert(name, value);
-        } 
+        }
 
         public removeAllSettings(): void {
             if (!this.containerCreated) {
