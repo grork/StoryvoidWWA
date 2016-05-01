@@ -5,59 +5,61 @@
 </head>
 <body>
     <div data-templateid="authenticatorCredentials"
-        data-win-control="WinJS.Binding.Template">
+         data-win-control="WinJS.Binding.Template">
         <div class="authenticator"
-            data-event="{ keydown: containerKeyDown }">
+             data-event="{ keydown: containerKeyDown }">
             <div class="subscriptionInformationContainer">
                 To use Storyvoid, you need to have an Instapaper Account.
                 For details on getting an account, see <a href="http://instapaper.com/" target="_blank">http://instapaper.com</a>.
             </div>
             <div data-part="errorMessageContainer"
-                class="errorMessageContainer hide">
+                 class="errorMessageContainer hide">
                 <div data-part="errorMessage"></div>
             </div>
-            
+
             <div class="usernameLabel">Username:</div>
             <input data-event="{ input: usernameChanged, keydown: usernameKeydown }"
-                data-part="usernameInput"
-                class="usernameInput"
-                type="email" />
+                   data-part="usernameInput"
+                   class="usernameInput"
+                   type="email" />
 
             <div class="passwordLabel">Password:</div>
             <input data-part="passwordInput"
-                data-event="{ input: passwordChanged }"
-                required="required"
-                spellcheck="false"
-                class="passwordInput"
-                type="password"
-                disabled="disabled" />
+                   data-event="{ input: passwordChanged }"
+                   required="required"
+                   spellcheck="false"
+                   class="passwordInput"
+                   type="password"
+                   disabled="disabled" />
 
             <div class="buttonsContainer">
                 <button data-part="authenticateButton"
-                    data-event="{ click: authenticate }"
-                    type="button"
-                    disabled="disabled">
+                        data-event="{ click: authenticate }"
+                        type="button"
+                        disabled="disabled">
                     Authenticate
                 </button>
                 <button data-event="{ click: canceled }"
-                    data-part="cancelButton"
-                    type="button">
+                        data-part="cancelButton"
+                        type="button">
                     Cancel
                 </button>
             </div>
             <div class="workingContainer hide"
-                data-part="workingContainer">
+                 data-part="workingContainer">
                 <progress class="win-progress-ring win-large" />
             </div>
         </div>
     </div>
     <div data-templateid="signedOut"
-          class="signedOut-container"
+         class="signedOut-container"
          data-win-control="WinJS.Binding.Template">
         <div>
             <div>You're currently logged out, login in to do more!</div>
             <button data-part="_loginButton"
-                    data-event="{ click: startLogin }">Login</button>
+                    data-event="{ click: startLogin }">
+                Login
+            </button>
         </div>
     </div>
 
@@ -67,7 +69,7 @@
             <div class="articleViewer-toolbar-container"
                  data-part="_toolbarContainer">
                 <div class="articleViewer-title"
-                        data-part="_title"></div>
+                     data-part="_title"></div>
 
                 <div class="articleViewer-toolbar"
                      data-win-control="WinJS.UI.ToolBar"
@@ -143,29 +145,53 @@
 
     <div data-win-control="WinJS.Binding.Template"
          data-templateid="settingsPopup">
-       <div class="settingsPopup-container"
-            data-part="_container">
-           <div class="settingsPopup-title">Settings</div>
-           <div class="settingsPopup-content">
-               <div class="settingsPopup-reset">
-                   <div class="reset-title">Reset settings</div>
-                   <div>Here, you can reset all your settings to get back to a spick-and-span, pristine state.</div>
-                   <div>When you sign out of the application, we clear all your data from this device -- nothing is left behind!</div>
-                   <button data-event="{ click: resetViewerSettings }">Reset my viewer settings (e.g. theme, typeface etc.)</button>
-                   <button data-event="{ click: redownload }">Delete my downloaded articles, and redownload them.</button>
-               </div>
-               <div class="settingsPopup-debug">
-                   <div class="debug-title">Debugging</div>
-                   <button data-event="{ click: showLogViewer }">Log Viewer</button>
-                   <button data-event="{ click: dumpDb }">Dump DB</button>
-                   <button data-event="{ click: showDbFiddler }">Fiddle DB</button>
-               </div>
-           </div>
-           <button class="settingsPopup-closeButton"
-                   data-event="{click: close }">
-               Close
-           </button>
-       </div>
+        <div class="settingsPopup-container"
+             data-part="_container">
+            <div class="settingsPopup-title">Settings</div>
+            <div class="settingsPopup-content">
+                <div class="settingsPopup-sync">
+                    <div class="sync-title">Sync</div>
+                    <div>For each of these folders, how many items should we sync?</div>
+                    <div data-event="{ change: handleArticleLimitChanged }">
+                        <div class="sync-folderName">Home</div>
+                        <select data-part="_homeArticleLimit">
+                            <option value="100">100 Latest Articles</option>
+                            <option value="250">250 Latest Articles</option>
+                            <option value="500">500 Latest Articles</option>
+                        </select>
+                        <div class="sync-folderName">Liked</div>
+                        <select data-part="_likedArticleLimit">
+                            <option value="10">10 Latest Articles</option>
+                            <option value="20">20 Latest Articles</option>
+                            <option value="100">100 Latest Articles</option>
+                        </select>
+                        <div class="sync-folderName">Archive</div>
+                        <select data-part="_archiveArticleLimit">
+                            <option value="10">10 Latest Articles</option>
+                            <option value="20">20 Latest Articles</option>
+                            <option value="100">100 Latest Articles</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settingsPopup-reset">
+                    <div class="reset-title">Reset settings</div>
+                    <div>Here, you can reset all your settings to get back to a spick-and-span, pristine state.</div>
+                    <div>When you sign out of the application, we clear all your data from this device -- nothing is left behind!</div>
+                    <button data-event="{ click: resetViewerSettings }">Reset my viewer settings (e.g. theme, typeface etc.)</button>
+                    <button data-event="{ click: redownload }">Delete my downloaded articles, and redownload them.</button>
+                </div>
+                <div class="settingsPopup-debug">
+                    <div class="debug-title">Debugging</div>
+                    <button data-event="{ click: showLogViewer }">Log Viewer</button>
+                    <button data-event="{ click: dumpDb }">Dump DB</button>
+                    <button data-event="{ click: showDbFiddler }">Fiddle DB</button>
+                </div>
+            </div>
+            <button class="settingsPopup-closeButton"
+                    data-event="{click: close }">
+                Close
+            </button>
+        </div>
     </div>
 
     <div data-templateid="dbFiddler"

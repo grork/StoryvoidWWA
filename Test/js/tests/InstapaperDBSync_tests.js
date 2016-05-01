@@ -1108,6 +1108,7 @@
 
     promiseTest("syncRespectsLimits", function () {
         var sync = getNewSyncEngine();
+        sync.perFolderBookmarkLimits = {};
         sync.defaultBookmarkLimit = 1;
 
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
@@ -1127,6 +1128,7 @@
 
     promiseTest("syncingOnlyOneBookmarkWithOneLikeNotInOneBookmarkBoundaryDoesn'tFailSync", function () {
         var sync = getNewSyncEngine();
+        sync.perFolderBookmarkLimits = {};
         sync.defaultBookmarkLimit = 1;
 
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
