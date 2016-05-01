@@ -51,6 +51,9 @@
                 syncstarting: (e: { detail: { message: string } }) => {
                     this._createProgressHeader(e.detail.message);
                 },
+                signedout: () => {
+                    this._signOutRequested();
+                }
             }));
 
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
@@ -86,12 +89,15 @@
         }
 
         public signOut(): void {
+            this.viewModel.signOut(true/*clearCredentials*/).done(null);
+        }
+
+        private _signOutRequested() {
             this._exitSelectionMode();
 
             this._folderList.data = null;
             this._splitView.closePane();
             this._contentList.itemDataSource = null;
-            this.viewModel.signOut();
         }
 
         public showSettings(): void {
@@ -231,20 +237,6 @@
                 Utilities.Logging.instance.log("Cleared DB"); 
             });
         }
-
-        public dumpDb(): void {
-            this.viewModel.dumpDb().done((dumpData: string) => {
-                Utilities.Logging.instance.log("Dumped");
-
-                Utilities.Logging.instance.log(dumpData, true);
-            }, () => {
-                Utilities.Logging.instance.log("Not dumped");
-            });
-        }
-
-        public showDbFiddler(): void {
-            this.viewModel.showDbFiddler();
-        }
         
         static folderIdToIcon: any;
         static restrictProgressTo5PercentOrMore: any;
@@ -266,8 +258,6 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.toggleSelectionMode);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.handleSortsChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.dumpDb);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showDbFiddler);
 
     SignedInExperience.folderIdToIcon = WinJS.Binding.converter((folder: string) => {
         var result = "\uE8B7"; // hollow folder icon

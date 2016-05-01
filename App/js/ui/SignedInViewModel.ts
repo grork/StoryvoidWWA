@@ -255,23 +255,29 @@
             this._readyForEvents.complete();
         }
 
-        public signOut(): void {
+        public signOut(clearCredentials: boolean): WinJS.Promise<any> {
+            this.events.dispatchEvent("signedout", null);
             this.disposeDB();
-            Codevoid.Storyvoid.Authenticator.clearClientInformation();
+
+            if (clearCredentials) {
+                Codevoid.Storyvoid.Authenticator.clearClientInformation();
+            }
 
             var idb = new Codevoid.Storyvoid.InstapaperDB();
-            idb.initialize().then(() => {
+            return idb.initialize().then(() => {
                 return WinJS.Promise.join([
                     idb.deleteAllData(),
                     this._cleanupDownloadedArticles()
                 ]);
-            }).done(() => {
+            }).then(() => {
                 this._clientInformation = null;
 
                 var viewerSettings = new Codevoid.Storyvoid.Settings.ViewerSettings();
                 viewerSettings.removeAllSettings();
 
-                this._app.signOut();
+                if (clearCredentials) {
+                    this._app.signOut();
+                }
             });
         }
 
@@ -602,7 +608,7 @@
             }
 
             settingsScripts.done(() => {
-                var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel();
+                var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
             });
         }
