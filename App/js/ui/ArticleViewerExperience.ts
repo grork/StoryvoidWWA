@@ -38,7 +38,7 @@
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
             }).done(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedOutExperience");
+                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ArticleViewerExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 

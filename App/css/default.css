@@ -333,6 +333,51 @@ button.commands-selectmode .win-commandimage {
         overflow: hidden;
     }
 
+.settingsPopup-dialog.dialog {
+    width: 100vw;
+    height: 100vh;
+    z-index: 500;
+}
+
+.settingsPopup-dialog > .settingsPopup-container {
+    box-sizing: border-box;
+    min-width: 320px;
+    max-width: 640px;
+    min-height: 180px;
+    max-height: 90vh;
+    border-width: 1px;
+    border-style: solid;
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: auto 1fr auto;
+}
+
+.settingsPopup-container > div {
+    padding: 24px;
+}
+
+.settingsPopup-container > .settingsPopup-title {
+    padding-bottom: 12px;
+    font-size: 20px;
+}
+
+.settingsPopup-container > .settingsPopup-content {
+    -ms-grid-row: 2;
+    padding-top: 0px;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 12px;
+    overflow: auto;
+}
+
+.settingsPopup-container > .settingsPopup-closeButton {
+    -ms-grid-row: 3;
+    padding:unset;
+    -ms-grid-column-align: end;
+    margin: 24px;
+    margin-top: 0px;
+}
+
 .articleViewer-dialog.dialog {
     width: 100vw;
     height: 100vh;
@@ -420,10 +465,10 @@ button.commands-selectmode .win-commandimage {
         width: 48px;
     }
 
-    .articleViewer-displaySettings-container button.win-command .win-commandicon {
-        margin-left: 12px;
-        margin-right: 12px;
-    }
+        .articleViewer-displaySettings-container button.win-command .win-commandicon {
+            margin-left: 12px;
+            margin-right: 12px;
+        }
 
 @media all and (max-width: 380px) {
     .articleViewer-displaySettings-container {

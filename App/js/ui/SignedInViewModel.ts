@@ -581,6 +581,32 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
         }
 
+        public showSettings(): void {
+            var settingsAvailable = !!WinJS.Utilities.getMember("Codevoid.Storyvoid.UI.SettingsPopupExperience");
+            var settingsScripts = WinJS.Promise.as();
+
+            // If settings namespace wasn't available, then we can assume
+            // that the script file needs to be added in.
+            if (!settingsAvailable) {
+                var signal = new Codevoid.Utilities.Signal();
+                settingsScripts = signal.promise;
+
+                var scriptTag = document.createElement("script");
+                scriptTag.addEventListener("load", () => {
+                    signal.complete();
+                });
+
+                scriptTag.src = "/js/ui/SettingsPopupExperience.js";
+
+                document.head.appendChild(scriptTag);
+            }
+
+            settingsScripts.done(() => {
+                var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel();
+                Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
+            });
+        }
+
         public static get sorts(): ISortsInfo[] {
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [

@@ -94,8 +94,9 @@
             this.viewModel.signOut();
         }
 
-        public showLogger(): void {
-            Utilities.Logging.instance.showViewer();
+        public showSettings(): void {
+            this.viewModel.showSettings();
+            this._splitView.closePane();
         }
 
         public _renderFolderDetails(folderDetails: IFolderDetails): void {
@@ -257,7 +258,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewClosing);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
-    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showLogger);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showSettings);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.contentListSelectionChanged);
