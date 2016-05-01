@@ -168,3 +168,12 @@ progress.article-progress {
 .articleViewer-toolbar-container .win-commandingsurface .win-commandingsurface-actionarea {
     background-color: transparent;
 }
+
+.settingsPopup-dialog > .settingsPopup-container {
+    background-color: white;
+    border-color: red;
+}
+
+.settingsPopup-dialog.dialog {
+    background-color: transparent;
+}

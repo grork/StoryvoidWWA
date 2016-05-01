@@ -166,6 +166,10 @@
     <Content Include="js\ui\DebugDbFiddler.js">
       <DependentUpon>DebugDbFiddler.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\ui\SettingsPopupExperience.ts" />
+    <Content Include="js\ui\SettingsPopupExperience.js">
+      <DependentUpon>SettingsPopupExperience.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
     <Content Include="js\ui\SignedInExperience.js">
       <DependentUpon>SignedInExperience.ts</DependentUpon>
