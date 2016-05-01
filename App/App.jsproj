@@ -154,6 +154,10 @@
     <Content Include="js\shareTarget.js">
       <DependentUpon>shareTarget.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\SyncSettings.ts" />
+    <Content Include="js\SyncSettings.js">
+      <DependentUpon>SyncSettings.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\ArticleViewerExperience.ts" />
     <Content Include="js\ui\ArticleViewerExperience.js">
       <DependentUpon>ArticleViewerExperience.ts</DependentUpon>

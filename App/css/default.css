@@ -376,6 +376,14 @@ button.commands-selectmode .win-commandimage {
     margin-bottom: 12px;
 }
 
+.settingsPopup-sync > .sync-title {
+    font-size: 20px;
+}
+
+.sync-folderName {
+    margin-top: 8px;
+}
+
 .settingsPopup-reset > .reset-title {
     font-size: 20px;
 }

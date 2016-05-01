@@ -28,7 +28,9 @@
     WinJS.Namespace.define("Codevoid.Storyvoid", {
         InstapaperSync: WinJS.Class.mix(WinJS.Class.define(function (clientInformation) {
             this._clientInformation = clientInformation;
-            this.perFolderBookmarkLimits = {};
+            this.perFolderBookmarkLimits = {
+                "unread": 250,
+            };
         }, {
             _clientInformation: null,
             _foldersStorage: null,
@@ -571,7 +573,7 @@
                     return WinJS.Promise.join(operations);
                 });
             },
-            defaultBookmarkLimit: 25,
+            defaultBookmarkLimit: 10,
             perFolderBookmarkLimits: null,
             sync: function sync(options) {
                 options = options || { folders: true, bookmarks: true };

@@ -6,6 +6,9 @@
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private viewModel: SettingsPopupViewModel;
         private _navigationManager: Windows.UI.Core.SystemNavigationManager;
+        private _homeArticleLimit: HTMLSelectElement;
+        private _likedArticleLimit: HTMLSelectElement;
+        private _archiveArticleLimit: HTMLSelectElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -42,6 +45,11 @@
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
                     backrequested: this.close.bind(this),
                 }));
+
+                var syncSettings = new Settings.SyncSettings();
+                this._selectOptionBasedOnValue(syncSettings.homeArticleLimit, this._homeArticleLimit);
+                this._selectOptionBasedOnValue(syncSettings.likedArticleLimit, this._likedArticleLimit);
+                this._selectOptionBasedOnValue(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
                 
                 WinJS.Utilities.removeClass(element, "hide");
                 WinJS.UI.Animation.slideUp(this.element);
@@ -68,6 +76,14 @@
             });
 
             this._handlersToCleanup = null;
+        }
+
+        public handleArticleLimitChanged(): void {
+            var homeLimit = parseInt(this._homeArticleLimit.value);
+            var likedLimit = parseInt(this._likedArticleLimit.value);
+            var archiveLimit = parseInt(this._archiveArticleLimit.value);
+
+            this.viewModel.updateArticleSyncLimits(homeLimit, likedLimit, archiveLimit);
         }
 
         public resetViewerSettings(): void {
@@ -99,6 +115,15 @@
             this.viewModel.articleListViewModel.showDbFiddler();
             this.close();
         }
+        private _selectOptionBasedOnValue(value: number, element: HTMLSelectElement): void {
+            for (var i = 0; i < element.options.length; i++) {
+                var itemValue = parseInt(element.options.item(i).value); // Assume all items are valid integers
+                if (itemValue === value) {
+                    element.selectedIndex = i;
+                    return;
+                }
+            }   
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience);
@@ -109,6 +134,7 @@
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.dumpDb);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showDbFiddler);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleArticleLimitChanged);
 
     export class SettingsPopupViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SettingsPopupExperience" };
@@ -126,6 +152,13 @@
             }).done(() => {
                 articleListViewModel.signedIn(false);
             });
+        }
+
+        public updateArticleSyncLimits(homeLimit: number, likedLimit: number, archiveLimit: number): void {
+            var syncSettings = new Settings.SyncSettings();
+            syncSettings.homeArticleLimit = homeLimit;
+            syncSettings.likedArticleLimit = likedLimit;
+            syncSettings.archiveArticleLimit = archiveLimit;
         }
     }
 }

@@ -25,7 +25,6 @@
                     currentLineHeight: 1.6,
                     currentArticleWidth: 80,
                 });
-
         }
 
         public get currentTheme(): Theme {

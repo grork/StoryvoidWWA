@@ -275,6 +275,9 @@
                 var viewerSettings = new Codevoid.Storyvoid.Settings.ViewerSettings();
                 viewerSettings.removeAllSettings();
 
+                var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
+                syncSettings.removeAllSettings();
+
                 if (clearCredentials) {
                     this._app.signOut();
                 }
@@ -301,9 +304,11 @@
             var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
             var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
+            var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
 
-            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = 10;
-            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = 10;
+            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
+            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
+            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = syncSettings.likedArticleLimit;
 
             Utilities.Logging.instance.log("Starting Sync");
 
