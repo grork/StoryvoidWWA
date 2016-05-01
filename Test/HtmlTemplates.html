@@ -147,7 +147,19 @@
             data-part="_container">
            <div class="settingsPopup-title">Settings</div>
            <div class="settingsPopup-content">
-               <div>I R CONTENT</div>
+               <div class="settingsPopup-reset">
+                   <div class="reset-title">Reset settings</div>
+                   <div>Here, you can reset all your settings to get back to a spick-and-span, pristine state.</div>
+                   <div>When you sign out of the application, we clear all your data from this device -- nothing is left behind!</div>
+                   <button data-event="{ click: resetViewerSettings }">Reset my viewer settings (e.g. theme, typeface etc.)</button>
+                   <button data-event="{ click: redownload }">Delete my downloaded articles, and redownload them.</button>
+               </div>
+               <div class="settingsPopup-debug">
+                   <div class="debug-title">Debugging</div>
+                   <button data-event="{ click: showLogViewer }">Log Viewer</button>
+                   <button data-event="{ click: dumpDb }">Dump DB</button>
+                   <button data-event="{ click: showDbFiddler }">Fiddle DB</button>
+               </div>
            </div>
            <button class="settingsPopup-closeButton"
                    data-event="{click: close }">

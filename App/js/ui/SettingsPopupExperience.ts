@@ -48,7 +48,7 @@
             });
         }
 
-        public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
+        public close(args?: Windows.UI.Core.BackRequestedEventArgs): void {
             if (args != null) {
                 args.handled = true;
             }
@@ -69,15 +69,63 @@
 
             this._handlersToCleanup = null;
         }
+
+        public resetViewerSettings(): void {
+            var viewerSettings = new Settings.ViewerSettings();
+            viewerSettings.removeAllSettings();
+        }
+
+        public redownload(): void {
+            this.viewModel.redownload();
+            this.close();
+        }
+
+        public showLogViewer(): void {
+            Utilities.Logging.instance.showViewer();
+            this.close();
+        }
+
+        public dumpDb(): void {
+            this.viewModel.articleListViewModel.dumpDb().done((dumpData: string) => {
+                Utilities.Logging.instance.log("Dumped");
+
+                Utilities.Logging.instance.log(dumpData, true);
+            }, () => {
+                Utilities.Logging.instance.log("Not dumped");
+            });
+        }
+
+        public showDbFiddler(): void {
+            this.viewModel.articleListViewModel.showDbFiddler();
+            this.close();
+        }
     }
 
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.close);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.resetViewerSettings);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.redownload);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.dumpDb);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showDbFiddler);
 
     export class SettingsPopupViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SettingsPopupExperience" };
 
+        constructor(public articleListViewModel: SignedInViewModel)
+        { }
+
         public dispose(): void {
+        }
+
+        public redownload(): void {
+            var articleListViewModel = this.articleListViewModel;
+            articleListViewModel.signOut(false/*clearCredentials*/).then(() => {
+                return WinJS.Promise.timeout();
+            }).done(() => {
+                articleListViewModel.signedIn(false);
+            });
         }
     }
 }
