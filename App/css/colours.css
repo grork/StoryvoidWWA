@@ -40,8 +40,17 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
 }
 
 .signedOut-container {
-    background-color: lightblue;
+    background-color: red;
+    color: white;
 }
+
+    .signedOut-description > a {
+        color: limegreen;
+    }
+
+    .signedOut-description > a:hover {
+        color: turquoise;
+    }
 
 .pane-section-splitter {
     border-color: lightgray;
