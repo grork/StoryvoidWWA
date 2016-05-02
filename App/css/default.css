@@ -181,7 +181,26 @@ button.commands-selectmode .win-commandimage {
 .signedOut-container {
     width: 100vw;
     height: 100vh;
-    padding: 10px;
+    padding: 24px;
+    padding-top: 0px;
+}
+
+.signedOut-welcome {
+    font-size: 16vw;
+    font-weight: bold;
+    max-width: 810px;
+    line-height: 0.8em;
+}
+
+.signedOut-description {
+    margin-top: 48px;
+    font-size: 20px;
+}
+
+@media all and (min-width: 886px) {
+    .signedOut-welcome {
+        font-size: 140px;
+    }
 }
 
 .win-listview .win-gridlayout .win-container {
