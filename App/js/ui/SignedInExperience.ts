@@ -155,7 +155,7 @@
 
         public listItemInvoked(e: UIEvent): void {
             (<any>e.detail).itemPromise.then((item: WinJS.UI.IItem<IBookmark>) => {
-                this.viewModel.showArticle(item.data);
+                this.viewModel.showArticle(item.data, false/*restoring*/);
             });
         }
 

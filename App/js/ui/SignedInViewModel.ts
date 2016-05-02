@@ -289,6 +289,16 @@
             WinJS.Promise.join({
                 db: this.initializeDB(),
                 uiReady: this._readyForEvents.promise,
+            }).then(() => {
+                var articleDisplay = WinJS.Promise.as<any>();
+
+                // Try showing a saved article before doing the rest of the work.
+                var transientSettings = new Settings.TransientSettings();
+                if (transientSettings.lastViewedArticleId != -1) {
+                    articleDisplay = this._instapaperDB.getBookmarkByBookmarkId(transientSettings.lastViewedArticleId).then(bookmark => this.showArticle(bookmark, true /*restoring*/));
+                }
+
+                return articleDisplay;
             }).done(() => {
                 this.refreshCurrentFolder();
 
@@ -587,9 +597,13 @@
             });
         }
 
-        public showArticle(bookmark: IBookmark): void {
-            var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark, this._instapaperDB);
+        public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
+            var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark,
+                this._instapaperDB);
+            viewer.isRestoring = restoring;
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
+
+            return viewer.displayed;
         }
 
         public showSettings(): void {
