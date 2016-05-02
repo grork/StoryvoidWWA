@@ -137,7 +137,13 @@
                         this.toolbar.data = this.viewModel.getCommands();
 
                         this.element.style.opacity = ""; // Allow default styles to sort themselves out
-                        WinJS.UI.Animation.slideUp(this.element);
+                        if (this.viewModel.isRestoring) {
+                            this.viewModel.signalArticleDisplayed();
+                        } else {
+                            WinJS.UI.Animation.slideUp(this.element).done(() => {
+                                this.viewModel.signalArticleDisplayed();
+                            });
+                        }
 
                         // Setup OS back button support
                         this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
@@ -365,6 +371,8 @@
         private _remoteEventHandlers: Utilities.ICancellable;
         private _messenger: Utilities.WebViewMessenger;
         private _displaySettings: DisplaySettingsViewModel = new DisplaySettingsViewModel();
+        private _displayedSignal: Utilities.Signal = new Utilities.Signal();
+        public isRestoring: boolean = true;
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
             this._eventSource = new Utilities.EventSource();
@@ -385,6 +393,10 @@
                 type: 'flyout',
                 onclick: () => { },
             });
+
+            // Save that we're looking at an article
+            var transientSettings = new Settings.TransientSettings();
+            transientSettings.lastViewedArticleId = bookmark.bookmark_id;
         }
 
         public dispose(): void {
@@ -396,6 +408,18 @@
             this._messenger = null;
             this._displaySettings.dispose();
             this._displaySettings = null;
+
+            // Clear the article; we've stopped viewing, so no need to restore
+            var transientSettings = new Settings.TransientSettings();
+            transientSettings.clearLastViewedArticleId();
+        }
+
+        public signalArticleDisplayed(): void {
+            this._displayedSignal.complete();
+        }
+
+        public get displayed(): WinJS.Promise<any> {
+            return this._displayedSignal.promise;
         }
 
         public setMessenger(messenger: Utilities.WebViewMessenger) {

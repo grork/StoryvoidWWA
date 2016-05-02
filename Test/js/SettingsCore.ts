@@ -47,6 +47,14 @@
             this.container.values.insert(name, value);
         }
 
+        protected clearValue(name: string): void {
+            if (!this.containerCreated) {
+                return;
+            }
+
+            this.container.values.remove(name);
+        }
+
         public removeAllSettings(): void {
             if (!this.containerCreated) {
                 return;

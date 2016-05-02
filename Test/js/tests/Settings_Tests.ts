@@ -24,6 +24,10 @@
         public set otherProperty(value: string) {
             this.setValue("otherProperty", value);
         }
+
+        public clearOtherProperty(): void {
+            this.clearValue("otherProperty");
+        }
     }
 
     function getSettings(name?: string): SettingsTest {
@@ -108,5 +112,19 @@
         now = (Date.now() + 10) + "";
         settings.otherProperty = now;
         strictEqual(settings.otherProperty, now, "Second written value incorrect");
+    });
+
+    settingsTest("ValueCanBeClearedAndReturnsToDefault", (settings) => {
+        var now = Date.now() + "";
+
+        settings.otherProperty = now;
+
+        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+        strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        strictEqual(settings.otherProperty, now, "Retreived value differs");
+
+        settings.clearOtherProperty();
+
+        strictEqual(settings.otherProperty, null, "Didn't reset value");
     });
 }
