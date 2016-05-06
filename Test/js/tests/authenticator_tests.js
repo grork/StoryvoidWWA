@@ -233,45 +233,11 @@
         ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
     });
 
-    promiseTest("canPromptForCredentials", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-
-        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        return vm.authenticate().then(function () {
-            ok(false, "Expected to fail");
-        }, function () {
-            var xp = Codevoid.UICore.Experiences.currentHost.getExperienceForModel(vm);
-            ok(xp.wasPrompted, "Expected to have been prompted");
-        }).then(cleanupExperienceHost);
-    });
-
-    promiseTest("experienceRemovedWhenCredentialPromptCanceled", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-
-        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = -1;
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        return vm.authenticate().then(function () {
-            ok(false, "Expected to fail");
-        }, function () {
-            var xp = Codevoid.UICore.Experiences.currentHost.getExperienceForModel(vm);
-            ok(!xp, "Didn't expect to find experience");
-        }).then(cleanupExperienceHost);
-    });
-
     promiseTest("canSuccessfullyAuthenticateWhenPromptingForCredentials", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: testCredentials.user,
-            password: testCredentials.password,
-        };
+        vm.username = testCredentials.user;
+        vm.password = testCredentials.password;
 
         return vm.authenticate().then(function () {
             ok(true, "Expected to complete authentication");
@@ -286,14 +252,6 @@
         var canAuthenticateIsFalse = false;
         var allowPasswordEntryIsFalse = false;
         var allowUsernameEntryIsFalse = false;
-
-        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: testCredentials.user,
-            password: testCredentials.password,
-        };
 
         vm.addEventListener("isWorkingChanged", function () {
             if (vm.isWorking) {
@@ -313,6 +271,9 @@
             }
         });
 
+        vm.username = testCredentials.user;
+        vm.password = testCredentials.password;
+
         return vm.authenticate().then(function () {
             ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
             ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
@@ -331,10 +292,6 @@
         var vm = new authenticator.AuthenticatorViewModel();
         var isWorkingBecameTrue = false;
 
-        Codevoid.UICore.Experiences.initializeHost(new CodevoidTests.UnitTestExperienceHost());
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-
         vm.addEventListener("isWorkingChanged", function () {
             if (vm.isWorking) {
                 isWorkingBecameTrue = true;
@@ -346,51 +303,22 @@
         }, function () {
             ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
             ok(!vm.isWorking, "Should have completed authentication");
-        }).then(cleanupExperienceHost);
-    });
-
-    promiseTest("experienceIsRemovedWhenSuccessfullyAuthenticating", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
-
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: testCredentials.user,
-            password: testCredentials.password,
-        };
-
-        return vm.authenticate().then(function () {
-            var experience = host.getExperienceForModel(vm);
-            ok(!experience, "Didn't expect to find the experience");
-            ok(true, "Expected to complete authentication");
-        }, function () {
-            ok(false, "Didn't expect to fail authentication");
-        }).then(cleanupExperienceHost);
+        });
     });
 
     promiseTest("canFailureToAuthenticateIsCorrectlyPropogated", function () {
         var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
 
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: testCredentials.user,
-            password: "foo",
-        };
+        vm.username = testCredentials.user;
+        vm.password = "foo";
 
         return vm.authenticate().then(function () {
             ok(false, "Expected to complete authentication");
         }, function () {
-            var xp = host.getExperienceForModel(vm);
-            ok(xp, "Expected to find the experience");
             strictEqual(vm.authenticationError, 401, "Expected auth error");
             strictEqual(vm.authenticationErrorMessage, Codevoid.Storyvoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
             ok(true, "Didn't expect to fail authentication");
-        }).then(cleanupExperienceHost);
+        });
     });
 
     test("authenticationErrorPropertyRaisesEvent", function () {
@@ -417,23 +345,15 @@
 
     promiseTest("authenticationErrorIsResetWhenReauthenticating", function () {
         var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
         var authenticationErrorWasReset = false;
         var authenticationErrorMessageWasReset = false;
 
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = {
-            username: testCredentials.user,
-            password: "foo",
-        };
+        vm.username = testCredentials.user;
+        vm.password = "foo";
 
         return vm.authenticate().then(function () {
             ok(false, "Expected to fails authentication");
         }, function () {
-            var xp = host.getExperienceForModel(vm);
-            ok(xp, "Expected to find the experience");
             strictEqual(vm.authenticationError, 401, "Expected auth error");
 
             vm.addEventListener("authenticationErrorChanged", function () {
@@ -452,58 +372,6 @@
             ok(authenticationErrorWasReset, "Should have been reset");
             ok(authenticationErrorMessageWasReset, "message wasn't reset");
             strictEqual(vm.authenticationError, 401, "Incorrect error code");
-        }).then(cleanupExperienceHost);
-    });
-
-    promiseTest("authenticationIsRetriedWhenFails", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
-
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = [{
-            username: testCredentials.user,
-            password: "foo",
-        }, {
-            username: testCredentials.user,
-            password: testCredentials.password,
-        }];
-
-        return vm.authenticate(true).then(function () {
-            ok(true, "Expected to complete authentication");
         });
-    });
-
-    promiseTest("authenticationErrorIsntResetOnRetry", function () {
-        var vm = new authenticator.AuthenticatorViewModel();
-        var host = new CodevoidTests.UnitTestExperienceHost();
-        var states = [];
-
-        Codevoid.UICore.Experiences.initializeHost(host);
-
-        vm.experience.unittest = "CodevoidTests.AuthenticatorTestUI";
-        CodevoidTests.AuthenticatorTestUI.credentialsToUse = [{
-            username: testCredentials.user,
-            password: "foo",
-        }, -1];
-
-        vm.addEventListener("authenticationErrorChanged", function () {
-            if (vm.authenticationError === 401) {
-                states.push(401);
-            }
-
-            if (vm.authenticationError === 0) {
-                states.push(0);
-            }
-        });
-
-        return vm.authenticate(true).then(function () {
-            ok(false, "Shouldn't have completed");
-        }, function (err) {
-            strictEqual(err.name, "Canceled", "Should have been cancelled");
-            strictEqual(states.length, 1, "Only expected on status change");
-            strictEqual(states[0], 401, "Expected error code to be 401");
-        }).then(cleanupExperienceHost);
     });
 })();

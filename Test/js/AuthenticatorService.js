@@ -106,7 +106,6 @@
             allowPasswordEntry: property("allowPasswordEntry", false),
             allowUsernameEntry: property("allowUsernameEntry", true),
             credentialAcquisitionComplete: null,
-            _authenticationComplete: null,
             _evaluateCanAuthenticate: function () {
                 this.allowUsernameEntry = true;
 
@@ -118,39 +117,33 @@
                     this.allowPasswordEntry = false;
                 }
             },
-            _tryAuthenticate: function (credentialPromise, retry) {
+            authenticate: function () {
+                // Reset authentication state
+                this.authenticationError = 0;
+
+                if (!this.canAuthenticate) {
+                    return WinJS.Promise.wrapError(new Error("Expected Credentials to be supplied to allow authentication"));
+                }
+
+                var authenticationComplete = new Codevoid.Utilities.Signal();
+
                 var clientInformation = Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret));
                 var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-                credentialPromise.then(function () {
-                    this.isWorking = true;
-                    return accounts.getAccessToken(this.username, this.password);
-                }.bind(this)).done(function (result) {
-                    Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+                this.isWorking = true;
+                accounts.getAccessToken(this.username, this.password).done(function (result) {
                     this.isWorking = false;
 
-                    this._authenticationComplete.complete(result);
+                    authenticationComplete.complete(result);
                 }.bind(this), function (err) {
                     this.isWorking = false;
 
-                    // Cancelled
-                    if (err && (err.name === "Canceled")) {
-                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                        this._authenticationComplete.promise.cancel();
-                        return;
-                    }
-
                     this.authenticationError = err.status || 0;
 
-                    // Retry
-                    if (!retry) {
-                        this._authenticationComplete.error(err);
-                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                        return;
-                    }
-
-                    this._tryAuthenticate(this.promptForCredentials(), retry);
+                    authenticationComplete.error(err);
                 }.bind(this));
+
+                return authenticationComplete.promise;
             },
             _isWorkingChanged: function () {
                 if (this.isWorking) {
@@ -168,21 +161,6 @@
                 }
 
                 this.authenticationErrorMessage = message;
-            },
-            authenticate: function (retry) {
-                // Reset authentication state
-                this.authenticationError = 0;
-
-                this._authenticationComplete = new Codevoid.Utilities.Signal();
-                var credentialPromise = WinJS.Promise.as();
-
-                if (!this.canAuthenticate) {
-                    credentialPromise = this.promptForCredentials();
-                }
-
-                this._tryAuthenticate(credentialPromise, retry);
-
-                return this._authenticationComplete.promise;
             },
             promptForCredentials: function promptForCredentials() {
                 this.credentialAcquisitionComplete = new Codevoid.Utilities.Signal();
