@@ -7,8 +7,6 @@
             this._handlersToCleanup = [];
             this.base(element, options);
 
-            WinJS.Utilities.addClass(element, "dialog");
-
             Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
                 return template.render(null, element);
             }).done(function () {
@@ -64,7 +62,6 @@
                 var op = this.viewModel.isWorking ? "remove" : "add";
                 WinJS.Utilities[op + "Class"](this.workingContainer, "hide");
 
-                this.cancelButton.disabled = this.viewModel.isWorking;
                 if (!this.viewModel.isWorking) {
                     this.usernameInput.focus();
                 }
@@ -93,21 +90,13 @@
                     return;
                 }
 
-                this.viewModel.credentialAcquisitionComplete.complete();
-            }),
-            canceled: msfp(function () {
-                if (this.viewModel.isWorking) {
-                    return;
-                }
+                var readyToAuthenticate = document.createEvent("Event");
+                readyToAuthenticate.initEvent("readytoauthenticate", true, true);
 
-                this.viewModel.credentialAcquisitionComplete.promise.cancel();
+                this.element.dispatchEvent(readyToAuthenticate);
             }),
             containerKeyDown: msfp(function (e) {
                 switch (e.keyCode) {
-                    case WinJS.Utilities.Key.escape:
-                        this.canceled();
-                        break;
-
                     case WinJS.Utilities.Key.enter:
                         this.authenticate();
                         break;
