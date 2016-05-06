@@ -183,7 +183,12 @@ button.commands-selectmode .win-commandimage {
     height: 100vh;
     padding: 24px;
     padding-top: 0px;
+    overflow-x: auto;
 }
+
+    .signedOut-container > div {
+        padding-bottom: 48px;
+    }
 
 .signedOut-welcome {
     font-size: 16vw;
@@ -196,10 +201,10 @@ button.commands-selectmode .win-commandimage {
     margin-top: 48px;
     min-height: 48px;
     font-size: 20px;
+    line-height: 1.8em;
 }
 
     .signedOut-description > a {
-        text-decoration: none;
         padding-top: 2px;
         padding-bottom: 6px;
         padding-left: 12px;
@@ -208,9 +213,13 @@ button.commands-selectmode .win-commandimage {
         margin-right: 4px;
     }
 
-        .signedOut-description > a:hover {
-            text-decoration: underline;
-        }
+.signedOut-container a {
+    text-decoration: none;
+}
+
+    .signedOut-container a:hover {
+        text-decoration: underline;
+    }
 
 @media all and (min-width: 886px) {
     .signedOut-welcome {
@@ -430,12 +439,12 @@ button.commands-selectmode .win-commandimage {
 
 .settingsPopup-debug > button {
     display: inline-block;
-    margin: unset; 
+    margin: unset;
 }
 
 .settingsPopup-container > .settingsPopup-closeButton {
     -ms-grid-row: 3;
-    padding:unset;
+    padding: unset;
     -ms-grid-column-align: end;
     margin: 24px;
     margin-top: 0px;
@@ -610,12 +619,22 @@ button.margin-increase .win-commandimage {
     display: -ms-grid;
     /* 1    2    3    4    5    6    7    8    9    10   11   12   13 */
     -ms-grid-rows: 20px auto 10px auto auto 10px auto 10px auto 10px auto 20px auto;
-    -ms-grid-columns: 300px;
+    -ms-grid-columns: minmax(150px,300px);
 }
 
     .authenticator > .subscriptionInformationContainer {
         -ms-grid-row: 2;
+        line-height: 1.8em;
     }
+
+.subscriptionInformationContainer > a {
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
 
     .authenticator > .errorMessageContainer.hide {
         display: none;

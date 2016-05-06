@@ -3,6 +3,8 @@
     export class SignedOutExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _loginButton: HTMLElement;
+        private _authenticatorContainer: HTMLDivElement;
+        private _authenticatorControl: Codevoid.Storyvoid.UI.Authenticator;
         private viewModel: SignedOutViewModel;
 
         constructor(element: HTMLElement, options: any) {
@@ -14,6 +16,18 @@
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedOutExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
+
+                this._authenticatorControl = new Codevoid.Storyvoid.UI.Authenticator(this._authenticatorContainer,
+                    {
+                        viewModel: this.viewModel.authenticator,
+                    });
+
+
+                this._handlersToCleanup.push(Utilities.addEventListeners(this._authenticatorContainer, {
+                    readytoauthenticate: () => {
+                        this.viewModel.startLogin();
+                    }
+                }));
             });
         }
 
@@ -26,11 +40,12 @@
 
     export class SignedOutViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SignedOutExperience" };
+        public authenticator = new Codevoid.Storyvoid.Authenticator.AuthenticatorViewModel();
         constructor(private _app: IAppWithAbilityToSignIn) {
         }
 
         public startLogin(): WinJS.Promise<void> {
-            return Codevoid.Storyvoid.Authenticator.getClientInformation().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
+            return this.authenticator.authenticate().then((clientInfo: Codevoid.OAuth.ClientInformation) => {
                 this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);
             });
         }

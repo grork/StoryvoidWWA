@@ -44,7 +44,7 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
     color: white;
 }
 
-    .signedOut-description > a {
+    .signedOut-container a {
         color: red;
         background-color: white;
     }

@@ -253,13 +253,13 @@ declare module Codevoid.Storyvoid.Authenticator {
     export class AuthenticatorViewModel {
         constructor();
 
-        authenticate(retry?: boolean): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+        authenticate(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
     }
 }
 
 declare module Codevoid.Storyvoid.UI {
-    export class Authenticator {
-        static showAuthenticator(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+    export class Authenticator extends Codevoid.UICore.Control {
+        constructor(element: HTMLElement, options: any);
     }
 
     export class SplitViewCommandWithData extends WinJS.UI.SplitViewCommand {
