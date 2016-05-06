@@ -194,8 +194,23 @@ button.commands-selectmode .win-commandimage {
 
 .signedOut-description {
     margin-top: 48px;
+    min-height: 48px;
     font-size: 20px;
 }
+
+    .signedOut-description > a {
+        text-decoration: none;
+        padding-top: 2px;
+        padding-bottom: 6px;
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+        .signedOut-description > a:hover {
+            text-decoration: underline;
+        }
 
 @media all and (min-width: 886px) {
     .signedOut-welcome {
