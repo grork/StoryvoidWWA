@@ -59,7 +59,7 @@
 
     module("Authenticator");
 
-    promiseTest("settingsReturnedFromStorage", function () {
+    test("settingsReturnedFromStorage", function () {
         var fakeToken = "fakeToken";
         var fakeSecret = "fakeSecret";
 
@@ -69,12 +69,11 @@
 
         Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
 
-        return authenticator.getClientInformation().then(function (clientInformation) {
-            ok(clientInformation, "Didn't get client information");
+        var clientInformation = authenticator.getStoredCredentials();
+        ok(clientInformation, "Didn't get client information");
 
-            strictEqual(clientInformation.clientToken, fakeToken, "Incorrect token");
-            strictEqual(clientInformation.clientTokenSecret, fakeSecret, "Incorrect secret");
-        });
+        strictEqual(clientInformation.clientToken, fakeToken, "Incorrect token");
+        strictEqual(clientInformation.clientTokenSecret, fakeSecret, "Incorrect secret");
     });
 
     test("settingsCanBeCleared", function () {
@@ -90,35 +89,6 @@
         authenticator.clearClientInformation();
 
         ok(!Windows.Storage.ApplicationData.current.localSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
-    });
-
-    promiseTest("tokenInformationObtainedFromService", function () {
-        authenticator.clearClientInformation();
-
-        return authenticator.getClientInformation(testCredentials).then(function (clientInformation) {
-            ok(clientInformation, "No client information");
-
-            ok(clientInformation.clientToken, "No token information");
-            ok(clientInformation.clientTokenSecret, "No secret information");
-
-            authenticator.clearClientInformation();
-        });
-    });
-
-    promiseTest("clientInformationIsSavedAfterGettingFromService", function () {
-        authenticator.clearClientInformation();
-
-        return authenticator.getClientInformation(testCredentials).then(function (clientInformation) {
-            var tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
-            ok(clientInformation, "No client information");
-            ok(clientInformation.clientToken, "No token information");
-            ok(clientInformation.clientTokenSecret, "No secret information");
-
-            strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
-            strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
-
-            authenticator.clearClientInformation();
-        });
     });
 
     module("AuthenticatorViewModel");
@@ -233,7 +203,7 @@
         ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
     });
 
-    promiseTest("canSuccessfullyAuthenticateWhenPromptingForCredentials", function () {
+    promiseTest("canSuccessfullyAuthenticate", function () {
         var vm = new authenticator.AuthenticatorViewModel();
 
         vm.username = testCredentials.user;
@@ -244,6 +214,28 @@
         }, function () {
             ok(false, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
+    });
+
+    promiseTest("canSaveCredentials", function () {
+        authenticator.clearClientInformation();
+
+        var vm = new authenticator.AuthenticatorViewModel();
+        vm.username = testCredentials.user;
+        vm.password = testCredentials.password;
+
+        return vm.authenticate().then(function (tokenResult) {
+            var clientInformation = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenResult);
+
+            var tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
+            ok(clientInformation, "No client information");
+            ok(clientInformation.clientToken, "No token information");
+            ok(clientInformation.clientTokenSecret, "No secret information");
+
+            strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
+            strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
+
+            authenticator.clearClientInformation();
+        });
     });
 
     promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", function () {

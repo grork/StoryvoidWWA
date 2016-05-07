@@ -244,16 +244,21 @@ declare module Codevoid.Storyvoid.InstapaperApi {
         list({ folder_id: string }): WinJS.Promise<{ bookmarks: IBookmark[] }>;
         getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
     }
+
+    export interface IAccessTokenInformation {
+        oauth_token: string;
+        oauth_token_secret: string;
+    }
 }
 
 declare module Codevoid.Storyvoid.Authenticator {
     export function getStoredCredentials(): Codevoid.OAuth.ClientInformation;
     export function clearClientInformation(): void;
-    export function getClientInformation(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+    export function saveAccessToken(accessToken: InstapaperApi.IAccessTokenInformation): Codevoid.OAuth.ClientInformation;
     export class AuthenticatorViewModel {
         constructor();
 
-        authenticate(): WinJS.Promise<Codevoid.OAuth.ClientInformation>;
+        authenticate(): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
     }
 }
 
