@@ -105,10 +105,6 @@
                         break;
                 }
             }),
-        }, {
-            showAuthenticator: function () {
-                return Codevoid.Storyvoid.Authenticator.getClientInformation();
-            },
         }),
     });
 })();

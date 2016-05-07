@@ -36,28 +36,15 @@
 
             return null;
         },
-        getClientInformation: function getClientInformation(overrideCredentials) {
+        saveAccessToken: function saveAccessToken(tokenDetails) {
             var store = Windows.Storage.ApplicationData.current.localSettings;
-            
-            var storedCredentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
-            if (storedCredentials) {
-                return WinJS.Promise.as(storedCredentials);
-            }
 
-            var authenticator = new Codevoid.Storyvoid.Authenticator.AuthenticatorViewModel();
-            if (overrideCredentials) {
-                authenticator.username = overrideCredentials.user;
-                authenticator.password = overrideCredentials.password;
-            }
+            var userTokens = new Windows.Storage.ApplicationDataCompositeValue();
+            userTokens[tokenSettingName] = tokenDetails.oauth_token;
+            userTokens[tokenSecretSettingName] = tokenDetails.oauth_token_secret;
+            store.values[tokenInformationSettingName] = userTokens;
 
-            return authenticator.authenticate().then(function (result) {
-                var userTokens = new Windows.Storage.ApplicationDataCompositeValue();
-                userTokens[tokenSettingName] = result.oauth_token;
-                userTokens[tokenSecretSettingName] = result.oauth_token_secret;
-                store.values[tokenInformationSettingName] = userTokens;
-
-                return new Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
-            });
+            return new Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
         },
         clearClientInformation: function clearClientInformation() {
             var storage = Windows.Storage.ApplicationData.current.localSettings;
