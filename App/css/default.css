@@ -127,27 +127,11 @@ body {
     }
 
 .commands-sort {
-    border-color: transparent;
     border-width: 1px;
-    color: white;
     margin: 0px;
     margin-top: 2px;
-    background-color: transparent;
     height: 44px;
 }
-
-    .commands-sort:hover {
-        border-color: white;
-        background-color: transparent;
-    }
-
-    .commands-sort::-ms-value {
-        background-color: transparent;
-    }
-
-    .commands-sort::-ms-expand {
-        color: white;
-    }
 
 button.commands-selectmode .win-commandicon {
     margin-right: 12px;
@@ -187,7 +171,7 @@ button.commands-selectmode .win-commandimage {
 }
 
     .signedOut-container > div {
-        padding-bottom: 48px;
+        padding-bottom: 48px;               
     }
 
 .signedOut-welcome {
@@ -195,6 +179,7 @@ button.commands-selectmode .win-commandimage {
     font-weight: bold;
     max-width: 810px;
     line-height: 0.8em;
+    margin-left: -4px;
 }
 
 .signedOut-description {
@@ -215,13 +200,20 @@ button.commands-selectmode .win-commandimage {
     text-decoration: none;
 }
 
-    .signedOut-container a:hover {
+    .signedOut-container a:hover,
+    .signedOut-container a:focus {
         text-decoration: underline;
     }
 
 @media all and (min-width: 886px) {
     .signedOut-welcome {
         font-size: 135px;
+    }
+}
+
+@media all and (max-width: 450px) {
+    .signedOut-description {
+        margin-top: 24px;
     }
 }
 
@@ -599,7 +591,6 @@ button.margin-increase .win-commandimage {
     min-width: initial;
     border-style: solid;
     border-width: 1px;
-    border-color: black;
 }
 
     .theme-container > button.win-command:hover:active {
@@ -615,75 +606,94 @@ button.margin-increase .win-commandimage {
 
 .authenticator {
     display: -ms-grid;
-    /* 1    2    3    4    5    6    7    8    9    10   11   12   13 */
-    -ms-grid-rows: 20px auto 10px auto auto 10px auto 10px auto 10px auto 20px auto;
+                   /* 1    2    3    4    5 */
+    -ms-grid-rows: auto auto auto auto auto;
     -ms-grid-columns: minmax(150px,300px);
 }
 
-    .authenticator > .subscriptionInformationContainer {
-        -ms-grid-row: 2;
+.authenticator > .errorMessageContainer.hide {
+    display: none;
+}
+
+.authenticator > .errorMessageContainer {
+    -ms-grid-row: 1;
+    display: -ms-grid;
+    -ms-grid-rows: auto 10px;
+}
+
+.authenticator > .usernameInput {
+    -ms-grid-row: 2;
+    width: 100%;
+}
+
+.authenticator > .passwordInput {
+    -ms-grid-row: 3;
+    width: 100%;
+}
+
+    .authenticator > input {
+        font-size: 20px;
+        margin-left: -12px;
+    }
+
+.authenticator > input::-ms-input-placeholder {
+    font-weight: bolder;
+}
+
+.authenticator > input:focus::-ms-input-placeholder {
+    font-weight: unset;
+}
+
+.authenticator > .authenticateButton {
+    -ms-grid-row: 4;
+    margin-left: -12px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    -ms-grid-column-align: start;
+    font-size: 20px;
+    font-weight: bolder;
+    text-align: left;
+    padding-left: 12px;
+    padding-right: 14px;
+    min-width: unset;
+}
+
+    .authenticator > .accountInformationContainer {
+        -ms-grid-row: 5;
         line-height: 1.8em;
     }
 
-.subscriptionInformationContainer > a {
+        .authenticator > .accountInformationContainer.show {
+            display: unset;
+        }
+
+        .authenticator > .accountInformationContainer {
+            display: none;
+        }
+
+.accountInformationContainer > a {
     padding-left: 8px;
     padding-right: 8px;
     padding-top: 4px;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     margin-right: 2px;
 }
 
-    .authenticator > .errorMessageContainer.hide {
-        display: none;
-    }
+.authenticator > .workingContainer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 1fr;
+}
 
-    .authenticator > .errorMessageContainer {
-        -ms-grid-row: 4;
-        display: -ms-grid;
-        -ms-grid-rows: auto 10px;
+    .authenticator > .workingContainer > progress {
+        -ms-grid-column-align: center;
+        -ms-grid-row-align: center;
     }
-
-    .authenticator > .usernameLabel {
-        -ms-grid-row: 5;
-    }
-
-    .authenticator > .usernameInput {
-        -ms-grid-row: 7;
-        width: 100%;
-    }
-
-    .authenticator > .passwordLabel {
-        -ms-grid-row: 9;
-    }
-
-    .authenticator > .passwordInput {
-        -ms-grid-row: 11;
-        width: 100%;
-    }
-
-    .authenticator > .buttonsContainer {
-        -ms-grid-row: 13;
-        display: -ms-flexbox;
-        -ms-flex-wrap: nowrap;
-        -ms-flex-direction: row;
-        -ms-flex-pack: distribute;
-    }
-
-    .authenticator > .workingContainer {
-        -ms-grid-column: 1;
-        -ms-grid-row: 1;
-        -ms-grid-row-span: 13;
-        width: 100%;
-        height: 100%;
-        display: -ms-grid;
-        -ms-grid-columns: 1fr;
-        -ms-grid-rows: 1fr;
-    }
-
-        .authenticator > .workingContainer > progress {
-            -ms-grid-column-align: center;
-            -ms-grid-row-align: center;
-        }
 
 .codevoid-logviewer {
     position: absolute;

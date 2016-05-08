@@ -53,6 +53,25 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
     border-color: lightgray;
 }
 
+.commands-sort {
+    border-color: transparent;
+    background-color: transparent;
+    color: white;
+}
+
+    .commands-sort:hover {
+        border-color: white;
+        background-color: transparent;
+    }
+
+    .commands-sort::-ms-value {
+        background-color: transparent;
+    }
+
+    .commands-sort::-ms-expand {
+        color: white;
+    }
+
 .article {
     background-color: #DBDADA;
 }
@@ -74,12 +93,58 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
 
 progress.article-progress {
     background-color: transparent;
+}
+
+.authenticator > input {    
+    border-color: white;
+    background-color: transparent;
     color: red;
 }
 
-.authenticator > .workingContainer {
-    background-color: rgba(255, 255, 255, 0.36);
+    .authenticator > input:hover {
+        border-color: white;
+    }
+
+    .authenticator > input:focus {
+        border-color: white !important;
+    }
+
+    .authenticator > input:not(:focus) {
+        color: white;
+    }
+
+    .authenticator > input::-ms-input-placeholder {
+        color: white;
+    }
+
+    .authenticator > input:focus::-ms-input-placeholder {
+        color: grey;
+    }
+
+.authenticator > .authenticateButton {
+    color: white;
+    border-color: white;
+    background-color: transparent;
 }
+
+.authenticator > .authenticateButton:focus,
+.authenticator > .authenticateButton:hover {
+    background-color: white;
+    color: red;
+}
+
+    .authenticator > .authenticateButton[disabled] {
+        color: lightgrey;
+        border-color: lightgrey;
+    }
+
+.authenticator > .workingContainer {
+    background-color: red;
+}
+
+    .authenticator > .workingContainer > progress {
+        color: white;
+    }
 
 .codevoid-logviewer {
     background-color: darkslategrey;
@@ -113,6 +178,10 @@ progress.article-progress {
     background: white;
 }
 
+.theme-container > button.win-command {
+    border-color: black;
+}
+
 [data-theme='day'].articleViewer-toolbar-container {
     background-color: white;
 }
@@ -126,10 +195,10 @@ progress.article-progress {
     color: lightgray;
 }
 
-[data-theme='dusk'].articleViewer-toolbar-container button:enabled.win-command:hover {
-    background-color: grey;
-    color: lightgrey;
-}
+    [data-theme='dusk'].articleViewer-toolbar-container button:enabled.win-command:hover {
+        background-color: grey;
+        color: lightgrey;
+    }
 
 [data-theme='dusk'] button.win-command,
 [data-theme='dusk'] button .win-commandimage {
@@ -141,10 +210,10 @@ progress.article-progress {
     color: white;
 }
 
-[data-theme='night'].articleViewer-toolbar-container button:enabled.win-command:hover {
-    background-color: grey;
-    color: white;
-}
+    [data-theme='night'].articleViewer-toolbar-container button:enabled.win-command:hover {
+        background-color: grey;
+        color: white;
+    }
 
 [data-theme='night'] button.win-command,
 [data-theme='night'] button .win-commandimage {

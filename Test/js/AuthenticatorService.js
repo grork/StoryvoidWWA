@@ -58,7 +58,7 @@
                     break;
 
                 case 401:
-                    message = "Looks like you've type the wrong username, or password for Instapaper. Check them, and give it another try!";
+                    message = "Looks like you've entered the wrong username, or password for Instapaper. Check them, and give it another try!";
                     break;
 
                 case 402:
@@ -104,7 +104,7 @@
                     this.allowPasswordEntry = false;
                 }
             },
-            authenticate: function () {
+            authenticate: function (minimumDuration) {
                 // Reset authentication state
                 this.authenticationError = 0;
 
@@ -118,11 +118,16 @@
                 var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
                 this.isWorking = true;
-                accounts.getAccessToken(this.username, this.password).done(function (result) {
+
+                WinJS.Promise.join([
+                    accounts.getAccessToken(this.username, this.password),
+                    WinJS.Promise.timeout(minimumDuration || 0)
+                ]).done(function (result) {
                     this.isWorking = false;
 
-                    authenticationComplete.complete(result);
-                }.bind(this), function (err) {
+                    authenticationComplete.complete(result[0]);
+                }.bind(this), function (errorResult) {
+                    var err = errorResult[0];
                     this.isWorking = false;
 
                     this.authenticationError = err.status || 0;

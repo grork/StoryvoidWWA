@@ -8,38 +8,40 @@
          data-win-control="WinJS.Binding.Template">
         <div class="authenticator"
              data-event="{ keydown: containerKeyDown }">
-            <div class="subscriptionInformationContainer">
-                To use Storyvoid, you need to have an Instapaper Account.
-                For details on getting an account, see <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a>.
-            </div>
+
             <div data-part="errorMessageContainer"
                  class="errorMessageContainer hide">
                 <div data-part="errorMessage"></div>
             </div>
 
-            <div class="usernameLabel">Username:</div>
             <input data-event="{ input: usernameChanged, keydown: usernameKeydown }"
                    data-part="usernameInput"
                    class="usernameInput"
+                   placeholder="Your username..."
                    type="email" />
 
-            <div class="passwordLabel">Password:</div>
             <input data-part="passwordInput"
                    data-event="{ input: passwordChanged }"
                    required="required"
                    spellcheck="false"
                    class="passwordInput"
                    type="password"
-                   disabled="disabled" />
+                   placeholder="...and your password" />
 
-            <div class="buttonsContainer">
-                <button data-part="authenticateButton"
-                        data-event="{ click: authenticate }"
-                        type="button"
-                        disabled="disabled">
-                    Login
-                </button>
+            <button class="authenticateButton"
+                    data-part="authenticateButton"
+                    data-event="{ click: authenticate }"
+                    type="button"
+                    disabled="disabled">
+                Login
+            </button>
+
+            <div class="accountInformationContainer show"
+                 data-part="accountInformationContainer">
+                To use Storyvoid, you'll need to have an Instapaper Account.
+                To get an account, goto <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a> and follow the instructions.
             </div>
+
             <div class="workingContainer hide"
                  data-part="workingContainer">
                 <progress class="win-progress-ring win-large" />
