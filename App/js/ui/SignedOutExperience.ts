@@ -45,7 +45,7 @@
         }
 
         public startLogin(): WinJS.Promise<void> {
-            return this.authenticator.authenticate().then((tokenDetails: InstapaperApi.IAccessTokenInformation) => {
+            return this.authenticator.authenticate(500).then((tokenDetails: InstapaperApi.IAccessTokenInformation) => {
                 var clientInfo = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenDetails);
                 this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);
             });

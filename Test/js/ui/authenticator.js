@@ -27,7 +27,6 @@
             _handlersToCleanup: null,
             _initializeViewModelListeners: function () {
                 var cleanup = Codevoid.Utilities.addEventListeners(this.viewModel, {
-                    allowPasswordEntryChanged: this._allowPasswordEntryChanged.bind(this),
                     allowUsernameEntryChanged: this._allowUsernameEntryChanged.bind(this),
                     canAuthenticateChanged: this._canAuthenticateChanged.bind(this),
                     isWorkingChanged: this._isWorkingChanged.bind(this),
@@ -35,9 +34,6 @@
                 });
                 
                 this._handlersToCleanup.push(cleanup);
-            },
-            _allowPasswordEntryChanged: function () {
-                this.passwordInput.disabled = !this.viewModel.allowPasswordEntry;
             },
             _allowUsernameEntryChanged: function () {
                 this.usernameInput.disabled = !this.viewModel.allowUsernameEntry;
@@ -54,6 +50,7 @@
 
                 this.errorMessage.textContent = messageContent;
                 WinJS.Utilities[op](this.errorMessageContainer, "hide");
+                WinJS.Utilities[op](this.accountInformationContainer, "show");
             },
             _canAuthenticateChanged: function () {
                 this.authenticateButton.disabled = !this.viewModel.canAuthenticate;

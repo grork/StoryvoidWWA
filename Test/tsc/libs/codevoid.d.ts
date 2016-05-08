@@ -258,7 +258,7 @@ declare module Codevoid.Storyvoid.Authenticator {
     export class AuthenticatorViewModel {
         constructor();
 
-        authenticate(): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
+        authenticate(minimumDuration?: number): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
     }
 }
 
