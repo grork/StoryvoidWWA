@@ -18,6 +18,22 @@
     interface IBookmarkHash { [id: number]: string };
     interface IFolderMap { [name: string]: st.StorageFolder };
 
+    // Content sniffing headers
+    // See:
+    // https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern
+    // https://en.wikipedia.org/wiki/List_of_file_signatures
+    // http://stackoverflow.com/questions/18299806/how-to-check-file-mime-type-with-javascript-before-upload/29672957#29672957
+    const PNG_HEADER: string     = "89504e470d0a1a0a"; // 8 bytes
+    const JPEG_HEADER_1: string  = "ffd8ffdb"; // 4 bytes
+    const JPEG_HEADER_2: string  = "ffd8ffe0"; // 4 bytes
+    const JPEG_HEADER_3: string  = "ffd8ffe1"; // 4 bytes
+    const GIF_HEADER_87A: string = "474946383761"; // 6 bytes
+    const GIF_HEADER_89A: string = "474946383961"; // 6 bytes
+
+    // Largest number of bytes to read a complete pre-amble for the above file formats
+    // Set to 8 for a PNG initially
+    const MAX_SNIFF_BYTES: number = 8;
+
     export class InstapaperArticleSync {
         private _bookmarksApi: api.Bookmarks;
         private _localFolderPathLength: number;
@@ -275,7 +291,14 @@
                     // covariance of the types in TypeScript. Or another way: I got this shit, yo.
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
                     imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((firstImagePath) => {
-                        processedInformation.firstImagePath = firstImagePath;
+                        if (firstImagePath) {
+                            processedInformation.firstImagePath = firstImagePath;
+                        } else {
+                            // if we never found a first image, that successfully downloaded
+                            // we should just assume that there were no real images.
+                            processedInformation.hasImages = false;
+                        }
+
                         this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
                     });
                 }
@@ -349,33 +372,96 @@
                     });
                 }
 
-                var destinationFileName;
+                // Cast away the type, since it seems to be wrong, and
+                // and isn't really relevant
+                return WinJS.Promise.join({
+                    buffer: response.content.readAsBufferAsync(),
+                    response: response
+                });
+            }).then((result: any) => {
+                var header = "";
+                var buffer: st.Streams.IBuffer = result.buffer;
 
-                // Detect what the file type is from the contentType that the
-                // service responded with.
-                switch (response.content.headers.contentType.mediaType.toLocaleLowerCase()) {
-                    case "image/jpg":
-                    case "image/jpeg":
-                        destinationFileName = destinationFileNumber + ".jpg";
-                        break;
+                // Get the buffer in an indexable fashion, then loop through to
+                // the MAX_SNIFF_BYTES to find the pre-amble of the file, converting
+                // into *HEX* strings along the way.
+                var reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
+                for (var i = 0; (i < MAX_SNIFF_BYTES) && (i < buffer.length); i++) {
+                    var byte = reader.readByte();
 
-                    case "image/png":
-                        destinationFileName = destinationFileNumber + ".png";
-                        break;
+                    // If it's < 10 (hex), then add "0" for completness
+                    if (byte < 17) {
+                        header += "0";
+                    }
 
-                    case "image/svg+xml":
-                        destinationFileName = destinationFileNumber + ".svg";
-                        break;
-
-                    case "image/gif":
-                        destinationFileName = destinationFileNumber + ".gif";
-                        break;
-
-                    default:
-                        debugger;
-                        destinationFileName = destinationFileNumber + "";
-                        break;
+                    // Append the hex value
+                    header += byte.toString(16);
                 }
+
+                reader.close();
+
+                return {
+                    header: header.toLowerCase(),
+                    response: result.response,
+                };
+            }).then((result: { header: string; response: http.HttpResponseMessage; }) => {
+                var response = result.response;
+                var header = result.header;
+                var destinationFileName;
+                var extension = "";
+
+                // Turns out, the mime type header is complete
+                // and utter crap, and is often wrong. So lets just fuck
+                // around by sniffing the pre-amble on the file and see
+                // what the actual file type might be.
+                if (header) {
+                    if (header.indexOf(PNG_HEADER) == 0) {
+                        extension = "png";
+                    } else if (header.indexOf(JPEG_HEADER_1) == 0) {
+                        extension = "jpg";
+                    } else if (header.indexOf(JPEG_HEADER_2) == 0) {
+                        extension = "jpg";
+                    } else if (header.indexOf(JPEG_HEADER_3) == 0) {
+                        extension = "jpg";
+                    } else if (header.indexOf(GIF_HEADER_87A) == 0) {
+                        extension = "gif";
+                    } else if (header.indexOf(GIF_HEADER_89A) == 0) {
+                        extension = "gif";
+                    }
+                }
+
+                // If we didn't find the extension by content sniffing, then
+                // lets try and trust the actual media type.
+                if (!extension) {
+                    // Detect what the file type is from the contentType that the
+                    // service responded with.
+                    switch (response.content.headers.contentType.mediaType.toLocaleLowerCase()) {
+                        case "image/jpg":
+                        case "image/jpeg":
+                            extension = "jpg";
+                            break;
+
+                        case "image/png":
+                            extension = "png";
+                            break;
+
+                        case "image/svg+xml":
+                            extension = "svg";
+                            break;
+
+                        case "image/gif":
+                            extension = "gif";
+                            break;
+
+                        default:
+                            debugger;
+                            destinationFileName = destinationFileNumber + "";
+                            break;
+                    }
+                }
+
+                // Compute the final file name w. extension
+                destinationFileName = destinationFileNumber + "." + extension;
 
                 var destinationFileStream = destinationFolder.createFileAsync(
                     destinationFileName,
