@@ -20,6 +20,7 @@
             document.addEventListener("keydown", this._handleKeyDown.bind(this));
 
             document.addEventListener("click", this._handleClick.bind(this));
+            document.addEventListener("pointerup", this._handlePointerUp.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -99,6 +100,16 @@
             this._toggleToolbar();
         }
 
+        private _handlePointerUp(ev: PointerEvent) {
+            if (ev.button != 3) {
+                return;
+            }
+
+            ev.stopPropagation();
+            ev.preventDefault();
+            this._dismiss();
+        }
+
         private _handleKeyDown(ev: KeyboardEvent): void {
             // Handle these keys as 
             if (((ev.keyCode === KEY_PLUS) || (ev.keyCode === KEY_MINUS)) && ev.ctrlKey) {
@@ -108,7 +119,7 @@
 
             switch (ev.key.toLowerCase()) {
                 case "esc":
-                    Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("dismiss", null);
+                    this._dismiss();
                     break;
 
                 case "alt":
@@ -131,6 +142,10 @@
 
         private _toggleToolbar(): void {
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("toggletoolbar", null);
+        }
+
+        private _dismiss(): void {
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("dismiss", null);
         }
     }
 

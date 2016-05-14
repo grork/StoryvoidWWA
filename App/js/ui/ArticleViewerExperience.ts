@@ -42,20 +42,6 @@
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
-                    keyup: (e: KeyboardEvent) => {
-                        switch (e.key.toLowerCase()) {
-                            case "esc":
-                                this.close(null);
-                                break;
-
-                            case "alt":
-                                this._toggleToolbar();
-                                break;
-                        }
-                    }
-                }));
-
                 // Create the webview programmatically, because when it was created in markup
                 // via the template, there are some really f'up things going on with transitioning
                 // in and out of tablet mode *WHEN REMOVING THE PHYSICAL KEYBOARD*. Not just
@@ -149,6 +135,38 @@
                         this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
                         this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
                             backrequested: this.close.bind(this),
+                        }));
+
+                        this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
+                            keyup: (e: KeyboardEvent) => {
+                                var handled: boolean = true;
+
+                                switch (e.key.toLowerCase()) {
+                                    case "esc":
+                                        this.close(null);
+                                        handled = true;
+                                        break;
+
+                                    case "alt":
+                                        this._toggleToolbar();
+                                        handled = true;
+                                        break;
+                                }
+
+                                if (handled) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }
+                            },
+                            pointerup: (e: PointerEvent) => {
+                                if (e.button != 3) {
+                                    return;
+                                }
+
+                                this.close(null);
+                                e.stopPropagation();
+                                e.preventDefault();
+                            }
                         }));
                     });
                 },
