@@ -141,6 +141,13 @@
         }
 
         private _toggleToolbar(): void {
+            // If there is selection on the document, it means the user his likely to
+            // be click-scroll-click-scroll through the document, and the toggling of
+            // the toolbar is distracting.
+            if (!document.getSelection().isCollapsed) {
+                return;
+            }
+
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("toggletoolbar", null);
         }
 
