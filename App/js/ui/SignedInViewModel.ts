@@ -598,6 +598,11 @@
         }
 
         public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
+            // if the local file path has gone AWOL, lets not load, and complete silently.
+            if (!bookmark.localFolderRelativePath) {
+                return WinJS.Promise.as();
+            }
+
             var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark,
                 this._instapaperDB);
             viewer.isRestoring = restoring;
