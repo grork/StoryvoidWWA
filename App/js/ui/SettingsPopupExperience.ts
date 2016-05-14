@@ -9,6 +9,7 @@
         private _homeArticleLimit: HTMLSelectElement;
         private _likedArticleLimit: HTMLSelectElement;
         private _archiveArticleLimit: HTMLSelectElement;
+        private _versionElement: HTMLDivElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -50,7 +51,11 @@
                 this._selectOptionBasedOnValue(syncSettings.homeArticleLimit, this._homeArticleLimit);
                 this._selectOptionBasedOnValue(syncSettings.likedArticleLimit, this._likedArticleLimit);
                 this._selectOptionBasedOnValue(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
-                
+
+                var version = Windows.ApplicationModel.Package.current.id.version;
+                var versionLabel = " " + version.major + "." + version.minor + "." + version.build + "." + version.revision;
+                this._versionElement.innerText += versionLabel;
+
                 WinJS.Utilities.removeClass(element, "hide");
                 WinJS.UI.Animation.slideUp(this.element);
             });
