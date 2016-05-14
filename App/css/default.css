@@ -421,6 +421,15 @@ button.commands-selectmode .win-commandimage {
     font-size: 20px;
 }
 
+.settingsPopup-about > .about-title {
+    font-size: 20px;
+}
+
+.about-legal {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
 .settingsPopup-debug > .debug-title {
     font-size: 20px;
     margin-top: 12px;

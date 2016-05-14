@@ -252,3 +252,7 @@ progress.article-progress {
 .settingsPopup-dialog.dialog {
     background-color: transparent;
 }
+
+.about-legal {
+    color: darkgrey;
+}
