@@ -425,8 +425,12 @@ button.commands-selectmode .win-commandimage {
     font-size: 20px;
 }
 
-.about-legal {
+.settingsPopup-about > div {
     margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.about-legal {
     font-size: 12px;
 }
 
