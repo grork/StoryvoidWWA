@@ -3,10 +3,15 @@
 \****************************************************/
 body {
     overflow: auto;
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 1fr;
 }
 
     body > div {
         box-sizing: border-box;
+        -ms-grid-row: 1;
+        -ms-grid-column: 1;
     }
 
 .dialog {
@@ -29,6 +34,11 @@ body {
     -ms-grid-column: 1;
     -ms-grid-column-align: center;
     -ms-grid-row-align: center;
+}
+
+.animateTransform {
+    transition-duration: 300ms;
+    transition-property: transform;
 }
 
 .signedIn-container {

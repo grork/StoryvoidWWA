@@ -259,6 +259,7 @@ declare module Codevoid.Storyvoid.Authenticator {
         constructor();
 
         authenticate(minimumDuration?: number): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
+        holdWorkingStateOnSuccess: boolean;
     }
 }
 
@@ -272,7 +273,7 @@ declare module Codevoid.Storyvoid.UI {
     }
 
     export interface IAppWithAbilityToSignIn {
-        signOut(): void;
+        signOut(wasPreviouslySignedIn?: boolean): void;
         signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): void;
     }
 
