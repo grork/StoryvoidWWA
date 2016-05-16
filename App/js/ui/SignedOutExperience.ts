@@ -42,6 +42,7 @@
         public experience = { wwa: "Codevoid.Storyvoid.UI.SignedOutExperience" };
         public authenticator = new Codevoid.Storyvoid.Authenticator.AuthenticatorViewModel();
         constructor(private _app: IAppWithAbilityToSignIn) {
+            this.authenticator.holdWorkingStateOnSuccess = true;
         }
 
         public startLogin(): WinJS.Promise<void> {

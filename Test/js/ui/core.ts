@@ -23,7 +23,7 @@ module Codevoid.UICore {
     }
     
     export interface ExperienceHost {
-        addExperienceForModel(viewModel: ViewModel);
+        addExperienceForModel(viewModel: ViewModel): any;
         removeExperienceForModel(viewModel: ViewModel);
     }
 
@@ -94,16 +94,18 @@ module Codevoid.UICore {
 
             return null;
         }
-        addExperienceForModel(viewModel: ViewModel) {
+        addExperienceForModel(viewModel: ViewModel): HTMLElement {
             // See if there is already an experience for this model
             // and if there is, just bail.
-            if (this.findExperienceForModel(viewModel)) {
-                return;
+            var existingExperienceContainer = this.findExperienceForModel(viewModel);
+            if (existingExperienceContainer) {
+                return existingExperienceContainer;
             }
 
             var controlElement = <HTMLElement>document.createElement("div");
             this.createExperienceWithModel(controlElement, viewModel);
-            this.host.appendChild(controlElement);
+
+            return <HTMLElement>this.host.appendChild(controlElement);
         }
 
         createExperienceWithModel(controlElement: HTMLElement, viewModel: ViewModel) {

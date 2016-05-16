@@ -256,7 +256,6 @@
         }
 
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
-            this.events.dispatchEvent("signedout", null);
             this.disposeDB();
 
             if (clearCredentials) {
@@ -279,8 +278,13 @@
                 syncSettings.removeAllSettings();
 
                 if (clearCredentials) {
-                    this._app.signOut();
+                    this._app.signOut(true);
                 }
+
+                // Dispatch event after we've told the app to sign out
+                // so that the animation plays w/ full content rather
+                // than an empty state.
+                this.events.dispatchEvent("signedout", null);
             });
         }
 

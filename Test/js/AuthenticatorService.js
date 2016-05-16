@@ -92,6 +92,7 @@
             canAuthenticate: property("canAuthenticate", false),
             allowPasswordEntry: property("allowPasswordEntry", false),
             allowUsernameEntry: property("allowUsernameEntry", true),
+            holdWorkingStateOnSuccess: false,
             credentialAcquisitionComplete: null,
             _evaluateCanAuthenticate: function () {
                 this.allowUsernameEntry = true;
@@ -123,7 +124,9 @@
                     accounts.getAccessToken(this.username, this.password),
                     WinJS.Promise.timeout(minimumDuration || 0)
                 ]).done(function (result) {
-                    this.isWorking = false;
+                    if (!this.holdWorkingStateOnSuccess) {
+                        this.isWorking = false;
+                    }
 
                     authenticationComplete.complete(result[0]);
                 }.bind(this), function (errorResult) {
