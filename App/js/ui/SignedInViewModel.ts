@@ -260,6 +260,7 @@
 
             if (clearCredentials) {
                 Codevoid.Storyvoid.Authenticator.clearClientInformation();
+                this._app.signOut(true);
             }
 
             var idb = new Codevoid.Storyvoid.InstapaperDB();
@@ -276,10 +277,6 @@
 
                 var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
                 syncSettings.removeAllSettings();
-
-                if (clearCredentials) {
-                    this._app.signOut(true);
-                }
 
                 // Dispatch event after we've told the app to sign out
                 // so that the animation plays w/ full content rather

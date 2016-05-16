@@ -78,49 +78,49 @@
             if (usingSavedCredentials) {
                 return;
             }
+            // Assume the sibling element ot signed in is "signed out".
+            var signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
+
+            // Set the states to animate from. This allows us to animate to an
+            // ambient state, rather than a fixed known state.
+            signedInElement.style.transform = "translateX(100vw)";
+            signedOutElement.style.transform = "translateX(0)";
+
+            // Add the class that actually configures the animation
+            WinJS.Utilities.addClass(signedInElement, "animateTransform");
+            WinJS.Utilities.addClass(signedOutElement, "animateTransform");
+
+            // Handler & Handler cleanup for the completion of the
+            // entrance animation
+            var handlersToCancel = Utilities.addEventListeners(signedInElement, {
+                transitionend: (e: TransitionEvent) => {
+                    // We'll see other bubbling events from other transitions
+                    // make sure we're only handling the one WE started.
+                    if (e.target != signedInElement) {
+                        return;
+                    }
+                    
+                    // Make sure we don't get hit again
+                    handlersToCancel.cancel();
+
+                    // Remove the the animation classes
+                    WinJS.Utilities.removeClass(signedInElement, "animateTransform");
+                    WinJS.Utilities.removeClass(signedOutElement, "animateTransform");
+
+                    // Allow the ambient state of CSS apply at this point
+                    signedInElement.style.transform = "";
+                    signedOutElement.style.transform = "";
+
+                    // If we'd actually seen an signedOutViewmodel, clean it up.
+                    // This is what actually remove UI for signed out state from the DOM.
+                    if (this._signedOutViewModel) {
+                        Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this._signedOutViewModel);
+                        this._signedOutViewModel = null;
+                    }
+                }
+            });
 
             signedInResult.done(() => {
-                // Assume the sibling element ot signed in is "signed out".
-                var signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
-
-                // Set the states to animate from. This allows us to animate to an
-                // ambient state, rather than a fixed known state.
-                signedInElement.style.transform = "translateX(100vw)";
-                signedOutElement.style.transform = "translateX(0)";
-
-                // Add the class that actually configures the animation
-                WinJS.Utilities.addClass(signedInElement, "animateTransform");
-                WinJS.Utilities.addClass(signedOutElement, "animateTransform");
-
-                // Handler & Handler cleanup for the completion of the
-                // entrance animation
-                var handlersToCancel = Utilities.addEventListeners(signedInElement, {
-                    transitionend: (e: TransitionEvent) => {
-                        // We'll see other bubbling events from other transitions
-                        // make sure we're only handling the one WE started.
-                        if (e.target != signedInElement) {
-                            return;
-                        }
-                    
-                        // Make sure we don't get hit again
-                        handlersToCancel.cancel();
-
-                        // Remove the the animation classes
-                        WinJS.Utilities.removeClass(signedInElement, "animateTransform");
-                        WinJS.Utilities.removeClass(signedOutElement, "animateTransform");
-
-                        // Allow the ambient state of CSS apply at this point
-                        signedInElement.style.transform = "";
-                        signedOutElement.style.transform = "";
-
-                        // If we'd actually seen an signedOutViewmodel, clean it up.
-                        // This is what actually remove UI for signed out state from the DOM.
-                        if (this._signedOutViewModel) {
-                            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this._signedOutViewModel);
-                            this._signedOutViewModel = null;
-                        }
-                    }
-                });
 
                 // Bounce through the dispatcher to give the DOM a moment to layout
                 // and then actually apply the transform to initial positions
