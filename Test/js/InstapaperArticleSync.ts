@@ -349,9 +349,9 @@
 
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
                     }, (e: { errorCode: number }) => {
-                        if (e.errorCode !== 404) {
-                            return WinJS.Promise.wrapError(e);
-                        }
+                        // For each image that fails, remove it from it's parent DOM so that
+                        // we don't get little X's inside the viewer when rendered there.
+                        image.parentElement.removeChild(image);
                     });
                 }, 4);
             }).then(() => firstSuccessfulImage);
