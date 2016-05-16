@@ -23,6 +23,10 @@ button.win-splitviewpanetoggle[aria-expanded=false] {
     color: white;
 }
 
+.signedIn-container > button.win-splitviewpanetoggle.win-keyboard:focus {
+    border-color: white;
+}
+
 html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
     color: white;
     background-color: rgba(255, 255, 255, 0.34);
@@ -33,6 +37,15 @@ html.win-hoverable button.commands-selectmode.win-command .win-commandicon .win-
 button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph,
 button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph:hover {
     color: white;
+}
+
+button.commands-selectmode.win-command:focus {
+    border-color: white;
+}
+
+.win-listview .win-focusedoutline,
+.win-itemcontainer .win-focusedoutline {
+  outline-color: invert;
 }
 
 .win-selectioncheckmark {
@@ -70,6 +83,10 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
 
     .commands-sort::-ms-expand {
         color: white;
+    }
+
+    .commands-sort:focus {
+        border-color: white;
     }
 
 .article {
