@@ -288,8 +288,10 @@
             });
         }
 
-        public signedIn(usingSavedCredentials: boolean) {
+        public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
+            var completedSignal = new Codevoid.Utilities.Signal();
+
             WinJS.Promise.join({
                 db: this.initializeDB(),
                 uiReady: this._readyForEvents.promise,
@@ -309,16 +311,23 @@
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
-                    this.startSync();
+                    this.startSync().done(() => {
+                        completedSignal.complete();
+                    });
+                } else {
+                    completedSignal.complete();
                 }
             });
+
+            return completedSignal.promise;
         }
 
-        public startSync(): void {
+        public startSync(): WinJS.Promise<any> {
             var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
             var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
             var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
+            var completedSignal = new Codevoid.Utilities.Signal();
 
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
@@ -376,6 +385,10 @@
                 }),
                 folder: folderOperation,
             }).then((result) => {
+                if (completedSignal) {
+                    completedSignal.complete();
+                }
+
                 articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
@@ -393,16 +406,24 @@
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
             }, (e) => {
+                if (completedSignal) {
+                    completedSignal.complete();
+                }
+
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
+            });
+
+            return completedSignal.promise.then(() => {
+                completedSignal = null;
             });
         }
 
         public clearDb(): WinJS.Promise<any> {
             this.disposeDB();
             var idb = new Codevoid.Storyvoid.InstapaperDB();
-            return idb.initialize().then(() => {
 
+            return idb.initialize().then(() => {
             }, () => {
             }).then(() => {
                 idb.deleteAllData();

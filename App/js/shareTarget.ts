@@ -86,8 +86,10 @@ module Codevoid.Storyvoid.UI {
             }
         }
 
-        public signedIn(usingSavedCredentials: boolean): void {
+        public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
+
+            return WinJS.Promise.as();
         }
 
         public saveToInstapaper(): void {
