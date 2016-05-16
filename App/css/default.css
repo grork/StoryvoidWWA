@@ -37,8 +37,9 @@ body {
 }
 
 .animateTransform {
-    transition-duration: 300ms;
+    transition-duration: 500ms;
     transition-property: transform;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .signedIn-container {
