@@ -115,6 +115,9 @@
             // Set the item template before you set the data source
             this._contentList.itemTemplate = this._renderItem.bind(this);
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
+
+            // Ensure the first item in the list gets focus.
+            this._contentList.currentItem = { index: 0, hasFocus: true };
         }
 
         private _createProgressHeader(initialMessage: string): void {
