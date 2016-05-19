@@ -52,6 +52,14 @@ button.commands-selectmode.win-command:focus {
     color: white;
 }
 
+.win-splitviewcommand.folderlist-current {
+    background-color: red;
+}
+
+.win-splitviewcommand.folderlist-current > .win-splitviewcommand-button {
+    color: white;
+}
+
 .signedOut-container {
     background-color: red;
     color: white;

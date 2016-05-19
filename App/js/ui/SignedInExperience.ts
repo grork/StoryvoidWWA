@@ -144,6 +144,22 @@
             this._splitView.closePane();
         }
 
+        public itemsRendered(e: any): void {
+            this._folderList.data.forEach((item: IFolder, index: number) => {
+                if (item.id != this.viewModel.currentFolderId) {
+                    return;
+                }
+
+                // Highlight the item
+                var container = this._folderList.elementFromIndex(index);
+                WinJS.Utilities.addClass(container, "folderlist-current");
+
+                // Find the current element, and focus it
+                var focusTarget = <HTMLElement>container.querySelector("[role='button']");
+                focusTarget.focus();
+            });
+        }
+
         public contentListSelectionChanged(e: UIEvent): void {
             if (this._contentList.selection.count() > 0) {
                 this._contentList.selection.getItems().then((items: WinJS.UI.IItem<IBookmark>[]) => {
@@ -256,6 +272,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showSettings);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.itemsRendered);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.contentListSelectionChanged);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.listItemInvoked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.toggleSelectionMode);

@@ -255,6 +255,10 @@
             this._readyForEvents.complete();
         }
 
+        public get currentFolderId(): number {
+            return this._currentFolderId;
+        }
+
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
             this.disposeDB();
 
