@@ -114,6 +114,7 @@
                 <div class="pane-folderlist"
                      data-event="{ invoked: folderClicked }">
                     <div data-part="_folderList"
+                         data-event="{ itemsloaded: itemsRendered }"
                          data-win-control="WinJS.UI.Repeater">
                         <div data-win-control="WinJS.UI.SplitViewCommand"
                              data-win-bind="winControl.label: title; winControl.icon: folder_id Codevoid.Storyvoid.UI.SignedInExperience.folderIdToIcon; winControl.dataContext: this"></div>
