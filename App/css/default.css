@@ -54,6 +54,7 @@ body {
         -ms-grid-row: 1;
         -ms-grid-column: 1;
         position: relative;
+        border-width: 1px;
         z-index: 100;
     }
 
@@ -98,12 +99,15 @@ body {
     -ms-grid-column: 1;
 }
 
-.win-splitviewcommand-icon {
-    margin-top: 16px;
+button.commands-selectmode.win-command,
+.win-splitviewcommand-button.win-keyboard:focus::before,
+.win-commandingsurface .win-commandingsurface-actionarea .win-commandingsurface-overflowbutton:focus,
+button.win-command:focus {
+    border-style: solid;
 }
 
-.win-splitviewcommand-button.win-keyboard:focus::before {
-    border-style: solid;
+.win-splitviewcommand-icon {
+    margin-top: 16px;
 }
 
 
