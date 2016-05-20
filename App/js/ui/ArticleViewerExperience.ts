@@ -74,6 +74,7 @@
 
                 document.body.appendChild(this._displaySettingsFlyout.element);
                 this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
+                var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
             });
         }
 
