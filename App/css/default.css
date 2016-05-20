@@ -102,6 +102,11 @@ body {
     margin-top: 16px;
 }
 
+.win-splitviewcommand-button.win-keyboard:focus::before {
+    border-style: solid;
+}
+
+
 .signedIn-content-root {
     height: 100%;
     display: -ms-grid;
