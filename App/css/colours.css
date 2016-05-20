@@ -21,13 +21,18 @@
 
 button.win-splitviewpanetoggle[aria-expanded=false] {
     color: white;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 1px;
 }
 
 .signedIn-container > button.win-splitviewpanetoggle.win-keyboard:focus {
     border-color: white;
 }
 
+
 html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
+    border-color: white;
     color: white;
     background-color: rgba(255, 255, 255, 0.34);
 }
@@ -39,8 +44,13 @@ button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-co
     color: white;
 }
 
-button.commands-selectmode.win-command:focus {
+button.commands-selectmode.win-command:focus,
+button.commands-selectmode.win-command:hover {
     border-color: white;
+}
+
+html.win-hoverable button.commands-selectmode:enabled.win-command:hover {
+    background-color: rgba(255, 255, 255, 0.34);
 }
 
 .win-listview .win-focusedoutline,
