@@ -74,6 +74,9 @@
 
                 document.body.appendChild(this._displaySettingsFlyout.element);
                 this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
+
+                // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
+                // Doesn't really need to do anything, except be initialized
                 var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
             });
         }
