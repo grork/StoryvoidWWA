@@ -142,8 +142,8 @@
                         }));
 
                         this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
-                            keyup: (e: KeyboardEvent) => {
-                                var handled: boolean = true;
+                            keydown: (e: KeyboardEvent) => {
+                                var handled: boolean = false;
 
                                 switch (e.key.toLowerCase()) {
                                     case "esc":
