@@ -220,6 +220,19 @@ progress.article-progress {
 .theme-container > button.win-command {
     border-color: black;
 }
+    .theme-container > button:enabled.win-command:focus,
+    .theme-container > button:enabled.win-command:hover {
+        outline-color: invert;
+        outline-style: outset;
+        outline-width: 1px;
+        border-color: white;
+    }
+
+.theme-container > button:enabled.win-command.theme-day:focus,
+.theme-container > button:enabled.win-command.theme-day:hover {
+    border-color: darkgray;
+}
+
 
 [data-theme='day'].articleViewer-toolbar-container {
     background-color: white;
