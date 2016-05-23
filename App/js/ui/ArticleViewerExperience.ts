@@ -5,6 +5,8 @@
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
+        private _lastDiv: HTMLElement;
+        private _firstDiv: HTMLElement;
         private _toolbarContainer: HTMLElement;
         private viewModel: ArticleViewerViewModel;
         private _previousPrimaryColour: Windows.UI.Color;
@@ -52,7 +54,7 @@
                 //     spin for ever and eat all the cpu.
                 this._content = document.createElement("x-ms-webview");
                 this._content.className = "articleViewer-content";
-                this._container.appendChild(this._content);
+                this._container.insertBefore(this._content, this._lastDiv);
 
                 // Attach a handler so we can prevent the default link handling behaviour.
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._content, {
@@ -79,6 +81,20 @@
                 // Doesn't really need to do anything, except be initialized
                 var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
             });
+        }
+
+        public _lastDivFocused(): void {
+            if (this._toolbarVisible) {
+                var firstButton = (<HTMLElement>this.toolbar.element.querySelector("button"));
+                WinJS.Utilities.addClass(firstButton, "win-keyboard");
+                firstButton.focus();
+            } else {
+                this._firstDivFocused();
+            }
+        }
+
+        public _firstDivFocused(): void {
+            this._content.focus();
         }
 
         private _preventNavigations(e: Event): void {
@@ -369,6 +385,8 @@
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.close);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype._firstDivFocused);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype._lastDivFocused);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.displaySettingsFlyoutOpening);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.fontSelectionChanged);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.decreaseFontSize);
