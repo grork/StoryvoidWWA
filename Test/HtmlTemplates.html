@@ -61,6 +61,12 @@
     <div data-win-control="WinJS.Binding.Template"
          data-templateid="articleViewer">
         <div class="articleViewer-container" data-part="_container">
+            <div data-part="_firstDiv"
+                 data-event="{ focusin: _firstDivFocused }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
             <div class="articleViewer-toolbar-container"
                  data-part="_toolbarContainer">
                 <div class="articleViewer-title"
@@ -135,6 +141,12 @@
                     </div>
                 </div>
             </div>
+            <div data-part="_lastDiv"
+                 data-event="{ focusin: _lastDivFocused }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
         </div>
     </div>
 
