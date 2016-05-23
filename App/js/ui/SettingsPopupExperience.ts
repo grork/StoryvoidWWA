@@ -14,6 +14,7 @@
         private _likedArticleLimit: HTMLSelectElementWithState;
         private _archiveArticleLimit: HTMLSelectElementWithState;
         private _versionElement: HTMLDivElement;
+        private _closeButton: HTMLButtonElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -127,6 +128,14 @@
             }));
         }
 
+        public _firstDivFocused(): void {
+            this._closeButton.focus();
+        }
+
+        public _lastDivFocused(): void {
+            this._homeArticleLimit.focus();
+        }
+
         public close(args?: Windows.UI.Core.BackRequestedEventArgs): void {
             if (args != null) {
                 args.handled = true;
@@ -199,6 +208,8 @@
 
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.close);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype._firstDivFocused);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype._lastDivFocused);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.resetViewerSettings);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.redownload);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);

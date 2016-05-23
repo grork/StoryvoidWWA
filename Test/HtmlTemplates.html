@@ -141,7 +141,14 @@
     <div data-win-control="WinJS.Binding.Template"
          data-templateid="settingsPopup">
         <div class="settingsPopup-container"
-             data-part="_container">
+             data-part="_container"
+             role="dialog">
+            <div data-part="_firstDiv"
+                 data-event="{ focusin: _firstDivFocused }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
             <div class="settingsPopup-title">Settings</div>
             <div class="settingsPopup-content">
                 <div class="settingsPopup-sync">
@@ -199,9 +206,16 @@
                 </div>
             </div>
             <button class="settingsPopup-closeButton"
+                    data-part="_closeButton"
                     data-event="{ click: close }">
                 Close
             </button>
+            <div data-part="_lastDiv"
+                 data-event="{ focusin: _lastDivFocused }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
         </div>
     </div>
 
