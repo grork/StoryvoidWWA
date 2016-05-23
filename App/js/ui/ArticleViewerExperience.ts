@@ -201,6 +201,9 @@
                     this.close(null);
                 },
                 toggletoolbar: this._toggleToolbar.bind(this),
+                shortcutinvoked: (e: { detail: number }) => {
+                    this._handleShortcuts(e.detail);
+                }
             }));
 
             this.viewModel.setMessenger(this._messenger);
