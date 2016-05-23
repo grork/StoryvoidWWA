@@ -161,6 +161,10 @@
                             keydown: (e: KeyboardEvent) => {
                                 var handled: boolean = false;
 
+                                if (e.ctrlKey) {
+                                    this._handleShortcuts(e.keyCode);
+                                }
+
                                 switch (e.key.toLowerCase()) {
                                     case "esc":
                                         this.close(null);
@@ -203,6 +207,34 @@
             this.viewModel.displaySettings.setMessenger(this._messenger);
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
+        }
+
+        private _handleShortcuts(keyCode: WinJS.Utilities.Key): void {
+            switch (keyCode) {
+                case WinJS.Utilities.Key.a:
+                    this.viewModel.archiveCommand.onclick();
+                    break;
+
+                case WinJS.Utilities.Key.l:
+                    this.viewModel.toggleLikeCommand.onclick();
+                    break;
+
+                case WinJS.Utilities.Key.f:
+                    this.viewModel.fullScreenCommand.onclick();
+                    break;
+
+                case WinJS.Utilities.Key.s:
+                    this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
+                    break;
+
+                case WinJS.Utilities.Key.d:
+                    this.viewModel.deleteCommand.onclick();
+                    break;
+
+                case WinJS.Utilities.Key.t:
+                    this._lastDivFocused();
+                    break;
+            }
         }
 
         private _saveCurrentTitleBarColours(): void {
@@ -431,7 +463,7 @@
                 tooltip: "Display Settings",
                 icon: WinJS.UI.AppBarIcon.font,
                 type: 'flyout',
-                onclick: () => { },
+                //onclick: () => { },
             });
 
             // Save that we're looking at an article
@@ -452,6 +484,26 @@
             // Clear the article; we've stopped viewing, so no need to restore
             var transientSettings = new Settings.TransientSettings();
             transientSettings.clearLastViewedArticleId();
+        }
+
+        public get displaySettingsCommand(): WinJS.UI.Command {
+            return this._displaySettingsCommand;
+        }
+
+        public get toggleLikeCommand(): WinJS.UI.Command {
+            return this._toggleLikeCommand;
+        }
+
+        public get deleteCommand(): WinJS.UI.Command {
+            return this._deleteCommand;
+        }
+
+        public get archiveCommand(): WinJS.UI.Command {
+            return this._archiveCommand;
+        }
+
+        public get fullScreenCommand(): WinJS.UI.Command {
+            return this._fullScreenCommand;
         }
 
         public signalArticleDisplayed(): void {
