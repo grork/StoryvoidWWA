@@ -1,6 +1,8 @@
 ﻿module Codevoid.Storyvoid.UI {
     var KEY_PLUS = 187;
     var KEY_MINUS = 189;
+    var KEY_ESCAPE = 27;
+    var KEY_ALT = 18;
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
@@ -117,12 +119,17 @@
                 return;
             }
 
-            switch (ev.key.toLowerCase()) {
-                case "esc":
+            if (ev.ctrlKey) {
+                Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("shortcutinvoked", ev.keyCode);
+                return;
+            }
+
+            switch (ev.keyCode) {
+                case KEY_ESCAPE:
                     this._dismiss();
                     break;
 
-                case "alt":
+                case KEY_ALT:
                     this._toggleToolbar();
                     break;
             }
