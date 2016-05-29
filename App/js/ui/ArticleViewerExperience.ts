@@ -80,6 +80,9 @@
                 // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
                 // Doesn't really need to do anything, except be initialized
                 var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
+
+                var viewerSettings = new Settings.ViewerSettings();
+                this._setToolbar(viewerSettings.toolbarVisible);
             });
         }
 
@@ -143,6 +146,8 @@
                         this.toolbar.data = this.viewModel.getCommands();
 
                         this.element.style.opacity = ""; // Allow default styles to sort themselves out
+                        this._content.focus();
+
                         if (this.viewModel.isRestoring) {
                             this.viewModel.signalArticleDisplayed();
                         } else {
@@ -278,6 +283,16 @@
             titleBar.buttonInactiveBackgroundColor = backgroundColour;
         }
 
+        private _setToolbar(state: boolean): void {
+            this._toolbarVisible = state;
+
+            if (this._toolbarVisible) {
+                WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
+            } else {
+                WinJS.Utilities.addClass(this._toolbarContainer, "hide");
+            }
+        }
+
         private _toggleToolbar(): void {
             var offset = {
                 top: null,
@@ -296,7 +311,7 @@
 
                 WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
                     WinJS.Utilities.addClass(this._toolbarContainer, "hide");
-                    this._toolbarVisible = false;
+                    (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
                 });
             } else {
                 // Remove the class before getting the client width, otherwise it'll
@@ -305,7 +320,7 @@
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
                 WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
-                    this._toolbarVisible = true;
+                    (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
                 });
             }
         }
