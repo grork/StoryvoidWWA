@@ -24,6 +24,7 @@
                     currentFontSize: 20,
                     currentLineHeight: 1.6,
                     currentArticleWidth: 80,
+                    toolbarVisible: true,
                 });
         }
 
@@ -65,6 +66,14 @@
 
         public set currentArticleWidth(value: number) {
             this.setValue("currentArticleWidth", value);
+        }
+
+        public get toolbarVisible(): boolean {
+            return this.getValueOrDefault<boolean>("toolbarVisible");
+        }
+
+        public set toolbarVisible(value: boolean) {
+            this.setValue("toolbarVisible", value);
         }
     }
 }
