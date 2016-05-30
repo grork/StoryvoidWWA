@@ -3,7 +3,6 @@
 
     export class SyncProgressControl extends Codevoid.UICore.Control {
         private eventSource: Codevoid.Utilities.EventSource;
-        private owningListView: WinJS.UI.ListView<any>;
         private initialMessage: string;
         private template: WinJS.Binding.Template;
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
@@ -37,13 +36,6 @@
 
             WinJS.Utilities.addClass(this._spinner, "hide");
             WinJS.Utilities.removeClass(this._checkMark, "hide");
-
-            // Don't remove the header immediately; give it a couple
-            // seconds so we can see that we've actually completed.
-            WinJS.Promise.timeout(2 * 1000).done(() => {
-                this.owningListView.header = null;
-                Codevoid.Utilities.DOM.disposeOfControl(this.element);
-            });
         }
 
         public dispose(): void {
