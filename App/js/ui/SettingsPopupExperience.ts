@@ -15,6 +15,7 @@
         private _archiveArticleLimit: HTMLSelectElementWithState;
         private _versionElement: HTMLDivElement;
         private _closeButton: HTMLButtonElement;
+        private _previouslyFocusedElement: HTMLElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -67,6 +68,16 @@
 
                 WinJS.Utilities.removeClass(element, "hide");
                 WinJS.UI.Animation.slideUp(this.element).done(() => {
+                    // Capture previously focused element so we focus it when the
+                    // setting is dismissed.
+                    //
+                    // Note, this is a little bit of a cheat. The settings is normally
+                    // invoked from the flyout nav menu thing. If we captured focus immediately
+                    // when we were invoked, we'd capture the focus from inside the flyout. Bad.
+                    // If we wait till we're showing/focusing ourselves, it means that the flyout
+                    // itself will have restored focus to somewhere helpful. (E.g. back to
+                    // the content)
+                    this._previouslyFocusedElement = <HTMLElement>document.activeElement;
                     this._homeArticleLimit.focus();
                 });
             });
@@ -147,6 +158,13 @@
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
                 this.viewModel = null;
+
+                // Restore focus to whatever was previously focused.
+                try {
+                    this._previouslyFocusedElement.setActive();
+                }
+                catch (e) { }
+                this._previouslyFocusedElement = null;
             });
         }
 

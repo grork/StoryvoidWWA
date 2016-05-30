@@ -22,6 +22,7 @@
         private _fontSelector: HTMLSelectElement;
         private _fonts: WinJS.UI.Repeater;
         private _flyoutInitialized: boolean = false;
+        private _previouslyFocusedElement: HTMLElement;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -36,6 +37,10 @@
             // Update the titlebar style to match the document
             // NB: Must be done before setting theme;
             this._saveCurrentTitleBarColours();
+
+            // Capture previously focused element so we focus it when the
+            // viewer is dismissed.
+            this._previouslyFocusedElement = <HTMLElement>document.activeElement;
 
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
@@ -121,83 +126,10 @@
 
             var readyHandler = Codevoid.Utilities.addEventListeners(this._messenger.events, {
                 ready: () => {
-                    this._pageReady = true;
-
                     readyHandler.cancel();
                     readyHandler = null;
 
-                    WinJS.Promise.join([
-                        this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
-                        this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
-                    ]).done(() => {
-                        this._messenger.invokeForResult("inserttitle", {
-                            title: this.viewModel.bookmark.title,
-                            domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
-                            url: this.viewModel.bookmark.url,
-                        });
-
-                        // Set initial states
-                        this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
-                        this.viewModel.displaySettings.restoreSettings();
-
-                        Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
-                        
-                        // Set commands to the toolbar controls to handle primary/secondary scenarios
-                        this.toolbar.data = this.viewModel.getCommands();
-
-                        this.element.style.opacity = ""; // Allow default styles to sort themselves out
-                        this._content.focus();
-
-                        if (this.viewModel.isRestoring) {
-                            this.viewModel.signalArticleDisplayed();
-                        } else {
-                            WinJS.UI.Animation.slideUp(this.element).done(() => {
-                                this.viewModel.signalArticleDisplayed();
-                            });
-                        }
-
-                        // Setup OS back button support
-                        this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
-                        this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
-                            backrequested: this.close.bind(this),
-                        }));
-
-                        this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
-                            keydown: (e: KeyboardEvent) => {
-                                var handled: boolean = false;
-
-                                if (e.ctrlKey) {
-                                    this._handleShortcuts(e.keyCode);
-                                }
-
-                                switch (e.key.toLowerCase()) {
-                                    case "esc":
-                                        this.close(null);
-                                        handled = true;
-                                        break;
-
-                                    case "alt":
-                                        this._toggleToolbar();
-                                        handled = true;
-                                        break;
-                                }
-
-                                if (handled) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                }
-                            },
-                            pointerup: (e: PointerEvent) => {
-                                if (e.button != 3) {
-                                    return;
-                                }
-
-                                this.close(null);
-                                e.stopPropagation();
-                                e.preventDefault();
-                            }
-                        }));
-                    });
+                    this._handleReady();
                 },
             });
 
@@ -215,6 +147,83 @@
             this.viewModel.displaySettings.setMessenger(this._messenger);
 
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
+        }
+
+        private _handleReady(): void {
+            this._pageReady = true;
+
+            WinJS.Promise.join([
+                this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
+                this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
+            ]).done(() => {
+                this._messenger.invokeForResult("inserttitle", {
+                    title: this.viewModel.bookmark.title,
+                    domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
+                    url: this.viewModel.bookmark.url,
+                });
+
+                // Set initial states
+                this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
+                this.viewModel.displaySettings.restoreSettings();
+
+                Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
+                        
+                // Set commands to the toolbar controls to handle primary/secondary scenarios
+                this.toolbar.data = this.viewModel.getCommands();
+
+                this.element.style.opacity = ""; // Allow default styles to sort themselves out
+                this._content.focus();
+
+                if (this.viewModel.isRestoring) {
+                    this.viewModel.signalArticleDisplayed();
+                } else {
+                    WinJS.UI.Animation.slideUp(this.element).done(() => {
+                        this.viewModel.signalArticleDisplayed();
+                    });
+                }
+
+                // Setup OS back button support
+                this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
+                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
+                    backrequested: this.close.bind(this),
+                }));
+
+                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
+                    keydown: (e: KeyboardEvent) => {
+                        var handled: boolean = false;
+
+                        if (e.ctrlKey) {
+                            this._handleShortcuts(e.keyCode);
+                        }
+
+                        switch (e.key.toLowerCase()) {
+                            case "esc":
+                                this.close(null);
+                                handled = true;
+                                break;
+
+                            case "alt":
+                                this._toggleToolbar();
+                                handled = true;
+                                break;
+                        }
+
+                        if (handled) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    },
+                    pointerup: (e: PointerEvent) => {
+                        if (e.button != 3) {
+                            return;
+                        }
+
+                        this.close(null);
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
+                }));
+            });
         }
 
         private _handleShortcuts(keyCode: WinJS.Utilities.Key): void {
@@ -369,6 +378,15 @@
                 this._displaySettingsFlyout.element);
 
             WinJS.UI.Animation.slideDown(this.element).done(() => {
+                // Restore focus to a previous element.
+                // Note that if you do this in the dismiss handler from the WebView
+                // before yielding to the browser, you'll get the escape key event
+                // twice for no apparently good reason.
+                try {
+                    this._previouslyFocusedElement.setActive();
+                } catch (e) { }
+                this._previouslyFocusedElement = null;
+
                 // Flip this flag to allow the next navigate to complete, because
                 // we're normally supressing navigations after the first load.
                 this._pageReady = false;
