@@ -15,6 +15,7 @@
         private _sorts: WinJS.UI.Repeater;
         private _sortsElement: HTMLSelectElement;
         private _toolBarContainer: HTMLDivElement;
+        private _syncProgressContainer: HTMLDivElement;
         private _toolBar: WinJS.UI.ToolBar;
         private _inSelectionMode: boolean = false;
         private viewModel: SignedInViewModel;
@@ -49,7 +50,10 @@
                     this._sortsElement.value = e.detail.toString();
                 },
                 syncstarting: (e: { detail: { message: string } }) => {
-                    this._createProgressHeader(e.detail.message);
+                    this._showSyncProgress(e.detail.message);
+                },
+                synccompleted: () => {
+                    this._hideSyncProgress();
                 },
                 signedout: () => {
                     this._signOutRequested();
@@ -122,16 +126,59 @@
             this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
         }
 
-        private _createProgressHeader(initialMessage: string): void {
+        private _showSyncProgress(initialMessage: string): void {
             var headerContainer = document.createElement("div");
             var syncProgress = new Codevoid.Storyvoid.UI.SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
                 template: this._progressTemplate,
                 eventSource: this.viewModel.events,
-                owningListView: this._contentList,
             });
 
-            this._contentList.header = headerContainer;
+            this._syncProgressContainer.appendChild(headerContainer);
+
+            var animHandler = Utilities.addEventListeners(this._contentList.element, {
+                animationend: (e: TransitionEvent) => {
+                    // We'll see other bubbling events from other transitions
+                    // make sure we're only handling the one WE started.
+                    if (e.target != this._contentList.element) {
+                        return;
+                    }
+
+                    animHandler.cancel();
+
+                    WinJS.Utilities.addClass(this._contentList.element, "syncProgress-visible");
+                    WinJS.Utilities.removeClass(this._contentList.element, "syncProgressAnimation-out");
+                }
+            });
+
+            WinJS.Utilities.addClass(this._contentList.element, "syncProgressAnimation-out");
+
+            this._syncProgressContainer.style.transform = "translate(0px)";
+        }
+
+        private _hideSyncProgress(): void {
+            WinJS.Promise.timeout(2 * 1000).done(() => {
+                var animHandler = Utilities.addEventListeners(this._contentList.element, {
+                    animationend: (e: TransitionEvent) => {
+                        // We'll see other bubbling events from other transitions
+                        // make sure we're only handling the one WE started.
+                        if (e.target != this._contentList.element) {
+                            return;
+                        }
+
+                        animHandler.cancel();
+
+                        WinJS.Utilities.removeClass(this._contentList.element, "syncProgressAnimation-in");
+                        WinJS.Utilities.removeClass(this._contentList.element, "syncProgress-visible");
+
+                        WinJS.Utilities.empty(this._syncProgressContainer);
+                        Codevoid.Utilities.DOM.disposeOfControl(this._syncProgressContainer.firstElementChild);
+                    }
+                });
+
+                WinJS.Utilities.addClass(this._contentList.element, "syncProgressAnimation-in");
+                this._syncProgressContainer.style.transform = "";
+            });
         }
         
         public startSync(): void {

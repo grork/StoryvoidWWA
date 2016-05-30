@@ -170,14 +170,6 @@ button.commands-selectmode.win-command:focus {
     border-style: solid;
 }
 
-.signedIn-content {
-    -ms-grid-column: 1;
-    -ms-grid-row: 2;
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-}
-
 .signedIn-selectioncommands-container {
     -ms-grid-column: 1;
     -ms-grid-row: 2;
@@ -185,9 +177,68 @@ button.commands-selectmode.win-command:focus {
     width: 100%;
 }
 
+.signedIn-content {
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+    height: 100%;
+    width: 100%;
+    overflow-y: hidden;
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 44px 8px 1fr;
+}
+
+.syncing-container {
+    height: 52px;
+    transition-property: transform;
+    transition-duration: 200ms;
+    width: 100%;
+    transform: translateY(-52px);
+}
+
 .signedIn-articleList {
     height: 100%;
     width: 100%;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+    -ms-grid-row-span: 3;
+}
+
+    .signedIn-articleList.syncProgress-visible {
+        -ms-grid-row: 3;
+        -ms-grid-row-span: 1;
+    }
+
+@keyframes animateOut {
+    from {
+        transform: translateY(0px);
+    }
+
+    to {
+        transform: translateY(44px);
+    }
+}
+
+.syncProgressAnimation-out {
+    animation-name: animateOut;
+    animation-duration: 200ms;
+}
+
+@keyframes animateIn {
+    from {
+        transform: translateY(0px);
+    }
+
+    to {
+        /* Note, this is not the full height for the row
+           this is to allow for the margin jump to *loook* smooth */
+        transform: translateY(-44px);
+    }
+}
+
+.syncProgressAnimation-in {
+    animation-name: animateIn;
+    animation-duration: 200ms;
 }
 
 .signedOut-container {
@@ -362,11 +413,16 @@ button.commands-selectmode.win-command:focus {
         line-height: 28px;
     }
 
+.syncProgress-visible .win-surface {
+    margin-top: -2px !important;
+}
+
 .syncProgress-root {
     display: -ms-grid;
     -ms-grid-rows: 36px;
     -ms-grid-columns: 12px auto 8px 1fr 8px;
     padding-top: 8px;
+    padding-bottom: 8px;
 }
 
     .syncProgress-root .syncProgress-progress,
