@@ -305,6 +305,9 @@ button.commands-selectmode.win-command:focus {
     margin-right: 6px;
     margin-top: 6px;
     margin-bottom: 6px;
+    transition-property: transform;
+    transition-duration: 500ms;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .win-listview .win-focusedoutline,

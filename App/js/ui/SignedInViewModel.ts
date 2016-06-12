@@ -18,6 +18,12 @@
         comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
     }
 
+    interface ICommandOptions {
+        label: string;
+        icon: string;
+        onclick: () => void;
+    }
+
     export class SignedInViewModel implements Codevoid.Storyvoid.UI.ISignedInViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SignedInExperience" };
         private _handlersToCleanUp: Utilities.ICancellable[] = [];
@@ -566,33 +572,11 @@
             this.refreshCurrentFolder();
         }
 
-        public getCommandsForSelection(bookmarks: IBookmark[]): WinJS.UI.ICommand[] {
-            var commands = [];
-
-            if (this._currentFolderId === this.commonFolderDbIds.liked) {
-                var unlikeCommand = new WinJS.UI.Command(null, {
-                    label: "Unlike",
-                    icon: "\uEA92",
-                    onclick: () => {
-                        this.unlike(bookmarks);
-                    }
-                });
-
-                commands.push(unlikeCommand);
-            } else {
-                var deleteCommand = new WinJS.UI.Command(null, {
-                    label: "Delete",
-                    icon: "delete",
-                    onclick: () => {
-                        this.delete(bookmarks);
-                    },
-                });
-
-                commands.push(deleteCommand);
-            }
+        public getCommandInformationForBookmarks(bookmarks: IBookmark[]): ICommandOptions[] {
+            var commands: ICommandOptions[] = [];
 
             if (bookmarks.length === 1) {
-                var downloadCommand = new WinJS.UI.Command(null, {
+                var downloadCommand = {
                     label: "Download",
                     icon: "download",
                     onclick: () => {
@@ -603,11 +587,43 @@
                             });
                         });
                     }
-                });
+                };
 
                 commands.push(downloadCommand);
             }
 
+            if (this._currentFolderId === this.commonFolderDbIds.liked) {
+                var unlikeCommand = {
+                    label: "Unlike",
+                    icon: "\uEA92",
+                    onclick: () => {
+                        this.unlike(bookmarks);
+                    }
+                };
+
+                commands.push(unlikeCommand);
+            } else {
+                var deleteCommand = {
+                    label: "Delete",
+                    icon: "delete",
+                    onclick: () => {
+                        this.delete(bookmarks);
+                    },
+                };
+
+                commands.push(deleteCommand);
+            }
+
+            return commands;
+        }
+
+        public getCommandsForSelection(bookmarks: IBookmark[]): WinJS.UI.ICommand[] {
+            var commandInfo = this.getCommandInformationForBookmarks(bookmarks);
+            var commands = commandInfo.map((options: any) => {
+                var instance = new WinJS.UI.Command(null, options);
+                return instance;
+            });
+            
             return commands;
         }
 
