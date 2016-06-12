@@ -576,6 +576,15 @@
             var commands: ICommandOptions[] = [];
 
             if (bookmarks.length === 1) {
+                var openInBrowser = {
+                    label: "Open in browser",
+                    icon: "globe",
+                    onclick: () => {
+                        Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmarks[0].url));
+                    }
+                }
+
+                commands.push(openInBrowser);
                 var downloadCommand = {
                     label: "Download",
                     icon: "download",
@@ -642,7 +651,7 @@
         public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
             // if the local file path has gone AWOL, lets not load, and complete silently.
             if (!bookmark.localFolderRelativePath) {
-                return WinJS.Promise.as();
+                return this._promptToOpenBrowser(bookmark);
             }
 
             var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark,
@@ -651,6 +660,26 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
 
             return viewer.displayed;
+        }
+
+        private _promptToOpenBrowser(bookmark: IBookmark): WinJS.Promise<any> {
+            var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser?", "Open in a web browser?");
+            var commands = prompt.commands;
+            commands.clear();
+
+            var open = new Windows.UI.Popups.UICommand();
+            open.label = "Open";
+            open.invoked = (command: Windows.UI.Popups.UICommand) => {
+                Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmark.url));
+            };
+
+            commands.push(open);
+            commands.push(new Windows.UI.Popups.UICommand("No"));
+
+            prompt.cancelCommandIndex = 1;
+            prompt.defaultCommandIndex = 1;
+
+            return prompt.showAsync();
         }
 
         public showSettings(): void {
