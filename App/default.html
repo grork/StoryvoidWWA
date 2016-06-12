@@ -43,7 +43,8 @@
         <div class="template-article"
              data-win-control="WinJS.Binding.Template"
              data-part="_articleTemplate">
-            <div class="article">
+            <div class="article"
+                 data-win-bind="__articleContext: this">
                 <div class="article-title">
                     <span class="article-title-text setShadow"
                           data-win-bind="textContent: this Codevoid.Storyvoid.UI.SignedInExperience.showTitleOrUrl"></span>
@@ -65,7 +66,8 @@
         <div class="template-imagearticle"
              data-win-control="WinJS.Binding.Template"
              data-part="_imageArticleTemplate">
-            <div class="article with-image">
+            <div class="article with-image"
+                 data-win-bind="__articleContext: this">
                 <div class="article-title">
                     <span class="article-title-text setShadow"
                           data-win-bind="textContent: this Codevoid.Storyvoid.UI.SignedInExperience.showTitleOrUrl"></span>
@@ -161,7 +163,9 @@
                     <div class="signedIn-articleList"
                          data-event="{
                             selectionchanged: contentListSelectionChanged,
-                            iteminvoked: listItemInvoked
+                            iteminvoked: listItemInvoked,
+                            contextmenu: menuInvoked,
+                            MSHoldVisual: holdVisualTriggered,
                          }"
                          data-win-control="WinJS.UI.ListView"
                          data-win-options="{
@@ -174,6 +178,12 @@
 
                 </div>
             </div>
+        </div>
+
+        <!-- Context menu placeholder element. Used on right click of list items -->
+        <div data-win-control="WinJS.UI.Menu"
+             data-part="_menu"
+             data-event="{ beforehide: menuClosing }">
         </div>
     </div>
 </body>

@@ -19,6 +19,8 @@
         private _toolBar: WinJS.UI.ToolBar;
         private _inSelectionMode: boolean = false;
         private viewModel: SignedInViewModel;
+        private _menu: WinJS.UI.Menu;
+        private _wasTouchHeld: boolean = false;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -94,6 +96,54 @@
 
         public signOut(): void {
             this.viewModel.signOut(true/*clearCredentials*/).done(null);
+        }
+
+        public menuInvoked(e: MouseEvent): void {
+            // Grab the element under the touch / pointer event
+            var currentElement = document.elementFromPoint(e.x, e.y);
+
+            var data: IBookmark;
+
+            // Dumpster drive between element under the pointer, until we hit
+            // where the handler is attached, looking for the data on each element
+            while (currentElement != e.currentTarget) {
+                data = (<any>currentElement).__articleContext;
+                if (data) {
+                    // This element contained the data, so theres no need to search
+                    // any more elements.
+                    break;
+                }
+
+                currentElement = currentElement.parentElement;
+            }
+
+            if (!data) {
+                return;
+            }
+
+            // Now we've got some commands, show them to the user
+            var commands = this.viewModel.getCommandInformationForBookmarks([data]);
+            this._menu.commands = <any[]>commands;
+            this._menu.showAt(e);
+
+            // Set the transform of the listview 'content' (E.g. inside the scroller)
+            // to be zoomed out a little for a nice effect there is a menu open
+            (<HTMLElement>this._contentList.element.querySelector(".win-surface")).style.transform = "scale(0.97)";
+        }
+
+        public menuClosing(): void {
+            // When the menu closes, reset any transform on the content so it scales back
+            // to it's normal size.
+            (<HTMLElement>this._contentList.element.querySelector(".win-surface")).style.transform = "";
+        }
+
+        public holdVisualTriggered(e: MouseEvent): void {
+            // MSHoldVisual is an event raised when a *touch* is held long enough
+            // but before the context menu or pointer event. This gives us a chance to
+            // flag state so that when the pointerup event raises the ListView's
+            // itemInvoked event immediately before the contextMenu event, we dont
+            // go and open the article.
+            this._wasTouchHeld = true;
         }
 
         private _signOutRequested() {
@@ -222,6 +272,13 @@
         }
 
         public listItemInvoked(e: UIEvent): void {
+            // If the touch had been held, then we want to drop
+            // this invokation and let the context menu open
+            if (this._wasTouchHeld) {
+                this._wasTouchHeld = false;
+                return;
+            }
+
             (<any>e.detail).itemPromise.then((item: WinJS.UI.IItem<IBookmark>) => {
                 this.viewModel.showArticle(item.data, false/*restoring*/);
             });
@@ -318,6 +375,9 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewClosing);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.menuInvoked);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.menuClosing);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.holdVisualTriggered);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showSettings);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
