@@ -404,6 +404,8 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
+            Codevoid.Utilities.DOM.removeChild(this._moveFlyout.element.parentElement, this._moveFlyout.element);
+
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Restore focus to a previous element.
                 // Note that if you do this in the dismiss handler from the WebView
