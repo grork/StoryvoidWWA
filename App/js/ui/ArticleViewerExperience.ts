@@ -15,6 +15,7 @@
         private _container: HTMLElement;
         private _title: HTMLElement;
         private _displaySettingsFlyout: WinJS.UI.Flyout;
+        private _moveFlyout: WinJS.UI.Flyout;
         private toolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
         private _toolbarVisible: boolean = true;
@@ -82,9 +83,13 @@
                 document.body.appendChild(this._displaySettingsFlyout.element);
                 this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
 
+                document.body.appendChild(this._moveFlyout.element);
+                this.viewModel.setMoveFlyout(this._moveFlyout);
+
                 // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
                 // Doesn't really need to do anything, except be initialized
                 var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
+                kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._moveFlyout.element);
 
                 var viewerSettings = new Settings.ViewerSettings();
                 this._setToolbar(viewerSettings.toolbarVisible);
@@ -226,6 +231,14 @@
             });
         }
 
+        private _showToolbarIfNotVisible(): WinJS.Promise<any> {
+            if (this._toolbarVisible) {
+                return WinJS.Promise.as();
+            }
+
+            return this._toggleToolbar();
+        }
+
         private _handleShortcuts(keyCode: WinJS.Utilities.Key): void {
             switch (keyCode) {
                 case WinJS.Utilities.Key.a:
@@ -241,7 +254,15 @@
                     break;
 
                 case WinJS.Utilities.Key.s:
-                    this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
+                    this._showToolbarIfNotVisible().done(() => {
+                        this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
+                    });
+                    break;
+
+                case WinJS.Utilities.Key.m:
+                    this._showToolbarIfNotVisible().done(() => {
+                        this.viewModel.moveCommand.flyout.show(this.viewModel.moveCommand.element, "autovertical");
+                    });
                     break;
 
                 case WinJS.Utilities.Key.d:
@@ -302,11 +323,13 @@
             }
         }
 
-        private _toggleToolbar(): void {
+        private _toggleToolbar(): WinJS.Promise<any> {
             var offset = {
                 top: null,
                 left: "0px",
             };
+
+            var signal = new Utilities.Signal();
 
             // Adjust the multiplier  for the offset depending on if we're at the bottom
             // or the top of the screen (as determined by window width
@@ -321,6 +344,7 @@
                 WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
                     WinJS.Utilities.addClass(this._toolbarContainer, "hide");
                     (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
+                    signal.complete();
                 });
             } else {
                 // Remove the class before getting the client width, otherwise it'll
@@ -330,8 +354,11 @@
 
                 WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
                     (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
+                    signal.complete();
                 });
             }
+
+            return signal.promise;
         }
 
         public fontSelectionChanged(e: UIEvent): void {
@@ -474,6 +501,7 @@
         private _toggleLikeCommand: WinJS.UI.Command;
         private _deleteCommand: WinJS.UI.Command;
         private _archiveCommand: WinJS.UI.Command;
+        private _moveCommand: WinJS.UI.Command;
         private _fullScreenCommand: WinJS.UI.Command;
         private _eventSource: Utilities.EventSource;
         private _remoteEventHandlers: Utilities.ICancellable;
@@ -498,8 +526,13 @@
             this._displaySettingsCommand = new WinJS.UI.Command(null, {
                 tooltip: "Display Settings",
                 icon: WinJS.UI.AppBarIcon.font,
-                type: 'flyout',
-                //onclick: () => { },
+                type: "flyout",
+            });
+
+            this._moveCommand = new WinJS.UI.Command(null, {
+                tooltip: "Move",
+                icon: WinJS.UI.AppBarIcon.movetofolder,
+                type: "flyout",
             });
 
             // Save that we're looking at an article
@@ -524,6 +557,10 @@
 
         public get displaySettingsCommand(): WinJS.UI.Command {
             return this._displaySettingsCommand;
+        }
+
+        public get moveCommand(): WinJS.UI.Command {
+            return this._moveCommand;
         }
 
         public get toggleLikeCommand(): WinJS.UI.Command {
@@ -574,6 +611,7 @@
 
             commands.push(this._displaySettingsCommand);
             commands.push(this._toggleLikeCommand);
+            commands.push(this._moveCommand);
             commands.push(this._archiveCommand);
             commands.push(this._fullScreenCommand);
             commands.push(this._deleteCommand);
@@ -591,6 +629,10 @@
 
         public get displaySettings(): DisplaySettingsViewModel {
             return this._displaySettings;
+        }
+
+        public setMoveFlyout(flyout: WinJS.UI.Flyout) {
+            this._moveCommand.flyout = flyout;
         }
 
         private _initializeToggleCommand() {
