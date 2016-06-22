@@ -21,7 +21,7 @@
     interface ICommandOptions {
         label: string;
         icon: string;
-        onclick: () => void;
+        onclick: (e?: UIEvent) => void;
     }
 
     export class SignedInViewModel implements Codevoid.Storyvoid.UI.ISignedInViewModel {
@@ -623,6 +623,31 @@
                 commands.push(deleteCommand);
             }
 
+            var moveCommand = {
+                label: "Move",
+                icon: "movetofolder",
+                onclick: (e: UIEvent) => {
+                    this._eventSource.dispatchEvent("move", {
+                        bookmarks: bookmarks,
+                        element: e.currentTarget,
+                    });
+                },
+            };
+
+            commands.push(moveCommand);
+
+            if (this._currentFolderId !== this.commonFolderDbIds.archive) {
+                var archiveCommand = {
+                    label: "Archive",
+                    icon: "\uEC50",
+                    onclick: () => {
+                        this.archive(bookmarks);
+                    }
+                };
+
+                commands.push(archiveCommand);
+            }
+
             return commands;
         }
 
@@ -645,6 +670,12 @@
         public unlike(bookmarksToUnlike: IBookmark[]): void {
             Utilities.serialize(bookmarksToUnlike, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
                 return this._instapaperDB.unlikeBookmark(bookmark.bookmark_id);
+            });
+        }
+
+        public archive(bookmarksToArchive: IBookmark[]): void {
+            Utilities.serialize(bookmarksToArchive, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+                return this._instapaperDB.moveBookmark(bookmark.bookmark_id, this.commonFolderDbIds.archive);
             });
         }
 

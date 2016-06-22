@@ -13,6 +13,7 @@
         private _selectModeToggle: WinJS.UI.Command;
         private _folderList: WinJS.UI.Repeater;
         private _sorts: WinJS.UI.Repeater;
+        private _moveFlyout: WinJS.UI.Flyout;
         private _sortsElement: HTMLSelectElement;
         private _toolBarContainer: HTMLDivElement;
         private _syncProgressContainer: HTMLDivElement;
@@ -59,7 +60,15 @@
                 },
                 signedout: () => {
                     this._signOutRequested();
-                }
+                },
+                move: (e: { detail: { bookmarks: IBookmark[], element: HTMLElement } }) => {
+                    // Bounce the flyout through a timeout so the focus
+                    // doesn't immediately leave the flyout we open, and
+                    // cause it to close.
+                    WinJS.Promise.timeout().done(() => {
+                        this._moveFlyout.show(e.detail.element);
+                    });
+                },
             }));
 
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
