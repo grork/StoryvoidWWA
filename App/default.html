@@ -34,6 +34,7 @@
     <script src="/js/ViewerSettings.js"></script>
     <script src="/js/SyncSettings.js"></script>
     <script src="/js/TransientSettings.js"></script>
+    <script src="/js/ui/MoveToFolderExperience.js"></script>
     <script src="/js/ui/ArticleViewerExperience.js"></script>
     <script src="/js/WebViewMessenger.js"></script>
     <script src="/js/default.js"></script>
@@ -110,7 +111,7 @@
                  openedDisplayMode: WinJS.UI.SplitView.OpenedDisplayMode.overlay,
                  closedDisplayMode: WinJS.UI.SplitView.ClosedDisplayMode.none
              }"
-             data-event="{ beforeopen: splitViewOpening, beforeclose: splitViewClosing }">
+             data-event="{ beforeopen: splitViewOpening, beforeclose: splitViewClosing, afteropen: splitViewOpened }">
             <!-- Slide out pane from split view-->
             <div class="win-splitview-pane">
                 <div class="pane-folderlist"
@@ -184,11 +185,6 @@
         <div data-win-control="WinJS.UI.Menu"
              data-part="_menu"
              data-event="{ beforehide: menuClosing }">
-        </div>
-
-        <div data-win-control="WinJS.UI.Flyout"
-             data-part="_moveFlyout">
-            <button>MOVE ME</button>
         </div>
     </div>
 </body>

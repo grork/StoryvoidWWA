@@ -13,7 +13,6 @@
         private _selectModeToggle: WinJS.UI.Command;
         private _folderList: WinJS.UI.Repeater;
         private _sorts: WinJS.UI.Repeater;
-        private _moveFlyout: WinJS.UI.Flyout;
         private _sortsElement: HTMLSelectElement;
         private _toolBarContainer: HTMLDivElement;
         private _syncProgressContainer: HTMLDivElement;
@@ -60,14 +59,6 @@
                 },
                 signedout: () => {
                     this._signOutRequested();
-                },
-                move: (e: { detail: { bookmarks: IBookmark[], element: HTMLElement } }) => {
-                    // Bounce the flyout through a timeout so the focus
-                    // doesn't immediately leave the flyout we open, and
-                    // cause it to close.
-                    WinJS.Promise.timeout().done(() => {
-                        this._moveFlyout.show(e.detail.element);
-                    });
                 },
             }));
 
@@ -261,6 +252,16 @@
                 // Highlight the item
                 var container = this._folderList.elementFromIndex(index);
                 WinJS.Utilities.addClass(container, "folderlist-current");
+            });
+        }
+
+        public splitViewOpened(): void {
+            this._folderList.data.forEach((item: IFolder, index: number) => {
+                if (item.id != this.viewModel.currentFolderId) {
+                    return;
+                }
+
+                var container = this._folderList.elementFromIndex(index);
 
                 // Find the current element, and focus it
                 var focusTarget = <HTMLElement>container.querySelector("[role='button']");
@@ -383,6 +384,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewClosing);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpening);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.splitViewOpened);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.signOut);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.menuInvoked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.menuClosing);
