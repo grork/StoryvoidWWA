@@ -236,6 +236,36 @@
         </div>
     </div>
 
+    <div data-win-control="WinJS.Binding.Template"
+         data-templateid="folderList">
+        <div data-win-control="WinJS.UI.Flyout"
+             data-part="_flyout"
+             data-event="{ aftershow: afterShow, afterhide: afterHide}">
+            <div data-win-control="WinJS.Binding.Template"
+                 data-part="_itemTemplate">
+                <div tabindex="0" class="win-splitviewcommand-button foldermove-folder">
+                    <div class="win-splitviewcommand-button-content">
+                        <div class="win-splitviewcommand-icon"
+                             data-win-bind="textContent: folder_id Codevoid.Storyvoid.UI.SignedInExperience.folderIdToIcon"></div>
+                        <div class="win-splitviewcommand-label"
+                             data-win-bind="textContent: title"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="control-folderlist-container">
+                <div class="folderlist-title">Move to:</div>
+                <div class="folderlist-folders"
+                     data-win-control="WinJS.UI.ListView"
+                     data-event="{ iteminvoked: listInvoked }"
+                     data-win-options="{ layout: { type: WinJS.UI.ListLayout, orientation: 'vertical' }  }"
+                     data-part="_contentList"></div>
+                <button class="folderlist-close-button"
+                        data-part="_cancelButton"
+                        data-event="{ click: dismiss }">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div data-templateid="dbFiddler"
          class="dbFiddler-container"
          data-win-control="WinJS.Binding.Template">

@@ -110,7 +110,6 @@ button.win-command:focus {
     margin-top: 16px;
 }
 
-
 .signedIn-content-root {
     height: 100%;
     display: -ms-grid;
@@ -300,7 +299,7 @@ button.commands-selectmode.win-command:focus {
     margin: 6px;
 }
 
-.win-listview > .win-viewport.win-vertical .win-surface {
+.signedIn-articleList.win-listview > .win-viewport.win-vertical .win-surface {
     margin-left: 6px;
     margin-right: 6px;
     margin-top: 6px;
@@ -310,9 +309,11 @@ button.commands-selectmode.win-command:focus {
     transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-.win-listview .win-focusedoutline,
-.win-itemcontainer .win-focusedoutline {
-  outline-style: solid;
+    
+
+.signedIn-articleList.win-listview .win-focusedoutline,
+signedIn-articleList .win-itemcontainer .win-focusedoutline {
+    outline-style: solid;
 }
 
 .win-selectionmode .win-itemcontainer.win-container .win-itembox::after,
@@ -936,3 +937,59 @@ button.margin-increase .win-commandimage {
 .dbFiddler-buttons > button {
     margin: 0px 6px 0px 6px;
 }
+
+.control-folderlist-container {
+    display: -ms-grid;
+    height: 275px;
+    width: 250px;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: auto 1fr auto;
+}
+
+    .control-folderlist-container .folderlist-title {
+        -ms-grid-row: 1;
+        -ms-grid-column: 1;
+        margin-left: 17px;
+        margin-right: 17px;
+    }
+
+    .control-folderlist-container .folderlist-folders {
+        -ms-grid-row: 2;
+        -ms-grid-column: 1;
+        height: 100%;
+    }
+
+    .control-folderlist-container .folderlist-close-button {
+        -ms-grid-row: 3;
+        -ms-grid-column: 1;
+        -ms-grid-column-align: end;
+    }
+
+.folderlist-folders.win-listview > .win-viewport.win-vertical .win-surface {
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.folderlist-folders.win-listview > .win-vertical .win-container {
+    margin-left: 0px;
+}
+
+.foldermove-folder {
+    height: 32px;
+}
+
+    .foldermove-folder .win-splitviewcommand-button-content {
+        height: 100%;
+    }
+
+    .foldermove-folder .win-splitviewcommand-icon {
+        margin-top: 8px;
+    }
+
+    .foldermove-folder .win-splitviewcommand-label {
+        margin-top: 6px;
+        margin-bottom: 0px;
+    }
+

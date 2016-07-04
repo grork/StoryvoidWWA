@@ -53,8 +53,8 @@ html.win-hoverable button.commands-selectmode:enabled.win-command:hover {
     background-color: rgba(255, 255, 255, 0.34);
 }
 
-.win-listview .win-focusedoutline,
-.win-itemcontainer .win-focusedoutline {
+.signedIn-articleList.win-listview .win-focusedoutline,
+.signedIn-articleList .win-focusedoutline {
   outline-color: invert;
 }
 
