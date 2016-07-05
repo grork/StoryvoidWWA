@@ -15,7 +15,6 @@
         private _container: HTMLElement;
         private _title: HTMLElement;
         private _displaySettingsFlyout: WinJS.UI.Flyout;
-        private _moveFlyout: WinJS.UI.Flyout;
         private toolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
         private _toolbarVisible: boolean = true;
@@ -83,13 +82,9 @@
                 document.body.appendChild(this._displaySettingsFlyout.element);
                 this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
 
-                document.body.appendChild(this._moveFlyout.element);
-                this.viewModel.setMoveFlyout(this._moveFlyout);
-
                 // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
                 // Doesn't really need to do anything, except be initialized
                 var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
-                kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._moveFlyout.element);
 
                 var viewerSettings = new Settings.ViewerSettings();
                 this._setToolbar(viewerSettings.toolbarVisible);
@@ -261,7 +256,7 @@
 
                 case WinJS.Utilities.Key.m:
                     this._showToolbarIfNotVisible().done(() => {
-                        this.viewModel.moveCommand.flyout.show(this.viewModel.moveCommand.element, "autovertical");
+                                this.viewModel.moveCommand.onclick({ currentTarget: this.viewModel.moveCommand.element });
                     });
                     break;
 
@@ -404,8 +399,6 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
-            Codevoid.Utilities.DOM.removeChild(this._moveFlyout.element.parentElement, this._moveFlyout.element);
-
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Restore focus to a previous element.
                 // Note that if you do this in the dismiss handler from the WebView
@@ -535,6 +528,7 @@
                 tooltip: "Move",
                 icon: WinJS.UI.AppBarIcon.movetofolder,
                 type: "flyout",
+                onclick: this._move.bind(this),
             });
 
             // Save that we're looking at an article
@@ -682,6 +676,15 @@
         private _delete(): void {
             this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).done(() => {
                 this._eventSource.dispatchEvent("removed", null);
+            });
+        }
+
+        private _move(e: UIEvent): void {
+            var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
+            moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).done((result: boolean) => {
+                if (result) {
+                    this._eventSource.dispatchEvent("removed", null);
+                }
             });
         }
 

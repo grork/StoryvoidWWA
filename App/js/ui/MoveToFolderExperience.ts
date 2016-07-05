@@ -98,7 +98,9 @@
             }).done(() => {
                 var alignment = "right";
                 // Guess if it's a menu
-                if (!targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
+                if (!targetPosition.firstElementChild.firstElementChild.classList.contains("win-commandicon")) {
+                    alignment = "bottom";
+                } else if (!targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
                     alignment = "top";
                 }
 
@@ -121,7 +123,7 @@
         constructor(private _instapaperDB: InstapaperDB) {
         }
 
-        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): void {
+        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): WinJS.Promise<any> {
             var element = document.createElement("div");
             document.body.appendChild(element);
 
@@ -130,19 +132,23 @@
             // the possibly reuse of the folder list itself, just shove these
             // things into a new element and hope for the best
             var experience = new MoveToFolderExperience(element, { viewModel: this });
-            experience.ready.then(() => {
+            return experience.ready.then(() => {
                 return experience.show(targetPosition);
             }).then((targetFolder: IFolder) => {
                 // if someone clicks cancel, then there willbe no selected folder
                 if (!targetFolder) {
-                    return;
+                    return false;
                 }
 
-                Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => {
+                return Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => {
                     return this._instapaperDB.moveBookmark(item.bookmark_id, targetFolder.id);
+                }).then(() => {
+                    return true;
                 });
-            }).done(() => {
+            }).then((result: boolean) => {
                 Utilities.DOM.removeChild(document.body, element);
+
+                return result;
             });
         }
 

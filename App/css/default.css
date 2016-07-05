@@ -951,6 +951,7 @@ button.margin-increase .win-commandimage {
         -ms-grid-column: 1;
         margin-left: 17px;
         margin-right: 17px;
+        font-size: 18px;
     }
 
     .control-folderlist-container .folderlist-folders {
