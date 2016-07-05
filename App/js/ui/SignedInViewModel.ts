@@ -627,7 +627,6 @@
                 label: "Move",
                 icon: "movetofolder",
                 onclick: (e: UIEvent) => {
-
                     var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
                     moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget);
                 },
