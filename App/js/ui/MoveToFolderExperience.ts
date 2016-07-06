@@ -96,12 +96,12 @@
             this.refresh().then(() => {
                 return WinJS.Promise.timeout();
             }).done(() => {
-                var alignment = "right";
-                // Guess if it's a menu
-                if (!targetPosition.firstElementChild.firstElementChild.classList.contains("win-commandicon")) {
+                var alignment = "top";
+                
+                if (targetPosition.hasAttribute("aria-haspopup")) {
                     alignment = "bottom";
-                } else if (!targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
-                    alignment = "top";
+                } else if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
+                    alignment = "right";
                 }
 
                 this._flyout.show(targetPosition, alignment);
