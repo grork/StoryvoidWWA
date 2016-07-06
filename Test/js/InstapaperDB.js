@@ -603,11 +603,7 @@
                         return this.deletePendingBookmarkEdit(pendingEdits.unlike.id);
                     }.bind(this)).then(function () {
                         var f = WinJS.Promise.as();
-                        if (!dontAddPendingUpdate) {
-                            if (wasUnsyncedEdit) {
-                                return;
-                            }
-
+                        if (!dontAddPendingUpdate && !wasUnsyncedEdit) {
                             var edit = {
                                 type: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.LIKE,
                                 bookmark_id: bookmark_id,
@@ -649,7 +645,7 @@
                     }
 
                     bookmark.starred = 0;
-                    return this.updateBookmark(bookmark);
+                    return this.updateBookmark(bookmark, true);
                 }.bind(this)).then(function (bookmark) {
                     updatedBookmark = bookmark
                     return WinJS.Promise.join({
