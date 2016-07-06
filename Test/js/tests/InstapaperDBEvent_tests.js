@@ -260,7 +260,7 @@
                 folder_dbid: instapaperDB.commonFolderDbIds.unread,
             }, true);
         }).then(function (added) {
-            return instapaperDB.unlikeBookmark(added.bookmark_id, true);
+            return instapaperDB.likeBookmark(added.bookmark_id, true);
         }).then(function (added) {
             var signal = new Signal();
 

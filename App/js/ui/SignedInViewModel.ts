@@ -113,6 +113,28 @@
                 return;
             }
 
+            // If we're currently looking at the liked folder, then
+            // we need to handle these behaviours a little differently
+            // because the 'liked' folder is really a virtual folder, so
+            // doesn't have things added/removed from it -- just like/unlike
+            if (this._currentFolderId === this._instapaperDB.commonFolderDbIds.liked) {
+                switch (detail.operation) {
+                    case InstapaperDB.BookmarkChangeTypes.UPDATE:
+                        this._handleBookmarkUpdated(detail);
+                        break;
+
+                    case InstapaperDB.BookmarkChangeTypes.LIKE:
+                        this._handleBookmarkAdded(detail);
+                        break;
+
+                    case InstapaperDB.BookmarkChangeTypes.UNLIKE:
+                        this._handleBookmarkDeleted(detail);
+                        break;
+                }
+
+                return;
+            }
+
             var folderId = detail.sourcefolder_dbid || detail.bookmark.folder_dbid;
             // Only care if the folder for this bookmark is of interest
             if (folderId != this._currentFolderId) {
@@ -120,6 +142,8 @@
             }
 
             switch (detail.operation) {
+                case InstapaperDB.BookmarkChangeTypes.LIKE:
+                case InstapaperDB.BookmarkChangeTypes.UNLIKE:
                 case InstapaperDB.BookmarkChangeTypes.UPDATE:
                     this._handleBookmarkUpdated(detail);
                     break;
@@ -152,9 +176,15 @@
         }
 
         private _handleBookmarkUpdated(detail: IBookmarksChangedEvent): void {
-            // Don't care about non-updates
-            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.UPDATE) {
-                return;
+            // Don't care about non-update-like events
+            switch (detail.operation) {
+                case InstapaperDB.BookmarkChangeTypes.UPDATE:
+                case InstapaperDB.BookmarkChangeTypes.LIKE:
+                case InstapaperDB.BookmarkChangeTypes.UNLIKE:
+                    break;
+
+                default:
+                    return;
             }
 
             var indexOfBookmark: number;
@@ -176,7 +206,8 @@
 
         private _handleBookmarkAdded(detail: IBookmarksChangedEvent): void {
             // Only adds of intrest to us here.
-            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.ADD) {
+            if ((detail.operation !== InstapaperDB.BookmarkChangeTypes.ADD)
+                && (detail.operation !== InstapaperDB.BookmarkChangeTypes.LIKE)) {
                 return;
             }
 
@@ -185,7 +216,8 @@
 
         private _handleBookmarkDeleted(detail: IBookmarksChangedEvent): void {
             // Don't care about non-deletes
-            if (detail.operation !== InstapaperDB.BookmarkChangeTypes.DELETE) {
+            if ((detail.operation !== InstapaperDB.BookmarkChangeTypes.DELETE)
+                && (detail.operation !== InstapaperDB.BookmarkChangeTypes.UNLIKE)) {
                 return;
             }
 
