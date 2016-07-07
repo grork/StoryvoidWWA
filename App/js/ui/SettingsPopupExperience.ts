@@ -215,7 +215,7 @@
         }
         private _selectOptionBasedOnValue(value: number, element: HTMLSelectElement): void {
             for (var i = 0; i < element.options.length; i++) {
-                var itemValue = parseInt(element.options.item(i).value); // Assume all items are valid integers
+                var itemValue = parseInt((<HTMLOptionElement>element.options.item(i)).value); // Assume all items are valid integers
                 if (itemValue === value) {
                     element.selectedIndex = i;
                     return;
