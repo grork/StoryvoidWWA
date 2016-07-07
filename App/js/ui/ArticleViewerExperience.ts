@@ -306,6 +306,12 @@
             titleBar.foregroundColor = textColour;
             titleBar.inactiveBackgroundColor = backgroundColour;
             titleBar.buttonInactiveBackgroundColor = backgroundColour;
+
+            if (Windows.UI.ViewManagement.StatusBar) {
+                var statusBar = Windows.UI.ViewManagement.StatusBar.getForCurrentView();
+                statusBar.backgroundColor = backgroundColour;
+                statusBar.foregroundColor = textColour;
+            }
         }
 
         private _setToolbar(state: boolean): void {
@@ -334,12 +340,19 @@
             }
 
             if (this._toolbarVisible) {
-                offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+                var hidden = WinJS.Promise.as();
+                if (Windows.UI.ViewManagement.StatusBar) {
+                    hidden = Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
+                }
 
-                WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
-                    WinJS.Utilities.addClass(this._toolbarContainer, "hide");
-                    (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
-                    signal.complete();
+                hidden.done(() => {
+                    offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+
+                    WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
+                        WinJS.Utilities.addClass(this._toolbarContainer, "hide");
+                        (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
+                        signal.complete();
+                    });
                 });
             } else {
                 // Remove the class before getting the client width, otherwise it'll
@@ -347,9 +360,16 @@
                 WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
-                WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
-                    (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
-                    signal.complete();
+                var shown = WinJS.Promise.as();
+                if (Windows.UI.ViewManagement.StatusBar) {
+                    shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
+                }
+
+                shown.done(() => {
+                    WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
+                        (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
+                        signal.complete();
+                    });
                 });
             }
 

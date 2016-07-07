@@ -11675,9 +11675,10 @@ declare module Windows {
 
             export class StatusBar {
                 static getForCurrentView(): StatusBar;
-                hideAsync(): Windows.Foundation.IAsyncAction;
-                showAsync(): Windows.Foundation.IAsyncAction;
+                hideAsync(): Windows.Foundation.IPromise<any>;
+                showAsync(): Windows.Foundation.IPromise<any>;
                 backgroundColor: Windows.UI.Color;
+                foregroundColor: Windows.UI.Color;
                 backgroundOpacity: number;
             }
 
