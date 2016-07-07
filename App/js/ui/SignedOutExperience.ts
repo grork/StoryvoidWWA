@@ -17,14 +17,14 @@
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 
-                this._authenticatorControl = new Codevoid.Storyvoid.UI.Authenticator(this._authenticatorContainer,
-                    {
-                        viewModel: this.viewModel.authenticator,
-                    });
+                this._authenticatorControl = new Codevoid.Storyvoid.UI.Authenticator(this._authenticatorContainer, {
+                    viewModel: this.viewModel.authenticator,
+                });
 
 
                 this._handlersToCleanup.push(Utilities.addEventListeners(this._authenticatorContainer, {
                     readytoauthenticate: () => {
+                        Windows.UI.ViewManagement.InputPane.getForCurrentView().tryHide();
                         this.viewModel.startLogin();
                     }
                 }));
