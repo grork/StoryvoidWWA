@@ -11705,6 +11705,7 @@ declare module Windows {
                 occludedRect: Windows.Foundation.Rect;
                 onshowing: any/* TODO */;
                 onhiding: any/* TODO */;
+                tryHide(): boolean;
                 static getForCurrentView(): Windows.UI.ViewManagement.InputPane;
             }
             export interface IInputPaneStatics {
