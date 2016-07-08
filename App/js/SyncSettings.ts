@@ -32,7 +32,7 @@
         }
 
         public set archiveArticleLimit(value: number) {
-            this.setValue("articleArticleLimit", value);
+            this.setValue("archiveArticleLimit", value);
         }
     }
 }
