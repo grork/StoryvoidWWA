@@ -38,6 +38,7 @@
         private _currentSort: SortOption = SortOption.Oldest;
         private _readyForEvents: Utilities.Signal = new Utilities.Signal();
         private static _sorts: ISortsInfo[];
+        private _currentSyncSignal: Utilities.Signal;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
@@ -362,11 +363,15 @@
         }
 
         public startSync(): WinJS.Promise<any> {
+            if (this._currentSyncSignal) {
+                return this._currentSyncSignal.promise;
+            }
+
             var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
             var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
             var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
-            var completedSignal = new Codevoid.Utilities.Signal();
+            this._currentSyncSignal = new Codevoid.Utilities.Signal();
 
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
@@ -424,10 +429,6 @@
                 }),
                 folder: folderOperation,
             }).then((result) => {
-                if (completedSignal) {
-                    completedSignal.complete();
-                }
-
                 articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
@@ -444,17 +445,21 @@
             }).done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
                 this._eventSource.dispatchEvent("synccompleted", null);
+
+                if (this._currentSyncSignal) {
+                    this._currentSyncSignal.complete();
+                }
             }, (e) => {
-                if (completedSignal) {
-                    completedSignal.complete();
+                if (this._currentSyncSignal) {
+                    this._currentSyncSignal.complete();
                 }
 
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
             });
 
-            return completedSignal.promise.then(() => {
-                completedSignal = null;
+            return this._currentSyncSignal.promise.then(() => {
+                this._currentSyncSignal = null;
             });
         }
 
