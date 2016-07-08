@@ -23,6 +23,7 @@
 
             document.addEventListener("click", this._handleClick.bind(this));
             document.addEventListener("pointerup", this._handlePointerUp.bind(this));
+            document.addEventListener("contextmenu", this._handleContextMenu.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -38,11 +39,11 @@
             var headerContainer = document.createElement("div");
             headerContainer.className = "articleViewer-header-container";
 
-            var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
-            title.className = "articleViewer-title";
-
             var subTitle = <HTMLAnchorElement>headerContainer.appendChild(document.createElement("a"));
             subTitle.className = "articleViewer-subTitle";
+
+            var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            title.className = "articleViewer-title";
 
             title.textContent = data.title;
             subTitle.textContent = data.domain;
@@ -74,7 +75,7 @@
         }
 
         private _handleClick(ev: MouseEvent) {
-            // We're only going to do anything on left-clik
+            // We're only going to do anything on left-click
             if (ev.button != 0) {
                 return;
             }
@@ -91,6 +92,10 @@
 
                 parentElement = parentElement.parentElement;
             }
+
+            ev.stopImmediatePropagation();
+            ev.stopPropagation();
+            ev.preventDefault();
 
             // If we were inside an anchor element, we don't want
             // to "toggle" anything; we just want notify that a link was clicked
@@ -110,6 +115,21 @@
             ev.stopPropagation();
             ev.preventDefault();
             this._dismiss();
+        }
+
+        private _handleContextMenu(ev: PointerEvent) {
+            if (ev.pointerType !== "touch") {
+                return;
+            }
+
+            // Select the element under the event point
+            var range = document.createRange();
+            range.selectNode(<HTMLElement>ev.target);
+            if (ev.currentTarget === document.body) {
+                return;
+            }
+
+            document.getSelection().addRange(range);
         }
 
         private _handleKeyDown(ev: KeyboardEvent): void {
@@ -150,8 +170,12 @@
         private _toggleToolbar(): void {
             // If there is selection on the document, it means the user his likely to
             // be click-scroll-click-scroll through the document, and the toggling of
-            // the toolbar is distracting.
-            if (!document.getSelection().isCollapsed) {
+            // the toolbar is distracting. However, if it was a touch pointer, then
+            // merely clear the selection -- it's enabled by the contextmenu event.
+            var wasTouch = (<PointerEvent>window.event).pointerType === "touch";
+            if (wasTouch) {
+                document.getSelection().removeAllRanges();
+            } else if (!document.getSelection().isCollapsed) {
                 return;
             }
 
