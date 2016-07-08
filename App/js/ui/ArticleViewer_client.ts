@@ -50,6 +50,16 @@
             subTitle.href = data.url;
 
             document.body.insertBefore(headerContainer, document.body.firstChild);
+
+            // Make sure that the document is 'scaled' at the device
+            // width. Without this, the scale is all kinds of weird,
+            // and some of the elements font size is not scaled by the
+            // device scale factor. This ensures they are.
+            var meta = document.createElement("meta");
+            meta.name = "viewport";
+            meta.content = "width=device-width";
+
+            document.head.appendChild(meta);
         }
 
         private _setBodyCssProperty(propertyToSet: { property: string, value: string }): void {
