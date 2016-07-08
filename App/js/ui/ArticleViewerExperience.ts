@@ -413,6 +413,12 @@
                 view.exitFullScreenMode();
             }
 
+            // Ensure that the status bar is reshown when we're exiting
+            // It may already be visible, but no harm is just showing it again
+            if (Windows.UI.ViewManagement.StatusBar) {
+                Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
+            }
+
             // Reset the title to the default
             view.title = "";
 
