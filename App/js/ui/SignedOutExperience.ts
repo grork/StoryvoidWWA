@@ -21,7 +21,6 @@
                     viewModel: this.viewModel.authenticator,
                 });
 
-
                 this._handlersToCleanup.push(Utilities.addEventListeners(this._authenticatorContainer, {
                     readytoauthenticate: () => {
                         Windows.UI.ViewManagement.InputPane.getForCurrentView().tryHide();

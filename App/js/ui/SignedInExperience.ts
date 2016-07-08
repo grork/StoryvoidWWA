@@ -75,7 +75,33 @@
             this._sortsElement = <HTMLSelectElement>this._sorts.element;
             this._sortsElement.selectedIndex = 0;
 
+            this._handlersToCleanup.push(Utilities.addEventListeners(window, {
+                resize: this._handleSizeChange.bind(this),
+            }));
+
+            this._handleSizeChange();
+
             this.viewModel.readyForEvents();
+        }
+
+        private _handleSizeChange() {
+            var layout = {
+                type: null,
+                orientation: 'Vertical',
+            }
+
+            if (window.innerWidth > 550) {
+                layout.type = WinJS.UI.GridLayout;
+            } else {
+                layout.type = WinJS.UI.ListLayout;
+            }
+
+            if ((this._contentList.layout.orientation === layout.orientation)
+                && (this._contentList.layout instanceof layout.type)) {
+                return;
+            }
+
+            this._contentList.layout = <any>layout;
         }
 
         public handleSortsChanged(e: UIEvent) {
