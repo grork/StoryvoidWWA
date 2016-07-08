@@ -314,7 +314,7 @@
             }).then(() => {
                 // Since we processed the article in some form, we need to
                 // barf it back out disk w/ the modifications
-                var rewrittenArticleContent = articleDocument.documentElement.outerHTML;
+                var rewrittenArticleContent = "<!DOCTYPE html>\r\n" + articleDocument.documentElement.outerHTML;
                 st.FileIO.writeTextAsync(file, rewrittenArticleContent, st.Streams.UnicodeEncoding.utf8);
             }).then(() => processedInformation);
         }
