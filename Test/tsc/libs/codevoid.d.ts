@@ -189,7 +189,15 @@ declare module Codevoid.Storyvoid {
         updateBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
         updateReadProgress(bookmark_id: number, progress: number): WinJS.Promise<IBookmark>;
         getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
-        
+
+        getPendingFolderEdits(): WinJS.Promise<any>;
+        getPendingBookmarkEdits(): WinJS.Promise<{
+            adds: any[],
+            deletes: any[],
+            moves: any[],
+            likes: any[],
+            unlikes: any[],
+        }>;
 
         commonFolderDbIds: {
             archive: number;
