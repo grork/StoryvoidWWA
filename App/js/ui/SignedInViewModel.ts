@@ -250,6 +250,31 @@
             });
         }
 
+        private _listenForAppLifeCycleEvents() {
+            var cancellable: Utilities.ICancellable;
+
+            cancellable = Utilities.addEventListeners((<any>Windows.UI.WebUI.WebUIApplication), {
+                suspending: this._handleSuspended.bind(this),
+                resuming: this._handleResumed.bind(this)
+            });
+
+            this._handlersToCleanUp.push(cancellable);
+        }
+
+        private _handleSuspended(ev: Windows.UI.WebUI.SuspendingEventArgs) {
+            var deferral = ev.suspendingOperation.getDeferral();
+
+            this.startSync({ skipArticleDownload: true, noEvents: true }).done(() => {
+                deferral.complete();
+            }, () => {
+                deferral.complete();
+            });
+        }
+
+        private _handleResumed(sender: any) {
+            this.startSync();
+        }
+
         public initializeDB(): WinJS.Promise<void> {
             if (this._dbOpened) {
                 return WinJS.Promise.as(null);
@@ -282,6 +307,9 @@
                 Utilities.Logging.instance.log("Initialized DB w/ folder ID: " + this._currentFolderId);
                 this._pendingDbOpen.complete();
                 this._pendingDbOpen = null;
+
+                this._listenForAppLifeCycleEvents();
+                this.startSync();
             }, (e) => {
                 this._pendingDbOpen.error(e);
                 this._pendingDbOpen = null;
@@ -362,10 +390,12 @@
             return completedSignal.promise;
         }
 
-        public startSync(): WinJS.Promise<any> {
+        public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean }): WinJS.Promise<any> {
             if (this._currentSyncSignal) {
                 return this._currentSyncSignal.promise;
             }
+
+            parameters = parameters || {};
 
             var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
@@ -382,7 +412,9 @@
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
                     case Codevoid.Storyvoid.InstapaperSync.Operation.start:
-                        this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
+                        if (!parameters.noEvents) {
+                            this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
+                        }
 
                         Utilities.Logging.instance.log("Started");
                         break;
@@ -433,18 +465,27 @@
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
                     syncingarticlestarting: (e: { detail: { title: string } }) => {
+                        if (parameters.noEvents) {
+                            return;
+                        }
+
                         this.events.dispatchEvent("syncprogressupdate", {
                             message: "Syncing \"" + e.detail.title + "\"",
                         });
                     },
                 });
 
-                return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB);
+                if (!parameters.skipArticleDownload) {
+                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB);
+                }
             }).then(() => {
                 return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
             }).done(() => {
                 Utilities.Logging.instance.log("Completed Sync");
-                this._eventSource.dispatchEvent("synccompleted", null);
+
+                if (!parameters.noEvents) {
+                    this._eventSource.dispatchEvent("synccompleted", null);
+                }
 
                 if (this._currentSyncSignal) {
                     this._currentSyncSignal.complete();
