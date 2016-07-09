@@ -379,7 +379,7 @@
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
-                    this.startSync().done(() => {
+                    this.startSync({ dontWaitForDownloads: true }).done(() => {
                         completedSignal.complete();
                     });
                 } else {
@@ -390,7 +390,7 @@
             return completedSignal.promise;
         }
 
-        public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean }): WinJS.Promise<any> {
+        public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
             if (this._currentSyncSignal) {
                 return this._currentSyncSignal.promise;
             }
@@ -461,6 +461,12 @@
                 }),
                 folder: folderOperation,
             }).then((result) => {
+                if (parameters.dontWaitForDownloads) {
+                    if (this._currentSyncSignal) {
+                        this._currentSyncSignal.complete();
+                    }
+                }
+
                 articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
