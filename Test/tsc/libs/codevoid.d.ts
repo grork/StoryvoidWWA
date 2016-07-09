@@ -139,6 +139,7 @@ declare module Codevoid.Storyvoid {
     export interface IBookmark {
         bookmark_id: number;
         progress: number;
+        progress_timestamp: number;
         title: string;
         url: string;
         folder_id: string;
@@ -242,6 +243,7 @@ declare module Codevoid.Storyvoid.InstapaperApi {
         add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<IBookmark>;
         deleteBookmark(bookmark_id: number): WinJS.Promise<any>;
         list({ folder_id: string }): WinJS.Promise<{ bookmarks: IBookmark[] }>;
+        updateReadProgress(paramters: { bookmark_id: number, progress: number, progress_timestamp: number }): WinJS.Promise<any>;
         getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
     }
 

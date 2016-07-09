@@ -169,7 +169,9 @@
             // Calculate the % that we're scrolled
             var progress = this._scrollingElement.scrollTop / this._scrollingElement.scrollHeight;
 
-            if ((this._scrollingElement.scrollTop + this._scrollingElement.clientHeight) >= this._scrollingElement.scrollHeight) {
+            // Scroll position + the height of the viewport should be ~the full scroll area. Don't
+            // pick the height of the element being scrolled.
+            if ((this._scrollingElement.scrollTop + this._scrollingElement.parentElement.clientHeight) >= this._scrollingElement.scrollHeight) {
                 progress = 1.0;
             }
 

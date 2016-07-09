@@ -529,6 +529,7 @@
         private _messenger: Utilities.WebViewMessenger;
         private _displaySettings: DisplaySettingsViewModel = new DisplaySettingsViewModel();
         private _displayedSignal: Utilities.Signal = new Utilities.Signal();
+        private _initialProgress: number;
         public isRestoring: boolean = true;
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
@@ -560,6 +561,12 @@
             // Save that we're looking at an article
             var transientSettings = new Settings.TransientSettings();
             transientSettings.lastViewedArticleId = bookmark.bookmark_id;
+
+            // Save the progress of the article as we load it, so
+            // we can detect if it changes on exit to opportunistically
+            // push a progress update to the service when the viewer is
+            // is closed.
+            this._initialProgress = bookmark.progress;
         }
 
         public dispose(): void {
@@ -575,6 +582,20 @@
             // Clear the article; we've stopped viewing, so no need to restore
             var transientSettings = new Settings.TransientSettings();
             transientSettings.clearLastViewedArticleId();
+
+            // If the progress changed, we're going to cheat and push
+            // a progress update directly to the service
+            if (this.bookmark.progress != this._initialProgress) {
+                var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+
+                // Push the update, but who cares if it shits the bed?
+                // We already have the data locally in the DB
+                bookmarkApi.updateReadProgress({
+                    bookmark_id: this.bookmark.bookmark_id,
+                    progress: this.bookmark.progress,
+                    progress_timestamp: this.bookmark.progress_timestamp
+                }).done(() => { }, () => { });
+            }
         }
 
         public get displaySettingsCommand(): WinJS.UI.Command {
