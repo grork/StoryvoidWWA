@@ -56,12 +56,67 @@
                 this.authenticateButton.disabled = !this.viewModel.canAuthenticate;
             },
             _isWorkingChanged: function () {
-                var op = this.viewModel.isWorking ? "remove" : "add";
-                WinJS.Utilities[op + "Class"](this.workingContainer, "hide");
+                if (this.viewModel.isWorking) {
+                    // If we're working, we want to move the focus
+                    // out of our text box so we don't see a flashing
+                    // caret.
+                    this.credentialContainer.focus();
 
-                if (!this.viewModel.isWorking) {
+                    // Fade the containers out so we can have a nice experience
+                    this._fadeElement(this.workingContainer, 1.0);
+                    this._fadeElement(this.credentialContainer, 0.0);
+                } else {
+                    // Fade the elements to ensure we can see the text boxes etc.
+                    this._fadeElement(this.workingContainer, 0.0);
+                    this._fadeElement(this.credentialContainer, 1.0);
+
+                    // If we're re-showing the text box, make sure
+                    // we put focus into them.
                     this.usernameInput.focus();
                 }
+            },
+            _fadeElement: function (el, targetOpacity) {
+                // If there were some events hanging off this element
+                // waiting for a previous animation to complete, just
+                // cancel & clean them up
+                if (el._handlers) {
+                    el._handlers.cancel();
+                    el._handlers = null;
+                }
+
+                WinJS.Utilities.addClass(el, "animateOpacity");
+
+                var handlers = Codevoid.Utilities.addEventListeners(el, {
+                    transitionend: (e) => {
+                        if (e.target != el) {
+                            // Not the element we're looking for, so skip
+                            return;
+                        }
+
+                        handlers.cancel();
+
+                        WinJS.Utilities.removeClass(el, "animateOpacity");
+
+                        // If we've transitioned to a final opacity
+                        // that is basically invisible, we should just hide
+                        // the element
+                        if (targetOpacity < 0.01) {
+                            WinJS.Utilities.addClass(el, "hide");
+                        }
+                    }
+                });
+
+                // Save Handlers so we can cancel them later.
+                el._handlers = handlers;
+
+                // make sure the element is visible
+                WinJS.Utilities.removeClass(el, "hide");
+
+                // Bounce through the dispatcher to give the DOM a moment to layout
+                // and then actually apply the transform to initial positions
+                WinJS.Promise.timeout(1).done(() => {
+                    el.style.opacity = targetOpacity;
+                });
             },
             dispose: function () {
                 this._handlersToCleanup.forEach(function (events) {

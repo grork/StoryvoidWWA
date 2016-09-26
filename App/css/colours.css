@@ -134,45 +134,45 @@ progress.article-progress {
     background-color: transparent;
 }
 
-.authenticator > input {    
+.authenticator input {    
     border-color: white;
     background-color: transparent;
     color: red;
 }
 
-    .authenticator > input:hover {
+    .authenticator input:hover {
         border-color: white;
     }
 
-    .authenticator > input:focus {
+    .authenticator input:focus {
         border-color: white !important;
     }
 
-    .authenticator > input:not(:focus) {
+    .authenticator input:not(:focus) {
         color: white;
     }
 
-    .authenticator > input::-ms-input-placeholder {
+    .authenticator input::-ms-input-placeholder {
         color: white;
     }
 
-    .authenticator > input:focus::-ms-input-placeholder {
+    .authenticator input:focus::-ms-input-placeholder {
         color: grey;
     }
 
-.authenticator > .authenticateButton {
+.authenticator .authenticateButton {
     color: white;
     border-color: white;
     background-color: transparent;
 }
 
-.authenticator > .authenticateButton:focus,
-.authenticator > .authenticateButton:hover {
+.authenticator .authenticateButton:focus,
+.authenticator .authenticateButton:hover {
     background-color: white;
     color: red;
 }
 
-    .authenticator > .authenticateButton[disabled] {
+    .authenticator .authenticateButton[disabled] {
         color: lightgrey;
         border-color: lightgrey;
     }
