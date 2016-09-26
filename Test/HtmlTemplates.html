@@ -14,32 +14,36 @@
                 <div data-part="errorMessage"></div>
             </div>
 
-            <input data-event="{ input: usernameChanged, keydown: usernameKeydown }"
-                   data-part="usernameInput"
-                   class="usernameInput"
-                   placeholder="Your username..."
-                   type="email" />
+            <div class="credentialContainer"
+                 data-part="credentialContainer"
+                 tabindex="-1">
+                <input data-event="{ input: usernameChanged, keydown: usernameKeydown }"
+                       data-part="usernameInput"
+                       class="usernameInput"
+                       placeholder="Your username..."
+                       type="email" />
 
-            <input data-part="passwordInput"
-                   data-event="{ input: passwordChanged }"
-                   required="required"
-                   spellcheck="false"
-                   class="passwordInput"
-                   type="password"
-                   placeholder="...and your password" />
+                <input data-part="passwordInput"
+                       data-event="{ input: passwordChanged }"
+                       required="required"
+                       spellcheck="false"
+                       class="passwordInput"
+                       type="password"
+                       placeholder="...and your password" />
 
-            <button class="authenticateButton"
-                    data-part="authenticateButton"
-                    data-event="{ click: authenticate }"
-                    type="button"
-                    disabled="disabled">
-                Login
-            </button>
+                <button class="authenticateButton"
+                        data-part="authenticateButton"
+                        data-event="{ click: authenticate }"
+                        type="button"
+                        disabled="disabled">
+                    Login
+                </button>
 
-            <div class="accountInformationContainer show"
-                 data-part="accountInformationContainer">
-                To use Storyvoid, you'll need to have an Instapaper Account.
-                To get an account, goto <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a> and follow the instructions.
+                <div class="accountInformationContainer show"
+                     data-part="accountInformationContainer">
+                    To use Storyvoid, you'll need to have an Instapaper Account.
+                    To get an account, goto <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a> and follow the instructions.
+                </div>
             </div>
 
             <div class="workingContainer hide"
@@ -208,7 +212,7 @@
                     <div><a href="http://www.storyvoid.com/privacy">Terms of service &amp; privacy policy</a></div>
                     <div>
                         This application uses services from <a href="https://www.instapaper.com">Instapaper</a>, and is subject
-                         to <a href="https://www.instapaper.com/privacy">their terms of service &amp; privacy policy</a>.
+                        to <a href="https://www.instapaper.com/privacy">their terms of service &amp; privacy policy</a>.
                     </div>
                 </div>
                 <div class="settingsPopup-debug hide">
@@ -257,7 +261,9 @@
                      data-part="_contentList"></div>
                 <button class="folderlist-close-button"
                         data-part="_cancelButton"
-                        data-event="{ click: dismiss }">Cancel</button>
+                        data-event="{ click: dismiss }">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>

@@ -6,6 +6,7 @@ body {
     display: -ms-grid;
     -ms-grid-columns: 1fr;
     -ms-grid-rows: 1fr;
+    overflow-x: hidden;
 }
 
     body > div {
@@ -39,6 +40,12 @@ body {
 .animateTransform {
     transition-duration: 500ms;
     transition-property: transform;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.animateOpacity {
+    transition-duration: 500ms;
+    transition-property: opacity;
     transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
@@ -741,7 +748,7 @@ button.margin-increase .win-commandimage {
 .authenticator {
     display: -ms-grid;
     /* 1    2    3    4    5 */
-    -ms-grid-rows: auto auto auto auto auto;
+    -ms-grid-rows: auto auto auto;
     -ms-grid-columns: minmax(150px,300px);
 }
 
@@ -755,31 +762,36 @@ button.margin-increase .win-commandimage {
         -ms-grid-rows: auto 10px;
     }
 
-    .authenticator > .usernameInput {
+    .authenticator > .credentialContainer {
         -ms-grid-row: 2;
+    }
+
+.credentialContainer:focus {
+    outline: none;
+}
+
+    .credentialContainer > .usernameInput {
         width: 100%;
     }
 
-    .authenticator > .passwordInput {
-        -ms-grid-row: 3;
+    .credentialContainer > .passwordInput {
         width: 100%;
     }
 
-    .authenticator > input {
+    .credentialContainer > input {
         font-size: 20px;
         margin-left: -12px;
     }
 
-        .authenticator > input::-ms-input-placeholder {
+        .credentialContainer > input::-ms-input-placeholder {
             font-weight: bolder;
         }
 
-        .authenticator > input:focus::-ms-input-placeholder {
+        .credentialContainer > input:focus::-ms-input-placeholder {
             font-weight: unset;
         }
 
-    .authenticator > .authenticateButton {
-        -ms-grid-row: 4;
+    .credentialContainer > .authenticateButton {
         margin-left: -12px;
         margin-top: 8px;
         margin-bottom: 8px;
@@ -792,17 +804,8 @@ button.margin-increase .win-commandimage {
         min-width: unset;
     }
 
-    .authenticator > .accountInformationContainer {
-        -ms-grid-row: 5;
+    .authenticator .accountInformationContainer {
         line-height: 1.8em;
-    }
-
-        .authenticator > .accountInformationContainer.show {
-            display: unset;
-        }
-
-    .authenticator > .accountInformationContainer {
-        display: none;
     }
 
 .accountInformationContainer > a {
@@ -822,6 +825,7 @@ button.margin-increase .win-commandimage {
     display: -ms-grid;
     -ms-grid-columns: 1fr;
     -ms-grid-rows: 1fr;
+    opacity: 0.0;
 }
 
     .authenticator > .workingContainer > progress {
