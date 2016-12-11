@@ -37,19 +37,19 @@ html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
     background-color: rgba(255, 255, 255, 0.34);
 }
 
-html.win-hoverable button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph,
-html.win-hoverable button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph:hover,
-button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph,
-button.commands-selectmode.win-command .win-commandicon .win-commandimage.win-commandglyph:hover {
+html.win-hoverable .header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph,
+html.win-hoverable .header-commadns button.win-command .win-commandicon .win-commandimage.win-commandglyph:hover,
+.header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph,
+.header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph:hover {
     color: white;
 }
 
-button.commands-selectmode.win-command:focus,
-button.commands-selectmode.win-command:hover {
+.header-commands button.win-command:focus,
+.header-commands button.win-command:hover {
     border-color: white;
 }
 
-html.win-hoverable button.commands-selectmode:enabled.win-command:hover {
+html.win-hoverable .header-commands button:enabled.win-command:hover {
     background-color: rgba(255, 255, 255, 0.34);
 }
 
