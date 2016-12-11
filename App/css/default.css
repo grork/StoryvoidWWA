@@ -57,7 +57,7 @@ body {
     -ms-grid-columns: 1fr;
 }
 
-    .signedIn-container > .win-splitviewpanetoggle {
+    .signedIn-container .win-splitviewpanetoggle {
         -ms-grid-row: 1;
         -ms-grid-column: 1;
         position: relative;
@@ -65,11 +65,11 @@ body {
         z-index: 100;
     }
 
-    .signedIn-container > button.win-splitviewpanetoggle.win-keyboard:focus {
+    .signedIn-container button.win-splitviewpanetoggle.win-keyboard:focus {
         border-style: solid;
     }
 
-    .signedIn-container > .win-splitviewpanetoggle.splitView-open {
+    .signedIn-container .win-splitviewpanetoggle.splitView-open {
         z-index: 1100;
     }
 
@@ -106,7 +106,7 @@ body {
     -ms-grid-column: 1;
 }
 
-button.commands-selectmode.win-command,
+.header-commands button.win-command,
 .win-splitviewcommand-button.win-keyboard:focus::before,
 .win-commandingsurface .win-commandingsurface-actionarea .win-commandingsurface-overflowbutton:focus,
 button.win-command:focus {
@@ -152,32 +152,29 @@ button.win-command:focus {
 }
 
     .header-commands > div {
-        margin-left: 6px;
-        margin-right: 6px;
+        height: 48px;
     }
 
 .commands-sort {
     border-width: 1px;
     margin: 0px;
-    margin-top: 2px;
-    padding-top: 3px;
-    height: 44px;
+    height: 48px;
 }
 
 .commands-sort-label {
     transform: translateY(1px);
 }
 
-button.commands-selectmode .win-commandicon {
+.header-commands button .win-commandicon {
     margin-right: 12px;
     margin-left: 12px;
 }
 
-button.commands-selectmode .win-commandimage {
+.header-commands button .win-commandimage {
     font-size: 16px;
 }
 
-button.commands-selectmode.win-command:focus {
+.header-commands button.win-command:focus {
     border-style: solid;
 }
 
