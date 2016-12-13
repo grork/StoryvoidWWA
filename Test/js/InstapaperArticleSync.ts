@@ -153,8 +153,12 @@
                 return bookmark;
             });
 
-            var processArticle = this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then(
-                (file: st.StorageFile) => this._processArticle(file, bookmark_id));
+            var processArticle = WinJS.Promise.join({
+                file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder),
+                localBookmark: localBookmark
+            }).then((result) => {
+                return this._processArticle(result.file, result.localBookmark);
+            });
 
             return WinJS.Promise.join({
                 articleInformation: processArticle.then(null, (e) => {
@@ -252,7 +256,7 @@
             return this._eventSource;
         }
 
-        private _processArticle(file: st.StorageFile, bookmark_id: number): WinJS.Promise<IProcessedArticleInformation> {
+        private _processArticle(file: st.StorageFile, bookmark: IBookmark): WinJS.Promise<IProcessedArticleInformation> {
             var fileContentsOperation = st.FileIO.readTextAsync(file);
             var parser = new DOMParser();
             var articleDocument: Document;
@@ -266,8 +270,27 @@
             };
 
             return fileContentsOperation.then((contents: string) => {
+                var images: HTMLImageElement[];
                 articleDocument = parser.parseFromString(contents, "text/html");
-                var images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
+
+                // See if the URL is for youtube, to allow customized processing of
+                // youtube.com addresses so we have a better reader experience
+                var uri = new Windows.Foundation.Uri(bookmark.url);
+                var host = uri.host.toLowerCase();
+                var path = uri.path.toLowerCase();
+                var videoID = uri.queryParsed.filter((entry) => {
+                    return entry.name === "v";
+                })[0];
+
+                if ((host === "youtube.com" || host === "www.youtube.com")
+                    && (path === "/watch")
+                    && videoID) {
+                    var imageElement = document.createElement("img");
+                    imageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
+                    images = [imageElement];
+                } else {
+                    images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
+                }
 
                 var imagesCompleted: WinJS.Promise<any> = WinJS.Promise.as();
 
@@ -278,8 +301,8 @@
                 scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
                 articleDocument.head.appendChild(scriptTag);
 
-                // No point in processing the document if we don't have any images.
                 if (images.length > 0) {
+                    // No point in processing the document if we don't have any images.
                     processedInformation.hasImages = true;
 
                     // Remove the file extension to create directory name that can be used
@@ -289,8 +312,8 @@
 
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this shit, yo.
-                    this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark_id });
-                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark_id).then((firstImagePath) => {
+                    this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
+                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id).then((firstImagePath) => {
                         if (firstImagePath) {
                             processedInformation.firstImagePath = firstImagePath;
                         } else {
@@ -299,7 +322,7 @@
                             processedInformation.hasImages = false;
                         }
 
-                        this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark_id });
+                        this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark.bookmark_id });
                     });
                 }
                 
@@ -351,7 +374,9 @@
                     }, (e: { errorCode: number }) => {
                         // For each image that fails, remove it from it's parent DOM so that
                         // we don't get little X's inside the viewer when rendered there.
-                        image.parentElement.removeChild(image);
+                        if (image.parentElement) {
+                            image.parentElement.removeChild(image);
+                        }
                     });
                 }, 4);
             }).then(() => firstSuccessfulImage);
