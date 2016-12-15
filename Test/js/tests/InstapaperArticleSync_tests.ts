@@ -21,6 +21,10 @@
     var normalArticleId: number;
     var articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage11.html";
     var articleWithImageId: number;
+    var youTubeArticleUrl = "https://www.youtube.com/watch?v=qZRsVqOIWms";
+    var youTubeArticleId: number;
+    var vimeoArticleUrl = "https://vimeo.com/76979871";
+    var vimeoArticleId: number;
 
     var articlesFolder: st.StorageFolder;
     var stateConfigured = false;
@@ -56,6 +60,12 @@
             }),
             api.add({ url: articleWithImageUrl }).then((article: av.IBookmark) => {
                 articleWithImageId = article.bookmark_id;
+            }),
+            api.add({ url: youTubeArticleUrl }).then((article: av.IBookmark) => {
+                youTubeArticleId = article.bookmark_id;
+            }),
+            api.add({ url: vimeoArticleUrl }).then((article: av.IBookmark) => {
+                vimeoArticleId = article.bookmark_id;
             }),
             deleteAllLocalFiles().then(() => { // Clear any downloaded files
                 return InstapaperTestUtilities.deleteDb(); // Clear the DB itself
@@ -134,8 +144,8 @@
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
-            strictEqual(syncedBookmark.hasImages, true, "Didn't expect images");
-            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + articleWithImageId + "/0.png", "Incorrect first image path");
+            strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(articleWithImageId.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
@@ -163,6 +173,74 @@
 
             expectedPath = "ms-appx://" + package + "/" + articleWithImageId + "/1.jpg";
             strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
+        });
+    });
+
+    promiseTest("syncingYouTubeVideoDownloadsCustomizedImage", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync;
+
+        return setupCompleted.then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
+            return instapaperDB.getBookmarkByBookmarkId(youTubeArticleId);
+        }).then((bookmark: av.IBookmark) => {
+            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+        }).then((syncedBookmark: av.IBookmark) => {
+            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
+
+            return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
+        }).then((imagesSubFolder: st.StorageFolder) => {
+            return imagesSubFolder.getFilesAsync();
+        }).then((files) => {
+            strictEqual(files.size, 1, "Unexpected number of files");
+            files.forEach((file, index) => {
+                var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
+                strictEqual(nameAsNumber, index, "Incorrect filename");
+            });
+        });
+    });
+
+    promiseTest("syncingVimeoVideoDownloadsCustomizedImage", () => {
+        var setupCompleted = setupLocalAndRemoteState();
+
+        var instapaperDB = new av.InstapaperDB();
+        var articleSync;
+
+        return setupCompleted.then(() => {
+            return instapaperDB.initialize();
+        }).then(() => {
+            articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
+
+            return instapaperDB.getBookmarkByBookmarkId(vimeoArticleId);
+        }).then((bookmark: av.IBookmark) => {
+            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+        }).then((syncedBookmark: av.IBookmark) => {
+            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
+
+            return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
+        }).then((imagesSubFolder: st.StorageFolder) => {
+            return imagesSubFolder.getFilesAsync();
+        }).then((files) => {
+            strictEqual(files.size, 1, "Unexpected number of files");
+            files.forEach((file, index) => {
+                var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
+                strictEqual(nameAsNumber, index, "Incorrect filename");
+            });
         });
     });
 

@@ -14391,6 +14391,7 @@ declare module Windows {
 
             export interface IHttpContent extends Windows.Foundation.IClosable {
                 readAsBufferAsync(): Windows.Foundation.IPromise<Storage.Streams.IBuffer>;
+                readAsStringAsync(): Windows.Foundation.IPromise<String>;
                 writeToStreamAsync(outputStream: Windows.Storage.Streams.IOutputStream): Windows.Foundation.IPromise<number>;
                 headers: HttpContentHeaderCollection;
             }
