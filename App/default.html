@@ -143,10 +143,6 @@
                          data-part="_folderNameElement"></div>
                     <div class="header-commands">
 
-                        <button data-win-control="WinJS.UI.Command"
-                             data-event="{ click: startSync }"
-                             data-win-options="{ type: 'button', tooltip: 'Sync', icon: '\uE117'}"></button>
-
                         <div data-win-control="WinJS.UI.Tooltip"
                              data-win-options="{ innerHTML: 'Sorts' }">
                             <select class="commands-sort"
@@ -156,6 +152,10 @@
                                 <option data-win-bind="textContent: label; value: sort"></option>
                             </select>
                         </div>
+
+                        <button data-win-control="WinJS.UI.Command"
+                                data-event="{ click: startSync }"
+                                data-win-options="{ type: 'button', tooltip: 'Sync', icon: '\uE117'}"></button>
 
                         <button data-part="_selectModeToggle"
                                 data-event="{ click: toggleSelectionMode }"
