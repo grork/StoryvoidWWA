@@ -1,11 +1,15 @@
 ﻿module Codevoid.Storyvoid.UI {
-    var KEY_PLUS = 187;
-    var KEY_MINUS = 189;
-    var KEY_ESCAPE = 27;
-    var KEY_ALT = 18;
+    const KEY_PLUS = 187;
+    const KEY_MINUS = 189;
+    const KEY_ESCAPE = 27;
+    const KEY_ALT = 18;
+
+    const ARTICLE_WIDTH_PX = 1400;
+    const MIN_SIZE_FOR_IMAGE_STRETCHING = 200;
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
+        private _currentImageWidthForImageSizing = 0;
 
         public initialize(): void {
             this._scrollingElement = document.body;
@@ -13,6 +17,7 @@
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setbodycssproperty", this._setBodyCssProperty.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("refreshimagewidths", this._refreshImageWidths.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settheme", this._setTheme.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
@@ -24,6 +29,7 @@
             document.addEventListener("click", this._handleClick.bind(this));
             document.addEventListener("pointerup", this._handlePointerUp.bind(this));
             document.addEventListener("contextmenu", this._handleContextMenu.bind(this));
+            window.addEventListener("resize", this._handleResize.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -66,6 +72,23 @@
             document.body.style[propertyToSet.property] = propertyToSet.value;
         }
 
+        private _setImgCssProperty(propertyToSet: { property: string, value: string }): void {
+            var images = document.querySelectorAll("img");
+            var currentImage: HTMLImageElement;
+
+            for (var i = 0; i < images.length; i++) {
+                currentImage = (<HTMLImageElement>images.item(i));
+
+                // Images that are small probably don't want to be fiddled with,
+                // so based on some arbitary size, screw it.
+                if (currentImage.naturalWidth < MIN_SIZE_FOR_IMAGE_STRETCHING) {
+                    continue;
+                }
+
+                currentImage.style[propertyToSet.property] = propertyToSet.value;
+            }
+        }
+
         private _setTheme(theme: string): void {
             var themeClass = "theme-" + theme;
 
@@ -74,6 +97,36 @@
             // to have to think hard about the CSS classes involved & if they
             // maybe have previously been set.
             document.body.className = themeClass;
+        }
+
+        private _handleResize(): void {
+            this._refreshImageWidths(this._currentImageWidthForImageSizing);
+        }
+
+        private _refreshImageWidths(articleWidth: number): void {
+            this._currentImageWidthForImageSizing = articleWidth;
+
+            var marginValue = {
+                property: "margin-left",
+                value: "auto",
+            };
+
+            var widthProperty = {
+                property: "width",
+                value: "100vw",
+            };
+
+            var properties = [marginValue, widthProperty];
+
+            if (document.body.clientWidth < ARTICLE_WIDTH_PX) {
+                marginValue.value = (-(100 - articleWidth) / 2) + "vw";
+            } else {
+                widthProperty.value = "100%";
+            }
+
+            properties.forEach((item) => {
+                this._setImgCssProperty(item);
+            });
         }
 
         private _handleWheel(ev: MouseWheelEvent): void {

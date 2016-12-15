@@ -17,9 +17,16 @@ body {
     width: 80vw;
 }
 
+/* Reset the figure element so it doesn't have
+   it's default margin, and lets images go
+   full bleed.
+*/
+figure {
+    margin: 0;
+}
+
 /* Center the image horizontally */
 img {
-    max-width: 95%;
     display: block;
     margin-left: auto;
     margin-right: auto;
