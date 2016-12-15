@@ -973,6 +973,7 @@
             this._articleWidth = articleWidth;
             this._settings.currentArticleWidth = articleWidth;
             this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
+            this._messenger.invokeForResult("refreshimagewidths", this._articleWidth);
         }
 
         public setTheme(theme: Settings.Theme): void {
