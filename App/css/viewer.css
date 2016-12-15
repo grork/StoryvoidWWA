@@ -78,6 +78,16 @@ a:visited {
     text-decoration: none;
 }
 
+body > div.video_frame {
+    width: 100%;
+    height: 50vh;
+}
+
+    body > div.video_frame > iframe {
+        width: 100%;
+        height: 50vh;
+    }
+
 /* Colors */
 .theme-day {
     background-color: white;
