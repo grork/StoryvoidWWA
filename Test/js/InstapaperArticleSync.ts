@@ -18,6 +18,12 @@
     interface IBookmarkHash { [id: number]: string };
     interface IFolderMap { [name: string]: st.StorageFolder };
 
+    enum SpecializedThumbnail {
+        None,
+        YouTube,
+        Vimeo
+    }
+
     // Content sniffing headers
     // See:
     // https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern
@@ -163,7 +169,7 @@
             return WinJS.Promise.join({
                 articleInformation: processArticle.then(null, (e) => {
                     return {
-                        articleUnavailable: (e.error === 1550),
+                        articleUnavailable: (e && e.file && e.file.error === 1550),
                         failedToDownload: true,
                     };
                 }),
@@ -270,27 +276,83 @@
             };
 
             return fileContentsOperation.then((contents: string) => {
-                var images: HTMLImageElement[];
+                var images: WinJS.Promise<HTMLImageElement[]>;
                 articleDocument = parser.parseFromString(contents, "text/html");
 
                 // See if the URL is for youtube, to allow customized processing of
                 // youtube.com addresses so we have a better reader experience
                 var uri = new Windows.Foundation.Uri(bookmark.url);
-                var host = uri.host.toLowerCase();
-                var path = uri.path.toLowerCase();
-                var videoID = uri.queryParsed.filter((entry) => {
-                    return entry.name === "v";
-                })[0];
 
-                if ((host === "youtube.com" || host === "www.youtube.com")
-                    && (path === "/watch")
-                    && videoID) {
-                    var imageElement = document.createElement("img");
-                    imageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
-                    images = [imageElement];
-                } else {
-                    images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
+                // Determine if this article requires customized downloading
+                // of the thumbnail (E.g. it's not gonna be in the article)
+                var thumbnailType = InstapaperArticleSync.urlRequiresCustomThumbnail(uri);
+
+                switch (thumbnailType) {
+                    case SpecializedThumbnail.YouTube:
+                        var videoID = uri.queryParsed.filter((entry) => {
+                            return entry.name === "v";
+                        })[0];
+
+                        var imageElement = document.createElement("img");
+                        imageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
+                        images = WinJS.Promise.as([imageElement]);
+                        break;
+
+                    case SpecializedThumbnail.Vimeo:
+                        // Vimeo is a special snowflake; they don't have a supported
+                        // URL format that allows the images to be referenced directly
+                        //
+                        // So, we need to go get a JSON blob from vimeo, and query that
+                        // for the URL for the thumbnail.
+                        //
+                        // Documentation for the oEmbed API call:
+                        // https://developer.vimeo.com/apis/oembed
+                        var dataUri = new Windows.Foundation.Uri("https://vimeo.com/api/oembed.json?url=" + uri)
+                        var client = new Windows.Web.Http.HttpClient();
+                        client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
+
+                        // Attempt to get the data, and pass on the string to be parsed into JSON
+                        images = client.getAsync(dataUri).then((response: http.HttpResponseMessage) => {
+                            if (!response.isSuccessStatusCode) {
+                                return WinJS.Promise.wrapError({
+                                    errorCode: response.statusCode,
+                                });
+                            }
+
+                            return WinJS.Promise.join({
+                                data: response.content.readAsStringAsync(),
+                                response: response,
+                            });
+                        }).then((result: any) => {
+                            result.response.close();
+
+                            var json: { thumbnail_url: string };
+                            try {
+                                json = JSON.parse(result.data);
+                            } catch (ex) {
+                            }
+
+                            // If we didn't get anything back, or we didn't get URL
+                            // just return an empty array
+                            if (!json || !json.thumbnail_url) {
+                                return [];
+                            }
+
+                            var imageElement = document.createElement("img");
+                            imageElement.src = json.thumbnail_url;
+
+                            return [imageElement];
+                        });
+                        break;
+
+                    case SpecializedThumbnail.None:
+                    default:
+                        images = WinJS.Promise.as(<HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body));
+                        break;
                 }
+
+                return <any>images;
+            }).then((images: HTMLImageElement[]) => {
 
                 var imagesCompleted: WinJS.Promise<any> = WinJS.Promise.as();
 
@@ -301,7 +363,7 @@
                 scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
                 articleDocument.head.appendChild(scriptTag);
 
-                if (images.length > 0) {
+                if (images && images.length > 0) {
                     // No point in processing the document if we don't have any images.
                     processedInformation.hasImages = true;
 
@@ -360,11 +422,17 @@
 
                     var sourceUrl = new Windows.Foundation.Uri(image.src);
                     this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
-                    // Download the iamge from the service and then rewrite
+                    // Download the image from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded
                     // image
                     return this._downloadImageToDisk(sourceUrl, index, folder).then((fileName: string) => {
-                        image.src = imagesFolderName + "/" + fileName;
+                        // Check if the image is actually in a DOM of somesorts.
+                        // This is a trick/indiciator that this is a specialist
+                        // download e.g. YouTube, Vimeo etc -- e.g. something
+                        // that isn't in the actual downloaded document.
+                        if (image.parentElement) {
+                            image.src = imagesFolderName + "/" + fileName;
+                        }
 
                         if (!firstSuccessfulImage) {
                             firstSuccessfulImage = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
@@ -512,6 +580,40 @@
                 // can be rewritten.
                 return result.destinationFileName;
             });
+        }
+
+        private static urlRequiresCustomThumbnail(uri: Windows.Foundation.Uri): SpecializedThumbnail {
+            var host = uri.host.toLowerCase();
+            var path = uri.path.toLowerCase();
+
+            if ((host === "youtube.com" || host === "www.youtube.com")
+                && (path === "/watch")) {
+                // YouTube URLs are of the format:
+                // http[s]://[www.]youtube.com/watch?v=ID
+                var videoID = uri.queryParsed.filter((entry) => {
+                    return entry.name === "v";
+                })[0];
+
+                // Make sure we've got a Video ID, vs some other
+                // random part of YouTube
+                if (videoID) {
+                    return SpecializedThumbnail.YouTube;
+                }
+            } else if ((host === "vimeo.com" || host === "www.vimeo.com")
+                && uri.path && (uri.path.length > 1)) {
+                // Vimeo URLs are of the format:
+                // http[s]://[www.]vimeo.com/IntegerNumericId
+
+                // Drop the leading /
+                var parsedPath = parseInt(uri.path.substring(1));
+
+                // If the parsed part is actually a number, we
+                if (!isNaN(parsedPath)) {
+                    return SpecializedThumbnail.Vimeo;
+                }
+            }
+
+            return SpecializedThumbnail.None;
         }
     }
 }
