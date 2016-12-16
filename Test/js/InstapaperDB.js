@@ -214,11 +214,10 @@
                         return;
                     }
                     wasUnsyncedEdit = true;
-                    appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
 
+                    appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
                     return this.deletePendingFolderEdit(results[0].id);
                 }.bind(this));
-
 
                 if (!dontAddPendingEdit) {
                     completePromise = completePromise.then(function addPendingEditWhenRemoving() {
