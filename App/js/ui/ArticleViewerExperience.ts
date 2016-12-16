@@ -49,6 +49,7 @@
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
 
+
                 // Create the webview programmatically, because when it was created in markup
                 // via the template, there are some really f'up things going on with transitioning
                 // in and out of tablet mode *WHEN REMOVING THE PHYSICAL KEYBOARD*. Not just
@@ -77,6 +78,7 @@
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
                     settheme: this._handleThemeChange.bind(this),
+                    articlewidthchanged: this._handleArticleWidthChanged.bind(this),
                 }));
 
                 document.body.appendChild(this._displaySettingsFlyout.element);
@@ -286,6 +288,16 @@
 
             var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
             this._setTitleBar(e.detail.titlebarBackground, e.detail.titlebarForeground);
+        }
+
+        private _handleArticleWidthChanged(e: { detail: number }): void {
+            // When the article width changes, we need to adust the title layer
+            // to ensure that the title is left aligned with the text. We do
+            // this by performing math on the items, and then cramming some
+            // margin of the title.
+            var newLeftMargin = (100 - e.detail) / 2;
+
+            this._title.style.paddingLeft = newLeftMargin + "vw";
         }
 
         private _extractDomainFromUrl(url: string): string {
@@ -974,6 +986,7 @@
             this._settings.currentArticleWidth = articleWidth;
             this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
             this._messenger.invokeForResult("refreshimagewidths", this._articleWidth);
+            this._eventSource.dispatchEvent("articlewidthchanged", this._articleWidth);
         }
 
         public setTheme(theme: Settings.Theme): void {
