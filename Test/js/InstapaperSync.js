@@ -56,6 +56,16 @@
             _raiseStatusChanged: function(payload) {
                 this.dispatchEvent("syncstatusupdate", payload);
             },
+            /// <summary>
+            /// Used for pushing up a folder add that is local.
+            /// This is needed because of the possibility that
+            /// the folder we just added might be there already
+            /// and we want to normalize what the fuck is going
+            /// on so that downstream handlers can have a
+            /// consistent view of the world.
+            ///
+            /// Has mirror method for removing a folder.
+            /// </summary>
             _addFolderPendingEdit: function _addFolderPendingEdit(edit, db) {
                 return WinJS.Promise.join({
                     local: db.getFolderByDbId(edit.folder_dbid),
@@ -112,8 +122,6 @@
                 this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart });
 
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
-                    var syncs = [];
-
                     return Codevoid.Utilities.serialize(pendingEdits, function (edit) {
                         var syncPromise;
                         switch (edit.type) {
