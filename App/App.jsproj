@@ -69,40 +69,19 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="..\Test\HtmlTemplates.html">
-      <Link>HtmlTemplates.html</Link>
-    </Content>
-    <Content Include="..\Test\js\AuthenticatorService.js">
-      <Link>js\AuthenticatorService.js</Link>
-    </Content>
-    <Content Include="..\Test\js\db.js">
-      <Link>js\db.js</Link>
-    </Content>
-    <Content Include="..\Test\js\InstapaperApi.js">
-      <Link>js\InstapaperApi.js</Link>
-    </Content>
-    <Content Include="..\Test\js\InstapaperDB.js">
-      <Link>js\InstapaperDB.js</Link>
-    </Content>
-    <Content Include="..\Test\js\InstapaperSync.js">
-      <Link>js\InstapaperSync.js</Link>
-    </Content>
-    <TypeScriptCompile Include="..\Test\js\InstapaperArticleSync.ts">
-      <Link>js\InstapaperArticleSync.ts</Link>
-    </TypeScriptCompile>
-    <Content Include="..\Test\js\InstapaperArticleSync.js">
-      <Link>js\InstapaperArticleSync.js</Link>
+    <Content Include="HtmlTemplates.html" />
+    <Content Include="js\AuthenticatorService.js" />
+    <Content Include="js\db.js" />
+    <Content Include="js\InstapaperApi.js" />
+    <Content Include="js\InstapaperDB.js"/>
+    <Content Include="js\InstapaperSync.js" />
+    <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
+    <Content Include="js\InstapaperArticleSync.js">
       <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
     </Content>
-    <Content Include="..\Test\js\OAuth.js">
-      <Link>js\OAuth.js</Link>
-    </Content>
-    <Content Include="..\Test\js\ui\authenticator.js">
-      <Link>js\ui\authenticator.js</Link>
-    </Content>
-    <Content Include="..\Test\js\Utilities.js">
-      <Link>js\Utilities.js</Link>
-    </Content>
+    <Content Include="js\OAuth.js" />
+    <Content Include="js\ui\authenticator.js" />
+    <Content Include="js\Utilities.js" />
     <Content Include="css\colours.css" />
     <Content Include="css\viewer.css" />
     <Content Include="default.html" />
@@ -116,32 +95,18 @@
     <Content Include="css\default.css" />
     <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
-    <Content Include="..\Test\WinJS\js\base.js">
-      <Link>WinJS\js\base.js</Link>
-    </Content>
-    <Content Include="..\Test\WinJS\js\intrinsics.js">
-      <Link>WinJS\js\intrinsics.js</Link>
-    </Content>
-    <TypeScriptCompile Include="..\Test\js\SettingsCore.ts">
-      <Link>js\SettingsCore.ts</Link>
-    </TypeScriptCompile>
-    <Content Include="..\Test\js\SettingsCore.js">
-      <Link>js\SettingsCore.js</Link>
+    <Content Include="WinJS\js\base.js" />
+    <Content Include="WinJS\js\intrinsics.js" />
+    <TypeScriptCompile Include="js\SettingsCore.ts" />
+    <Content Include="js\SettingsCore.js">
       <DependentUpon>SettingsCore.ts</DependentUpon>
     </Content>
-    <TypeScriptCompile Include="..\Test\js\ui\core.ts">
-      <Link>js\ui\core.ts</Link>
-    </TypeScriptCompile>
-    <Content Include="..\Test\js\ui\core.js">
-      <Link>js\ui\core.js</Link>
+    <TypeScriptCompile Include="js\ui\core.ts" />
+    <Content Include="js\ui\core.js">
       <DependentUpon>core.ts</DependentUpon>
     </Content>
-    <TypeScriptCompile Include="..\Test\Scripts\typings\winjs\winjs.d.ts">
-      <Link>Scripts\typings\winjs\winjs.d.ts</Link>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="..\Test\Scripts\typings\winrt\winrt.d.ts">
-      <Link>Scripts\typings\winrt\winrt.d.ts</Link>
-    </TypeScriptCompile>
+    <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
     <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
     <Content Include="js\AppThatCanSignIn.js">
       <DependentUpon>AppThatCanSignIn.ts</DependentUpon>
@@ -204,18 +169,12 @@
     <Content Include="js\ui\SyncProgressControl.js">
       <DependentUpon>SyncProgressControl.ts</DependentUpon>
     </Content>
-    <TypeScriptCompile Include="..\Test\js\WebViewMessenger.ts">
-      <Link>js\WebViewMessenger.ts</Link>
-    </TypeScriptCompile>
-    <Content Include="..\Test\js\WebViewMessenger.js">
-      <Link>js\WebViewMessenger.js</Link>
+    <TypeScriptCompile Include="js\WebViewMessenger.ts" />
+    <Content Include="js\WebViewMessenger.js">
       <DependentUpon>WebViewMessenger.ts</DependentUpon>
     </Content>
-    <TypeScriptCompile Include="..\Test\js\WebViewMessenger_client.ts">
-      <Link>js\WebViewMessenger_client.ts</Link>
-    </TypeScriptCompile>
-    <Content Include="..\Test\js\WebViewMessenger_client.js">
-      <Link>js\WebViewMessenger_client.js</Link>
+    <TypeScriptCompile Include="js\WebViewMessenger_client.ts" />
+    <Content Include="js\WebViewMessenger_client.js">
       <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
     </Content>
     <TypeScriptCompile Include="js\ViewerSettings.ts" />
