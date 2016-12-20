@@ -1,6 +1,6 @@
 ﻿/// <reference path="..\..\tsc\libs\qunit.d.ts" static="true" />
 /// <reference path="..\..\tsc\libs\codevoidtest.d.ts" static="true" />
-/// <reference path="..\ui\core.ts" />
+/// <reference path="..\..\..\App\js\ui\core.ts" />
 
 module CodevoidTests {
     export interface ExperienceInformation {
