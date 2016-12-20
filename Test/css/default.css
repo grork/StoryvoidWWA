@@ -38,10 +38,6 @@ body {
     -ms-grid-columns: 300px;
 }
 
-    .authenticator > .subscriptionInformationContainer {
-        -ms-grid-row: 2;
-    }
-
     .authenticator > .errorMessageContainer.hide {
         display: none;
     }

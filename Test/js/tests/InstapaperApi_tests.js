@@ -84,21 +84,6 @@
         });
     });
 
-    test("nonSubscriptionAccountTokenAndHasNoActiveSub", function () {
-        var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
-        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
-
-        stop();
-        accounts.getAccessToken("test2@codevoid.net", "PLACEHOLDER").then(function (tokenInfo) {
-            var accounts2 = new Codevoid.Storyvoid.InstapaperApi.Accounts(
-                new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokenInfo.oauth_token, tokenInfo.oauth_token_secret));
-            return accounts2.verifyCredentials();
-        }).done(function (userInfo) {
-            strictEqual(userInfo.subscription_is_active, "0", "Subscription shouldn't be active");
-            start();
-        }, failedPromiseHandler);
-    });
-
     module("instapaperApiBookmarksHaveConversion");
 
     function numberHaveReturnsString() {
