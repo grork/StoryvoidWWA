@@ -117,13 +117,10 @@
     </Content>
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
     <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
-
-
-
-
-
-
-
+    <TypeScriptCompile Include="js\tests\AutoSyncWatcher_tests.ts" />
+    <Content Include="js\Tests\AutoSyncWatcher_tests.js">
+      <DependentUpon>AutoSyncWatcher_tests.ts</DependentUpon>
+    </Content>
 
     <Content Include="..\App\HtmlTemplates.html">
       <Link>HtmlTemplates.html</Link>
@@ -183,6 +180,14 @@
     <Content Include="..\App\js\SettingsCore.js">
       <Link>js\SettingsCore.js</Link>
       <DependentUpon>SettingsCore.ts</DependentUpon>
+    </Content>
+
+    <TypeScriptCompile Include="..\App\js\AutoSyncWatcher.ts">
+      <Link>js\AutoSyncWatcher.ts</Link>
+    </TypeScriptCompile>
+    <Content Include="..\App\js\AutoSyncWatcher.js">
+      <Link>js\AutoSyncWatcher.js</Link>
+      <DependentUpon>AutoSyncWatcher.ts</DependentUpon>
     </Content>
     
     <TypeScriptCompile Include="..\App\js\ui\core.ts">

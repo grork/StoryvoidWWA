@@ -127,6 +127,10 @@
     <Content Include="js\TransientSettings.js">
       <DependentUpon>TransientSettings.ts</DependentUpon>
     </Content>
+    <TypeScriptCompile Include="js\AutoSyncWatcher.ts" />
+    <Content Include="js\AutoSyncWatcher.js">
+      <DependentUpon>AutoSyncWatcher.ts</DependentUpon>
+    </Content>
     <TypeScriptCompile Include="js\ui\ArticleViewerExperience.ts" />
     <Content Include="js\ui\ArticleViewerExperience.js">
       <DependentUpon>ArticleViewerExperience.ts</DependentUpon>
