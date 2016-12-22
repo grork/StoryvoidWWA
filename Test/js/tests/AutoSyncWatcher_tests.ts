@@ -8,18 +8,35 @@
 
     QUnit.module("AutoSyncWatcher");
 
-    test("canConstructAutoSyncWatcher", () => {
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        ok(syncWatcher, "Couldn't construct sync watcher");
-    });
+    function getWatcher(): {
+        watcher: sv.AutoSyncWatcher,
+        dbEventSource: util.EventSource,
+        appEventSource: util.EventSource,
+    } {
+        var dbSource = new util.EventSource();
+        var appSource = new util.EventSource();
+        var watcher = new sv.AutoSyncWatcher(dbSource, appSource);
+
+        return {
+            watcher: watcher,
+            dbEventSource: dbSource,
+            appEventSource: appSource,
+        };
+    }
+
+    function getFakeEnteredBackgroundEventArgs(signal: util.Signal) {
+        return {
+            getDeferral(): { complete(): void } {
+                return signal;
+            },
+        };
+    }
 
     promiseTest("timerDoesNotRaiseWithoutEvent", () => {
         var signal = new util.Signal();
 
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        syncWatcher.idleDuration = 100;
+        var syncWatcher = getWatcher().watcher;
+        syncWatcher.dbIdleDuration = 100;
 
         syncWatcher.eventSource.addEventListener("syncneeded", () => {
             signal.error("Promise Shouldn't Complete");
@@ -33,18 +50,17 @@
     promiseTest("timerDoesRaiseAfterEvent", () => {
         var signal = new util.Signal();
 
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        syncWatcher.idleDuration = 100;
+        var w = getWatcher();
+        w.watcher.dbIdleDuration = 100;
 
-        util.addEventListeners(syncWatcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.IAutoSyncInformation>) => {
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                 ok(!data.detail.shouldSyncArticleBodies, "Didn't expect full sync to be required");
                 signal.complete();
             }
         });
 
-        eventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
         return signal.promise;
     });
@@ -53,12 +69,11 @@
         var secondEventDispatched = false;
         var signal = new util.Signal();
 
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        syncWatcher.idleDuration = 100;
+        var w = getWatcher();
+        w.watcher.dbIdleDuration = 100;
 
-        util.addEventListeners(syncWatcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.IAutoSyncInformation>) => {
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                 ok(!data.detail.shouldSyncArticleBodies, "Didn't expect full sync to be required");
                 ok(secondEventDispatched, "Second event was not dispatched");
                 signal.complete();
@@ -66,16 +81,16 @@
         });
 
         // Start the timer
-        eventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
         // Reset the timer
         WinJS.Promise.timeout(75).then(() => {
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
             return WinJS.Promise.timeout(75);
         }).then(() => {
             // Reset the timer again
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
             secondEventDispatched = true;            
         });
 
@@ -87,29 +102,28 @@
         var secondEventDispatched = false;
         var signal = new util.Signal();
 
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        syncWatcher.idleDuration = 100;
+        var w = getWatcher();
+        w.watcher.dbIdleDuration = 100;
 
-        util.addEventListeners(syncWatcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.IAutoSyncInformation>) => {
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                 syncEventSeen = true;
             }
         });
 
         // Start the timer
-        eventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
-        syncWatcher.pauseWatching();
+        w.watcher.pauseWatching();
 
         // Reset the timer
         WinJS.Promise.timeout(75).then(() => {
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
             return WinJS.Promise.timeout(75);
         }).then(() => {
             // Reset the timer again
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
             secondEventDispatched = true;
         });
 
@@ -123,12 +137,11 @@
         var syncEventSeen = false;
         var signal = new util.Signal();
 
-        var eventSource = new util.EventSource();
-        var syncWatcher = new sv.AutoSyncWatcher(eventSource);
-        syncWatcher.idleDuration = 50;
+        var w = getWatcher();
+        w.watcher.dbIdleDuration = 50;
 
-        util.addEventListeners(syncWatcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.IAutoSyncInformation>) => {
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                 ok(!syncEventSeen, "Sync event already seen");
                 syncEventSeen = true;
 
@@ -137,24 +150,105 @@
         });
 
         // Start the timer
-        eventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
-        syncWatcher.pauseWatching();
+        w.watcher.pauseWatching();
 
         // Reset the timer
         WinJS.Promise.timeout(25).then(() => {
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
 
-            syncWatcher.resumeWatching();
+            w.watcher.resumeWatching();
 
             // wait to make sure the event isn't some how raised
             return WinJS.Promise.timeout(100);
         }).done(() => {
 
             // Dispatch the event to start the timer
-            eventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
         });
 
         return signal.promise;
+    });
+
+    promiseTest("enteringBackgroundEventIsCompletedAfterHandlingSyncNeededEvent", () => {
+        var syncEventSeen = false;
+        var signal = new util.Signal();
+
+        var w = getWatcher();
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(!syncEventSeen, "Sync event already seen");
+                syncEventSeen = true;
+
+                // Fake the processing of an actual sync, by
+                // waiting before completing the callback
+                WinJS.Promise.timeout(50).done(() => {
+                    data.detail.complete();
+                });
+            }
+        });
+
+        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(signal));
+
+        ok(syncEventSeen, "Expected to see event instantly");
+
+        return signal.promise;
+    });
+
+    promiseTest("leavingBackgroundRaisesSyncNeededEvent", () => {
+        var syncEventSeen = false;
+        var signal = new util.Signal();
+
+        var w = getWatcher();
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(!syncEventSeen, "Sync event already seen");
+                syncEventSeen = true;
+
+                signal.complete();
+            }
+        });
+
+        w.appEventSource.dispatchEvent("leavingbackground", null);
+
+        return signal.promise;
+    });
+
+    promiseTest("fullArticleSyncNotIndicatedIfSuspendedForLessThanIdleTimeout", () => {
+        var syncEventSeen = false;
+        var backgroundEnteredSignal = new util.Signal();
+
+        var w = getWatcher();
+        w.watcher.suspendedIdleDuration = 150;
+
+        var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                data.detail.complete();
+                firstSyncEventHandler.cancel();
+                firstSyncEventHandler = null;
+            }
+        });
+
+        // Trigger the capture of the suspending timestamp
+        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(backgroundEnteredSignal));
+
+        ok(!firstSyncEventHandler, "Expected first event handler to have been raised, and cleaned up");
+
+        var secondSyncNeededRaisedSignal = new util.Signal();
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(data.detail.shouldSyncArticleBodies, "Expected to be told that we should sync the article bodies");
+                secondSyncNeededRaisedSignal.complete();
+            }
+        });
+
+        WinJS.Promise.timeout(75).done(() => {
+            w.appEventSource.dispatchEvent("leavingbackground", null);
+        });
+
+        return secondSyncNeededRaisedSignal.promise;
     });
 }

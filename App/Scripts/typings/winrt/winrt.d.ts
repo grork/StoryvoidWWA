@@ -1774,6 +1774,7 @@ declare module Windows {
         export interface ISuspendingEventArgs {
             suspendingOperation: Windows.ApplicationModel.SuspendingOperation;
         }
+
         export interface PackageVersion {
             major: number;
             minor: number;
@@ -13680,6 +13681,15 @@ declare module Windows {
             export class SuspendingEventArgs implements Windows.ApplicationModel.ISuspendingEventArgs {
                 suspendingOperation: Windows.ApplicationModel.SuspendingOperation;
             }
+
+            export class EnteredBackgroundDeferral {
+                complete(): void;
+            }
+
+            export class EnteredBackgroundEventArgs {
+                getDeferral(): Windows.UI.WebUI.EnteredBackgroundDeferral;
+            }
+
             export interface IWebUIBackgroundTaskInstance {
                 succeeded: boolean;
             }
