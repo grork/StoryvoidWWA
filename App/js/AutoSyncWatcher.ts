@@ -9,16 +9,24 @@
     }
 
     export class AutoSyncWatcher {
-        public dbIdleDuration = 5 * 1000;
-        public suspendedIdleDuration = 15 * 60 * 1000;
+        public dbIdleInterval = 5 * 1000;
+        public minTimeInBackgroundBeforeSync = 60 * 1000;
+        public minTimeInBackgroundBeforeFullSync = 15 * 60 * 1000;
+        public minTimeOfflineBeforeSync = 60 * 60 * 1000;
+        public minTimeOfflineBeforeFullSync = 60 * 1000;
 
         private _eventSource = new Utilities.EventSource();
         private _handlersToCleanup: Utilities.ICancellable[] = [];
         private _currentTimer: WinJS.Promise<any>;
         private _watchingPaused = false;
-        private _suspendedTime = 0;
+        private _suspendedAt = 0;
+        private _wentOfflineAt = 0;
+        private _previousInternetState = Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess;
 
-        constructor(dbEventSource: Utilities.EventSource, appEventSource: Utilities.EventSource) {
+        constructor(dbEventSource: Utilities.EventSource,
+                    appEventSource: Utilities.EventSource,
+                    networkEventSource: Utilities.EventSource) {
+
             this._handlersToCleanup.push(Utilities.addEventListeners(dbEventSource, {
                 bookmarkschanged: () => {
                     if (this._watchingPaused) {
@@ -33,6 +41,10 @@
                 enteredbackground: this._handleEnteringBackground.bind(this),
                 leavingbackground: this._handleLeavingBackground.bind(this),
             }));
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(networkEventSource, {
+                networkstatuschanged: this._handleNetworkStatusChanged.bind(this),
+            }));
         }
 
         private _resetTimer(): void {
@@ -40,7 +52,7 @@
                 this._currentTimer.cancel();
             }
 
-            this._currentTimer = WinJS.Promise.timeout(this.dbIdleDuration).then(() => {
+            this._currentTimer = WinJS.Promise.timeout(this.dbIdleInterval).then(() => {
                 this._raiseSyncNeeded(false);
             });
         }
@@ -70,7 +82,7 @@
         private _handleEnteringBackground(e: any): void {
             var ev: Windows.UI.WebUI.EnteredBackgroundEventArgs = e.detail || e
 
-            this._suspendedTime = Date.now();
+            this._suspendedAt = Date.now();
             var deferral = ev.getDeferral();
 
             this._raiseSyncNeeded(false).done(() => {
@@ -81,10 +93,58 @@
         }
 
         private _handleLeavingBackground() {
-            var timeSuspended = Date.now() - this._suspendedTime;
-            var isLongerThanIdleDuration = (timeSuspended >= this.suspendedIdleDuration);
+            var timeSuspended = Date.now() - this._suspendedAt;
+            this._suspendedAt = 0;
 
-            this._raiseSyncNeeded(isLongerThanIdleDuration);
+            // If we're not in the background for long enough, lets not kick off a sync
+            // we dont want to constantly be picking off a sync when the user is switching
+            // between apps
+            var wasSuspendedLongEnoughToRequireSync = (timeSuspended >= this.minTimeInBackgroundBeforeSync);
+            if (!wasSuspendedLongEnoughToRequireSync) {
+                return;
+            }
+
+            var wasSuspendedLongEnoughToRequireFullSync = (timeSuspended >= this.minTimeInBackgroundBeforeFullSync);
+            this._raiseSyncNeeded(wasSuspendedLongEnoughToRequireFullSync);
+        }
+
+        private _handleNetworkStatusChanged(e: any) {
+            var internetProfile: { getNetworkConnectivityLevel(): Windows.Networking.Connectivity.NetworkConnectivityLevel } = e.detail || Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
+            var newInternetState = Windows.Networking.Connectivity.NetworkConnectivityLevel.none;
+            if (internetProfile) {
+                newInternetState = internetProfile.getNetworkConnectivityLevel();
+            }
+
+            // When the status is unchanged, there's nothing for us to do
+            if (this._previousInternetState === newInternetState) {
+                return;
+            }
+
+            if (newInternetState != Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess) {
+                if (this._previousInternetState === Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess) {
+                    // If we *were* previously offline, we need to capture the time to measure how long we were offline
+                    this._wentOfflineAt = Date.now();
+                }
+
+                this._previousInternetState = newInternetState;
+
+                // We're not online, so theres nothing for us to do
+                return;
+            }
+
+            this._previousInternetState = newInternetState;
+
+            // It's different from before, and we're now definitely online, so lets raise the event
+            var timeOffline = Date.now() - this._wentOfflineAt;
+            var wasOfflineLongEnoughToRequireFullSync = (timeOffline >= this.minTimeOfflineBeforeFullSync);
+            this._wentOfflineAt = 0;
+
+            var wasOfflineLongEnoughToRequireSync = (timeOffline >= this.minTimeOfflineBeforeSync);
+            if (!wasOfflineLongEnoughToRequireSync) {
+                return;
+            }
+
+            this._raiseSyncNeeded(wasOfflineLongEnoughToRequireFullSync);
         }
 
         public get eventSource(): Utilities.EventSource {

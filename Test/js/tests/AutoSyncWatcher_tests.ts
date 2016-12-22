@@ -8,19 +8,17 @@
 
     QUnit.module("AutoSyncWatcher");
 
-    function getWatcher(): {
-        watcher: sv.AutoSyncWatcher,
-        dbEventSource: util.EventSource,
-        appEventSource: util.EventSource,
-    } {
+    function getWatcher() {
         var dbSource = new util.EventSource();
         var appSource = new util.EventSource();
-        var watcher = new sv.AutoSyncWatcher(dbSource, appSource);
+        var networkSource = new util.EventSource();
+        var watcher = new sv.AutoSyncWatcher(dbSource, appSource, networkSource);
 
         return {
             watcher: watcher,
             dbEventSource: dbSource,
             appEventSource: appSource,
+            networkEventSource: networkSource,
         };
     }
 
@@ -32,11 +30,19 @@
         };
     }
 
+    function getFakeNetworkStatusChanged(status: Windows.Networking.Connectivity.NetworkConnectivityLevel) {
+        return {
+            getNetworkConnectivityLevel() {
+                return status;
+            }
+        };
+    }
+
     promiseTest("timerDoesNotRaiseWithoutEvent", () => {
         var signal = new util.Signal();
 
         var syncWatcher = getWatcher().watcher;
-        syncWatcher.dbIdleDuration = 100;
+        syncWatcher.dbIdleInterval = 100;
 
         syncWatcher.eventSource.addEventListener("syncneeded", () => {
             signal.error("Promise Shouldn't Complete");
@@ -51,7 +57,7 @@
         var signal = new util.Signal();
 
         var w = getWatcher();
-        w.watcher.dbIdleDuration = 100;
+        w.watcher.dbIdleInterval = 100;
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -70,7 +76,7 @@
         var signal = new util.Signal();
 
         var w = getWatcher();
-        w.watcher.dbIdleDuration = 100;
+        w.watcher.dbIdleInterval = 100;
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -103,7 +109,7 @@
         var signal = new util.Signal();
 
         var w = getWatcher();
-        w.watcher.dbIdleDuration = 100;
+        w.watcher.dbIdleInterval = 100;
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -138,7 +144,7 @@
         var signal = new util.Signal();
 
         var w = getWatcher();
-        w.watcher.dbIdleDuration = 50;
+        w.watcher.dbIdleInterval = 50;
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -197,32 +203,75 @@
         return signal.promise;
     });
 
-    promiseTest("leavingBackgroundRaisesSyncNeededEvent", () => {
+    promiseTest("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", () => {
         var syncEventSeen = false;
-        var signal = new util.Signal();
+        var syncSeenSignal = new util.Signal();
+        var enteredBackgroundCompleteSignal = new util.Signal();
 
         var w = getWatcher();
+        w.watcher.minTimeInBackgroundBeforeSync = 10;
 
-        util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!syncEventSeen, "Sync event already seen");
-                syncEventSeen = true;
+        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(enteredBackgroundCompleteSignal));
 
-                signal.complete();
-            }
+        WinJS.Promise.timeout(50).done(() => {
+            util.addEventListeners(w.watcher.eventSource, {
+                syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                    ok(!syncEventSeen, "Sync event already seen");
+                    syncEventSeen = true;
+
+                    syncSeenSignal.complete();
+                }
+            });
+
+            w.appEventSource.dispatchEvent("leavingbackground", null);
         });
 
-        w.appEventSource.dispatchEvent("leavingbackground", null);
-
-        return signal.promise;
+        return syncSeenSignal.promise;
     });
 
-    promiseTest("fullArticleSyncNotIndicatedIfSuspendedForLessThanIdleTimeout", () => {
+    promiseTest("fullArticleSyncNotIndicatedIfSuspendedForLessThanMaxSuspendedDuration", () => {
         var syncEventSeen = false;
         var backgroundEnteredSignal = new util.Signal();
 
         var w = getWatcher();
-        w.watcher.suspendedIdleDuration = 150;
+        w.watcher.minTimeInBackgroundBeforeSync = 0;
+        w.watcher.minTimeInBackgroundBeforeFullSync = 150;
+
+        var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                data.detail.complete();
+                firstSyncEventHandler.cancel();
+                firstSyncEventHandler = null;
+            }
+        });
+
+        // Trigger the capture of the suspending timestamp
+        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(backgroundEnteredSignal));
+
+        ok(!firstSyncEventHandler, "Expected first event handler to have been raised, and cleaned up");
+
+        var secondSyncNeededRaisedSignal = new util.Signal();
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(!data.detail.shouldSyncArticleBodies, "Expected to be told that we should sync the article bodies");
+                secondSyncNeededRaisedSignal.complete();
+            }
+        });
+
+        WinJS.Promise.timeout(75).done(() => {
+            w.appEventSource.dispatchEvent("leavingbackground", null);
+        });
+
+        return secondSyncNeededRaisedSignal.promise;
+    });
+
+    promiseTest("fullArticleSyncIndicatedIfSuspendedForLongerThanMaxSuspendedDuration", () => {
+        var syncEventSeen = false;
+        var backgroundEnteredSignal = new util.Signal();
+
+        var w = getWatcher();
+        w.watcher.minTimeInBackgroundBeforeSync = 0;
+        w.watcher.minTimeInBackgroundBeforeFullSync = 50;
 
         var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -250,5 +299,139 @@
         });
 
         return secondSyncNeededRaisedSignal.promise;
+    });
+
+    test("syncNotRequiredWhenTransitioningToOfflineState", () => {
+        var syncEventSeen = false;
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeFullSync = -1;       
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                syncEventSeen = true;
+            }
+        });
+
+        // Simulate going offline
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        ok(!syncEventSeen, "Didn't expect to see sync event");
+    });
+
+    test("syncRequiredWhenTransitioningFromOfflineToOnlineState", () => {
+        var syncEventSeen = false;
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeSync = -1;
+        w.watcher.minTimeOfflineBeforeFullSync = -1;
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                syncEventSeen = true;
+            }
+        });
+
+        // Go offline to update previous state
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        // Go online to trigger the event
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
+
+        ok(syncEventSeen, "Expected to see sync event");
+    });
+
+    test("syncNotWhenTransitioningFromToOnlineStateToOnline", () => {
+        var syncEventSeen = false;
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeSync = -1;
+        w.watcher.minTimeOfflineBeforeFullSync = -1;
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                syncEventSeen = true;
+            }
+        });
+
+        // Go online
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
+
+        // Go online to trigger the event
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
+
+        ok(!syncEventSeen, "Didn't expect to see sync event");
+    });
+
+    test("syncNotRequiredWhenTransitioningOfflineToOfflineState", () => {
+        var syncEventSeen = false;
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeSync = -1;
+        w.watcher.minTimeOfflineBeforeFullSync = -1;
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                syncEventSeen = true;
+            }
+        });
+
+        // Simulate going offline
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        // Simulate going offline
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        ok(!syncEventSeen, "Didn't expect to see sync event");
+    });
+
+    promiseTest("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", () => {
+        var syncEventSeenSignal = new util.Signal();
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeSync = 10;
+        w.watcher.minTimeOfflineBeforeFullSync = 100;
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(!data.detail.shouldSyncArticleBodies, "Completed event");
+                syncEventSeenSignal.complete();
+            }
+        });
+
+        // Go offline to update previous state
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        WinJS.Promise.timeout(50).done(() => {
+            // Go online to trigger the event
+            w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
+        });
+
+        return syncEventSeenSignal.promise;
+    });
+
+    promiseTest("syncRequiredAndIndicatesArticleSyncWhenOfflineForMoreThanMinimumOfflineTimeForFullSync", () => {
+        var syncEventSeenSignal = new util.Signal();
+
+        var w = getWatcher();
+        w.watcher.minTimeOfflineBeforeSync = 10;
+        w.watcher.minTimeOfflineBeforeFullSync = 40;
+
+        util.addEventListeners(w.watcher.eventSource, {
+            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                ok(data.detail.shouldSyncArticleBodies, "Completed event");
+                syncEventSeenSignal.complete();
+            }
+        });
+
+        // Go offline to update previous state
+        w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
+
+        WinJS.Promise.timeout(50).done(() => {
+            // Go online to trigger the event
+            w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
+        });
+
+        return syncEventSeenSignal.promise;
     });
 }
