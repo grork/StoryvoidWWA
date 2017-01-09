@@ -11,7 +11,6 @@
     export class AutoSyncWatcher {
         public dbIdleInterval = 5 * 1000;
         public minTimeInBackgroundBeforeSync = 60 * 1000;
-        public minTimeInBackgroundBeforeFullSync = 15 * 60 * 1000;
         public minTimeOfflineBeforeSync = 60 * 60 * 1000;
         public minTimeOfflineBeforeFullSync = 60 * 1000;
 
@@ -80,7 +79,7 @@
         // I felt this was a better compromise than creating a whole different way
         // to raise an event just for this one case.
         private _handleEnteringBackground(e: any): void {
-            var ev: Windows.UI.WebUI.EnteredBackgroundEventArgs = e.detail || e
+            var ev: Windows.UI.WebUI.EnteredBackgroundEventArgs = e.getDeferral ? e : e.detail;
 
             this._suspendedAt = Date.now();
             var deferral = ev.getDeferral();
@@ -104,12 +103,11 @@
                 return;
             }
 
-            var wasSuspendedLongEnoughToRequireFullSync = (timeSuspended >= this.minTimeInBackgroundBeforeFullSync);
-            this._raiseSyncNeeded(wasSuspendedLongEnoughToRequireFullSync);
+            this._raiseSyncNeeded(true);
         }
 
         private _handleNetworkStatusChanged(e: any) {
-            var internetProfile: { getNetworkConnectivityLevel(): Windows.Networking.Connectivity.NetworkConnectivityLevel } = e.detail || Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
+            var internetProfile: { getNetworkConnectivityLevel(): Windows.Networking.Connectivity.NetworkConnectivityLevel } = e.target != null ? e.detail : Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
             var newInternetState = Windows.Networking.Connectivity.NetworkConnectivityLevel.none;
             if (internetProfile) {
                 newInternetState = internetProfile.getNetworkConnectivityLevel();

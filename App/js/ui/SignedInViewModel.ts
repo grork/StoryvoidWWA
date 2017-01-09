@@ -39,6 +39,7 @@
         private _readyForEvents: Utilities.Signal = new Utilities.Signal();
         private static _sorts: ISortsInfo[];
         private _currentSyncSignal: Utilities.Signal;
+        private _autoSyncWatcher: AutoSyncWatcher;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
@@ -250,29 +251,25 @@
             });
         }
 
-        private _listenForAppLifeCycleEvents() {
-            var cancellable: Utilities.ICancellable;
+        private _listenForDbSyncNeeded() {
+            var internetProfile = Windows.Networking.Connectivity.NetworkInformation;
+            this._autoSyncWatcher = new AutoSyncWatcher(
+                <Utilities.EventSource><any>this._instapaperDB,
+                <Utilities.EventSource><any>Windows.UI.WebUI.WebUIApplication,
+                <Utilities.EventSource><any>internetProfile);
 
-            cancellable = Utilities.addEventListeners((<any>Windows.UI.WebUI.WebUIApplication), {
-                suspending: this._handleSuspended.bind(this),
-                resuming: this._handleResumed.bind(this)
-            });
-
-            this._handlersToCleanUp.push(cancellable);
+            this._handlersToCleanUp.push(Utilities.addEventListeners(
+                this._autoSyncWatcher.eventSource,
+                { syncneeded: this._handleSyncNeeded.bind(this) }
+            ));
         }
 
-        private _handleSuspended(ev: Windows.UI.WebUI.SuspendingEventArgs) {
-            var deferral = ev.suspendingOperation.getDeferral();
-
-            this.startSync({ skipArticleDownload: true, noEvents: true }).done(() => {
-                deferral.complete();
+        private _handleSyncNeeded(ev: { detail: ISyncNeededEventArgs }) {
+            this.startSync({ skipArticleDownload: !ev.detail.shouldSyncArticleBodies, noEvents: !ev.detail.shouldSyncArticleBodies }).done(() => {
+                ev.detail.complete();
             }, () => {
-                deferral.complete();
+                ev.detail.complete();
             });
-        }
-
-        private _handleResumed(sender: any) {
-            this.startSync();
         }
 
         public initializeDB(): WinJS.Promise<void> {
@@ -308,7 +305,7 @@
                 this._pendingDbOpen.complete();
                 this._pendingDbOpen = null;
 
-                this._listenForAppLifeCycleEvents();
+                this._listenForDbSyncNeeded();
                 this.startSync();
             }, (e) => {
                 this._pendingDbOpen.error(e);
@@ -332,6 +329,11 @@
             if (clearCredentials) {
                 Codevoid.Storyvoid.Authenticator.clearClientInformation();
                 this._app.signOut(true);
+            }
+
+            if (this._autoSyncWatcher) {
+                this._autoSyncWatcher.dispose();
+                this._autoSyncWatcher = null;
             }
 
             var idb = new Codevoid.Storyvoid.InstapaperDB();
@@ -393,6 +395,12 @@
         public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
             if (this._currentSyncSignal) {
                 return this._currentSyncSignal.promise;
+            }
+
+            // Don't try to sync if we're offline
+            var internetProfile = Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
+            if (!internetProfile || internetProfile.getNetworkConnectivityLevel() != Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess) {
+                return WinJS.Promise.as();
             }
 
             parameters = parameters || {};
@@ -499,6 +507,11 @@
             }, (e) => {
                 if (this._currentSyncSignal) {
                     this._currentSyncSignal.complete();
+                }
+
+                // Make sure we hide the sync status if there is an error
+                if (!parameters.noEvents) {
+                    this._eventSource.dispatchEvent("synccompleted", null);
                 }
 
                 Utilities.Logging.instance.log("Failed Sync:");
