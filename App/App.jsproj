@@ -59,21 +59,25 @@
     <TargetPlatformMinVersion>10.0.14393.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>$(VersionNumberMajor).$(VersionNumberMinor)</MinimumVisualStudioVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>App_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>BCD18D0C330337D2AAEAABE70FA8BA16789DF809</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>StoryVoidCert.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>98D72A881A9C7C5B1EA08D08CF411AEC994C01E4</PackageCertificateThumbprint>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="StoryVoidCert.cer" />
+    <None Include="StoryVoidCert.pfx" />
+    <None Include="StoryVoidCert.pvk" />
     <Content Include="HtmlTemplates.html" />
     <Content Include="js\AuthenticatorService.js" />
     <Content Include="js\db.js" />
     <Content Include="js\InstapaperApi.js" />
-    <Content Include="js\InstapaperDB.js"/>
+    <Content Include="js\InstapaperDB.js" />
     <Content Include="js\InstapaperSync.js" />
     <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
     <Content Include="js\InstapaperArticleSync.js">
@@ -168,7 +172,6 @@
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
     <Content Include="WinJS\js\en-US\ui.strings.js" />
-    <None Include="App_TemporaryKey.pfx" />
     <TypeScriptCompile Include="js\ui\SyncProgressControl.ts" />
     <Content Include="js\ui\SyncProgressControl.js">
       <DependentUpon>SyncProgressControl.ts</DependentUpon>
