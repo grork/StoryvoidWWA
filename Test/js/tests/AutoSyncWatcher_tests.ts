@@ -235,43 +235,6 @@
 
         var w = getWatcher();
         w.watcher.minTimeInBackgroundBeforeSync = 0;
-        w.watcher.minTimeInBackgroundBeforeFullSync = 150;
-
-        var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                data.detail.complete();
-                firstSyncEventHandler.cancel();
-                firstSyncEventHandler = null;
-            }
-        });
-
-        // Trigger the capture of the suspending timestamp
-        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(backgroundEnteredSignal));
-
-        ok(!firstSyncEventHandler, "Expected first event handler to have been raised, and cleaned up");
-
-        var secondSyncNeededRaisedSignal = new util.Signal();
-        util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!data.detail.shouldSyncArticleBodies, "Expected to be told that we should sync the article bodies");
-                secondSyncNeededRaisedSignal.complete();
-            }
-        });
-
-        WinJS.Promise.timeout(75).done(() => {
-            w.appEventSource.dispatchEvent("leavingbackground", null);
-        });
-
-        return secondSyncNeededRaisedSignal.promise;
-    });
-
-    promiseTest("fullArticleSyncIndicatedIfSuspendedForLongerThanMaxSuspendedDuration", () => {
-        var syncEventSeen = false;
-        var backgroundEnteredSignal = new util.Signal();
-
-        var w = getWatcher();
-        w.watcher.minTimeInBackgroundBeforeSync = 0;
-        w.watcher.minTimeInBackgroundBeforeFullSync = 50;
 
         var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
