@@ -123,7 +123,7 @@
         constructor(private _instapaperDB: InstapaperDB) {
         }
 
-        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): WinJS.Promise<any> {
+        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): WinJS.Promise<boolean> {
             var element = document.createElement("div");
             document.body.appendChild(element);
 
@@ -145,10 +145,10 @@
                 }).then(() => {
                     return true;
                 });
-            }).then((result: boolean) => {
+            }).then((result) => {
                 Utilities.DOM.removeChild(document.body, element);
 
-                return result;
+                return WinJS.Promise.as(result);
             });
         }
 

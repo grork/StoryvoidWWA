@@ -1,12 +1,12 @@
 ﻿module Codevoid.Storyvoid {
     export class ShareTargetApp extends UI.AppThatCanSignIn {
-        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation;
+        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation;
 
         public initialize(): void {
             super.initialize();
 
             Windows.UI.WebUI.WebUIApplication.addEventListener("activated", (args) => {
-                var shareArgs = <Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>args;
+                var shareArgs = <Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]);
                 var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
 
                 if (shareArgs.kind === Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
@@ -69,7 +69,7 @@ module Codevoid.Storyvoid.UI {
         private _clientInformation: Codevoid.OAuth.ClientInformation;
         private _eventSource: Utilities.EventSource;
         private _articleDetails: IArticleDetails;
-        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation;
+        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation;
         private _savingToService: boolean = false;
 
         constructor(app: IAppWithAbilityToSignIn) {
@@ -146,10 +146,15 @@ module Codevoid.Storyvoid.UI {
                 return;
             }
 
-            this._shareOperation.reportCompleted();
+            // This will throw exceptions if the customer has hit cancelled
+            // but we also need to call it to complete our usage of the operation
+            try {
+                this._shareOperation.reportCompleted();
+            } catch (e)
+            { }
         }
 
-        public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.IShareOperation): void {
+        public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation): void {
             this._shareOperation = shareDetails;
 
             WinJS.Promise.join({

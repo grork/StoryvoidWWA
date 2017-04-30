@@ -1,4 +1,10 @@
-﻿module Codevoid.WebViewMessengerTests {
+﻿/// <reference path="..\..\..\App\js\WebViewMessenger.ts" />
+/// <reference path="..\..\..\App\js\WebViewMessenger_client.ts" />
+// Note, that WebViewMessenger_client.ts is referenced above not becuase this file references it
+// but because if we don't, TypeScript won't actually compile the file, which means the test fails
+// when it loads the iframe for the cross-frame-communication
+
+module Codevoid.WebViewMessengerTests {
     import getPlayground = InstapaperTestUtilities.getPlayground;
     import promiseTest = InstapaperTestUtilities.promiseTest;
     import Signal = Codevoid.Utilities.Signal;

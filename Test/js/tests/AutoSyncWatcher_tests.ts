@@ -1,4 +1,6 @@
-﻿module CodevoidTests.InstapaperArticleSyncTests {
+﻿/// <reference path="..\..\..\app\js\autosyncwatcher.ts" />
+
+module CodevoidTests.InstapaperArticleSyncTests {
     import sv = Codevoid.Storyvoid;
     import util = Codevoid.Utilities;
 

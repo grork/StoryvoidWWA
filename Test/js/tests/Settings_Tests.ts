@@ -1,4 +1,5 @@
-﻿module CodevoidTests {
+﻿/// <reference path="..\..\..\app\js\SettingsCore.ts" />
+module CodevoidTests {
     import st = Windows.Storage;
 
     class SettingsTest extends Codevoid.Utilities.SettingsCore {
@@ -15,6 +16,10 @@
 
         public get hasCreated(): boolean {
             return this.getValueOrDefault<boolean>("hasCreated");
+        }
+
+        public set hasCreated(value: boolean) {
+            this.setValue("hasCreated", value);
         }
 
         public get otherProperty(): string {

@@ -352,9 +352,9 @@
             }
 
             if (this._toolbarVisible) {
-                var hidden = WinJS.Promise.as();
+                var hidden = WinJS.Promise.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
-                    hidden = Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
+                    hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
                 hidden.done(() => {
@@ -372,7 +372,7 @@
                 WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
-                var shown = WinJS.Promise.as();
+                var shown = WinJS.Promise.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
                     shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
