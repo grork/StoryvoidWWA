@@ -789,7 +789,7 @@
         }
 
         private _promptToOpenBrowser(bookmark: IBookmark): WinJS.Promise<any> {
-            var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser?", "Open in a web browser?");
+            var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser, or attempt to download it?", "Open in a web browser?");
             var commands = prompt.commands;
             commands.clear();
 
@@ -800,10 +800,24 @@
             };
 
             commands.push(open);
+
+            var download = new Windows.UI.Popups.UICommand();
+            download.label = "Download";
+            download.invoked = (command: Windows.UI.Popups.UICommand) => {
+                Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
+                    var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
+                    articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB).then((bookmark) => {
+                        Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
+                    });
+                });
+            };
+
+            commands.push(download);
+
             commands.push(new Windows.UI.Popups.UICommand("No"));
 
-            prompt.cancelCommandIndex = 1;
-            prompt.defaultCommandIndex = 1;
+            prompt.cancelCommandIndex = 2;
+            prompt.defaultCommandIndex = 0;
 
             return prompt.showAsync();
         }
