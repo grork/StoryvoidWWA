@@ -71,6 +71,9 @@ module Codevoid.Storyvoid.UI {
         private _articleDetails: IArticleDetails;
         private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation;
         private _savingToService: boolean = false;
+        private _reportedStarted: boolean = false;
+        private _reportedError: boolean = false;
+        private _reportedCompleted: boolean = false;
 
         constructor(app: IAppWithAbilityToSignIn) {
             this._app = <ShareTargetApp>app;
@@ -97,8 +100,11 @@ module Codevoid.Storyvoid.UI {
             this._savingToService = true;
 
             this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Started);
-    
-            this._shareOperation.reportStarted();
+
+            if (!this._reportedStarted) {
+                this._shareOperation.reportStarted();
+                this._reportedStarted = true;
+            }
 
             WinJS.Promise.join({
                 operation: bookmarks.add({
@@ -131,9 +137,11 @@ module Codevoid.Storyvoid.UI {
 
                     this._shareOperation.reportCompleted(quickLink);
                 }
-            },
-            (e: any) => {
-                this._shareOperation.reportError("Unable to share!");
+            }, (e: any) => {
+                if (!this._reportedError) {
+                    this._shareOperation.reportError("Unable to share!");
+                    this._reportedError = true;
+                }
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Error);
             });
         }
@@ -148,10 +156,10 @@ module Codevoid.Storyvoid.UI {
 
             // This will throw exceptions if the customer has hit cancelled
             // but we also need to call it to complete our usage of the operation
-            try {
+            if (this._reportedStarted && !this._reportedCompleted) {
                 this._shareOperation.reportCompleted();
-            } catch (e)
-            { }
+                this._reportedCompleted = true;
+            }
         }
 
         public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation): void {
@@ -255,7 +263,9 @@ module Codevoid.Storyvoid.UI {
                 case SharingState.Error:
                     WinJS.Utilities.addClass(this.progressRing, "hide");
                     WinJS.Utilities.removeClass(this.informationLabel, "hide");
+                    this.informationLabel.innerText = "We couldn't save the article to Instapaper. You can click savea again to retry."
                     WinJS.Utilities.removeClass(this.saveButton, "hide");
+                    this.saveButton.innerText = "Retry";
                     break;
 
                 default:
