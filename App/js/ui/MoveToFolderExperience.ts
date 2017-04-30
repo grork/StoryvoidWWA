@@ -93,9 +93,9 @@
                 return result;
             });
 
-            this.refresh().then(() => {
-                return WinJS.Promise.timeout();
-            }).done(() => {
+            // Bounce the UI thread to allow layout to complete
+            // so that things are positioned appropriately
+            WinJS.Promise.timeout().done(() => {
                 var alignment = "top";
                 
                 if (targetPosition.hasAttribute("aria-haspopup")) {
@@ -105,6 +105,9 @@
                 }
 
                 this._flyout.show(targetPosition, alignment);
+
+                // Kick off loading the folder list
+                this.refresh();
             });
 
             return completion;
