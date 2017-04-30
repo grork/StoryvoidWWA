@@ -5,7 +5,7 @@
     const KEY_ALT = 18;
 
     const ARTICLE_WIDTH_PX = 1400;
-    const MIN_SIZE_FOR_IMAGE_STRETCHING = 200;
+    const MIN_SIZE_FOR_IMAGE_STRETCHING = 300;
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
