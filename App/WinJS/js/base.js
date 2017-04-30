@@ -6548,9 +6548,13 @@ define('WinJS/Utilities/_ElementUtilities',[
             if (entry) {
                 entry.unregister(element, type, listener, useCapture);
             } else if (equivalentEvent) {
-                element.removeEventListener(equivalentEvent, listener, useCapture);
+                if (listener) {
+                    element.removeEventListener(equivalentEvent, listener, useCapture);
+                }
             } else {
-                element.removeEventListener(type, listener, useCapture);
+                if (listener) {
+                    element.removeEventListener(type, listener, useCapture);
+                }
             }
         },
 
