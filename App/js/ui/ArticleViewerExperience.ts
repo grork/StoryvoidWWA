@@ -297,7 +297,9 @@
             // margin of the title.
             var newLeftMargin = (100 - e.detail) / 2;
 
-            this._title.style.paddingLeft = newLeftMargin + "vw";
+            // Assign the padding to the container; otherwise it behaves more like a translate
+            // than an margin bump, and causes all the text to run into the toolbar buttons
+            this._toolbarContainer.style.paddingLeft = newLeftMargin + "vw";
         }
 
         private _extractDomainFromUrl(url: string): string {
