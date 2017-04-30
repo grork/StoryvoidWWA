@@ -10,6 +10,8 @@
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
         private _currentImageWidthForImageSizing = 0;
+        private _keyDownMap: { [key: number]: boolean } = {};
+        private _hadFocus = false;
 
         public initialize(): void {
             this._scrollingElement = document.body;
@@ -25,11 +27,14 @@
 
             // Handle key down to disable zooming via ctrl+ plus /
             document.addEventListener("keydown", this._handleKeyDown.bind(this));
+            document.addEventListener("keyup", this._handleKeyUp.bind(this));
 
             document.addEventListener("click", this._handleClick.bind(this));
             document.addEventListener("pointerup", this._handlePointerUp.bind(this));
             document.addEventListener("contextmenu", this._handleContextMenu.bind(this));
             window.addEventListener("resize", this._handleResize.bind(this));
+            window.addEventListener("blur", this._handleBlur.bind(this));
+            window.addEventListener("focus", this._handleFocus.bind(this));
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
@@ -167,7 +172,12 @@
                 return;
             }
 
-            this._toggleToolbar();
+            // If we didn't have focus, then this event is likely coming from when
+            // the window itself (not the frame) wasn't in focus, so we dont want
+            // to toggle the toolbar & distract the reader
+            if (this._hadFocus) {
+                this._toggleToolbar();
+            }
         }
 
         private _handlePointerUp(ev: PointerEvent) {
@@ -202,6 +212,12 @@
                 return;
             }
 
+            // If this key was already down, we assume that it's being held down, and
+            // don't want to handle it again.
+            if (this._keyDownMap[ev.keyCode]) {
+                return;
+            }
+
             if (ev.ctrlKey) {
                 Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("shortcutinvoked", ev.keyCode);
                 return;
@@ -216,6 +232,14 @@
                     this._toggleToolbar();
                     break;
             }
+
+            this._keyDownMap[ev.keyCode] = true;
+        }
+
+        private _handleKeyUp(ev: KeyboardEvent): void {
+            // Update the map of keys curently pressed to no longer include the
+            // key that was just released.
+            this._keyDownMap[ev.keyCode] = false;
         }
 
         private _handleScroll(): void {
@@ -230,6 +254,28 @@
 
             // Tell everyone that it's scrolled.
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("progresschanged", progress);
+        }
+
+        private _handleBlur(): void
+        {
+            this._hadFocus = false;
+        }
+
+        private _handleFocus(): void
+        {
+            // When we get focus, we want to wait to update our state, so that
+            // any other events don't see we had focus. Primarily this is to
+            // allow us to drop pointer events when the window didn't have focus
+            // and they clicked into us to activate the window
+
+            // If we had focus, don't clutter the work queue.
+            if (this._hadFocus) {
+                return;
+            }
+
+            setTimeout(() => {
+                this._hadFocus = true;
+            }, 150);
         }
 
         private _toggleToolbar(): void {
