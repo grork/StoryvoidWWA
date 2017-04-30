@@ -1,4 +1,6 @@
-﻿module CodevoidTests.InstapaperArticleSyncTests {
+﻿/// <reference path="..\..\..\App\js\InstapaperArticleSync.ts" />
+
+module CodevoidTests.InstapaperArticleSyncTests {
     import st = Windows.Storage;
     import c = Windows.Foundation.Collections;
     import av = Codevoid.Storyvoid;

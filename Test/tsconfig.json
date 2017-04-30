@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es5",
+    "rootDirs":
+    [
+      "..\\App"
+    ]
+  },
+  "exclude":
+  [
+    "node_modules",
+    "wwwroot"
+  ]
+}

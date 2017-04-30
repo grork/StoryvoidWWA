@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|AnyCPU">
       <Configuration>Debug</Configuration>
@@ -44,7 +45,7 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
-    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.1</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0'">
@@ -80,9 +81,6 @@
     <Content Include="js\InstapaperDB.js" />
     <Content Include="js\InstapaperSync.js" />
     <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
-    <Content Include="js\InstapaperArticleSync.js">
-      <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
-    </Content>
     <Content Include="js\OAuth.js" />
     <Content Include="js\ui\authenticator.js" />
     <Content Include="js\Utilities.js" />
@@ -102,92 +100,31 @@
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
     <TypeScriptCompile Include="js\SettingsCore.ts" />
-    <Content Include="js\SettingsCore.js">
-      <DependentUpon>SettingsCore.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\core.ts" />
-    <Content Include="js\ui\core.js">
-      <DependentUpon>core.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\winrt\winrt.d.ts" />
     <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
-    <Content Include="js\AppThatCanSignIn.js">
-      <DependentUpon>AppThatCanSignIn.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\default.ts" />
-    <Content Include="js\default.js">
-      <DependentUpon>default.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\shareTarget.ts" />
-    <Content Include="js\shareTarget.js">
-      <DependentUpon>shareTarget.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\SyncSettings.ts" />
-    <Content Include="js\SyncSettings.js">
-      <DependentUpon>SyncSettings.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\TransientSettings.ts" />
-    <Content Include="js\TransientSettings.js">
-      <DependentUpon>TransientSettings.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\AutoSyncWatcher.ts" />
-    <Content Include="js\AutoSyncWatcher.js">
-      <DependentUpon>AutoSyncWatcher.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\ArticleViewerExperience.ts" />
-    <Content Include="js\ui\ArticleViewerExperience.js">
-      <DependentUpon>ArticleViewerExperience.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\ArticleViewer_client.ts" />
-    <Content Include="js\ui\ArticleViewer_client.js">
-      <DependentUpon>ArticleViewer_client.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\DebugDbFiddler.ts" />
-    <Content Include="js\ui\DebugDbFiddler.js">
-      <DependentUpon>DebugDbFiddler.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\MoveToFolderExperience.ts" />
-    <Content Include="js\ui\MoveToFolderExperience.js">
-      <DependentUpon>MoveToFolderExperience.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\SettingsPopupExperience.ts" />
-    <Content Include="js\ui\SettingsPopupExperience.js">
-      <DependentUpon>SettingsPopupExperience.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
-    <Content Include="js\ui\SignedInExperience.js">
-      <DependentUpon>SignedInExperience.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\SignedInViewModel.ts" />
-    <Content Include="js\ui\SignedInViewModel.js">
-      <DependentUpon>SignedInViewModel.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ui\SignedOutExperience.ts" />
-    <Content Include="js\ui\SignedOutExperience.js">
-      <DependentUpon>SignedOutExperience.ts</DependentUpon>
-    </Content>
     <Content Include="packages.config" />
     <Content Include="WinJS\css\ui-light-intrinsics.css" />
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
     <Content Include="WinJS\js\en-US\ui.strings.js" />
     <TypeScriptCompile Include="js\ui\SyncProgressControl.ts" />
-    <Content Include="js\ui\SyncProgressControl.js">
-      <DependentUpon>SyncProgressControl.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\WebViewMessenger.ts" />
-    <Content Include="js\WebViewMessenger.js">
-      <DependentUpon>WebViewMessenger.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\WebViewMessenger_client.ts" />
-    <Content Include="js\WebViewMessenger_client.js">
-      <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\ViewerSettings.ts" />
-    <Content Include="js\ViewerSettings.js">
-      <DependentUpon>ViewerSettings.ts</DependentUpon>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />
@@ -198,18 +135,11 @@
   <ItemGroup>
     <ProjectReference Include="..\NativeInfrastructure\NativeInfrastructure.vcxproj" />
   </ItemGroup>
+  <ItemGroup>
+    <SDKReference Include="WindowsMobile, Version=10.0.14393.0" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below then uncomment
-       that target and the DisableFastUpToDateCheck PropertyGroup. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  <PropertyGroup>
-    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-  </PropertyGroup>
-  -->
 </Project>

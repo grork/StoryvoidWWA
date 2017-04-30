@@ -1,4 +1,5 @@
-﻿/// <reference path="..\..\tsc\libs\codevoid.d.ts" static="true" />
+﻿/// <reference path="..\..\scripts\typings\winjs\winjs.d.ts" />
+/// <reference path="..\..\tsc\libs\codevoid.d.ts" />
 
 module Codevoid.UICore {
     export interface ViewModel {

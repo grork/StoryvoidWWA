@@ -1,7 +1,7 @@
-// Type definitions for WinJS
+// Type definitions for WinJS 4.4
 // Project: http://try.buildwinjs.com/
 // Definitions by: TypeScript samples <https://www.typescriptlang.org/>, Adam Hewitt <https://github.com/adamhewitt627>, Craig Treasure <https://github.com/craigktreasure>, Jeff Fisher <https://github.com/xirzec>
-// Definitions: https://github.com/borisyankov/DefinitelyTyped
+// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 /* *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -62,7 +62,7 @@ interface IOHelper {
 /**
  * Provides application-level functionality, for example activation, storage, and application events.
 **/
-declare module WinJS.Application {
+declare namespace WinJS.Application {
     //#region Objects
 
     /**
@@ -192,7 +192,7 @@ declare module WinJS.Application {
 /**
  * Provides functionality for data and template binding.
 **/
-declare module WinJS.Binding {
+declare namespace WinJS.Binding {
     //#region Properties
 
     //#endregion Properties
@@ -1337,7 +1337,7 @@ declare module WinJS.Binding {
     /**
      * This API supports the WinJS infrastructure and is not intended to be used directly from your code.
     **/
-    function getValue(obj: any, path?: any)
+    function getValue(obj: any, path?: any): any;
 
     /**
      * Marks a custom initializer function as being compatible with declarative data binding.
@@ -1414,7 +1414,7 @@ declare module WinJS.Binding {
 /**
  * Provides helper functions for defining Classes.
 **/
-declare module WinJS.Class {
+declare namespace WinJS.Class {
     //#region Functions
 
     /**
@@ -1450,7 +1450,7 @@ declare module WinJS.Class {
 /**
  * The WinJS namespace provides special Windows Library for JavaScript functionality, including Promise and xhr.
 **/
-declare module WinJS {
+declare namespace WinJS {
     //#region Properties
 
     /**
@@ -1779,7 +1779,7 @@ declare module WinJS {
 /**
  * Provides helper functions for defining namespaces. For more information, see Organizing your code with WinJS.Namespace.
 **/
-declare module WinJS.Namespace {
+declare namespace WinJS.Namespace {
     //#region Functions
 
     /**
@@ -1805,7 +1805,7 @@ declare module WinJS.Namespace {
 /**
  * Provides functionality for dealing with basic navigation, including the navigation stack.
 **/
-declare module WinJS.Navigation {
+declare namespace WinJS.Navigation {
     //#region Properties
 
     /**
@@ -1903,7 +1903,7 @@ declare module WinJS.Navigation {
 /**
  * Provides functions for accessing resources and localizing content.
 **/
-declare module WinJS.Resources {
+declare namespace WinJS.Resources {
     //#region Functions
 
     /**
@@ -1958,7 +1958,7 @@ declare module WinJS.Resources {
 /**
  * Provides access to the Windows animations. These functions provide developers with the ability to use animations in their custom controls that are consistent with animations used by Windows controls.
 **/
-declare module WinJS.UI.Animation {
+declare namespace WinJS.UI.Animation {
     //#region Functions
 
     /**
@@ -2372,7 +2372,7 @@ declare module WinJS.UI.Animation {
 /**
  * Provides controls and objects that manipulate data.
 **/
-declare module WinJS.UI {
+declare namespace WinJS.UI {
     //#region Enumerations
 
     /**
@@ -2810,8 +2810,8 @@ declare module WinJS.UI {
 
     //#region Interfaces
 
-    /** 
-     * Define the shape of a Command object to be used in AppBar and ToolBar controls. 
+    /**
+     * Define the shape of a Command object to be used in AppBar and ToolBar controls.
     **/
     export interface ICommand {
         //#region Methods
@@ -4020,7 +4020,7 @@ declare module WinJS.UI {
          * Shows the specified commands of the AppBar while hiding all other commands.
          * @param commands The commands to show. The array elements may be ICommand objects, or the string identifiers (IDs) of commands.
         **/
-        showOnlyCommands(commands: Array<string|ICommand>): void;
+        showOnlyCommands(commands: Array<string | ICommand>): void;
 
         /**
          * Opens the AppBar.
@@ -4066,7 +4066,7 @@ declare module WinJS.UI {
         **/
         placement: string;
 
-        /** 
+        /**
          * Display options for the AppBar when closed.
         **/
         static ClosedDisplayMode: {
@@ -4088,7 +4088,7 @@ declare module WinJS.UI {
             full: string;
         };
 
-        /** 
+        /**
          * Display options for AppBar placement in relation to the main view.
         */
         static Placement: {
@@ -4857,7 +4857,7 @@ declare module WinJS.UI {
     /**
      * Adds event-related methods to the control.
     **/
-    module DOMEventMixin {
+    namespace DOMEventMixin {
         //#region Methods
 
         /**
@@ -5395,6 +5395,12 @@ declare module WinJS.UI {
          * Releases resources held by this Hub. Call this method when the Hub is no longer needed. After calling this method, the Hub becomes unusable.
         **/
         dispose(): void;
+
+        /**
+         * Forces the Hub to update its layout.
+         * Use this function when making the Hub visible again after you've set its style.display property to "none” or after style changes have been made that affect the size of the HubSections.
+        **/
+        forceLayout(): void;
 
         /**
          * Removes an event handler that the addEventListener method registered.
@@ -5948,13 +5954,13 @@ declare module WinJS.UI {
         onselectionchanging(eventInfo: CustomEvent): void;
 
         /**
-         * Raised when the header's visibility property changes. 
+         * Raised when the header's visibility property changes.
          * @param eventInfo An object that contains information about the event. The detail property of this object contains the following sub-properties: detail.visible.
         **/
         onheadervisibilitychanged(eventInfo: CustomEvent): void;
 
         /**
-         * Raised when the footer's visibility property changes. 
+         * Raised when the footer's visibility property changes.
          * @param eventInfo An object that contains information about the event. The detail property of this object contains the following sub-properties: detail.visible.
         **/
         onfootervisibilitychanged(eventInfo: CustomEvent): void;
@@ -6877,7 +6883,7 @@ declare module WinJS.UI {
         //#region Events
 
         /**
-         * This API supports the Windows Library for JavaScript infrastructure and is not intended to be used directly from your code. 
+         * This API supports the Windows Library for JavaScript infrastructure and is not intended to be used directly from your code.
          * Use NavBarContainer.oninvoked instead.
         **/
         oninvoked: any;
@@ -7595,12 +7601,12 @@ declare module WinJS.UI {
         /**
          * Gets or sets a mapping function which can be used to change the item that is targeted on zoom in.
         **/
-        zoomedInItem: (any) => any;
+        zoomedInItem: (any: any) => any;
 
         /**
          * Gets or sets a mapping function which can be used to change the item that is targeted on zoom out.
         **/
-        zoomedOutItem: (any) => any;
+        zoomedOutItem: (any: any) => any;
 
         //#endregion Properties
 
@@ -7995,7 +8001,7 @@ declare module WinJS.UI {
 
         //# region Events
 
-        /** 
+        /**
          * Raised when a SplitViewCommand has been invoked.
          * @param eventInfo An object that contains information about the event.
         **/
@@ -8437,7 +8443,7 @@ declare module WinJS.UI {
         public dispose(): void;
 
         /**
-         * Forces the ToolBar to update its layout. 
+         * Forces the ToolBar to update its layout.
          * Use this function when the window did not change size, but the ToolBar itself did.
         **/
         public forceLayout(): void;
@@ -8463,7 +8469,7 @@ declare module WinJS.UI {
          * Shows the specified commands of the ToolBar while hiding all other commands.
          * @param commands The commands to show. The array elements may be ICommand objects, or the string identifiers (IDs) of commands.
         **/
-        showOnlyCommands(commands: Array<string|ICommand>): void;
+        showOnlyCommands(commands: Array<string | ICommand>): void;
 
         /**
          * Gets or sets whether the ToolBar is currently opened.
@@ -8875,7 +8881,7 @@ declare module WinJS.UI {
     /**
      * This API supports the WinJS infrastructure and is not intended to be used directly from your code.
     **/
-    function simpleItemRenderer(Function): Function;
+    function simpleItemRenderer(fn: Function): Function;
 
     //#endregion Functions
 
@@ -8883,7 +8889,7 @@ declare module WinJS.UI {
 /**
  * Provides utility functions for generic directional focus movement
 **/
-declare module WinJS.UI.XYFocus {
+declare namespace WinJS.UI.XYFocus {
     export interface XYFocusOptions {
         /**
          * The focus scope, only children of this element are considered in the calculation.
@@ -9019,7 +9025,7 @@ declare module WinJS.UI.XYFocus {
 /**
  * Provides functions to load HTML content programmatically.
 **/
-declare module WinJS.UI.Fragments {
+declare namespace WinJS.UI.Fragments {
     //#region Functions
 
     /**
@@ -9059,7 +9065,7 @@ declare module WinJS.UI.Fragments {
 /**
  * Provides methods for defining and displaying PageControl objects.
 **/
-declare module WinJS.UI.Pages {
+declare namespace WinJS.UI.Pages {
     //#region Interfaces
 
     /**
@@ -9073,7 +9079,7 @@ declare module WinJS.UI.Pages {
          * @param err The error that occurred.
          * @returns Nothing if the error was handled, or an error promise if the error was not handled.
         **/
-        error? (err: any): any;
+        error?(err: any): any;
 
         /**
          * Initializes the control before the content of the control is set. Use the processed method for any initialization that should be done after the content of the control has been set.
@@ -9081,14 +9087,14 @@ declare module WinJS.UI.Pages {
          * @param options The options passed to the constructor of the page.
          * @returns A promise that is fulfilled when initialization is complete, if asynchronous processing is necessary. If not, returns nothing.
         **/
-        init? (element: HTMLElement, options: any): any;
+        init?(element: HTMLElement, options: any): any;
 
         /**
          * Creates DOM objects from the content in the specified URI. This method is called after the PageControl is defined and before the init method is called.
          * @param uri The URI from which to create DOM objects.
          * @returns A promise whose fulfilled value is the set of unparented DOM objects.
         **/
-        load? (uri: string): any;
+        load?(uri: string): any;
 
         /**
          * Initializes the control after the content of the control is set.
@@ -9096,7 +9102,7 @@ declare module WinJS.UI.Pages {
          * @param options The options that are to be passed to the constructor of the page.
          * @returns A promise that is fulfilled when initialization is complete, if asynchronous processing is necessary. If not, returns nothing.
         **/
-        processed? (element: HTMLElement, options: any): any;
+        processed?(element: HTMLElement, options: any): any;
 
         /**
          * Called after all initialization and rendering is complete. At this time, the element is ready for use.
@@ -9104,7 +9110,7 @@ declare module WinJS.UI.Pages {
          * @param options An object that contains one or more property/value pairs to apply to the PageControl. How these property/value pairs are used (or not used) depends on the implementation of that particular PageControl.
          * @returns A promise that is fulfilled when the element is ready for use, if asynchronous processing is necessary. If not, returns nothing.
         **/
-        ready? (element: HTMLElement, options: any): any;
+        ready?(element: HTMLElement, options: any): any;
 
         /**
          * Takes the elements returned by the load method and attaches them to the specified element.
@@ -9112,7 +9118,7 @@ declare module WinJS.UI.Pages {
          * @param options An object that contains one or more property/value pairs to apply to the PageControl. How these property/value pairs are used (or not used) depends on the implementation of that particular PageControl.
          * @param loadResult A Promise that contains the elements returned from the load method.
         **/
-        render? (element: HTMLElement, options: any, loadResult: Promise<any>): void;
+        render?(element: HTMLElement, options: any, loadResult: Promise<any>): void;
 
         //#endregion Methods
 
@@ -9157,7 +9163,7 @@ declare module WinJS.UI.Pages {
 /**
  * Provides methods for detecting when the user tabs to or from DOM elements.
 **/
-declare module WinJS.UI.TrackTabBehavior {
+declare namespace WinJS.UI.TrackTabBehavior {
     //#region Functions
 
     /**
@@ -9179,7 +9185,7 @@ declare module WinJS.UI.TrackTabBehavior {
 /**
  * Provides helper functions, for example, functions to add and remove CSS classes.
 **/
-declare module WinJS.Utilities {
+declare namespace WinJS.Utilities {
     //#region Enumerations
 
     /**
@@ -9768,7 +9774,7 @@ declare module WinJS.Utilities {
     /**
      * Represents the result of a query selector, and provides various operations that perform actions over the elements of the collection.
     **/
-    class QueryCollection<T> implements Array<T> {
+    class QueryCollection<T> extends Array<T> {
         //#region Methods
 
         /**
@@ -9941,7 +9947,7 @@ declare module WinJS.Utilities {
         push(...items: T[]): number;
 
         /**
-         * Reverses the elements in an Array. 
+         * Reverses the elements in an Array.
         **/
         reverse(): T[];
 
@@ -9950,7 +9956,7 @@ declare module WinJS.Utilities {
         **/
         shift(): T;
 
-        /** 
+        /**
          * Returns a section of an array.
          * @param start The beginning of the specified portion of the array.
          * @param end The end of the specified portion of the array.
@@ -9961,7 +9967,7 @@ declare module WinJS.Utilities {
          * Sorts an array.
          * @param compareFn The name of the function used to determine the order of the elements. If omitted, the elements are sorted in ascending, ASCII character order.
         **/
-        sort(compareFn?: (a: T, b: T) => number): T[];
+        sort(compareFn?: (a: T, b: T) => number): this;
 
         /**
          * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
@@ -10013,14 +10019,38 @@ declare module WinJS.Utilities {
 
         /**
          * Calls a defined callback function on each element of an array, and returns an array that contains the results.
-         * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array. 
-         * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-        **/
+        * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
+        * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+        */
+        map<U>(this: [T, T, T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U, U, U];
+        /**
+         * Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
+        * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+        */
+        map<U>(this: [T, T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U, U];
+        /**
+         * Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
+        * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+        */
+        map<U>(this: [T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U];
+        /**
+         * Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
+        * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+        */
+        map<U>(this: [T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U];
+        /**
+         * Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
+        * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+        */
         map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
 
         /**
-         * Returns the elements of an array that meet the condition specified in a callback function. 
-         * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array. 
+         * Returns the elements of an array that meet the condition specified in a callback function.
+         * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
          * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
         **/
         filter(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T[];
@@ -10038,15 +10068,15 @@ declare module WinJS.Utilities {
         **/
         reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
 
-        /** 
+        /**
          * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-         * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array. 
+         * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
          * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
         **/
         reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
-        /** 
+        /**
          * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-         * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array. 
+         * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
          * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
         **/
         reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
@@ -10375,7 +10405,7 @@ declare module WinJS.Utilities {
 /**
  * Provides functions and objects for scheduling and managing asynchronous tasks.
 **/
-declare module WinJS.Utilities.Scheduler {
+declare namespace WinJS.Utilities.Scheduler {
     //#region Enumerations
 
     /**
@@ -10613,4 +10643,8 @@ declare module WinJS.Utilities.Scheduler {
 
     //#endregion Functions
 
+}
+
+declare module 'winjs' {
+    export = WinJS;
 }

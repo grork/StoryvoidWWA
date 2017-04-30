@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|AnyCPU">
       <Configuration>Debug</Configuration>
@@ -41,7 +42,7 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
-    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.1</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).Default.props" />
@@ -54,16 +55,13 @@
     <PackageCertificateKeyFile>Test_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>CB5DB13FEA5B0104F47B255DB6F08F05DCD5E5AE</PackageCertificateThumbprint>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>$(USERPROFILE)\Desktop\TempProjects\$(MSBuildProjectName)\bin\$(Configuration)</OutputPath>
-  </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="tsconfig.json" />
     <None Include="Test_TemporaryKey.pfx" />
     <Content Include="css\tests\qunit.css" />
-    <Content Include="packages.config" />
     <Content Include="RemoteTestContent\SampleImage1.png" />
     <Content Include="RemoteTestContent\SampleImage2.jpg" />
     <Content Include="RemoteTestContent\TestPage1.html" />
@@ -104,24 +102,11 @@
     </Content>
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\tests\InstapaperArticleSync_tests.ts" />
-    <Content Include="js\Tests\InstapaperArticleSync_tests.js">
-      <DependentUpon>InstapaperArticleSync_tests.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\tests\Settings_Tests.ts" />
-    <Content Include="js\tests\Settings_Tests.js">
-      <DependentUpon>Settings_Tests.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
-    <Content Include="js\tests\WebViewMessengerTests.js">
-      <DependentUpon>WebViewMessengerTests.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
     <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
     <TypeScriptCompile Include="js\tests\AutoSyncWatcher_tests.ts" />
-    <Content Include="js\Tests\AutoSyncWatcher_tests.js">
-      <DependentUpon>AutoSyncWatcher_tests.ts</DependentUpon>
-    </Content>
-
     <Content Include="..\App\HtmlTemplates.html">
       <Link>HtmlTemplates.html</Link>
     </Content>
@@ -146,7 +131,6 @@
     <Content Include="..\App\js\ui\authenticator.js">
       <Link>js\authenticator.js</Link>
     </Content>
-
     <Content Include="..\App\js\Utilities.js">
       <Link>js\Utilities.js</Link>
     </Content>
@@ -165,60 +149,26 @@
     <Content Include="..\App\WinJS\js\intrinsics.js">
       <Link>WinJS\js\intrinsics.js</Link>
     </Content>
-
     <TypeScriptCompile Include="..\App\js\InstapaperArticleSync.ts">
       <Link>js\InstapaperArticleSync.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\InstapaperArticleSync.js">
-      <Link>js\InstapaperArticleSync.js</Link>
-      <DependentUpon>InstapaperArticleSync.ts</DependentUpon>
-    </Content>
-    
     <TypeScriptCompile Include="..\App\js\SettingsCore.ts">
       <Link>js\SettingsCore.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\SettingsCore.js">
-      <Link>js\SettingsCore.js</Link>
-      <DependentUpon>SettingsCore.ts</DependentUpon>
-    </Content>
-
     <TypeScriptCompile Include="..\App\js\AutoSyncWatcher.ts">
       <Link>js\AutoSyncWatcher.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\AutoSyncWatcher.js">
-      <Link>js\AutoSyncWatcher.js</Link>
-      <DependentUpon>AutoSyncWatcher.ts</DependentUpon>
-    </Content>
-    
     <TypeScriptCompile Include="..\App\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\ui\core.js">
-      <Link>js\ui\core.js</Link>
-      <DependentUpon>core.ts</DependentUpon>
-    </Content>
-    
     <TypeScriptCompile Include="..\App\js\WebViewMessenger.ts">
       <Link>js\WebViewMessenger.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\WebViewMessenger.js">
-      <Link>js\WebViewMessenger.js</Link>
-      <DependentUpon>WebViewMessenger.ts</DependentUpon>
-    </Content>
-    
     <TypeScriptCompile Include="..\App\js\WebViewMessenger_client.ts">
       <Link>js\WebViewMessenger_client.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\WebViewMessenger_client.js">
-      <Link>js\WebViewMessenger_client.js</Link>
-      <DependentUpon>WebViewMessenger_client.ts</DependentUpon>
-    </Content>
-    
     <TypeScriptCompile Include="..\App\Scripts\typings\winjs\winjs.d.ts">
       <Link>Scripts\typings\winjs\winjs.d.ts</Link>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="..\App\Scripts\typings\winrt\winrt.d.ts">
-      <Link>Scripts\typings\winrt\winrt.d.ts</Link>
     </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\tsc\libs\codevoid.d.ts">
       <Link>tsc\libs\codevoid.d.ts</Link>
@@ -226,6 +176,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets')" />
   <ItemGroup>
     <Service Include="{4a0dddb5-7a95-4fbf-97cc-616d07737a77}" />

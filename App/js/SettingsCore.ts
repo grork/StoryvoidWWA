@@ -34,7 +34,7 @@
                 return this._defaults[name];
             }
 
-            return settingValue;
+            return <T>settingValue;
         }
 
         protected setValue<T>(name: string, value: T): void {

@@ -11,18 +11,25 @@
         <script src="/js/tests/qunit.js"></script>
 
         <!-- Storyvoid Implementation -->
+        <!--
+            Note that some files are referenced from the root, despite the
+            fact they're not intended to be put there. This is due to the
+            TypeScript VS integration issue described here:
+            https://github.com/Microsoft/TypeScript/issues/15322
+        -->
         <script src="/js/utilities.js"></script>
         <script src="/js/oauth.js"></script>
         <script src="/js/InstapaperApi.js"></script>
         <script src="/js/db.js"></script>
         <script src="/js/InstapaperDB.js"></script>
         <script src="/js/InstapaperSync.js"></script>
-        <script src="/js/InstapaperArticleSync.js"></script>
+        <script src="/InstapaperArticleSync.js"></script>
         <script src="/js/AuthenticatorService.js"></script>
-        <script src="/js/ui/core.js"></script>
-        <script src="/js/ui/authenticator.js"></script>
-        <script src="/js/WebViewMessenger.js"></script>
-        <script src="/js/AutoSyncWatcher.js"></script>
+        <script src="/core.js"></script>
+        <script src="/js/authenticator.js"></script>
+        <script src="/WebViewMessenger.js"></script>
+        <script src="/WebViewMessenger_f.js"></script>
+        <script src="/AutoSyncWatcher.js"></script>
         <script src="/js/Tests/InstapaperTests_Utilities.js"></script>
         <script src="/js/Tests/Utilities_tests.js"></script>
         <script src="/js/Tests/ParameterEncoder_tests.js"></script>
@@ -37,7 +44,7 @@
         <script src="/js/tests/authenticator_tests.js"></script>
         <script src="/js/tests/InstapaperArticleSync_tests.js"></script>
         <script src="/js/tests/WebViewMessengerTests.js"></script>
-        <script src="/js/SettingsCore.js"></script>
+        <script src="/SettingsCore.js"></script>
         <script src="/js/tests/Settings_Tests.js"></script>
         <script src="/js/tests/AutoSyncWatcher_tests.js"></script>
         <script src="/js/tests/testdefault.js"></script>
