@@ -23,6 +23,7 @@
         private _fonts: WinJS.UI.Repeater;
         private _flyoutInitialized: boolean = false;
         private _previouslyFocusedElement: HTMLElement;
+        private _keyDownMap: { [key: number]: boolean } = {};
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -194,6 +195,13 @@
                     keydown: (e: KeyboardEvent) => {
                         var handled: boolean = false;
 
+                        // If we think this key is already down,
+                        // then assume the key is being held down
+                        // and thus ignore this keydown event
+                        if (this._keyDownMap[e.keyCode]) {
+                            return;
+                        }
+
                         if (e.ctrlKey) {
                             this._handleShortcuts(e.keyCode);
                         }
@@ -214,6 +222,13 @@
                             e.preventDefault();
                             e.stopPropagation();
                         }
+
+                        this._keyDownMap[e.keyCode] = true;
+                    },
+                    keyup: (e: KeyboardEvent) => {
+                        // Clear this key from the list of keys
+                        // we think are currently pressed.
+                        this._keyDownMap[e.keyCode] = false;
                     },
                     pointerup: (e: PointerEvent) => {
                         if (e.button != 3) {
