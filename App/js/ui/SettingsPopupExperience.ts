@@ -161,7 +161,7 @@
 
                 // Restore focus to whatever was previously focused.
                 try {
-                    this._previouslyFocusedElement.setActive();
+                    this._previouslyFocusedElement.focus();
                 }
                 catch (e) { }
                 this._previouslyFocusedElement = null;
