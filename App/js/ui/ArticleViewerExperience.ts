@@ -460,7 +460,7 @@
                 // before yielding to the browser, you'll get the escape key event
                 // twice for no apparently good reason.
                 try {
-                    this._previouslyFocusedElement.setActive();
+                    this._previouslyFocusedElement.focus();
                 } catch (e) { }
                 this._previouslyFocusedElement = null;
 
