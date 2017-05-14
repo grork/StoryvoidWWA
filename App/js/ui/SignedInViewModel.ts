@@ -40,6 +40,7 @@
         private static _sorts: ISortsInfo[];
         private _currentSyncSignal: Utilities.Signal;
         private _autoSyncWatcher: AutoSyncWatcher;
+        private _inProgressSync: WinJS.Promise<any>;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
@@ -324,6 +325,7 @@
         }
 
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
+            this._inProgressSync.cancel();
             this.disposeDB();
 
             if (clearCredentials) {
@@ -461,7 +463,7 @@
                 }
             });
 
-            WinJS.Promise.join({
+            this._inProgressSync = WinJS.Promise.join({
                 sync: sync.sync({
                     dbInstance: this._instapaperDB,
                     folders: true,
@@ -494,7 +496,7 @@
                 }
             }).then(() => {
                 return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
-            }).done(() => {
+            }).then(() => {
                 Utilities.Logging.instance.log("Completed Sync");
 
                 if (!parameters.noEvents) {
@@ -505,6 +507,7 @@
                     this._currentSyncSignal.complete();
                 }
             }, (e) => {
+                this._inProgressSync = null;
                 if (this._currentSyncSignal) {
                     this._currentSyncSignal.complete();
                 }
