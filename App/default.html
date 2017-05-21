@@ -167,18 +167,23 @@
                 <div class="signedIn-content">
                     <div class="syncing-container"
                          data-part="_syncProgressContainer"></div>
-                    <div class="signedIn-articleList"
-                         data-event="{
+                    <div class="signedIn-contentContainer"
+                         data-part="_contentContainer">
+                        <div class="signedIn-articleList"
+                             data-event="{
                             selectionchanged: contentListSelectionChanged,
                             iteminvoked: listItemInvoked,
                             contextmenu: menuInvoked,
                             MSHoldVisual: holdVisualTriggered,
                          }"
-                         data-win-control="WinJS.UI.ListView"
-                         data-win-options="{
+                             data-win-control="WinJS.UI.ListView"
+                             data-win-options="{
                             layout: { type: WinJS.UI.GridLayout, orientation: 'Vertical' }
                          }"
-                         data-part="_contentList"></div>
+                             data-part="_contentList"></div>
+                        <div class="signedIn-emptyState"
+                             data-part="_emptyStateContainer"></div>
+                    </div>
                 </div>
                 <div data-part="_toolBarContainer"
                      class="signedIn-selectioncommands-container">
