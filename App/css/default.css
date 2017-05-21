@@ -204,17 +204,25 @@ button.win-command:focus {
     transform: translateY(-52px);
 }
 
-.signedIn-articleList {
+.signedIn-contentContainer {
     height: 100%;
     width: 100%;
     -ms-grid-column: 1;
     -ms-grid-row: 1;
     -ms-grid-row-span: 3;
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 1fr;
 }
 
-    .signedIn-articleList.syncProgress-visible {
+    .signedIn-contentContainer.syncProgress-visible {
         -ms-grid-row: 3;
         -ms-grid-row-span: 1;
+    }
+
+    .signedIn-contentContainer > div {
+        width: 100%;
+        height: 100%;
     }
 
 @keyframes animateOut {

@@ -4,10 +4,12 @@
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _folderNameElement: HTMLElement;
+        private _contentContainer: HTMLDivElement;
         private _articleTemplate: WinJS.Binding.Template;
         private _imageArticleTemplate: WinJS.Binding.Template;
         private _progressTemplate: WinJS.Binding.Template;
         private _contentList: WinJS.UI.ListView<any>;
+        private _emptyStateContainer: HTMLDivElement;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
         private _splitView: WinJS.UI.SplitView;
         private _selectModeToggle: WinJS.UI.Command;
@@ -192,14 +194,25 @@
 
             this._folderNameElement.textContent = folderDetails.folder.title;
 
-            // Set the item template before you set the data source
-            this._contentList.itemTemplate = this._renderItem.bind(this);
-            this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
+            if (folderDetails.hasBookmarks) {
+                WinJS.Utilities.removeClass(this._contentList.element, "hide");
+                WinJS.Utilities.addClass(this._emptyStateContainer, "hide");
 
-            var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
+                // Set the item template before you set the data source
+                this._contentList.itemTemplate = this._renderItem.bind(this);
+                this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
 
-            // Ensure the first item in the list gets focus.
-            this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
+                var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
+
+                // Ensure the first item in the list gets focus.
+                this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
+            } else {
+                WinJS.Utilities.addClass(this._contentList.element, "hide");
+                WinJS.Utilities.removeClass(this._emptyStateContainer, "hide");
+                this._contentList.itemDataSource = null;
+
+                this._emptyStateContainer.innerText = "I am empty";
+            }
         }
 
         private _showSyncProgress(initialMessage: string): void {
@@ -212,47 +225,47 @@
 
             this._syncProgressContainer.appendChild(headerContainer);
 
-            var animHandler = Utilities.addEventListeners(this._contentList.element, {
+            var animHandler = Utilities.addEventListeners(this._contentContainer, {
                 animationend: (e: TransitionEvent) => {
                     // We'll see other bubbling events from other transitions
                     // make sure we're only handling the one WE started.
-                    if (e.target != this._contentList.element) {
+                    if (e.target != this._contentContainer) {
                         return;
                     }
 
                     animHandler.cancel();
 
-                    WinJS.Utilities.addClass(this._contentList.element, "syncProgress-visible");
-                    WinJS.Utilities.removeClass(this._contentList.element, "syncProgressAnimation-out");
+                    WinJS.Utilities.addClass(this._contentContainer, "syncProgress-visible");
+                    WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation-out");
                 }
             });
 
-            WinJS.Utilities.addClass(this._contentList.element, "syncProgressAnimation-out");
+            WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation-out");
 
             this._syncProgressContainer.style.transform = "translate(0px)";
         }
 
         private _hideSyncProgress(): void {
             WinJS.Promise.timeout(2 * 1000).done(() => {
-                var animHandler = Utilities.addEventListeners(this._contentList.element, {
+                var animHandler = Utilities.addEventListeners(this._contentContainer, {
                     animationend: (e: TransitionEvent) => {
                         // We'll see other bubbling events from other transitions
                         // make sure we're only handling the one WE started.
-                        if (e.target != this._contentList.element) {
+                        if (e.target != this._contentContainer) {
                             return;
                         }
 
                         animHandler.cancel();
 
-                        WinJS.Utilities.removeClass(this._contentList.element, "syncProgressAnimation-in");
-                        WinJS.Utilities.removeClass(this._contentList.element, "syncProgress-visible");
+                        WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation-in");
+                        WinJS.Utilities.removeClass(this._contentContainer, "syncProgress-visible");
 
                         WinJS.Utilities.empty(this._syncProgressContainer);
                         Codevoid.Utilities.DOM.disposeOfControl(this._syncProgressContainer.firstElementChild);
                     }
                 });
 
-                WinJS.Utilities.addClass(this._contentList.element, "syncProgressAnimation-in");
+                WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation-in");
                 this._syncProgressContainer.style.transform = "";
             });
         }

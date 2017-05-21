@@ -4,6 +4,7 @@
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
+        hasBookmarks: boolean;
     }
 
     export enum SortOption {
@@ -625,6 +626,7 @@
                 return {
                     folder: result.folder,
                     bookmarks: this._currentBookmarks.createSorted(SignedInViewModel.sorts[this._currentSort].comparer),
+                    hasBookmarks: (result.bookmarks.length > 0)
                 };
             });
         }
