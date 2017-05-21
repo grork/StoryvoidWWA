@@ -3,6 +3,7 @@
 
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
+        private _emptyStateListeners: Codevoid.Utilities.ICancellable;
         private _folderNameElement: HTMLElement;
         private _contentContainer: HTMLDivElement;
         private _articleTemplate: WinJS.Binding.Template;
@@ -23,6 +24,7 @@
         private viewModel: SignedInViewModel;
         private _menu: WinJS.UI.Menu;
         private _wasTouchHeld: boolean = false;
+        private _contentHasItems: boolean = true;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -42,6 +44,7 @@
 
             this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
                 folderchanging: () => {
+                    this._clearEmptyStateListeners();
                     this._contentList.itemDataSource = null;
                 },
                 folderchanged: (e: { detail: IFolderDetails }) => {
@@ -179,6 +182,7 @@
 
             this._folderList.data = null;
             this._splitView.closePane();
+            this._clearEmptyStateListeners();
             this._contentList.itemDataSource = null;
         }
 
@@ -194,22 +198,50 @@
 
             this._folderNameElement.textContent = folderDetails.folder.title;
 
-            if (folderDetails.hasBookmarks) {
+            this._clearEmptyStateListeners();
+
+            // Set the item template before you set the data source
+            this._contentList.itemTemplate = this._renderItem.bind(this);
+            this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
+
+
+            this._emptyStateListeners = Utilities.addEventListeners(<any>folderDetails.bookmarks, {
+                itemremoved: () => {
+                    this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                },
+                iteminserted: () => {
+                    this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                }
+            });
+
+            var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
+
+            // Ensure the first item in the list gets focus.
+            this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
+
+            this._contentList.itemDataSource.getCount().done((count) => {
+                this._updateEmptyStateBasedOnBookmarkCount(count);
+            });
+        }
+
+        private _clearEmptyStateListeners(): void {
+            if (!this._emptyStateListeners) {
+                return;
+            }
+
+            this._emptyStateListeners.cancel();
+            this._emptyStateListeners = null;
+        }
+
+        private _updateEmptyStateBasedOnBookmarkCount(numberOfBookmarks: number): void {
+            var hasBookmarks = numberOfBookmarks > 0;
+
+            if (hasBookmarks) {
                 WinJS.Utilities.removeClass(this._contentList.element, "hide");
                 WinJS.Utilities.addClass(this._emptyStateContainer, "hide");
-
-                // Set the item template before you set the data source
-                this._contentList.itemTemplate = this._renderItem.bind(this);
-                this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
-
-                var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
-
-                // Ensure the first item in the list gets focus.
-                this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
             } else {
                 WinJS.Utilities.addClass(this._contentList.element, "hide");
                 WinJS.Utilities.removeClass(this._emptyStateContainer, "hide");
-                this._contentList.itemDataSource = null;
 
                 this._emptyStateContainer.innerText = "I am empty";
             }

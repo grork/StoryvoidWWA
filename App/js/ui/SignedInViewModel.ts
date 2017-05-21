@@ -4,7 +4,6 @@
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
-        hasBookmarks: boolean;
     }
 
     export enum SortOption {
