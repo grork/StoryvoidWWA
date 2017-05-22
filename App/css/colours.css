@@ -322,3 +322,7 @@ progress.article-progress {
 .about-legal {
     color: darkgrey;
 }
+
+.emptyState-container {
+    color: darkgrey;
+}

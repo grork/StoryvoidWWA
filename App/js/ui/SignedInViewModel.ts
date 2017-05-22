@@ -32,7 +32,7 @@
         private _dbOpened: boolean;
         private _pendingDbOpen: Utilities.Signal;
         private _eventSource: Utilities.EventSource;
-        private _currentFolderId: number = -1;
+        private _currentFolderDbId: number = -1;
         private _currentFolder: IFolderDetails;
         private _currentBookmarks: WinJS.Binding.List<IBookmark>;
         private _currentSort: SortOption = SortOption.Oldest;
@@ -58,7 +58,7 @@
 
             this._handlersToCleanUp = [];
             this._currentFolder = null;
-            this._currentFolderId = -1;
+            this._currentFolderDbId = -1;
             this._currentBookmarks = null;
             this._currentSort = SortOption.Oldest;
             this._instapaperDB.dispose();
@@ -68,7 +68,7 @@
 
         private _handleFoldersChanged(detail: IFoldersChangedEvent): void {
             // Only care if it's for the folder we're currently on
-            if (detail.folder_dbid !== this._currentFolderId) {
+            if (detail.folder_dbid !== this._currentFolderDbId) {
                 return;
             }
 
@@ -120,7 +120,7 @@
             // we need to handle these behaviours a little differently
             // because the 'liked' folder is really a virtual folder, so
             // doesn't have things added/removed from it -- just like/unlike
-            if (this._currentFolderId === this._instapaperDB.commonFolderDbIds.liked) {
+            if (this._currentFolderDbId === this._instapaperDB.commonFolderDbIds.liked) {
                 switch (detail.operation) {
                     case InstapaperDB.BookmarkChangeTypes.UPDATE:
                         this._handleBookmarkUpdated(detail);
@@ -140,7 +140,7 @@
 
             var folderId = detail.sourcefolder_dbid || detail.bookmark.folder_dbid;
             // Only care if the folder for this bookmark is of interest
-            if (folderId != this._currentFolderId) {
+            if (folderId != this._currentFolderDbId) {
                 return;
             }
 
@@ -162,14 +162,14 @@
         }
 
         private _handleBookmarkMoved(detail: IBookmarksChangedEvent) {
-            if (detail.sourcefolder_dbid === this._currentFolderId) {
+            if (detail.sourcefolder_dbid === this._currentFolderDbId) {
                 // since it's *from* this folder, and it's a move, this should be remapped to an delete:
                 detail.operation = InstapaperDB.BookmarkChangeTypes.DELETE;
                 this._handleBookmarkDeleted(detail);
                 return;
             }
 
-            if (detail.destinationfolder_dbid === this._currentFolderId) {
+            if (detail.destinationfolder_dbid === this._currentFolderDbId) {
                 // If the destination maps to the folder we're looking at,
                 // then we can map to an add
                 detail.operation = InstapaperDB.BookmarkChangeTypes.ADD;
@@ -300,9 +300,9 @@
 
             this._instapaperDB.initialize().done((result) => {
                 this._dbOpened = true;
-                this._currentFolderId = this.commonFolderDbIds.unread;
+                this._currentFolderDbId = this.commonFolderDbIds.unread;
 
-                Utilities.Logging.instance.log("Initialized DB w/ folder ID: " + this._currentFolderId);
+                Utilities.Logging.instance.log("Initialized DB w/ folder ID: " + this._currentFolderDbId);
                 this._pendingDbOpen.complete();
                 this._pendingDbOpen = null;
 
@@ -320,8 +320,16 @@
             this._readyForEvents.complete();
         }
 
-        public get currentFolderId(): number {
-            return this._currentFolderId;
+        public get currentFolderDbId(): number {
+            return this._currentFolderDbId;
+        }
+
+        public get currentFolderId(): string {
+            if (!this._currentFolder || !this._currentFolder.folder) {
+                return "";
+            }
+
+            return this._currentFolder.folder.folder_id;
         }
 
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
@@ -641,12 +649,12 @@
         public switchCurrentFolderTo(folderId: number): void {
             // If we're being asked to switch to the folder
             // we're currently on, then no-op.
-            if (this._currentFolderId === folderId) {
+            if (this._currentFolderDbId === folderId) {
                 return;
             }
 
             this._currentFolder = null;
-            this._currentFolderId = folderId;
+            this._currentFolderDbId = folderId;
 
             this.refreshCurrentFolder();
         }
@@ -654,11 +662,11 @@
         public refreshCurrentFolder(): void {
             this._eventSource.dispatchEvent("folderchanging", null);
 
-            this.getDetailsForFolder(this._currentFolderId).done((result) => {
+            this.getDetailsForFolder(this._currentFolderDbId).done((result) => {
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("folderchanged", result);
             }, () => {
-                this._currentFolderId = -1;
+                this._currentFolderDbId = -1;
             });
         }
 
@@ -702,7 +710,7 @@
                 commands.push(downloadCommand);
             }
 
-            if (this._currentFolderId === this.commonFolderDbIds.liked) {
+            if (this._currentFolderDbId === this.commonFolderDbIds.liked) {
                 var unlikeCommand = {
                     label: "Unlike",
                     icon: "\uEA92",
@@ -735,7 +743,7 @@
 
             commands.push(moveCommand);
 
-            if (this._currentFolderId !== this.commonFolderDbIds.archive) {
+            if (this._currentFolderDbId !== this.commonFolderDbIds.archive) {
                 var archiveCommand = {
                     label: "Archive",
                     icon: "\uEC50",
