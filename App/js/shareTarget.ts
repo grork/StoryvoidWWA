@@ -196,6 +196,7 @@ module Codevoid.Storyvoid.UI {
         private articleUrl: HTMLDivElement;
         private informationLabel: HTMLDivElement;
         private saveButton: HTMLButtonElement;
+        private completingContainer: HTMLDivElement;
         private successMessage: HTMLDivElement;
         private progressRing: HTMLProgressElement;
         private details: HTMLDivElement;
@@ -253,6 +254,7 @@ module Codevoid.Storyvoid.UI {
                     WinJS.Utilities.addClass(this.informationLabel, "hide");
                     WinJS.Utilities.addClass(this.saveButton, "hide");
                     WinJS.Utilities.removeClass(this.progressRing, "hide");
+                    WinJS.Utilities.removeClass(this.completingContainer, "hide");
                     break;
 
                 case SharingState.Complete:
@@ -261,6 +263,7 @@ module Codevoid.Storyvoid.UI {
                     break;
 
                 case SharingState.Error:
+                    WinJS.Utilities.addClass(this.completingContainer, "hide");
                     WinJS.Utilities.addClass(this.progressRing, "hide");
                     WinJS.Utilities.removeClass(this.informationLabel, "hide");
                     this.informationLabel.innerText = "We couldn't save the article to Instapaper. You can click savea again to retry."

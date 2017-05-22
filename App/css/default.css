@@ -957,6 +957,16 @@ button.margin-increase .win-commandimage {
     padding-bottom: 0px;
 }
 
+.share-completing {
+    display: -ms-grid;
+    width: 100%;
+    height: 240px;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: 1fr;
+    -ms-grid-column-align: center;
+    -ms-grid-row-align: center;
+}
+
 .share-progress {
     -ms-grid-column-align: center;
     -ms-grid-row-align: center;
