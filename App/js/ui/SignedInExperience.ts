@@ -234,16 +234,26 @@
         }
 
         private _updateEmptyStateBasedOnBookmarkCount(numberOfBookmarks: number): void {
-            var hasBookmarks = numberOfBookmarks > 0;
+            var nowHasBookmarks = numberOfBookmarks > 0;
+            var previouslyHadBookmarks = this._contentHasItems;
 
-            if (hasBookmarks) {
+            if (this._emptyStateContainer.firstElementChild) {
+                Utilities.DOM.removeChild(this._emptyStateContainer, <HTMLElement>this._emptyStateContainer.firstElementChild);
+            }
+
+            if (nowHasBookmarks && !previouslyHadBookmarks) {
+                this._contentHasItems = true;
                 WinJS.Utilities.removeClass(this._contentList.element, "hide");
                 WinJS.Utilities.addClass(this._emptyStateContainer, "hide");
-            } else {
+            } else if (!nowHasBookmarks) {
+                this._contentHasItems = false;
+
                 WinJS.Utilities.addClass(this._contentList.element, "hide");
                 WinJS.Utilities.removeClass(this._emptyStateContainer, "hide");
 
-                this._emptyStateContainer.innerText = "I am empty";
+                Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "emptyState").done((template) => {
+                    template.render({ folder_id: this.viewModel.currentFolderId }, this._emptyStateContainer);
+                });
             }
         }
 
@@ -316,7 +326,7 @@
 
         public itemsRendered(e: any): void {
             this._folderList.data.forEach((item: IFolder, index: number) => {
-                if (item.id != this.viewModel.currentFolderId) {
+                if (item.id != this.viewModel.currentFolderDbId) {
                     return;
                 }
 
@@ -328,7 +338,7 @@
 
         public splitViewOpened(): void {
             this._folderList.data.forEach((item: IFolder, index: number) => {
-                if (item.id != this.viewModel.currentFolderId) {
+                if (item.id != this.viewModel.currentFolderDbId) {
                     return;
                 }
 
