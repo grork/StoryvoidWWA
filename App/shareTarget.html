@@ -33,7 +33,7 @@
              class="shareSignedIn-details hide">
             <div data-part="informationLabel"
                  class="share-article-info">
-               The article with these details will be saved straight to Instapaper when you click save.
+                The article with these details will be saved straight to Instapaper when you click save.
             </div>
             <div class="share-article-label">Title</div>
             <div class="share-article-title">
@@ -50,10 +50,13 @@
                 Send to Instapaper
             </button>
         </div>
-        <progress data-part="progressRing"
-                  class="win-progress-ring win-large hide share-progress"></progress>
-        <div class="share-success hide"
-             data-part="successMessage">All done!</div>
+        <div class="share-completing hide"
+             data-part="completingContainer">
+            <progress data-part="progressRing"
+                      class="win-progress-ring win-large hide share-progress"></progress>
+            <div class="share-success hide"
+                 data-part="successMessage">All done!</div>
+        </div>
     </div>
 </body>
 </html>
