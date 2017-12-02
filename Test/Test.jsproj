@@ -42,7 +42,7 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
-    <TypeScriptToolsVersion>2.2</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).Default.props" />
@@ -52,15 +52,17 @@
     <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>Test_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>CB5DB13FEA5B0104F47B255DB6F08F05DCD5E5AE</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>StoryVoidTest.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>6B9F6A3FA5FBD8B1930960034B43D59F5425037C</PackageCertificateThumbprint>
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="StoryVoidTest.cer" />
+    <None Include="StoryVoidTest.pfx" />
+    <Content Include="StoryVoidTest.pvk" />
     <Content Include="tsconfig.json" />
-    <None Include="Test_TemporaryKey.pfx" />
     <Content Include="css\tests\qunit.css" />
     <Content Include="RemoteTestContent\SampleImage1.png" />
     <Content Include="RemoteTestContent\SampleImage2.jpg" />
