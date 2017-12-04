@@ -5,17 +5,22 @@
 }
 
 body {
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 0px;
+    margin-right: 0px;
     margin-top: 0px;
     margin-bottom: 144px;
     font-family: Cambria;
     line-height: 1.6em;
     font-size: 20px;
     -ms-content-zooming: none;
-    max-width: 1400px;
-    width: 80vw;
 }
+
+    body > *:not(.articleViewer-toolbar-underlay) {
+        margin-left: auto;
+        margin-right: auto;
+        width: 80vw;
+        max-width: 1400px;
+    }
 
 /* Reset the figure element so it doesn't have
    it's default margin, and lets images go
@@ -80,6 +85,30 @@ p {
     text-decoration: none;
 }
 
+.articleViewer-toolbar-underlay {
+    position: sticky;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: 48px; /* Same size as the toolbar */
+    width: 100%;
+    /* Move up the underlay so the content 
+       doesn't move when this element is created */
+    margin-bottom: -48px;
+}
+
+@media all and (max-width: 640px) {
+    /* When the app is small, toolbar moves to the
+       bottom, so rather than being sticky, lets make
+       it fixed at the bottom. */
+    .articleViewer-toolbar-underlay {
+        position: fixed;
+        bottom: 0px;
+        top: unset;
+        margin-bottom: unset;
+    }
+}
+
 a:active,
 a:visited {
     text-decoration: none;
@@ -96,7 +125,8 @@ body > div.video_frame {
     }
 
 /* Colors */
-.theme-day {
+.theme-day,
+.theme-day .articleViewer-toolbar-underlay {
     background-color: white;
     color: black;
 }
@@ -121,7 +151,8 @@ body > div.video_frame {
             color: navy;
         }
 
-.theme-paper {
+.theme-paper,
+.theme-paper .articleViewer-toolbar-underlay  {
     background-color: wheat;
     color: black;
 }
@@ -147,7 +178,8 @@ body > div.video_frame {
         }
 
 
-.theme-dusk {
+.theme-dusk,
+.theme-dusk .articleViewer-toolbar-underlay {
     background-color: darkslategrey;
     color: lightgrey;
 }
@@ -169,7 +201,8 @@ body > div.video_frame {
             color: white;
         }
 
-.theme-night {
+.theme-night,
+.theme-night .articleViewer-toolbar-underlay {
     background-color: black;
     color: darkgrey;
 }

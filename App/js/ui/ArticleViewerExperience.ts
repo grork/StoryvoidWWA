@@ -185,6 +185,10 @@
                     });
                 }
 
+                // Set the toolbar state in the viewer. This is to ensure
+                // that the underlay state is correct.
+                this._messenger.invokeForResult("settoolbarstate", this._toolbarVisible);
+
                 // Setup OS back button support
                 this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
@@ -380,6 +384,7 @@
                     WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
                         WinJS.Utilities.addClass(this._toolbarContainer, "hide");
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
+                        this._messenger.invokeForResult("settoolbarstate", false);
                         signal.complete();
                     });
                 });
@@ -397,6 +402,7 @@
                 shown.done(() => {
                     WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
+                        this._messenger.invokeForResult("settoolbarstate", true);
                         signal.complete();
                     });
                 });
@@ -1001,7 +1007,7 @@
         private _setArticleWidth(articleWidth: number) {
             this._articleWidth = articleWidth;
             this._settings.currentArticleWidth = articleWidth;
-            this._messenger.invokeForResult("setbodycssproperty", { property: "width", value: this._articleWidth + "vw" });
+            this._messenger.invokeForResult("setcontentcssproperty", { property: "width", value: this._articleWidth + "vw" });
             this._messenger.invokeForResult("refreshimagewidths", this._articleWidth);
             this._eventSource.dispatchEvent("articlewidthchanged", this._articleWidth);
         }
