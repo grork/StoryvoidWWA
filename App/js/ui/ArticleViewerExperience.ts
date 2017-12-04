@@ -310,15 +310,7 @@
         }
 
         private _handleArticleWidthChanged(e: { detail: number }): void {
-            // When the article width changes, we need to adust the title layer
-            // to ensure that the title is left aligned with the text. We do
-            // this by performing math on the items, and then cramming some
-            // margin of the title.
-            var newLeftMargin = (100 - e.detail) / 2;
-
-            // Assign the padding to the container; otherwise it behaves more like a translate
-            // than an margin bump, and causes all the text to run into the toolbar buttons
-            this._toolbarContainer.style.paddingLeft = newLeftMargin + "vw";
+            this._toolbarContainer.style.width = e.detail + "vw";
         }
 
         private _extractDomainFromUrl(url: string): string {

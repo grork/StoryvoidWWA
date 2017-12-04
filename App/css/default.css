@@ -608,8 +608,9 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-row: 1;
     -ms-grid-row-align: start;
     display: -ms-grid;
-    -ms-grid-columns: 1fr auto 36px;
-    margin-right: 16px;
+    -ms-grid-columns: 1fr auto;
+    margin-right: auto;
+    margin-left: auto;
     position: relative;
     z-index: 100;
 }
@@ -647,9 +648,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 @media all and (max-width: 640px) {
     .articleViewer-toolbar-container {
         -ms-grid-row-align: end;
-        margin-left: 4px;
-        margin-right: 17px;
-        padding-left: 0px !important;
     }
 
     .articleViewer-title {
