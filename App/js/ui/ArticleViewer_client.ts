@@ -6,9 +6,11 @@
 
     const ARTICLE_WIDTH_PX = 1400;
     const MIN_SIZE_FOR_IMAGE_STRETCHING = 300;
+    const TOOLBAR_UNDERLAY_CLASS = "articleViewer-toolbar-underlay";
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
+        private _toolbarUnderlay: HTMLElement;
         private _currentImageWidthForImageSizing = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
         private _hadFocus = false;
@@ -19,8 +21,10 @@
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setbodycssproperty", this._setBodyCssProperty.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setcontentcssproperty", this._setContentCssProperty.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("refreshimagewidths", this._refreshImageWidths.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settheme", this._setTheme.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settoolbarstate", this._setToolbarState.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -77,6 +81,16 @@
             document.body.style[propertyToSet.property] = propertyToSet.value;
         }
 
+        private _setContentCssProperty(propertyToSet: { property: string, value: string }): void {
+            var contentElements = document.querySelectorAll("body > *:not(." + TOOLBAR_UNDERLAY_CLASS + ")");
+
+            // Since we're adjusting the content properties, we need
+            // to go over all the found elements, and stomp the property on them.
+            for (var i = 0; i < contentElements.length; i++) {
+                (<HTMLElement>contentElements[i]).style[propertyToSet.property] = propertyToSet.value;
+            }
+        }
+
         private _setImgCssProperty(propertyToSet: { property: string, value: string }): void {
             var images = document.querySelectorAll("img");
             var currentImage: HTMLImageElement;
@@ -102,6 +116,18 @@
             // to have to think hard about the CSS classes involved & if they
             // maybe have previously been set.
             document.body.className = themeClass;
+        }
+
+        private _setToolbarState(toolbarIsVisible: boolean): void {
+            if (!toolbarIsVisible && this._toolbarUnderlay) {
+                this._toolbarUnderlay.parentElement.removeChild(this._toolbarUnderlay);
+                this._toolbarUnderlay = null;
+            } else if (toolbarIsVisible && !this._toolbarUnderlay) {
+                var toolbarUnderlay = document.createElement("div");
+                toolbarUnderlay.className = TOOLBAR_UNDERLAY_CLASS;
+                document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
+                this._toolbarUnderlay = toolbarUnderlay;
+            }
         }
 
         private _handleResize(): void {
