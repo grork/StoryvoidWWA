@@ -84,9 +84,10 @@ module Codevoid.Storyvoid.UI {
             this._articleDetails = details;
             this._eventSource.dispatchEvent("detailschanged", details);
 
-            if (this._shareOperation && this._shareOperation.quickLinkId === QUICK_LINK_ID) {
-                this.saveToInstapaper();
-            }
+            // Automatically save to instapaper, no waiting
+            // for the user to click save with the RS2+ sharing
+            // model.
+            this.saveToInstapaper();
         }
 
         public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {

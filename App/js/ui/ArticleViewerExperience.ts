@@ -425,6 +425,15 @@
                 args.handled = true; // Make sure the OS doesn't handle it.
             }
 
+            // If we're full screen, and we're being asked to dismiss
+            // we probably mean to exit not full screen, not the whole
+            // article.
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            if (view.isFullScreenMode) {
+                view.exitFullScreenMode();
+                return;
+            }
+
             if (this._messenger) {
                 this._messenger.dispose();
                 this._messenger = null;
@@ -434,11 +443,6 @@
 
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
-
-            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            if (view.isFullScreenMode) {
-                view.exitFullScreenMode();
-            }
 
             // Ensure that the status bar is reshown when we're exiting
             // It may already be visible, but no harm is just showing it again
