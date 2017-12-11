@@ -269,10 +269,12 @@
 
             var filePath = file.path.substr(this._localFolderPathLength).replace(/\\/g, "/");
             var processedInformation = {
+                relativePath: filePath,
                 hasImages: false,
                 firstImagePath: undefined,
-                relativePath: filePath,
                 extractedDescription: null,
+                failedToDownload: false,
+                articleUnavailable: false,
             };
 
             return fileContentsOperation.then((contents: string) => {
