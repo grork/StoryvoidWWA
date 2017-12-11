@@ -148,10 +148,10 @@
                 }).then(() => {
                     return true;
                 });
-            }).then((result) => {
+            }).then((result: WinJS.Promise<boolean>) => {
                 Utilities.DOM.removeChild(document.body, element);
 
-                return WinJS.Promise.as(result);
+                return result;
             });
         }
 
