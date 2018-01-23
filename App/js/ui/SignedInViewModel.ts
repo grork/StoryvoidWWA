@@ -787,6 +787,13 @@
         }
 
         public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
+            // Sometimes the article has gone, but we thought we were viewing it, so
+            // handle it by no-oping after clearing the saved article ID.
+            if (restoring && !bookmark) {
+                (new Settings.TransientSettings()).clearLastViewedArticleId();
+                return WinJS.Promise.as();
+            }
+
             // if the local file path has gone AWOL, lets not load, and complete silently.
             if (!bookmark.localFolderRelativePath) {
                 return this._promptToOpenBrowser(bookmark);
