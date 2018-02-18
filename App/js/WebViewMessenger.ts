@@ -2,12 +2,12 @@
     export class WebViewMessenger {
         private _events: EventSource = new EventSource();
         private _handlers: ICancellable;
-        private _messageBridge: CodevoidN.Utilities.WebViewNotifier;
+        private _messageBridge: Codevoid.Utilities.WebViewNotifier;
         private _nextMessageId: number = 0;
         private _waitingForResponse: { [id: number]: Signal } = {};
 
         constructor(private _webView: MSHTMLWebViewElement) {
-            this._messageBridge = new CodevoidN.Utilities.WebViewNotifier();
+            this._messageBridge = new Codevoid.Utilities.WebViewNotifier();
 
             this._handlers = addEventListeners(this._messageBridge, {
                 mswebviewscriptnotify: this._onNotifyMessage.bind(this),

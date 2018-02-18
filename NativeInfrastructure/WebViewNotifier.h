@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace CodevoidN { namespace Utilities
+namespace Codevoid { namespace Utilities
 {
     public delegate void ScriptNotifyHandler(::Platform::String^ payload);
 

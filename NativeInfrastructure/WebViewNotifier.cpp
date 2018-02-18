@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "WebViewNotifier.h"
 
-using namespace CodevoidN::Utilities;
+using namespace Codevoid::Utilities;
 using namespace Platform;
 using namespace Windows::UI::Core;
 

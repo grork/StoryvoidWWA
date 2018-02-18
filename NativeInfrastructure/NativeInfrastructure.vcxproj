@@ -29,8 +29,8 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{95aca049-0cf6-4361-9aa3-ab16ef0f6f9e}</ProjectGuid>
     <Keyword>WindowsRuntimeComponent</Keyword>
-    <ProjectName>CodevoidN</ProjectName>
-    <RootNamespace>CodevoidN</RootNamespace>
+    <ProjectName>Codevoid</ProjectName>
+    <RootNamespace>Codevoid</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
