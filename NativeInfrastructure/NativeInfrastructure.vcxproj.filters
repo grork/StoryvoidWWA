@@ -13,5 +13,11 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="WebViewNotifier.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Codevoid.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
