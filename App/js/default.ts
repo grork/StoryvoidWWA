@@ -35,8 +35,11 @@
         }
     }
 
-    WinJS.Utilities.ready().done(() => {
+    WinJS.Utilities.ready().then(() => {
+        return Telemetry.initialize();
+    }).done(() => {
         var app = new App();
         app.initialize();
+        Telemetry.instance.track("AppLaunched", null);
     });
 }
