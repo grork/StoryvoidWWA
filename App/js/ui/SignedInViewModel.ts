@@ -402,6 +402,10 @@
             return completedSignal.promise;
         }
 
+        public signInCompleted(): void {
+            this.events.dispatchEvent("signincomplete", null);
+        }
+
         public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
             if (this._currentSyncSignal) {
                 return this._currentSyncSignal.promise;
