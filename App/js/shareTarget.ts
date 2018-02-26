@@ -96,6 +96,8 @@ module Codevoid.Storyvoid.UI {
             return WinJS.Promise.as();
         }
 
+        public signInCompleted(): void { /* No op in this situation */ }
+
         public saveToInstapaper(): void {
             var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(this._clientInformation);
             this._savingToService = true;

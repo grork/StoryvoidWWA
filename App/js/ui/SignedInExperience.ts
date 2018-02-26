@@ -65,6 +65,12 @@
                 signedout: () => {
                     this._signOutRequested();
                 },
+                signincomplete: () => {
+                    var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
+
+                    // Ensure the first item in the list gets focus.
+                    this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
+                }
             }));
 
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
@@ -204,7 +210,6 @@
             this._contentList.itemTemplate = this._renderItem.bind(this);
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
 
-
             this._emptyStateListeners = Utilities.addEventListeners(<any>folderDetails.bookmarks, {
                 itemremoved: () => {
                     this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
@@ -213,11 +218,6 @@
                     this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
                 }
             });
-
-            var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
-
-            // Ensure the first item in the list gets focus.
-            this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
 
             this._contentList.itemDataSource.getCount().done((count) => {
                 this._updateEmptyStateBasedOnBookmarkCount(count);
