@@ -87,7 +87,7 @@
 
                 // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
                 // Doesn't really need to do anything, except be initialized
-                var kbhelp = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
+                var kbhelper = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
 
                 var viewerSettings = new Settings.ViewerSettings();
                 this._setToolbar(viewerSettings.toolbarVisible);
@@ -357,7 +357,7 @@
 
             var signal = new Utilities.Signal();
 
-            // Adjust the multiplier  for the offset depending on if we're at the bottom
+            // Adjust the multiplier for the offset depending on if we're at the bottom
             // or the top of the screen (as determined by window width
             var directionMultiplier = -1;
             if (window.innerWidth <= 640) {
@@ -409,6 +409,7 @@
         }
 
         public displaySettingsFlyoutOpening(e: Event) {
+            Telemetry.instance.track("DisplaySettingsOpened", null);
             if (this._flyoutInitialized) {
                 return;
             }
@@ -514,18 +515,22 @@
         }
 
         public switchThemeToDay(): void {
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "day" }));
             this.viewModel.displaySettings.setTheme(Settings.Theme.Day);
         }
 
         public switchThemeToPaper(): void {
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "paper" }));
             this.viewModel.displaySettings.setTheme(Settings.Theme.Paper);
         }
 
         public switchThemeToDusk(): void {
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "dusk" }));
             this.viewModel.displaySettings.setTheme(Settings.Theme.Dusk);
         }
 
         public switchThemeToNight(): void {
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "nights" }));
             this.viewModel.displaySettings.setTheme(Settings.Theme.Night);
         }
     }
@@ -654,6 +659,13 @@
         }
 
         public signalArticleDisplayed(): void {
+            var articleViewType = "ArticleOpened";
+
+            if (this.isRestoring) {
+                articleViewType = "ArticleRestored";
+            }
+
+            Telemetry.instance.track(articleViewType, null);
             this._displayedSignal.complete();
         }
 
@@ -744,14 +756,17 @@
                 this.bookmark = bookmark;
 
                 if (this.bookmark.starred === 1) {
+                    Telemetry.instance.track("LikedArticle", null);
                     this._setToggleLikeToUnlike();
                 } else {
+                    Telemetry.instance.track("UnlikedArticle", null);
                     this._setToggleLikeToLike();
                 }
             });
         }
 
         private _delete(): void {
+            Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "Article" }));
             this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).done(() => {
                 this._eventSource.dispatchEvent("removed", null);
             });
@@ -760,9 +775,11 @@
         private _move(e: UIEvent): void {
             var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
             moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).done((result: boolean) => {
-                if (result) {
-                    this._eventSource.dispatchEvent("removed", null);
+                if (!result) {
+                    return;
                 }
+                Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "Article" }));
+                this._eventSource.dispatchEvent("removed", null);
             });
         }
 
@@ -787,6 +804,8 @@
             } else {
                 destinationFolder = this._instapaperDB.commonFolderDbIds.archive;
             }
+
+            Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "Article" }));
 
             this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder).done(() => {
                 this._eventSource.dispatchEvent("removed", null);
@@ -816,9 +835,11 @@
             if (!view.isFullScreenMode) {
                 var transitionedToFullScreen = view.tryEnterFullScreenMode();
                 if (transitionedToFullScreen) {
+                    Telemetry.instance.track("EnteredFullscreen", null);
                     this._handleTransitionToFullScreen();
                 }
             } else {
+                Telemetry.instance.track("ExitedFullscreen", null);
                 view.exitFullScreenMode();
             }
         }
@@ -929,6 +950,7 @@
                 }
 
                 fontChoice = details;
+                Telemetry.instance.track("FontChanged", toPropertySet({ font: fontChoice.fontFamily }));
             });
 
             this._messenger.invokeForResult("setbodycssproperty", { property: "fontFamily", value: fontChoice.fontFamily });
@@ -944,7 +966,8 @@
             if (this._fontSize <= MIN_FONT_SIZE) {
                 return;
             }
-            
+
+            Telemetry.instance.track("FontSizeDecreased", null);
             this._setFontSize(this._fontSize - 1);
         }
 
@@ -953,6 +976,7 @@
                 return;
             }
 
+            Telemetry.instance.track("FontSizeIncreased", null);
             this._setFontSize(this._fontSize + 1);
         }
 
@@ -967,6 +991,7 @@
                 return;
             }
 
+            Telemetry.instance.track("LineHeightDecreased", null);
             this._setLineHeight(this._lineHeight - LINE_HEIGHT_INCREMENT);
         }
 
@@ -974,7 +999,8 @@
             if (this._lineHeight >= MAX_LINE_HEIGHT) {
                 return;
             }
-            
+
+            Telemetry.instance.track("LineHeightIncreased", null);
             this._setLineHeight(this._lineHeight + LINE_HEIGHT_INCREMENT);
         }
 
@@ -989,6 +1015,7 @@
                 return;
             }
 
+            Telemetry.instance.track("ArticleWidthDecreased", null);
             this._setArticleWidth(this._articleWidth - ARTICLE_WIDTH_INCREMENT);
         }
 
@@ -997,6 +1024,7 @@
                 return;
             }
 
+            Telemetry.instance.track("ArticleWidthIncreased", null);
             this._setArticleWidth(this._articleWidth + ARTICLE_WIDTH_INCREMENT);
         }
 

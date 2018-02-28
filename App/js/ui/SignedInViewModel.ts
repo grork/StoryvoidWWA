@@ -336,6 +336,8 @@
             this._inProgressSync.cancel();
             this.disposeDB();
 
+            Telemetry.instance.track("SignedOut", toPropertySet({ clearingCredentials: clearCredentials }));
+
             if (clearCredentials) {
                 Codevoid.Storyvoid.Authenticator.clearClientInformation();
                 this._app.signOut(true);
@@ -371,6 +373,11 @@
         public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             var completedSignal = new Codevoid.Utilities.Signal();
+
+            Telemetry.instance.track("SignedIn", toPropertySet({
+                usedSavedCredentials: usingSavedCredentials,
+                type: "app",
+            }));
 
             WinJS.Promise.join({
                 db: this.initializeDB(),
@@ -693,6 +700,7 @@
                     label: "Open in browser",
                     icon: "globe",
                     onclick: () => {
+                        Telemetry.instance.track("OpenInBrowser", toPropertySet({ location: "ArticleList" }));
                         Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmarks[0].url));
                     }
                 }
@@ -703,6 +711,7 @@
                     icon: "download",
                     onclick: () => {
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
+                            Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
                             var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
                             articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB).then((bookmark) => {
                                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
@@ -729,6 +738,7 @@
                     label: "Delete",
                     icon: "delete",
                     onclick: () => {
+                        Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "ArticleList" }));
                         this.delete(bookmarks);
                     },
                 };
@@ -741,7 +751,13 @@
                 icon: "movetofolder",
                 onclick: (e: UIEvent) => {
                     var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
-                    moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget);
+                    moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).done((result: boolean) => {
+                        if (!result) {
+                            return;
+                        }
+
+                        Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "ArticleList" }));
+                    });
                 },
             };
 
@@ -752,6 +768,7 @@
                     label: "Archive",
                     icon: "\uEC50",
                     onclick: () => {
+                        Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "ArticleList" }));
                         this.archive(bookmarks);
                     }
                 };
