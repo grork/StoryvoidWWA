@@ -162,6 +162,7 @@
             var commands = this.viewModel.getCommandInformationForBookmarks([data]);
             this._menu.commands = <any[]>commands;
             this._menu.showAt(e);
+            Telemetry.instance.track("ContextMenuShown", null);
 
             // Set the transform of the listview 'content' (E.g. inside the scroller)
             // to be zoomed out a little for a nice effect there is a menu open

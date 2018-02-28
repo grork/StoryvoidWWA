@@ -10,6 +10,7 @@
                 var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
 
                 if (shareArgs.kind === Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
+                    Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "shareTarget" }));
                     // We really need to yield to the browser before we go lala on getting
                     // data and potentially doing any more operations, so bounce around a timeout.
                     WinJS.Promise.timeout().done(() => {
@@ -39,6 +40,11 @@
             return newViewModel;
         }
     }
+
+    // Note, theres no waiting on this to initialize here
+    // Since it seems to take a little longer than the activation
+    // handler being raised. So, lets fire & forget & hope.
+    Telemetry.initialize();
 
     WinJS.Utilities.ready().done(() => {
         var app = new ShareTargetApp();
@@ -92,6 +98,10 @@ module Codevoid.Storyvoid.UI {
 
         public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
+            Telemetry.instance.track("SignedIn", toPropertySet({
+                usedSavedCredentials: usingSavedCredentials,
+                appType: "shareTarget",
+            }));
 
             return WinJS.Promise.as();
         }
@@ -129,6 +139,8 @@ module Codevoid.Storyvoid.UI {
                     }),
                 });
             }).done((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
+                Telemetry.instance.track("SharedSuccessfully", null);
+
                 if (this._shareOperation) {
                     // We successfully saved the article, so give the customer
                     // a chance to quickly save it to the same location next time.
@@ -141,6 +153,8 @@ module Codevoid.Storyvoid.UI {
                     this._shareOperation.reportCompleted(quickLink);
                 }
             }, (e: any) => {
+                Telemetry.instance.track("ShareFailed", null);
+
                 if (!this._reportedError) {
                     this._shareOperation.reportError("Unable to share!");
                     this._reportedError = true;
@@ -157,7 +171,7 @@ module Codevoid.Storyvoid.UI {
                 return;
             }
 
-            // This will throw exceptions if the customer has hit cancelled
+            // This will throw exceptions if the customer has hit cancel
             // but we also need to call it to complete our usage of the operation
             if (this._reportedStarted && !this._reportedCompleted) {
                 this._shareOperation.reportCompleted();
