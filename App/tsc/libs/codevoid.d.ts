@@ -283,5 +283,6 @@ declare module Codevoid.Storyvoid.UI {
 
     export interface ISignedInViewModel extends UICore.ViewModel {
         signedIn(usingSavedCredentials: boolean): WinJS.Promise<any>;
+        signInCompleted(): void;
     }
 }

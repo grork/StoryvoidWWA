@@ -1,4 +1,17 @@
 ﻿module Codevoid.Storyvoid {
+    export function toPropertySet(properties: any): Windows.Foundation.Collections.PropertySet {
+        var propertySet = new Windows.Foundation.Collections.PropertySet();
+
+        for (var key in properties) {
+            if (!properties.hasOwnProperty(key)) {
+                continue;
+            }
+
+            propertySet.insert(key, properties[key]);
+        }
+
+        return propertySet;
+    }
     export class Telemetry {
         private static _client: Codevoid.Utilities.Mixpanel.MixpanelClient;
         static initialize(): WinJS.Promise<any> {
