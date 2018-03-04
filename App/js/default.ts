@@ -26,8 +26,9 @@
 
         public initialize(): void {
             super.initialize();
-
             this.configureTitlebar();
+
+            Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "tile" }));
         }
 
         protected getSignedInViewModel(app: UI.IAppWithAbilityToSignIn): UI.ISignedInViewModel {
@@ -40,6 +41,5 @@
     }).done(() => {
         var app = new App();
         app.initialize();
-        Telemetry.instance.track("AppLaunched", null);
     });
 }
