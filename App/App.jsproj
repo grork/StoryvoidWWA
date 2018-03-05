@@ -95,6 +95,7 @@
     <Content Include="images\StoreLogo.png" />
     <Content Include="images\Wide310x150Logo.scale-200.png" />
     <Content Include="css\default.css" />
+    <Content Include="packages.config" />
     <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
     <Content Include="WinJS\js\base.js" />
@@ -117,7 +118,6 @@
     <TypeScriptCompile Include="js\ui\SignedInExperience.ts" />
     <TypeScriptCompile Include="js\ui\SignedInViewModel.ts" />
     <TypeScriptCompile Include="js\ui\SignedOutExperience.ts" />
-    <Content Include="packages.config" />
     <Content Include="WinJS\css\ui-light-intrinsics.css" />
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
@@ -143,11 +143,11 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets')" />
-  <Import Project="..\packages\Codevoid.Utilities.Mixpanel.1.0.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets" Condition="Exists('..\packages\Codevoid.Utilities.Mixpanel.1.0.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" />
+  <Import Project="..\packages\Codevoid.Utilities.Mixpanel.1.1.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets" Condition="Exists('..\packages\Codevoid.Utilities.Mixpanel.1.1.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Codevoid.Utilities.Mixpanel.1.0.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Codevoid.Utilities.Mixpanel.1.0.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets'))" />
+    <Error Condition="!Exists('..\packages\Codevoid.Utilities.Mixpanel.1.1.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Codevoid.Utilities.Mixpanel.1.1.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets'))" />
   </Target>
 </Project>
