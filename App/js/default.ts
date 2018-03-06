@@ -1,6 +1,26 @@
 ﻿module Codevoid.Storyvoid {
     export class App extends UI.AppThatCanSignIn {
-        private configureTitlebar(): void {
+
+        constructor() {
+            super();
+
+            var activationEvents = Utilities.addEventListeners(Windows.UI.WebUI.WebUIApplication, {
+                activated: (args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs) => {
+                    activationEvents.cancel();
+                    this.handleActivated(args);
+                }
+            });
+        }
+
+        private handleActivated(args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs): void {
+            var deferral = args.activatedOperation.getDeferral();
+            Telemetry.initialize().done(() => {
+                app.initialize();
+                deferral.complete();
+            })
+        }
+
+        public configureTitlebar(): void {
             var applicationView = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
             applicationView.setPreferredMinSize({ height: 320, width: 320 });
 
@@ -26,7 +46,6 @@
 
         public initialize(): void {
             super.initialize();
-            this.configureTitlebar();
 
             Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "tile" }));
         }
@@ -36,10 +55,6 @@
         }
     }
 
-    WinJS.Utilities.ready().then(() => {
-        return Telemetry.initialize();
-    }).done(() => {
-        var app = new App();
-        app.initialize();
-    });
+    var app = new App();
+    app.configureTitlebar();
 }
