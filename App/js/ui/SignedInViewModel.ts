@@ -265,11 +265,110 @@
             ));
         }
 
-        private _handleSyncNeeded(ev: { detail: ISyncNeededEventArgs }) {
-            this.startSync({ skipArticleDownload: !ev.detail.shouldSyncArticleBodies, noEvents: !ev.detail.shouldSyncArticleBodies }).done(() => {
+        private _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>) {
+            this.startSync(ev.detail.reason, { skipArticleDownload: !ev.detail.shouldSyncArticleBodies, noEvents: !ev.detail.shouldSyncArticleBodies }).done(() => {
                 ev.detail.complete();
             }, () => {
                 ev.detail.complete();
+            });
+        }
+
+        private _startTrackingSyncForTelemetry(sync: InstapaperSync, reason: SyncReason): void {
+            var foldersAdded = 0;
+            var foldersRemoved = 0;
+            var bookmarksAdded = 0;
+            var bookmarksRemoved = 0;
+            var vimeoLinksAdded = 0;
+            var youtubeLinksAdded = 0;
+
+            // Start timing the sync event
+            Telemetry.instance.startTimedEvent("SyncCompleted");
+
+            var dbEvents = Utilities.addEventListeners(this._instapaperDB, {
+                bookmarkschanged: (eventData: Utilities.EventObject<IBookmarksChangedEvent>) => {
+                    switch (eventData.detail.operation) {
+                        case InstapaperDB.BookmarkChangeTypes.ADD:
+                            bookmarksAdded++;
+
+                            var uri = new Windows.Foundation.Uri(eventData.detail.bookmark.url);
+                            if (uri.host.indexOf("youtube.com") > -1) {
+                                youtubeLinksAdded++;
+                            }
+
+                            if (uri.host.indexOf("vimeo.com") > -1) {
+                                vimeoLinksAdded++;
+                            }
+                            break;
+
+                        case InstapaperDB.BookmarkChangeTypes.DELETE:
+                            bookmarksRemoved++;
+                            break;
+                    }
+                },
+                folderschanged: (eventData: Utilities.EventObject<IFoldersChangedEvent>) => {
+                    switch (eventData.detail.operation) {
+                        case InstapaperDB.FolderChangeTypes.ADD:
+                            foldersAdded++;
+                            break;
+
+                        case InstapaperDB.FolderChangeTypes.DELETE:
+                            foldersRemoved++;
+                            break;
+                    }
+                },
+            });
+
+            var syncEvents = Utilities.addEventListeners(sync, {
+                syncstatusupdate: (eventData: Utilities.EventObject<ISyncStatusUpdate>) => {
+                    switch (eventData.detail.operation) {
+                        case Codevoid.Storyvoid.InstapaperSync.Operation.end:
+                            syncEvents.cancel();
+                            dbEvents.cancel();
+
+                            Telemetry.instance.track("SyncCompleted", toPropertySet({
+                                bookmarksAdded: bookmarksAdded,
+                                bookmarksRemoved: bookmarksRemoved,
+                                foldersAdded: foldersAdded,
+                                foldersRemoved: foldersRemoved,
+                                youtubeLinksAdded: youtubeLinksAdded,
+                                vimeoLinksAdded: vimeoLinksAdded,
+                                reason: reason.toString()
+                            }));
+
+                            // We want to easily track how many empty syncs we have
+                            if ((bookmarksAdded == 0)
+                                && (bookmarksRemoved == 0)
+                                && (foldersAdded == 0)
+                                && (foldersRemoved == 0)) {
+                                Telemetry.instance.track("EmptySync", null);
+                            }
+
+                            this._logTotalHomeAndFoldersForTelemetry();
+                            break;
+                    }
+                }
+            });
+        }
+
+        private _logTotalHomeAndFoldersForTelemetry(): void {
+            WinJS.Promise.join({
+                unreadArticleCount: this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread).then(articles => articles.length),
+                folderCount: this._instapaperDB.listCurrentFolders().then((folders) => {
+                    // There are 4 fixed folders; we only care about the users own folders
+                    return folders.length - 4;
+                })
+            }).done((result: { unreadArticleCount: number, folderCount: number }) => {
+                // We only want to log changes, not the same count every time.
+                var telemetrySettings = new Settings.TelemetrySettings();
+                if (telemetrySettings.lastFolderCountSeen != result.folderCount) {
+                    Telemetry.instance.track("FolderCountChanged", toPropertySet({ count: result.folderCount }));
+                    telemetrySettings.lastFolderCountSeen = result.folderCount;
+                }
+
+                if (telemetrySettings.lastHomeArticleCountSeen != result.unreadArticleCount) {
+                    Telemetry.instance.track("UnreadArticleCountChanged", toPropertySet({ count: result.unreadArticleCount }));
+                    telemetrySettings.lastHomeArticleCountSeen = result.unreadArticleCount;
+                }
             });
         }
 
@@ -307,7 +406,7 @@
                 this._pendingDbOpen = null;
 
                 this._listenForDbSyncNeeded();
-                this.startSync();
+                this.startSync(SyncReason.Launched);
             }, (e) => {
                 this._pendingDbOpen.error(e);
                 this._pendingDbOpen = null;
@@ -398,7 +497,7 @@
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
-                    this.startSync({ dontWaitForDownloads: true }).done(() => {
+                    this.startSync(SyncReason.Initial, { dontWaitForDownloads: true }).done(() => {
                         completedSignal.complete();
                     });
                 } else {
@@ -413,7 +512,7 @@
             this.events.dispatchEvent("signincomplete", null);
         }
 
-        public startSync(parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
+        public startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
             if (this._currentSyncSignal) {
                 return this._currentSyncSignal.promise;
             }
@@ -441,6 +540,7 @@
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
                     case Codevoid.Storyvoid.InstapaperSync.Operation.start:
+                        this._startTrackingSyncForTelemetry(sync, reason);
                         if (!parameters.noEvents) {
                             this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
                         }
@@ -499,7 +599,7 @@
                 articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
-                    syncingarticlestarting: (e: { detail: { title: string } }) => {
+                    syncingarticlestarting: (e: Utilities.EventObject<{ title: string }>) => {
                         if (parameters.noEvents) {
                             return;
                         }

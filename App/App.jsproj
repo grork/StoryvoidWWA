@@ -102,6 +102,7 @@
     <Content Include="WinJS\js\intrinsics.js" />
     <TypeScriptCompile Include="js\SettingsCore.ts" />
     <TypeScriptCompile Include="js\Telemetry.ts" />
+    <TypeScriptCompile Include="js\TelemetrySettings.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
