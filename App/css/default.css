@@ -549,8 +549,9 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     font-size: 20px;
 }
 
-.sync-folderName {
+.settings-subTitle {
     margin-top: 8px;
+    font-size: 18px;
 }
 
 .settingsPopup-reset > .reset-title {
@@ -568,6 +569,27 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 
 .about-legal {
     font-size: 12px;
+}
+
+.settingsPopup-privacy > .privacy-title {
+    font-size: 20px;
+}
+
+.settingsPopup-privacy > div {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.settingsPopup-privacy > select {
+    width: 100%;
+}
+
+.settingsPopup-privacy .privacy-promise {
+    font-weight: bold;
+}
+
+.settingsPopup-privacy > .privacy-allowCollecting {
+    margin-top: 8px;
 }
 
 .settingsPopup-debug > .debug-title {

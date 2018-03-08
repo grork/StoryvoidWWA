@@ -172,19 +172,19 @@
                     <div class="sync-title">Sync</div>
                     <div>For each of these folders, how many items should we sync?</div>
                     <div data-event="{ change: handleArticleLimitChanged }">
-                        <div class="sync-folderName">Home</div>
+                        <div class="settings-subTitle">Home</div>
                         <select data-part="_homeArticleLimit">
                             <option value="100">100 Latest Articles</option>
                             <option value="250">250 Latest Articles</option>
                             <option value="500">500 Latest Articles</option>
                         </select>
-                        <div class="sync-folderName">Liked</div>
+                        <div class="settings-subTitle">Liked</div>
                         <select data-part="_likedArticleLimit">
                             <option value="10">10 Latest Articles</option>
                             <option value="20">20 Latest Articles</option>
                             <option value="100">100 Latest Articles</option>
                         </select>
-                        <div class="sync-folderName">Archive</div>
+                        <div class="settings-subTitle">Archive</div>
                         <select data-part="_archiveArticleLimit">
                             <option value="10">10 Latest Articles</option>
                             <option value="20">20 Latest Articles</option>
@@ -199,17 +199,32 @@
                     <button data-event="{ click: resetViewerSettings }">Reset my viewer settings (e.g. theme, typeface etc.)</button>
                     <button data-event="{ click: redownload }">Delete my downloaded articles, and redownload them.</button>
                 </div>
+                <div class="settingsPopup-privacy">
+                    <div class="privacy-title">Privacy</div>
+                    <div>
+                        We collect some information about how you use the application -- primarily how long you spend in it,
+                        and how much content you have. This is to make sure we spend the time working on the parts of the app
+                        that you are using. <span class="privacy-promise">We do not track what content you're reading.</span>
+                    </div>
+                    <div>
+                        For more details, see <a href="http://www.storyvoid.com/privacy">Terms of service &amp; privacy policy</a>
+                    </div>
+                    <div class="settings-subTitle privacy-allowCollecting">Share you usage of the app with us</div>
+                    <select data-part="_allowCollectingTelemetry">
+                        <option value="true">Share usage of the app with the developer</option>
+                        <option value="false">Don't share usage of the app with the developer</option>
+                    </select>
+                </div>
                 <div class="settingsPopup-about">
                     <div class="about-title">About</div>
                     <div data-part="_versionElement">Version:</div>
-                    <div>&copy; Copyright 2016, Dominic Hopton</div>
+                    <div>&copy; Copyright, Dominic Hopton</div>
                     <div class="about-legal">
                         This computer program is protected by copyright law and international treaties. Unauthorized reproduction
                         or distribution of this program, or any portion of it, may result in severe civil and criminal penalties,
                         and will be prosecuted to the maximum extent possible under the law.
                     </div>
                     <div>For support, please visit our <a href="http://www.storyvoid.com/support">support site</a>.</div>
-                    <div><a href="http://www.storyvoid.com/privacy">Terms of service &amp; privacy policy</a></div>
                     <div>
                         This application uses services from <a href="https://www.instapaper.com">Instapaper</a>, and is subject
                         to <a href="https://www.instapaper.com/privacy">their terms of service &amp; privacy policy</a>.

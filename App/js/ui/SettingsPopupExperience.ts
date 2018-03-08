@@ -13,6 +13,7 @@
         private _homeArticleLimit: HTMLSelectElementWithState;
         private _likedArticleLimit: HTMLSelectElementWithState;
         private _archiveArticleLimit: HTMLSelectElementWithState;
+        private _allowCollectingTelemetry: HTMLSelectElementWithState;
         private _versionElement: HTMLDivElement;
         private _closeButton: HTMLButtonElement;
         private _previouslyFocusedElement: HTMLElement;
