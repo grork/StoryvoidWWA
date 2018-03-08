@@ -56,7 +56,7 @@ declare module Codevoid.Utilities {
          * @param listener The listener to invoke when the event gets raised.
          * @param useCapture If true, initiates capture, otherwise false.
         **/
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture ?: boolean): void;
+        addEventListener(type: string, listener: Function, useCapture?: boolean): void;
 
         /**
          * Raises an event of the specified type and with the specified additional properties.
@@ -72,7 +72,7 @@ declare module Codevoid.Utilities {
          * @param listener The listener to remove.
          * @param useCapture true if capture is to be initiated, otherwise false.
         **/
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture ?: boolean): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 
         //#endregion Methods
     }
@@ -113,9 +113,9 @@ declare module Codevoid.Storyvoid {
         folder?: number,
     }
 
-    export class InstapaperSync {
+    export class InstapaperSync extends Utilities.EventSource {
         constructor(clientInformation: Codevoid.OAuth.ClientInformation);
-        addEventListener(name: string, handler: (eventData: { detail: ISyncStatusUpdate }) => void);
+        addEventListener(name: "syncstatusupdate", handler: (eventData: Utilities.EventObject<ISyncStatusUpdate>) => any, useCapture?: boolean) : void;
         sync(syncOptions?: ISyncOptions): WinJS.Promise<void>;
         perFolderBookmarkLimits: { [id: string]: number };
         defaultBookmarkLimit: number;

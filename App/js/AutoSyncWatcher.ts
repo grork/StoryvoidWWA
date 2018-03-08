@@ -1,10 +1,25 @@
 ﻿module Codevoid.Storyvoid {
+    // Temporarily placed here as typescript isn't resolving
+    // the type when it's in a separate file
+    export enum SyncReason {
+        None = "None",
+        Initial = "Initial",
+        Launched = "Launched",
+        Explicit = "Explicit",
+        Backgrounded = "Backgrounded",
+        Foregrounded = "Foregrounded",
+        Timer = "Timer",
+        CameOnline = "CameOnline"
+    }
+
     export interface ISyncNeededEventArgs {
+        reason: SyncReason;
         shouldSyncArticleBodies: boolean;
         complete(): void;
     }
 
     class SyndNeededEventArgs extends Utilities.Signal implements ISyncNeededEventArgs {
+        public reason: SyncReason;
         public shouldSyncArticleBodies: boolean;
     }
 
@@ -52,13 +67,14 @@
             }
 
             this._currentTimer = WinJS.Promise.timeout(this.dbIdleInterval).then(() => {
-                this._raiseSyncNeeded(false);
+                this._raiseSyncNeeded(false, SyncReason.Timer);
             });
         }
 
-        private _raiseSyncNeeded(syncArticleBodies: boolean): WinJS.Promise<any> {
+        private _raiseSyncNeeded(syncArticleBodies: boolean, reason: SyncReason): WinJS.Promise<any> {
             var eventPayload = new SyndNeededEventArgs();
             eventPayload.shouldSyncArticleBodies = syncArticleBodies;
+            eventPayload.reason = reason;
 
             this._eventSource.dispatchEvent("syncneeded", eventPayload);
             
@@ -84,7 +100,7 @@
             this._suspendedAt = Date.now();
             var deferral = ev.getDeferral();
 
-            this._raiseSyncNeeded(false).done(() => {
+            this._raiseSyncNeeded(false, SyncReason.Backgrounded).done(() => {
                 deferral.complete();
             }, () => {
                 deferral.complete();
@@ -103,7 +119,7 @@
                 return;
             }
 
-            this._raiseSyncNeeded(true);
+            this._raiseSyncNeeded(true, SyncReason.Foregrounded);
         }
 
         private _handleNetworkStatusChanged(e: any) {
@@ -142,7 +158,7 @@
                 return;
             }
 
-            this._raiseSyncNeeded(wasOfflineLongEnoughToRequireFullSync);
+            this._raiseSyncNeeded(wasOfflineLongEnoughToRequireFullSync, SyncReason.CameOnline);
         }
 
         public get eventSource(): Utilities.EventSource {

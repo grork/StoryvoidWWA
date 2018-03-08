@@ -315,7 +315,7 @@
         
         public startSync(): void {
             this._splitView.closePane();
-            this.viewModel.startSync();
+            this.viewModel.startSync(SyncReason.Explicit);
         }
 
         public folderClicked(e: any): void {
