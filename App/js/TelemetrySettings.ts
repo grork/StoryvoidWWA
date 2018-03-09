@@ -5,6 +5,7 @@
             super("TelemetrySettings",
                 Windows.Storage.ApplicationData.current.localSettings,
                 {
+                    telemetryCollectionEnabled: true,
                     lastFolderCountSeen: 0,
                     lastHomeArticleCountSeen: 0,
                 });
@@ -24,6 +25,14 @@
 
         public set lastHomeArticleCountSeen(value: number) {
             this.setValue("lastHomeArticleCountSeen", value);
+        }
+
+        public get telemeteryCollectionEnabled(): boolean {
+            return this.getValueOrDefault<boolean>("telemetryCollectionEnabled");
+        }
+
+        public set telemeteryCollectionEnabled(value: boolean) {
+            this.setValue("telemetryCollectionEnabled", value);
         }
     }
 }
