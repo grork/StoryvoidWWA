@@ -51,6 +51,7 @@
                 this._manageOpenStateOnSelectElement(this._homeArticleLimit);
                 this._manageOpenStateOnSelectElement(this._likedArticleLimit);
                 this._manageOpenStateOnSelectElement(this._archiveArticleLimit);
+                this._manageOpenStateOnSelectElement(this._allowCollectingTelemetry);
 
                 // Setup OS back button support
                 this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
@@ -59,9 +60,11 @@
                 }));
 
                 var syncSettings = new Settings.SyncSettings();
-                this._selectOptionBasedOnValue(syncSettings.homeArticleLimit, this._homeArticleLimit);
-                this._selectOptionBasedOnValue(syncSettings.likedArticleLimit, this._likedArticleLimit);
-                this._selectOptionBasedOnValue(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
+                this._selectOptionBasedOnValueNumber(syncSettings.homeArticleLimit, this._homeArticleLimit);
+                this._selectOptionBasedOnValueNumber(syncSettings.likedArticleLimit, this._likedArticleLimit);
+                this._selectOptionBasedOnValueNumber(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
+
+                this._selectOptionBasedOnValueBoolean((new Settings.TelemetrySettings()).telemeteryCollectionEnabled, this._allowCollectingTelemetry);
 
                 var version = Windows.ApplicationModel.Package.current.id.version;
                 var versionLabel = " " + version.major + "." + version.minor + "." + version.build + "." + version.revision;
@@ -185,6 +188,11 @@
             this.viewModel.updateArticleSyncLimits(homeLimit, likedLimit, archiveLimit);
         }
 
+        public handleAllowTelemetryChange(): void {
+            var isAllowed = ("true" == this._allowCollectingTelemetry.value);
+            this.viewModel.updateAllowTelemetry(isAllowed);
+        }
+
         public resetViewerSettings(): void {
             var viewerSettings = new Settings.ViewerSettings();
             viewerSettings.removeAllSettings();
@@ -214,7 +222,8 @@
             this.viewModel.articleListViewModel.showDbFiddler();
             this.close();
         }
-        private _selectOptionBasedOnValue(value: number, element: HTMLSelectElement): void {
+
+        private _selectOptionBasedOnValueNumber(value: number, element: HTMLSelectElement): void {
             for (var i = 0; i < element.options.length; i++) {
                 var itemValue = parseInt((<HTMLOptionElement>element.options.item(i)).value); // Assume all items are valid integers
                 if (itemValue === value) {
@@ -222,6 +231,16 @@
                     return;
                 }
             }   
+        }
+
+        private _selectOptionBasedOnValueBoolean(value: boolean, element: HTMLSelectElement): void {
+            for (var i = 0; i < element.options.length; i++) {
+                var itemValue = "true" === (<HTMLOptionElement>element.options.item(i)).value; // Assume all items are valid integers
+                if (itemValue === value) {
+                    element.selectedIndex = i;
+                    return;
+                }
+            }
         }
     }
 
@@ -236,6 +255,7 @@
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showDbFiddler);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleArticleLimitChanged);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleAllowTelemetryChange);
 
     export class SettingsPopupViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SettingsPopupExperience" };
@@ -260,6 +280,12 @@
             syncSettings.homeArticleLimit = homeLimit;
             syncSettings.likedArticleLimit = likedLimit;
             syncSettings.archiveArticleLimit = archiveLimit;
+        }
+
+        public updateAllowTelemetry(allowTelemetry: boolean): void {
+            var telemetrySettings = new Settings.TelemetrySettings();
+            telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
+            Telemetry.instance.dropEventsForPrivacy = !allowTelemetry;
         }
     }
 }
