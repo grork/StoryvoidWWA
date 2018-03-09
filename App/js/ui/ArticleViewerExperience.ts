@@ -457,6 +457,8 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
+            Telemetry.instance.track("ArticleViewLength", null);
+
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Restore focus to a previous element.
                 // Note that if you do this in the dismiss handler from the WebView
@@ -666,6 +668,7 @@
             }
 
             Telemetry.instance.track(articleViewType, null);
+            Telemetry.instance.startTimedEvent("ArticleViewLength");
             this._displayedSignal.complete();
         }
 
