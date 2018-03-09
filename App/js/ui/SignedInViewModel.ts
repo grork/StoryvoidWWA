@@ -456,16 +456,26 @@
             }).then(() => {
                 this._clientInformation = null;
 
-                var viewerSettings = new Codevoid.Storyvoid.Settings.ViewerSettings();
+                var viewerSettings = new Settings.ViewerSettings();
                 viewerSettings.removeAllSettings();
 
-                var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
+                var syncSettings = new Settings.SyncSettings();
                 syncSettings.removeAllSettings();
+
+                var telemetrySettings = new Settings.TelemetrySettings();
+                // Save setting about telemetery enbabled state
+                var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
+                telemetrySettings.removeAllSettings();
+
+                // Restore telemetry enabled state
+                telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
 
                 // Dispatch event after we've told the app to sign out
                 // so that the animation plays w/ full content rather
                 // than an empty state.
                 this.events.dispatchEvent("signedout", null);
+
+                Telemetry.instance.clearSuperProperties();
             });
         }
 
