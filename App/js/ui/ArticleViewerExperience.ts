@@ -405,7 +405,7 @@
 
         public fontSelectionChanged(e: UIEvent): void {
             var font = <Settings.Font>parseInt(this._fontSelector.value);
-            this.viewModel.displaySettings.updateTypeface(font);
+            this.viewModel.displaySettings.updateTypeface(font, true);
         }
 
         public displaySettingsFlyoutOpening(e: Event) {
@@ -954,7 +954,7 @@
             this._messenger = null;
         }
 
-        public updateTypeface(newFont: Settings.Font): void {
+        public updateTypeface(newFont: Settings.Font, fromUserChange?: boolean): void {
             var fontChoice: IFontChoice;
             DisplaySettingsViewModel.fontChoices.forEach((details) => {
                 if (details.font != newFont) {
@@ -962,8 +962,11 @@
                 }
 
                 fontChoice = details;
-                Telemetry.instance.track("FontChanged", toPropertySet({ font: fontChoice.fontFamily }));
             });
+
+            if (fromUserChange) {
+                Telemetry.instance.track("FontChanged", toPropertySet({ font: fontChoice.fontFamily }));
+            }
 
             this._messenger.invokeForResult("setbodycssproperty", { property: "fontFamily", value: fontChoice.fontFamily });
 
