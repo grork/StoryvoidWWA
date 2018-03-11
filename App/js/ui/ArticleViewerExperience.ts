@@ -440,6 +440,7 @@
                 this._messenger = null;
             }
 
+            this.viewModel.articleClosed();
             this.viewModel.dispose();
 
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
@@ -659,14 +660,25 @@
         }
 
         public signalArticleDisplayed(): void {
-            var articleViewType = "ArticleOpened";
+            Telemetry.instance.startTimedEvent("ArticleViewed");
 
-            if (this.isRestoring) {
-                articleViewType = "ArticleRestored";
+            var articlesViewedThisSession: number = 0;
+            if (Telemetry.instance.hasSessionProperty("ArticlesViewed")) {
+                articlesViewedThisSession = Telemetry.instance.getSessionPropertyAsInteger("ArticlesViewed");
             }
 
-            Telemetry.instance.track(articleViewType, null);
+            articlesViewedThisSession += 1;
+            Telemetry.instance.setSessionPropertyAsInteger("ArticlesViewed", articlesViewedThisSession);
+
             this._displayedSignal.complete();
+        }
+
+        public articleClosed(): void {
+            Telemetry.instance.track("ArticleViewed", toPropertySet({
+                wasAutomaticallyRestored: this.isRestoring,
+                wasScrolled: (this._initialProgress != this.bookmark.progress),
+                progressChange: this.bookmark.progress - this._initialProgress,
+            }));
         }
 
         public get displayed(): WinJS.Promise<any> {
