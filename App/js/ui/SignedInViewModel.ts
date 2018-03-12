@@ -465,10 +465,12 @@
                 var telemetrySettings = new Settings.TelemetrySettings();
                 // Save setting about telemetery enbabled state
                 var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
+                var installID = telemetrySettings.installID;
                 telemetrySettings.removeAllSettings();
 
                 // Restore telemetry enabled state
                 telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
+                telemetrySettings.installID = installID;
 
                 // Dispatch event after we've told the app to sign out
                 // so that the animation plays w/ full content rather
