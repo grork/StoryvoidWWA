@@ -1,32 +1,41 @@
 ﻿module Codevoid.Storyvoid {
     export class ShareTargetApp extends UI.AppThatCanSignIn {
-        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation;
+        private static _appInstance: ShareTargetApp;
 
-        public initialize(): void {
-            super.initialize();
-
+        // Waits for activation to start the initialization of the
+        // app. This is because lots of information comes through the
+        // activation handler, but also if you don't attach in time,
+        // you'll miss the event.
+        public static listenForActivation(): void {
             Windows.UI.WebUI.WebUIApplication.addEventListener("activated", (args) => {
-                var shareArgs = <Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]);
-                var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
-
-                if (shareArgs.kind === Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
-                    Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "shareTarget" }));
-                    // We really need to yield to the browser before we go lala on getting
-                    // data and potentially doing any more operations, so bounce around a timeout.
-                    WinJS.Promise.timeout().done(() => {
-                        var shareOperation = shareArgs.shareOperation;
-                        if (viewModel) {
-                            viewModel.shareDetailsAvailabile(shareOperation);
-                        } else {
-                            this._shareOperation = shareOperation;
-                        }
-                    });
-                } else {
-                    // We're testing since we shouldn't see this activation kind
-                    // in the real world, so fake some data.
-                    viewModel.__test__setArticleDeatils({ title: "Excellent title master. A wise choice that will make you most enlightened", url: new Windows.Foundation.Uri("http://www.bing.com")});
-                }
+                // We really need to yield to the browser before we go lala on getting
+                // data and potentially doing any more operations, so bounce around a timeout.
+                WinJS.Promise.join([
+                    WinJS.Promise.timeout(),
+                    telemetryInit
+                ]).done(() => {
+                    ShareTargetApp._appInstance = new ShareTargetApp();
+                    ShareTargetApp._appInstance.initializeWithShareInformation(<Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]));
+                });
             });
+        }
+
+        private _shareOperation: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation;
+        public initializeWithShareInformation(shareArgs: Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs): void {
+            if (shareArgs.kind !== Windows.ApplicationModel.Activation.ActivationKind.shareTarget) {
+                return;
+            }
+
+            super.initialize();
+            Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "shareTarget" }));
+
+            var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
+            var shareOperation = shareArgs.shareOperation;
+            if (viewModel) {
+                viewModel.shareDetailsAvailabile(shareOperation);
+            } else {
+                this._shareOperation = shareOperation;
+            }
         }
 
         protected getSignedInViewModel(): UI.ISignedInViewModel {
@@ -41,14 +50,12 @@
         }
     }
 
-    // Note, theres no waiting on this to initialize here
-    // Since it seems to take a little longer than the activation
-    // handler being raised. So, lets fire & forget & hope.
-    Telemetry.initialize();
+    // Note, theres no waiting on this to initialize here,
+    // but it is waited on later when we get the activated event.
+    var telemetryInit = Telemetry.initialize();
 
     WinJS.Utilities.ready().done(() => {
-        var app = new ShareTargetApp();
-        app.initialize();
+        ShareTargetApp.listenForActivation();
     });
 }
 
@@ -98,6 +105,7 @@ module Codevoid.Storyvoid.UI {
 
         public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
+
             Telemetry.instance.track("SignedIn", toPropertySet({
                 usedSavedCredentials: usingSavedCredentials,
                 appType: "shareTarget",
