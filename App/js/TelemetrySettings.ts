@@ -5,10 +5,27 @@
             super("TelemetrySettings",
                 Windows.Storage.ApplicationData.current.localSettings,
                 {
+                    installID: "",
                     telemetryCollectionEnabled: true,
                     lastFolderCountSeen: 0,
                     lastHomeArticleCountSeen: 0,
                 });
+        }
+
+        public get installID(): string {
+            return this.getValueOrDefault<string>("installID");
+        }
+
+        public set installID(value: string) {
+            this.setValue("installID", value);
+        }
+
+        public get telemeteryCollectionEnabled(): boolean {
+            return this.getValueOrDefault<boolean>("telemetryCollectionEnabled");
+        }
+
+        public set telemeteryCollectionEnabled(value: boolean) {
+            this.setValue("telemetryCollectionEnabled", value);
         }
 
         public get lastFolderCountSeen(): number {
@@ -25,14 +42,6 @@
 
         public set lastHomeArticleCountSeen(value: number) {
             this.setValue("lastHomeArticleCountSeen", value);
-        }
-
-        public get telemeteryCollectionEnabled(): boolean {
-            return this.getValueOrDefault<boolean>("telemetryCollectionEnabled");
-        }
-
-        public set telemeteryCollectionEnabled(value: boolean) {
-            this.setValue("telemetryCollectionEnabled", value);
         }
     }
 }

@@ -22,7 +22,12 @@
                 Telemetry._client.start();
 
                 if (!Telemetry._client.hasSuperProperty("distinct_id")) {
-                    Telemetry._client.setSuperPropertyAsString("distinct_id", Codevoid.Utilities.GuidHelper.generateGuidAsString());
+                    var settings = new Settings.TelemetrySettings();
+                    if (!settings.installID) {
+                        settings.installID = Codevoid.Utilities.GuidHelper.generateGuidAsString();
+                    }
+
+                    Telemetry._client.setSuperPropertyAsString("distinct_id", settings.installID);
                 }
             });
         }
