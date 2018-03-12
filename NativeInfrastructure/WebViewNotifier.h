@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace Codevoid { namespace Utilities
+namespace Codevoid::Utilities
 {
     public delegate void ScriptNotifyHandler(::Platform::String^ payload);
 
@@ -32,4 +32,4 @@ namespace Codevoid { namespace Utilities
     private:
         Windows::UI::Core::CoreDispatcher^ _ownersDispatcher;
     };
-} }
+}
