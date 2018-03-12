@@ -20,6 +20,10 @@
             return Telemetry._client.initializeAsync().then(() => {
                 Telemetry._client.dropEventsForPrivacy = !(new Settings.TelemetrySettings()).telemeteryCollectionEnabled;
                 Telemetry._client.start();
+
+                if (!Telemetry._client.hasSuperProperty("distinct_id")) {
+                    Telemetry._client.setSuperPropertyAsString("distinct_id", Codevoid.Utilities.GuidHelper.generateGuidAsString());
+                }
             });
         }
 
