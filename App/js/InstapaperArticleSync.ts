@@ -365,6 +365,26 @@
                 scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
                 articleDocument.head.appendChild(scriptTag);
 
+                // Not all pages with content have a block element as their
+                // body-content. This means they get inline sizing, which results
+                // in weird sizing (E.g. no margin).
+                //
+                // To overcome this in a consistent way, just take all the children
+                // from the body, and place them inside a wrapper div.
+                //
+                // Note, that since they're not elements, you can't just
+                // look at children. You can't use childNodes either since
+                // that represents the entire tree. So, lets just reparent
+                // the firstChild until there is no more first child
+                var wrapperTag = articleDocument.createElement("div");
+                while (articleDocument.body.firstChild) {
+                    wrapperTag.appendChild(articleDocument.body.firstChild)
+                }
+
+                // Now we've got the things reparented, place the wrapper
+                // into the document.
+                articleDocument.body.appendChild(wrapperTag);
+
                 if (images && images.length > 0) {
                     // No point in processing the document if we don't have any images.
                     processedInformation.hasImages = true;
@@ -412,17 +432,30 @@
 
             return imagesFolder.then((folder: st.StorageFolder) => {
                 return Utilities.serialize(images, (image: HTMLImageElement, index: number) => {
+                    var sourceUrl: Windows.Foundation.Uri;
                     try {
                         if (!image.src ||
                             (image.src.indexOf(document.location.origin) === 0) ||
                             (image.src.indexOf("data:") === 0)) {
                             return;
                         }
+
+                        sourceUrl = new Windows.Foundation.Uri(image.src);
                     } catch (e) {
                         return;
                     }
 
-                    var sourceUrl = new Windows.Foundation.Uri(image.src);
+                    // Only support HTTP / HTTPS links
+                    var scheme = sourceUrl.schemeName.toLowerCase();
+                    switch (scheme) {
+                        case "http":
+                        case "https":
+                            break;
+
+                        default:
+                            return;
+                    }
+
                     this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
                     // Download the image from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded

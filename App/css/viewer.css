@@ -50,6 +50,15 @@ p {
     word-break: break-word;
 }
 
+blockquote {
+    font-style: oblique;
+    border-left-width: 2px;
+    border-left-style: solid;
+    border-left-color: grey;
+    margin-left: 0px;
+    padding-left: 38px;
+}
+
 /* App UI */
 
 .articleViewer-header-container {
