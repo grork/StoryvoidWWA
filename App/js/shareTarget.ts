@@ -291,7 +291,7 @@ module Codevoid.Storyvoid.UI {
                     WinJS.Utilities.addClass(this.completingContainer, "hide");
                     WinJS.Utilities.addClass(this.progressRing, "hide");
                     WinJS.Utilities.removeClass(this.informationLabel, "hide");
-                    this.informationLabel.innerText = "We couldn't save the article to Instapaper. You can click savea again to retry."
+                    this.informationLabel.innerText = "We couldn't save the article to Instapaper. You can click save again to retry."
                     WinJS.Utilities.removeClass(this.saveButton, "hide");
                     this.saveButton.innerText = "Retry";
                     break;
