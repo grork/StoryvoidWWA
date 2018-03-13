@@ -88,6 +88,13 @@
 
             this._handlersToCleanup.push(Utilities.addEventListeners(window, {
                 resize: this._handleSizeChange.bind(this),
+                keydown: (e: KeyboardEvent) => {
+                    if (e.key != "F5") {
+                        return;
+                    }
+
+                    this.startSync();
+                }
             }));
 
             this._handleSizeChange();
