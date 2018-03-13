@@ -90,21 +90,8 @@
             this._currentTimer = null;
         }
 
-        // Note the type here to facilitate unit testing, and I apologise for the
-        // vomit worthy interpretation of the types being f'd up. But, at the time,
-        // I felt this was a better compromise than creating a whole different way
-        // to raise an event just for this one case.
         private _handleEnteringBackground(e: any): void {
-            var ev: Windows.UI.WebUI.EnteredBackgroundEventArgs = e.getDeferral ? e : e.detail;
-
             this._suspendedAt = Date.now();
-            var deferral = ev.getDeferral();
-
-            this._raiseSyncNeeded(false, SyncReason.Backgrounded).done(() => {
-                deferral.complete();
-            }, () => {
-                deferral.complete();
-            });
         }
 
         private _handleLeavingBackground() {

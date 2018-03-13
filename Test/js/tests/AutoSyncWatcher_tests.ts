@@ -179,32 +179,6 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("enteringBackgroundEventIsCompletedAfterHandlingSyncNeededEvent", () => {
-        var syncEventSeen = false;
-        var signal = new util.Signal();
-
-        var w = getWatcher();
-
-        util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!syncEventSeen, "Sync event already seen");
-                syncEventSeen = true;
-
-                // Fake the processing of an actual sync, by
-                // waiting before completing the callback
-                WinJS.Promise.timeout(50).done(() => {
-                    data.detail.complete();
-                });
-            }
-        });
-
-        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(signal));
-
-        ok(syncEventSeen, "Expected to see event instantly");
-
-        return signal.promise;
-    });
-
     promiseTest("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", () => {
         var syncEventSeen = false;
         var syncSeenSignal = new util.Signal();
@@ -238,18 +212,8 @@ module CodevoidTests.InstapaperArticleSyncTests {
         var w = getWatcher();
         w.watcher.minTimeInBackgroundBeforeSync = 0;
 
-        var firstSyncEventHandler = util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                data.detail.complete();
-                firstSyncEventHandler.cancel();
-                firstSyncEventHandler = null;
-            }
-        });
-
         // Trigger the capture of the suspending timestamp
         w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(backgroundEnteredSignal));
-
-        ok(!firstSyncEventHandler, "Expected first event handler to have been raised, and cleaned up");
 
         var secondSyncNeededRaisedSignal = new util.Signal();
         util.addEventListeners(w.watcher.eventSource, {
