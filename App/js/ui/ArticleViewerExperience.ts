@@ -74,7 +74,9 @@
                 this._openPage();
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
-                    removed: this.close.bind(this),
+                    removed: () => {
+                        this.closeArticle();
+                    }
                 }));
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
@@ -138,7 +140,7 @@
 
             this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._messenger.events, {
                 dismiss: () => {
-                    this.close(null);
+                    this.handleDismiss();
                 },
                 toggletoolbar: this._toggleToolbar.bind(this),
                 shortcutinvoked: (e: Utilities.EventObject<number>) => {
@@ -192,7 +194,7 @@
                 // Setup OS back button support
                 this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
-                    backrequested: this.close.bind(this),
+                    backrequested: this.goBack.bind(this),
                 }));
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
@@ -212,7 +214,7 @@
 
                         switch (e.key.toLowerCase()) {
                             case "esc":
-                                this.close(null);
+                                this.handleDismiss();
                                 handled = true;
                                 break;
 
@@ -239,7 +241,7 @@
                             return;
                         }
 
-                        this.close(null);
+                        this.goBack(null);
                         e.stopPropagation();
                         e.preventDefault();
                     }
@@ -421,19 +423,35 @@
             this._flyoutInitialized = true;
         }
 
-        public close(args: Windows.UI.Core.BackRequestedEventArgs): void {
+        private goBack(args: Windows.UI.Core.BackRequestedEventArgs): void {
             if (args != null) {
                 args.handled = true; // Make sure the OS doesn't handle it.
             }
 
-            // If we're full screen, and we're being asked to dismiss
-            // we probably mean to exit not full screen, not the whole
-            // article.
+            this.closeArticle();
+        }
+
+        private exitFullscreen(): boolean {
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            if (view.isFullScreenMode) {
-                view.exitFullScreenMode();
+            if (!view.isFullScreenMode) {
+                return false;
+            }
+
+            view.exitFullScreenMode();
+            return true;
+        }
+
+        private handleDismiss(): void {
+            if (this.exitFullscreen()) {
                 return;
             }
+
+            this.closeArticle();
+        }
+
+        private closeArticle(): void {
+            // Make sure when we're closing we actually exit full screen
+            this.exitFullscreen();
 
             if (this._messenger) {
                 this._messenger.dispose();
@@ -446,13 +464,8 @@
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
 
-            // Ensure that the status bar is reshown when we're exiting
-            // It may already be visible, but no harm is just showing it again
-            if (Windows.UI.ViewManagement.StatusBar) {
-                Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
-            }
-
             // Reset the title to the default
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
             view.title = "";
 
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
@@ -539,7 +552,6 @@
     }
 
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience);
-    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.close);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype._firstDivFocused);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype._lastDivFocused);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.displaySettingsFlyoutOpening);
