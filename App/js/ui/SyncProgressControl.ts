@@ -21,7 +21,7 @@
                 this._messageContainer.textContent = this.initialMessage;
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.eventSource, {
-                    syncprogressupdate: (e: { detail: { message: string } }) => {
+                    syncprogressupdate: (e: Utilities.EventObject<{ message: string }>) => {
                         this._messageContainer.textContent = e.detail.message;
                     },
                     synccompleted: () => {

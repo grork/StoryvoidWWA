@@ -141,7 +141,7 @@
                     this.close(null);
                 },
                 toggletoolbar: this._toggleToolbar.bind(this),
-                shortcutinvoked: (e: { detail: number }) => {
+                shortcutinvoked: (e: Utilities.EventObject<number>) => {
                     this._handleShortcuts(e.detail);
                 }
             }));
@@ -302,14 +302,14 @@
             this._setTitleBar(this._previousPrimaryColour, this._previousTextColour);
         }
 
-        private _handleThemeChange(e: { detail: IThemeDetails }): void {
+        private _handleThemeChange(e: Utilities.EventObject<IThemeDetails>): void {
             this._toolbarContainer.setAttribute("data-theme", e.detail.viewerCssClass);
 
             var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
             this._setTitleBar(e.detail.titlebarBackground, e.detail.titlebarForeground);
         }
 
-        private _handleArticleWidthChanged(e: { detail: number }): void {
+        private _handleArticleWidthChanged(e: Utilities.EventObject<number>): void {
             this._toolbarContainer.style.width = e.detail + "vw";
         }
 

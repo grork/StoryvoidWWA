@@ -47,16 +47,16 @@
                     this._clearEmptyStateListeners();
                     this._contentList.itemDataSource = null;
                 },
-                folderchanged: (e: { detail: IFolderDetails }) => {
+                folderchanged: (e: Utilities.EventObject<IFolderDetails>) => {
                     this._renderFolderDetails(e.detail);
                 },
-                foldertitleupdated: (e: { detail: IFolder }) => {
+                foldertitleupdated: (e: Utilities.EventObject<IFolder>) => {
                     this._folderNameElement.textContent = e.detail.title;
                 },
-                sortchanged: (e: { detail: SortOption }) => {
+                sortchanged: (e: Utilities.EventObject<SortOption>) => {
                     this._sortsElement.value = e.detail.toString();
                 },
-                syncstarting: (e: { detail: { message: string } }) => {
+                syncstarting: (e: Utilities.EventObject<{ message: string }>) => {
                     this._showSyncProgress(e.detail.message);
                 },
                 synccompleted: () => {
