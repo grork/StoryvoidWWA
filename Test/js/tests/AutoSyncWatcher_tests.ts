@@ -63,7 +63,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!data.detail.shouldSyncArticleBodies, "Didn't expect full sync to be required");
+                expect(0);
                 signal.complete();
             }
         });
@@ -73,7 +73,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("timerDoesRaiseAfterEvent", () => {
+    promiseTest("timerDoesGetCanceledIfSecondEventHappensInTimeWindow", () => {
         var secondEventDispatched = false;
         var signal = new util.Signal();
 
@@ -82,7 +82,6 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!data.detail.shouldSyncArticleBodies, "Didn't expect full sync to be required");
                 ok(secondEventDispatched, "Second event was not dispatched");
                 signal.complete();
             }
@@ -99,7 +98,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then(() => {
             // Reset the timer again
             w.dbEventSource.dispatchEvent("bookmarkschanged", null);
-            secondEventDispatched = true;            
+            secondEventDispatched = true;
         });
 
         return signal.promise;
@@ -205,36 +204,11 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return syncSeenSignal.promise;
     });
 
-    promiseTest("fullArticleSyncNotIndicatedIfSuspendedForLessThanMaxSuspendedDuration", () => {
-        var syncEventSeen = false;
-        var backgroundEnteredSignal = new util.Signal();
-
-        var w = getWatcher();
-        w.watcher.minTimeInBackgroundBeforeSync = 0;
-
-        // Trigger the capture of the suspending timestamp
-        w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(backgroundEnteredSignal));
-
-        var secondSyncNeededRaisedSignal = new util.Signal();
-        util.addEventListeners(w.watcher.eventSource, {
-            syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(data.detail.shouldSyncArticleBodies, "Expected to be told that we should sync the article bodies");
-                secondSyncNeededRaisedSignal.complete();
-            }
-        });
-
-        WinJS.Promise.timeout(75).done(() => {
-            w.appEventSource.dispatchEvent("leavingbackground", null);
-        });
-
-        return secondSyncNeededRaisedSignal.promise;
-    });
-
     test("syncNotRequiredWhenTransitioningToOfflineState", () => {
         var syncEventSeen = false;
 
         var w = getWatcher();
-        w.watcher.minTimeOfflineBeforeFullSync = -1;       
+        w.watcher.minTimeOfflineBeforeFullSync = -1;
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
@@ -323,7 +297,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(!data.detail.shouldSyncArticleBodies, "Completed event");
+                expect(0);
                 syncEventSeenSignal.complete();
             }
         });
@@ -348,7 +322,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                ok(data.detail.shouldSyncArticleBodies, "Completed event");
+                expect(0);
                 syncEventSeenSignal.complete();
             }
         });
