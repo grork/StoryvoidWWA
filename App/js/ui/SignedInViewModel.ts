@@ -266,7 +266,7 @@
         }
 
         private _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>) {
-            this.startSync(ev.detail.reason, { skipArticleDownload: !ev.detail.shouldSyncArticleBodies, noEvents: !ev.detail.shouldSyncArticleBodies }).done(() => {
+            this.startSync(ev.detail.reason).done(() => {
                 ev.detail.complete();
             }, () => {
                 ev.detail.complete();

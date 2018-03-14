@@ -3,6 +3,7 @@ declare function asyncTest(testName: string, testFunction: () => void );
 declare function module(moduleName: string);
 declare function start();
 declare function stop();
+declare function expect(numberOfAssertsions: number);
 declare function ok(result: any, message: string);
 declare function equal(actual: any, expected: any, message: string);
 declare function notEqual(actual: any, expected: any, message: string);

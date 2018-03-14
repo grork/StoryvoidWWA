@@ -14,13 +14,11 @@
 
     export interface ISyncNeededEventArgs {
         reason: SyncReason;
-        shouldSyncArticleBodies: boolean;
         complete(): void;
     }
 
     class SyndNeededEventArgs extends Utilities.Signal implements ISyncNeededEventArgs {
         public reason: SyncReason;
-        public shouldSyncArticleBodies: boolean;
     }
 
     export class AutoSyncWatcher {
@@ -67,13 +65,12 @@
             }
 
             this._currentTimer = WinJS.Promise.timeout(this.dbIdleInterval).then(() => {
-                this._raiseSyncNeeded(false, SyncReason.Timer);
+                this._raiseSyncNeeded(SyncReason.Timer);
             });
         }
 
-        private _raiseSyncNeeded(syncArticleBodies: boolean, reason: SyncReason): WinJS.Promise<any> {
+        private _raiseSyncNeeded(reason: SyncReason): WinJS.Promise<any> {
             var eventPayload = new SyndNeededEventArgs();
-            eventPayload.shouldSyncArticleBodies = syncArticleBodies;
             eventPayload.reason = reason;
 
             this._eventSource.dispatchEvent("syncneeded", eventPayload);
@@ -106,7 +103,7 @@
                 return;
             }
 
-            this._raiseSyncNeeded(true, SyncReason.Foregrounded);
+            this._raiseSyncNeeded(SyncReason.Foregrounded);
         }
 
         private _handleNetworkStatusChanged(e: any) {
@@ -137,7 +134,6 @@
 
             // It's different from before, and we're now definitely online, so lets raise the event
             var timeOffline = Date.now() - this._wentOfflineAt;
-            var wasOfflineLongEnoughToRequireFullSync = (timeOffline >= this.minTimeOfflineBeforeFullSync);
             this._wentOfflineAt = 0;
 
             var wasOfflineLongEnoughToRequireSync = (timeOffline >= this.minTimeOfflineBeforeSync);
@@ -145,7 +141,7 @@
                 return;
             }
 
-            this._raiseSyncNeeded(wasOfflineLongEnoughToRequireFullSync, SyncReason.CameOnline);
+            this._raiseSyncNeeded(SyncReason.CameOnline);
         }
 
         public get eventSource(): Utilities.EventSource {
