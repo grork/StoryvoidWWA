@@ -14,6 +14,7 @@
         private _currentImageWidthForImageSizing = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
         private _hadFocus = false;
+        private _hadSelection = false;
 
         public initialize(): void {
             this._scrollingElement = document.body;
@@ -313,6 +314,12 @@
             if (wasTouch) {
                 document.getSelection().removeAllRanges();
             } else if (!document.getSelection().isCollapsed) {
+                this._hadSelection = true; // We currently have selection
+                return;
+            } else if (document.getSelection().isCollapsed && this._hadSelection) {
+                // ... and now we don't have one, but we did, so we
+                // don't want to toggle the toolbar.
+                this._hadSelection = false;
                 return;
             }
 
