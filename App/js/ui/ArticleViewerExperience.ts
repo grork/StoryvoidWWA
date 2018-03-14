@@ -161,92 +161,100 @@
                 this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
                 this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
             ]).done(() => {
-                this._messenger.invokeForResult("inserttitle", {
-                    title: this.viewModel.bookmark.title,
-                    domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
-                    url: this.viewModel.bookmark.url,
-                });
-
-                // Set initial states
-                this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
-                this.viewModel.displaySettings.restoreSettings();
-
-                Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
-                        
-                // Set commands to the toolbar controls to handle primary/secondary scenarios
-                this.toolbar.data = this.viewModel.getCommands();
-
-                this.element.style.opacity = ""; // Allow default styles to sort themselves out
-                this._content.focus();
-
-                if (this.viewModel.isRestoring) {
-                    this.viewModel.signalArticleDisplayed();
-                } else {
-                    WinJS.UI.Animation.slideUp(this.element).done(() => {
-                        this.viewModel.signalArticleDisplayed();
-                    });
-                }
-
-                // Set the toolbar state in the viewer. This is to ensure
-                // that the underlay state is correct.
-                this._messenger.invokeForResult("settoolbarstate", this._toolbarVisible);
-
-                // Setup OS back button support
-                this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
-                    backrequested: this.goBack.bind(this),
-                }));
-
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
-                    keydown: (e: KeyboardEvent) => {
-                        var handled: boolean = false;
-
-                        // If we think this key is already down,
-                        // then assume the key is being held down
-                        // and thus ignore this keydown event
-                        if (this._keyDownMap[e.keyCode]) {
-                            return;
-                        }
-
-                        if (e.ctrlKey) {
-                            this._handleShortcuts(e.keyCode);
-                        }
-
-                        switch (e.key.toLowerCase()) {
-                            case "esc":
-                                this.handleDismiss();
-                                handled = true;
-                                break;
-
-                            case "alt":
-                                this._toggleToolbar();
-                                handled = true;
-                                break;
-                        }
-
-                        if (handled) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }
-
-                        this._keyDownMap[e.keyCode] = true;
-                    },
-                    keyup: (e: KeyboardEvent) => {
-                        // Clear this key from the list of keys
-                        // we think are currently pressed.
-                        this._keyDownMap[e.keyCode] = false;
-                    },
-                    pointerup: (e: PointerEvent) => {
-                        if (e.button != 3) {
-                            return;
-                        }
-
-                        this.goBack(null);
-                        e.stopPropagation();
-                        e.preventDefault();
-                    }
-                }));
+                this._afterReady();
             });
+        }
+
+        private _afterReady(): void {
+            this._messenger.invokeForResult("inserttitle", {
+                title: this.viewModel.bookmark.title,
+                domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
+                url: this.viewModel.bookmark.url,
+            });
+
+            // Set initial states
+            this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
+            this.viewModel.displaySettings.restoreSettings();
+
+            Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
+
+            // Set commands to the toolbar controls to handle primary/secondary scenarios
+            this.toolbar.data = this.viewModel.getCommands();
+
+            this.element.style.opacity = ""; // Allow default styles to sort themselves out
+            this._content.focus();
+
+            if (this.viewModel.isRestoring) {
+                this.viewModel.signalArticleDisplayed();
+            } else {
+                WinJS.UI.Animation.slideUp(this.element).done(() => {
+                    this.viewModel.signalArticleDisplayed();
+                });
+            }
+
+            // Set the toolbar state in the viewer. This is to ensure
+            // that the underlay state is correct.
+            this._messenger.invokeForResult("settoolbarstate", this._toolbarVisible);
+
+            // Setup OS back button support
+            this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
+                backrequested: this.goBack.bind(this),
+            }));
+
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(window, {
+                keydown: this._handleKeyDown.bind(this),
+                keyup: (e: KeyboardEvent) => {
+                    // Clear this key from the list of keys
+                    // we think are currently pressed.
+                    this._keyDownMap[e.keyCode] = false;
+                },
+                pointerup: this._handlePointerUp.bind(this)
+            }));
+        }
+
+        private _handlePointerUp(e: PointerEvent): void {
+            if (e.button != 3) {
+                return;
+            }
+
+            this.goBack(null);
+            e.stopPropagation();
+            e.preventDefault();
+        }
+
+        private _handleKeyDown(e: KeyboardEvent): void {
+            var handled: boolean = false;
+
+            // If we think this key is already down,
+            // then assume the key is being held down
+            // and thus ignore this keydown event
+            if (this._keyDownMap[e.keyCode]) {
+                return;
+            }
+
+            if (e.ctrlKey) {
+                this._handleShortcuts(e.keyCode);
+            }
+
+            switch (e.key.toLowerCase()) {
+                case "esc":
+                    this.handleDismiss();
+                    handled = true;
+                    break;
+
+                case "alt":
+                    this._toggleToolbar();
+                    handled = true;
+                    break;
+            }
+
+            if (handled) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            this._keyDownMap[e.keyCode] = true;
         }
 
         private _showToolbarIfNotVisible(): WinJS.Promise<any> {
