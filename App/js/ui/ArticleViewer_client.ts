@@ -4,8 +4,8 @@
     const KEY_ESCAPE = 27;
     const KEY_ALT = 18;
 
-    const ARTICLE_WIDTH_PX = 1400;
-    const MIN_SIZE_FOR_IMAGE_STRETCHING = 300;
+    const ARTICLE_WIDTH_PX = 1000;
+    const MIN_SIZE_FOR_IMAGE_STRETCHING = 400;
     const TOOLBAR_UNDERLAY_CLASS = "articleViewer-toolbar-underlay";
 
     class ArticleViewer_client {
@@ -150,6 +150,9 @@
 
             var properties = [marginValue, widthProperty];
 
+            // If the window is smaller than our max article size
+            // we need to set the margin to be negative to pull the item
+            // outside of it's original layout and make it look prettier
             if (document.body.clientWidth < ARTICLE_WIDTH_PX) {
                 marginValue.value = (-(100 - articleWidth) / 2) + "vw";
             } else {
