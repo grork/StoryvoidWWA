@@ -81,7 +81,7 @@
             this._eventSource = new Utilities.EventSource();
         }
 
-        public syncAllArticlesNotDownloaded(idb: InstapaperDB): WinJS.Promise<any> {
+        public syncAllArticlesNotDownloaded(idb: InstapaperDB, cancelationSource: Utilities.CancellationSource): WinJS.Promise<any> {
             this._eventSource.dispatchEvent("allarticlesstarting", null);
 
             // First list all the current folders, and then sort them by 
@@ -159,14 +159,14 @@
                 return bookmarksAsFlatList;
             }).then((articlesByUnreadFirst) => {
                 return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
-                    return this.syncSingleArticle(item.bookmark_id, idb).then(null, () => { /* Eat errors */ });
-                }, 4);
+                    return this.syncSingleArticle(item.bookmark_id, idb, cancelationSource).then(null, () => { /* Eat errors */ });
+                }, 4, cancelationSource);
             }).then(() => {
                 this._eventSource.dispatchEvent("allarticlescompleted", null);
             });
         }
 
-        public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB): WinJS.Promise<IBookmark> {
+        public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB, cancelationSource: Utilities.CancellationSource): WinJS.Promise<IBookmark> {
             var localBookmark = dbInstance.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
                 this._eventSource.dispatchEvent("syncingarticlestarting", {
                     bookmark_id: bookmark_id,
@@ -180,7 +180,7 @@
                 file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder),
                 localBookmark: localBookmark
             }).then((result) => {
-                return this._processArticle(result.file, result.localBookmark);
+                return this._processArticle(result.file, result.localBookmark, cancelationSource);
             });
 
             return WinJS.Promise.join({
@@ -279,7 +279,7 @@
             return this._eventSource;
         }
 
-        private _processArticle(file: st.StorageFile, bookmark: IBookmark): WinJS.Promise<IProcessedArticleInformation> {
+        private _processArticle(file: st.StorageFile, bookmark: IBookmark, cancelationSource: Utilities.CancellationSource): WinJS.Promise<IProcessedArticleInformation> {
             var fileContentsOperation = st.FileIO.readTextAsync(file);
             var parser = new DOMParser();
             var articleDocument: Document;
@@ -295,6 +295,10 @@
             };
 
             return fileContentsOperation.then((contents: string) => {
+                if (cancelationSource.canceled) {
+                    return WinJS.Promise.wrapError(new Error("Article Sync Canceled: Processing Article: After Reading file"));
+                }
+
                 var images: WinJS.Promise<HTMLImageElement[]>;
                 articleDocument = parser.parseFromString(contents, "text/html");
 
@@ -414,7 +418,7 @@
                     // The <any> cast here is because of the lack of a meaingful
                     // covariance of the types in TypeScript. Or another way: I got this shit, yo.
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
-                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id).then((firstImagePath) => {
+                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id, cancelationSource).then((firstImagePath) => {
                         if (firstImagePath) {
                             processedInformation.firstImagePath = firstImagePath;
                         } else {
@@ -443,11 +447,14 @@
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number): WinJS.Promise<any> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancelationSource: Utilities.CancellationSource): WinJS.Promise<any> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
             var firstSuccessfulImage = "";
 
             return imagesFolder.then((folder: st.StorageFolder) => {
+                if (cancelationSource.canceled) {
+                    return WinJS.Promise.wrapError(new Error("Article Sync Canceled: Processing Images"));
+                }
                 return Utilities.serialize(images, (image: HTMLImageElement, index: number) => {
                     var sourceUrl: Windows.Foundation.Uri;
                     try {
@@ -503,7 +510,7 @@
                             image.parentElement.removeChild(image);
                         }
                     });
-                }, 4);
+                }, 4, cancelationSource);
             }).then(() => firstSuccessfulImage);
         }
 

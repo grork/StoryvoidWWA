@@ -118,7 +118,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
@@ -142,7 +142,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
@@ -169,11 +169,11 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             strictEqual(images.length, 2, "Wrong number of images compared to filename");
 
-            var package = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
-            var expectedPath = "ms-appx://" + package + "/" + articleWithImageId + "/0.png";
+            var packageName = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
+            var expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/0.png";
             strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
-            expectedPath = "ms-appx://" + package + "/" + articleWithImageId + "/1.jpg";
+            expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/1.jpg";
             strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });
@@ -193,7 +193,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
@@ -227,7 +227,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB);
+            return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
@@ -270,7 +270,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).then((bookmark: av.IBookmark) => {
             strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
-            return articleSync.syncSingleArticle(badBookmarkId, instapaperDB);
+            return articleSync.syncSingleArticle(badBookmarkId, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
             ok(!syncedBookmark.contentAvailableLocally, "Expected bookmark to be unavailable locally");
             strictEqual(syncedBookmark.localFolderRelativePath, undefined, "File path incorrect");
@@ -306,8 +306,8 @@ module CodevoidTests.InstapaperArticleSyncTests {
                         articleFolder.createFileAsync("2.png", st.CreationCollisionOption.replaceExisting),
                     ]);
                 }),
-                articleSync.syncSingleArticle(articleWithImageId, instapaperDB),
-                articleSync.syncSingleArticle(normalArticleId, instapaperDB)
+                articleSync.syncSingleArticle(articleWithImageId, instapaperDB, new Codevoid.Utilities.CancellationSource()),
+                articleSync.syncSingleArticle(normalArticleId, instapaperDB, new Codevoid.Utilities.CancellationSource())
             ]);
         }).then(() => {
             return articleSync.removeFilesForNotPresentArticles(instapaperDB).then(() => {
@@ -391,7 +391,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
                 },
             });
 
-            return articleSync.syncSingleArticle(articleWithImageId, instapaperDB);
+            return articleSync.syncSingleArticle(articleWithImageId, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then(() => {
             strictEqual(happenings.length, 8, "incorrect number of events");
 
@@ -441,7 +441,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
             return idb.initialize();
         }).then(() => {
             var articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
-            return articleSync.syncAllArticlesNotDownloaded(idb);
+            return articleSync.syncAllArticlesNotDownloaded(idb, new Codevoid.Utilities.CancellationSource());
         }).then(() => {
 
             var files = articlesFolder.getFilesAsync().then((files) => {

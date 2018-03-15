@@ -13,7 +13,7 @@ declare module Codevoid.Utilities {
     }
 
     export function addEventListeners(source: { addEventListener: any, removeEventListener: any }, handlers: any): ICancellable;
-    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number): WinJS.Promise<any>;
+    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancelationSource?: CancellationSource): WinJS.Promise<any>;
 
     export interface IIndexedDatabase {
         objectStoreNames: string[];
@@ -41,6 +41,11 @@ declare module Codevoid.Utilities {
         complete(result?: any);
         error(errorInfo: any);
         progress(progressInfo: any);
+    }
+
+    export class CancellationSource {
+        cancel();
+        canceled: boolean;
     }
 
     export interface EventObject<T> {
@@ -111,6 +116,7 @@ declare module Codevoid.Storyvoid {
         bookmarks: boolean,
         singleFolder?: boolean,
         folder?: number,
+        cancellationSource?: Codevoid.Utilities.CancellationSource;
     }
 
     export class InstapaperSync extends Utilities.EventSource {

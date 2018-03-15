@@ -319,6 +319,29 @@
         });
     });
 
+    promiseTest("canCancelSerializer", () => {
+        var promisesCompleted = 0;
+        var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        var doWork = function doWork(item) {
+            promisesCompleted++;
+            if (item === 5) {
+                cancel.cancel();
+                return;
+            }
+
+            return WinJS.Promise.timeout();
+        };
+
+        var cancel = new Codevoid.Utilities.CancellationSource();
+
+        return Codevoid.Utilities.serialize(data, doWork, 0, cancel).then(function () {
+            ok(false, "shouldn't succeed");
+        }, function () {
+            strictEqual(promisesCompleted, 5);
+        });
+    });
+
     module("utilitiesControlUnload");
     
     promiseTest("disposingOfControlCallsUnload", function () {
@@ -421,29 +444,6 @@
 
             ok(controlElement.winControl.disposed, "Control wasn't disposed");
             ok(controlElement2.winControl.disposed, "Control wasn't disposed");
-        });
-    });
-
-    promiseTest("canCancelSerializer", () => {
-        var promisesCompleted = 0;
-        var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-        var doWork = function doWork(item) {
-            promisesCompleted++;
-            if (item === 5) {
-                cancel.cancel();
-                return;
-            }
-
-            return WinJS.Promise.timeout();
-        };
-
-        var cancel = new Codevoid.Utilities.Cancelable();
-
-        return Codevoid.Utilities.serialize(data, doWork, 0, cancel).then(function () {
-            ok(false, "shouldn't succeed");
-        }, function () {
-            strictEqual(promisesCompleted, 5);
         });
     });
 

@@ -38,12 +38,16 @@
         private _currentSort: SortOption = SortOption.Oldest;
         private _readyForEvents: Utilities.Signal = new Utilities.Signal();
         private static _sorts: ISortsInfo[];
-        private _currentSyncSignal: Utilities.Signal;
+        private _currentSync: { signal: Codevoid.Utilities.Signal; cancellationSource: Codevoid.Utilities.CancellationSource };
         private _autoSyncWatcher: AutoSyncWatcher;
-        private _inProgressSync: WinJS.Promise<any>;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
+            this._clearCurrentSync();
+        }
+
+        private _clearCurrentSync(): void {
+            this._currentSync = { signal: null, cancellationSource: null };
         }
 
         private disposeDB(): void {
@@ -434,7 +438,10 @@
         }
 
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
-            this._inProgressSync.cancel();
+            if (this._currentSync.cancellationSource) {
+                this._currentSync.cancellationSource.cancel();
+            }
+
             this.disposeDB();
 
             Telemetry.instance.track("SignedOut", toPropertySet({ clearingCredentials: clearCredentials }));
@@ -539,8 +546,8 @@
         }
 
         public startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
-            if (this._currentSyncSignal) {
-                return this._currentSyncSignal.promise;
+            if (this._currentSync.signal) {
+                return this._currentSync.signal.promise;
             }
 
             // Don't try to sync if we're offline
@@ -555,7 +562,12 @@
             var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
             var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
             var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
-            this._currentSyncSignal = new Codevoid.Utilities.Signal();
+            this._currentSync = {
+                signal: new Codevoid.Utilities.Signal(),
+                cancellationSource: new Codevoid.Utilities.CancellationSource()
+            };
+
+            let cancelationSource = this._currentSync.cancellationSource;
 
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
@@ -568,7 +580,10 @@
                     case Codevoid.Storyvoid.InstapaperSync.Operation.start:
                         this._startTrackingSyncForTelemetry(sync, reason);
                         if (!parameters.noEvents) {
-                            this.events.dispatchEvent("syncstarting", { message: "Syncing your articles!" });
+                            this.events.dispatchEvent("syncstarting", {
+                                message: "Syncing your articles!",
+                                cancel: () => cancelationSource.cancel()
+                            });
                         }
 
                         Utilities.Logging.instance.log("Started");
@@ -608,17 +623,18 @@
                 }
             });
 
-            this._inProgressSync = WinJS.Promise.join({
+            WinJS.Promise.join({
                 sync: sync.sync({
                     dbInstance: this._instapaperDB,
                     folders: true,
                     bookmarks: true,
+                    cancellationSource: cancelationSource
                 }),
                 folder: folderOperation,
             }).then((result) => {
                 if (parameters.dontWaitForDownloads) {
-                    if (this._currentSyncSignal) {
-                        this._currentSyncSignal.complete();
+                    if (this._currentSync && this._currentSync.signal) {
+                        this._currentSync.signal.complete();
                     }
                 }
 
@@ -637,7 +653,7 @@
                 });
 
                 if (!parameters.skipArticleDownload) {
-                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB);
+                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancelationSource);
                 }
             }).then(() => {
                 return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
@@ -648,13 +664,12 @@
                     this._eventSource.dispatchEvent("synccompleted", null);
                 }
 
-                if (this._currentSyncSignal) {
-                    this._currentSyncSignal.complete();
+                if (this._currentSync && this._currentSync.signal) {
+                    this._currentSync.signal.complete();
                 }
             }, (e) => {
-                this._inProgressSync = null;
-                if (this._currentSyncSignal) {
-                    this._currentSyncSignal.complete();
+                if (this._currentSync && this._currentSync.signal) {
+                    this._currentSync.signal.error(e);
                 }
 
                 // Make sure we hide the sync status if there is an error
@@ -664,11 +679,9 @@
 
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
-            });
+            }).done(() => this._clearCurrentSync());
 
-            return this._currentSyncSignal.promise.then(() => {
-                this._currentSyncSignal = null;
-            });
+            return this._currentSync.signal.promise;
         }
 
         public clearDb(): WinJS.Promise<any> {
@@ -839,7 +852,7 @@
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                             Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
                             var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
-                            articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB).then((bookmark) => {
+                            articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB, new Utilities.CancellationSource()).then((bookmark) => {
                                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                             });
                         });
@@ -972,7 +985,7 @@
             download.invoked = (command: Windows.UI.Popups.UICommand) => {
                 Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                     var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
-                    articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB).then((bookmark) => {
+                    articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource()).then((bookmark) => {
                         Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                     });
                 });

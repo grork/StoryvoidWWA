@@ -137,19 +137,19 @@
         }), WinJS.Utilities.eventMixin),
         EventSource: WinJS.Class.mix(WinJS.Class.define(function() {
         }), WinJS.Utilities.eventMixin),
-        Cancelable: WinJS.Class.define(function() {
+        CancellationSource: WinJS.Class.define(function() {
         }, {
             _canceled: false,
             cancel: function() {
                 this._canceled = true;
             },
             canceled: {
-                get: function cancelable_get() {
+                get: function canceled_get() {
                     return this._canceled;
                 }
             }
         }),
-        serialize: function serialize(items, work, concurrentWorkLimit, cancelable) {
+        serialize: function serialize(items, work, concurrentWorkLimit, cancellable) {
             concurrentWorkLimit = (!concurrentWorkLimit) ? 1 : concurrentWorkLimit;
             var results = [];
             var signals = [];
@@ -164,7 +164,7 @@
                 while ((numberInFlight < concurrentWorkLimit) && signals.length) {
                     var signal = signals.shift();
 
-                    if (cancelable && cancelable.canceled) {
+                    if (cancellable && cancellable.canceled) {
                         signal.promise.cancel();
                         return;
                     }
