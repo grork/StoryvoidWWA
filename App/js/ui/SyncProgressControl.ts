@@ -9,6 +9,8 @@
         private _messageContainer: HTMLElement;
         private _spinner: HTMLElement;
         private _checkMark: HTMLElement;
+        private _cancelSync: HTMLAnchorElement;
+        private cancelCallback: () => void;
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
@@ -28,6 +30,10 @@
                         this._syncComplete();
                     }
                 }));
+
+                this._handlersToCleanup.push(Utilities.addEventListeners(this._cancelSync, {
+                    click: () => this.cancelSync()
+                }));
             });
         }
 
@@ -44,6 +50,10 @@
             });
 
             this._handlersToCleanup = null;
+        }
+
+        public cancelSync(): void {
+            this.cancelCallback();
         }
     }
 }

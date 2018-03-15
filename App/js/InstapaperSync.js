@@ -118,7 +118,7 @@
                     return WinJS.Promise.wrapError(error);
                 });
             },
-            _syncFolders: function _syncFolders(db, folders) {
+            _syncFolders: function _syncFolders(db, cancellationSource) {
                 this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart });
 
                 return db.getPendingFolderEdits().then(function processPendingEdits(pendingEdits) {
@@ -143,13 +143,17 @@
                                 return db.deletePendingFolderEdit(edit.id);
                             });
                         }
-                    }.bind(this));
+                    }.bind(this), 0, cancellationSource);
                 }.bind(this)).then(function () {
                     return WinJS.Promise.join({
                         remoteFolders: this._folders.list(),
                         localFolders: db.listCurrentFolders(),
                     });
                 }.bind(this)).then(function (data) {
+                    if (cancellationSource.canceled) {
+                        return WinJS.Promise.wrapError(new Error("Folder Sync Cancelled after remote listing"));
+                    }
+
                     // Find all the changes from the remote server
                     // that aren't locally for folders on the server
                     var syncs = data.remoteFolders.reduce(function (data, rf) {
@@ -217,7 +221,7 @@
                     }.bind(this));
                 }.bind(this));
             },
-            syncBookmarks: function syncBookmarks(db, options) {
+            _syncBookmarks: function _syncBookmarks(db, options) {
                 var promise = WinJS.Promise.as();
                 this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksStart });
 
@@ -228,6 +232,10 @@
                         var priorityFolder;
                         var priorityFolderIndex = -1;
 
+                        // When we're not syncing a single folder, but we're
+                        // still supplied with a folder, we're going to prioritize
+                        // that folder to be the first. The shuffle below basically
+                        // "sorts" the folder by placing the specific folder first.
                         if (options.folder) {
                             priorityFolder = allFolders.filter(function (f, index) {
                                 if (f.folder_dbid === options.folder) {
@@ -238,6 +246,7 @@
                                 return false;
                             })[0];
 
+                            // Now take the folder found and put it first.
                             if (priorityFolder && (priorityFolderIndex > -1)) {
                                 allFolders.splice(priorityFolderIndex, 1);
                                 allFolders.unshift(priorityFolder);
@@ -262,6 +271,8 @@
                                 return WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
                             }
 
+                            // Before we do any other work, we need to make sure
+                            // the the pending folder add was pushed up to the service.
                             return this._addFolderPendingEdit(edit, db).then(function () {
                                 return db.getFolderByDbId(folder.id);
                             }).then(function (syncedFolder) {
@@ -272,6 +283,10 @@
                 }
 
                 return promise.then(function (folders) {
+                    if (options.cancellationSource.canceled) {
+                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Canceled: After folders sync"));
+                    }
+
                     // If we've just sync'd the remote folders, theres no point
                     // in us getting the remote list *AGAIN*, so just let it filter
                     // based on the local folders
@@ -286,6 +301,10 @@
                         }),
                     });
                 }.bind(this)).then(function (data) {
+                    if (options.cancellationSource.canceled) {
+                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Canceled: After relisting remote folders"));
+                    }
+
                     var currentFolders = data.currentFolders.filter(function (folder) {
                         switch (folder.folder_id) {
                             case InstapaperDB.CommonFolderIds.Liked:
@@ -307,13 +326,16 @@
                         }
 
                         this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.bookmarkFolder, title: folder.title });
+
+                        // No need to pass the cancellation source here because we're in
+                        // a serialized call so will be broken after each foler.
                         return this._syncBookmarksForFolder(db, folder.id).then(function () {
                             if (options._testPerFolderCallback) {
                                 options._testPerFolderCallback(folder.id);
                             }
                             return WinJS.Promise.timeout();
                         });
-                    }.bind(this));
+                    }.bind(this), 0, options.cancellationSource);
                 }.bind(this)).then(function () {
                     return this._syncLikes(db);
                 }.bind(this)).then(function () {
@@ -587,28 +609,30 @@
                 options = options || { folders: true, bookmarks: true };
                 var syncFolders = options.folders;
                 var syncBookmarks = options.bookmarks;
+                var cancellationSource = options.cancellationSource || new Codevoid.Utilities.CancellationSource();
 
                 var db = options.dbInstance || new InstapaperDB();
                 var initialize = options.dbInstance ? WinJS.Promise.as(db) : db.initialize();
 
                 this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.start });
                 return initialize.then(function startSync() {
-                    if (!syncFolders) {
+                    if (!syncFolders || cancellationSource.canceled) {
                         return;
                     }
 
-                    return this._syncFolders(db);
+                    return this._syncFolders(db, cancellationSource);
                 }.bind(this)).then(function () {
-                    if (!syncBookmarks) {
+                    if (!syncBookmarks || cancellationSource.canceled) {
                         return;
                     }
 
-                    return this.syncBookmarks(db, {
+                    return this._syncBookmarks(db, {
                         singleFolder: options.singleFolder,
                         folder: options.folder,
                         skipOrphanCleanup: options.skipOrphanCleanup,
                         _testPerFolderCallback: options._testPerFolderCallback,
                         didSyncFolders: options.folders,
+                        cancellationSource: cancellationSource
                     });
                 }.bind(this)).then(function () {
                     this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.end });

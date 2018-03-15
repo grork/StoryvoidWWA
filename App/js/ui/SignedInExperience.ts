@@ -56,8 +56,8 @@
                 sortchanged: (e: Utilities.EventObject<SortOption>) => {
                     this._sortsElement.value = e.detail.toString();
                 },
-                syncstarting: (e: Utilities.EventObject<{ message: string }>) => {
-                    this._showSyncProgress(e.detail.message);
+                syncstarting: (e: Utilities.EventObject<{ message: string, cancel: () => void }>) => {
+                    this._showSyncProgress(e.detail.message, e.detail.cancel);
                 },
                 synccompleted: () => {
                     this._hideSyncProgress();
@@ -265,12 +265,13 @@
             }
         }
 
-        private _showSyncProgress(initialMessage: string): void {
+        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): void {
             var headerContainer = document.createElement("div");
             var syncProgress = new Codevoid.Storyvoid.UI.SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
                 template: this._progressTemplate,
                 eventSource: this.viewModel.events,
+                cancelCallback: cancelCallback
             });
 
             this._syncProgressContainer.appendChild(headerContainer);
