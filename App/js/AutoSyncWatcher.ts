@@ -14,11 +14,13 @@
 
     export interface ISyncNeededEventArgs {
         reason: SyncReason;
+        showEvents: boolean;
         complete(): void;
     }
 
     class SyndNeededEventArgs extends Utilities.Signal implements ISyncNeededEventArgs {
         public reason: SyncReason;
+        public showEvents: boolean = true;
     }
 
     export class AutoSyncWatcher {
@@ -65,13 +67,14 @@
             }
 
             this._currentTimer = WinJS.Promise.timeout(this.dbIdleInterval).then(() => {
-                this._raiseSyncNeeded(SyncReason.Timer);
+                this._raiseSyncNeeded(SyncReason.Timer, false);
             });
         }
 
-        private _raiseSyncNeeded(reason: SyncReason): WinJS.Promise<any> {
+        private _raiseSyncNeeded(reason: SyncReason, showEvents: boolean = true): WinJS.Promise<any> {
             var eventPayload = new SyndNeededEventArgs();
             eventPayload.reason = reason;
+            eventPayload.showEvents = showEvents;
 
             this._eventSource.dispatchEvent("syncneeded", eventPayload);
             
