@@ -266,7 +266,9 @@
         }
 
         private _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>) {
-            this.startSync(ev.detail.reason).done(() => {
+            this.startSync(ev.detail.reason, {
+                noEvents: !ev.detail.showEvents
+            }).done(() => {
                 ev.detail.complete();
             }, () => {
                 ev.detail.complete();
