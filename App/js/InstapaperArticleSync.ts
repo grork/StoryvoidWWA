@@ -460,17 +460,17 @@
                     // Download the image from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded
                     // image
-                    return this._downloadImageToDisk(sourceUrl, index, folder).then((fileName: string) => {
+                    return this._downloadImageToDisk(sourceUrl, index, folder).then((result: { filename: string; extension: string }) => {
                         // Check if the image is actually in a DOM of somesorts.
                         // This is a trick/indiciator that this is a specialist
                         // download e.g. YouTube, Vimeo etc -- e.g. something
                         // that isn't in the actual downloaded document.
                         if (image.parentElement) {
-                            image.src = imagesFolderName + "/" + fileName;
+                            image.src = imagesFolderName + "/" + result.filename;
                         }
 
-                        if (!firstSuccessfulImage) {
-                            firstSuccessfulImage = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + fileName;
+                        if (!firstSuccessfulImage && (result.extension != ".gif")) {
+                            firstSuccessfulImage = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + result.filename;
                         }
 
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
@@ -488,7 +488,7 @@
         private _downloadImageToDisk(
             sourceUrl: Windows.Foundation.Uri,
             destinationFileNumber: number,
-            destinationFolder: st.StorageFolder): WinJS.Promise<string> {
+            destinationFolder: st.StorageFolder): WinJS.Promise<{ filename: string; extension: string }> {
 
             var client = new http.HttpClient();
             client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
@@ -601,11 +601,12 @@
                     remoteContent: response.content,
                     destination: destinationFileStream,
                     destinationFileName: destinationFileName,
+                    extension: extension
                 });
             });
 
             // Write the stream to disk
-            return downloadStream.then((result: { destination: st.Streams.IRandomAccessStream, remoteContent: http.IHttpContent, destinationFileName: string }) => {
+            return downloadStream.then((result: { destination: st.Streams.IRandomAccessStream, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
                 return result.remoteContent.writeToStreamAsync(result.destination).then(() => result);
             }).then((result) => {
                 result.destination.close();
@@ -613,7 +614,10 @@
 
                 // Return the filename so that the image URL
                 // can be rewritten.
-                return result.destinationFileName;
+                return {
+                    filename: result.destinationFileName,
+                    extension: result.extension
+                };
             });
         }
 
