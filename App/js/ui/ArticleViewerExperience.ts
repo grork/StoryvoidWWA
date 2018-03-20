@@ -380,13 +380,16 @@
                     hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
+                // Toggle the state to play our own animation. Needs to happen
+                // before we start the other one for them to run concurrently
+                this._messenger.invokeForResult("settoolbarstate", false);
+
                 hidden.done(() => {
                     offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
                     WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
                         WinJS.Utilities.addClass(this._toolbarContainer, "hide");
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
-                        this._messenger.invokeForResult("settoolbarstate", false);
                         signal.complete();
                     });
                 });
@@ -401,10 +404,14 @@
                     shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
 
+                // Toggle the state to play our own animation. Needs to happen
+                // before we start the other one for them to run concurrently
+                this._messenger.invokeForResult("settoolbarstate", true);
+
                 shown.done(() => {
                     WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
-                        this._messenger.invokeForResult("settoolbarstate", true);
+                        
                         signal.complete();
                     });
                 });

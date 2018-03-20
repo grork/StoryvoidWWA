@@ -104,6 +104,10 @@ blockquote {
     /* Move up the underlay so the content 
        doesn't move when this element is created */
     margin-bottom: -48px;
+    transform: translateY(-48px);
+    transition-property: transform;
+    transition-duration: 367ms;
+    transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 @media all and (max-width: 640px) {
@@ -111,6 +115,7 @@ blockquote {
        bottom, so rather than being sticky, lets make
        it fixed at the bottom. */
     .articleViewer-toolbar-underlay {
+        transform: translateY(48px);
         position: fixed;
         bottom: 0px;
         top: unset;

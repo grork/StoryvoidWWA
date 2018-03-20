@@ -121,12 +121,24 @@
 
         private _setToolbarState(toolbarIsVisible: boolean): void {
             if (!toolbarIsVisible && this._toolbarUnderlay) {
-                this._toolbarUnderlay.parentElement.removeChild(this._toolbarUnderlay);
-                this._toolbarUnderlay = null;
+                // Start the transition to hide the toolbar
+                this._toolbarUnderlay.style.transform = "";
+
+                // ... delay actually removing it for the length of the transition
+                setTimeout(() => {
+                    this._toolbarUnderlay.parentElement.removeChild(this._toolbarUnderlay);
+                    this._toolbarUnderlay = null;
+                }, 367);
             } else if (toolbarIsVisible && !this._toolbarUnderlay) {
                 var toolbarUnderlay = document.createElement("div");
                 toolbarUnderlay.className = TOOLBAR_UNDERLAY_CLASS;
                 document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
+                // If we change the transform before the layout has actually happened
+                // then the transition is just going to apply the final state and not
+                // actually animate
+                setTimeout(() => {
+                    toolbarUnderlay.style.transform = "translateY(0)";
+                });
                 this._toolbarUnderlay = toolbarUnderlay;
             }
         }
