@@ -24,6 +24,23 @@
         Vimeo
     }
 
+    function getFilenameIfImageMeetsCriteria(data: {
+        extension: string;
+        size: { width: number; height: number };
+        folder: string;
+        filename: string;
+    }): string {
+        if (data.extension == ".gif") {
+            return null;
+        }
+
+        if (data.size.width < 150 || data.size.height < 150) {
+            return null;
+        }
+
+        return "ms-appdata:///local/" + data.folder + "/" + data.filename;
+    }
+
     // Content sniffing headers
     // See:
     // https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern
@@ -460,7 +477,7 @@
                     // Download the image from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded
                     // image
-                    return this._downloadImageToDisk(sourceUrl, index, folder).then((result: { filename: string; extension: string }) => {
+                    return this._downloadImageToDisk(sourceUrl, index, folder).then((result: { filename: string; extension: string, size: { width: number; height: number;}}) => {
                         // Check if the image is actually in a DOM of somesorts.
                         // This is a trick/indiciator that this is a specialist
                         // download e.g. YouTube, Vimeo etc -- e.g. something
@@ -470,7 +487,12 @@
                         }
 
                         if (!firstSuccessfulImage && (result.extension != ".gif")) {
-                            firstSuccessfulImage = "ms-appdata:///local/" + this._destinationFolder.name + "/" + imagesFolderName + "/" + result.filename;
+                            firstSuccessfulImage = getFilenameIfImageMeetsCriteria({
+                                extension: result.extension,
+                                size: result.size,
+                                folder: this._destinationFolder.name + "/" + imagesFolderName,
+                                filename: result.filename
+                            });
                         }
 
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
@@ -488,7 +510,7 @@
         private _downloadImageToDisk(
             sourceUrl: Windows.Foundation.Uri,
             destinationFileNumber: number,
-            destinationFolder: st.StorageFolder): WinJS.Promise<{ filename: string; extension: string }> {
+            destinationFolder: st.StorageFolder): WinJS.Promise<{ filename: string; extension: string; size: { width: number, height: number } }> {
 
             var client = new http.HttpClient();
             client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
@@ -591,33 +613,56 @@
                 // Compute the final file name w. extension
                 destinationFileName = destinationFileNumber + "." + extension;
 
-                var destinationFileStream = destinationFolder.createFileAsync(
+                var destinationFile = destinationFolder.createFileAsync(
                     destinationFileName,
-                    st.CreationCollisionOption.replaceExisting).then((file: st.StorageFile) => file.openAsync(st.FileAccessMode.readWrite));
+                    st.CreationCollisionOption.replaceExisting).then((file: st.StorageFile) => {
+
+                        return WinJS.Promise.join({
+                            stream: file.openAsync(st.FileAccessMode.readWrite),
+                            file: file
+                        });
+                    });
 
                 // TypeScript got real confused by the types here,
                 // so cast them away like farts in the wind
                 return <any>WinJS.Promise.join({
                     remoteContent: response.content,
-                    destination: destinationFileStream,
+                    destination: destinationFile,
                     destinationFileName: destinationFileName,
                     extension: extension
                 });
             });
 
             // Write the stream to disk
-            return downloadStream.then((result: { destination: st.Streams.IRandomAccessStream, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
-                return result.remoteContent.writeToStreamAsync(result.destination).then(() => result);
+            return downloadStream.then((result: { destination: { stream: st.Streams.IRandomAccessStream; file: st.StorageFile }, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
+                return result.remoteContent.writeToStreamAsync(result.destination.stream).then(() => result);
             }).then((result) => {
-                result.destination.close();
                 result.remoteContent.close();
+                result.destination.stream.close();
+
+                // Get the size from the file properties, so we can decide
+                // if it's worth using as a preview image. Note, the image
+                // size here is in physical pixels, and doesn't take into
+                // account the scale factor of the device.
+                var size = result.destination.file.properties.getImagePropertiesAsync().then((properties) => {
+                    return {
+                        width: properties.width,
+                        height: properties.height,
+                    };
+                }, () => {
+                    return {
+                        width: 0,
+                        height: 0
+                    };
+                });
 
                 // Return the filename so that the image URL
                 // can be rewritten.
-                return {
+                return WinJS.Promise.join({
                     filename: result.destinationFileName,
-                    extension: result.extension
-                };
+                    extension: result.extension,
+                    size: size
+                });
             });
         }
 
