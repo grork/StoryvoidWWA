@@ -380,10 +380,6 @@
                     hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
-                // Toggle the state to play our own animation. Needs to happen
-                // before we start the other one for them to run concurrently
-                this._messenger.invokeForResult("settoolbarstate", false);
-
                 hidden.done(() => {
                     offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
@@ -392,6 +388,10 @@
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
                         signal.complete();
                     });
+
+                    // Toggle the state to play our own animation. Needs to happen
+                    // after we start the other one for them to run concurrently
+                    this._messenger.invokeForResult("settoolbarstate", false);
                 });
             } else {
                 // Remove the class before getting the client width, otherwise it'll
@@ -404,16 +404,16 @@
                     shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
 
-                // Toggle the state to play our own animation. Needs to happen
-                // before we start the other one for them to run concurrently
-                this._messenger.invokeForResult("settoolbarstate", true);
-
                 shown.done(() => {
                     WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
                         
                         signal.complete();
                     });
+
+                    // Toggle the state to play our own animation. Needs to happen
+                    // after we start the other one for them to run concurrently
+                    this._messenger.invokeForResult("settoolbarstate", true);
                 });
             }
 
