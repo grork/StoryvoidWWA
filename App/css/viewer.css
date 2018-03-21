@@ -107,6 +107,7 @@ blockquote {
     transform: translateY(-48px);
     transition-property: transform;
     transition-duration: 367ms;
+    transition-delay: 33ms;
     transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
