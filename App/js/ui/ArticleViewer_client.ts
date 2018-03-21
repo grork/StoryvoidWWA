@@ -15,6 +15,7 @@
         private _keyDownMap: { [key: number]: boolean } = {};
         private _hadFocus = false;
         private _hadSelection = false;
+        private _firstToolbarStateChangeSeen = false;
 
         public initialize(): void {
             this._scrollingElement = document.body;
@@ -121,36 +122,51 @@
 
         private _setToolbarState(toolbarIsVisible: boolean): void {
             if (!toolbarIsVisible && this._toolbarUnderlay) {
-                // Listen for the end of the transition to actually remove
-                // the element, rather rather than relying on a timer.
-                var self = this;
-                var transitionCompleteHandler = function (e: TransitionEvent) {
-                    if (e.srcElement !== self._toolbarUnderlay || e.propertyName !== "transform") {
-                        return;
-                    }
-
-                    self._toolbarUnderlay.removeEventListener("transitionend", transitionCompleteHandler);
-                    self._toolbarUnderlay.parentElement.removeChild(self._toolbarUnderlay);
-                    self._toolbarUnderlay = null;
-                };
-
-                this._toolbarUnderlay.addEventListener("transitionend", transitionCompleteHandler);
-
-                // Start the transition to hide the toolbar
-                this._toolbarUnderlay.style.transform = "";
+                this._hideToolbar();
             } else if (toolbarIsVisible && !this._toolbarUnderlay) {
-                var toolbarUnderlay = document.createElement("div");
-                toolbarUnderlay.className = TOOLBAR_UNDERLAY_CLASS;
-                document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
-                this._toolbarUnderlay = toolbarUnderlay;
-
-                // If we change the transform before the layout has actually happened
-                // then the transition is just going to apply the final state and not
-                // actually animate
-                setTimeout(() => {
-                    toolbarUnderlay.style.transform = "translateY(0)";
-                });
+                this._showToolbar();
             }
+
+            this._firstToolbarStateChangeSeen = true;
+        }
+
+        private _hideToolbar(): void {
+            // Listen for the end of the transition to actually remove
+            // the element, rather rather than relying on a timer.
+            var self = this;
+            var transitionCompleteHandler = function (e: TransitionEvent) {
+                if (e.srcElement !== self._toolbarUnderlay || e.propertyName !== "transform") {
+                    return;
+                }
+
+                self._toolbarUnderlay.removeEventListener("transitionend", transitionCompleteHandler);
+                self._toolbarUnderlay.parentElement.removeChild(self._toolbarUnderlay);
+                self._toolbarUnderlay = null;
+            };
+
+            this._toolbarUnderlay.addEventListener("transitionend", transitionCompleteHandler);
+
+            // Start the transition to hide the toolbar
+            this._toolbarUnderlay.style.transform = "";
+        }
+
+        private _showToolbar(): void {
+            var toolbarUnderlay = document.createElement("div");
+            toolbarUnderlay.className = TOOLBAR_UNDERLAY_CLASS;
+            document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
+            this._toolbarUnderlay = toolbarUnderlay;
+
+            if (!this._firstToolbarStateChangeSeen) {
+                toolbarUnderlay.style.transform = "translateY(0)";
+                return;
+            }
+
+            // If we change the transform before the layout has actually happened
+            // then the transition is just going to apply the final state and not
+            // actually animate
+            setTimeout(() => {
+                toolbarUnderlay.style.transform = "translateY(0)";
+            });
         }
 
         private _handleResize(): void {
