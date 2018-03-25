@@ -156,17 +156,16 @@
             document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
             this._toolbarUnderlay = toolbarUnderlay;
 
-            if (!this._firstToolbarStateChangeSeen) {
-                toolbarUnderlay.style.transform = "translateY(0)";
-                return;
+            if (this._firstToolbarStateChangeSeen) {
+                // I greatly dislike the web sometimes.
+                // The transform below gets applied, and 80% of the time, it animates.
+                // But sometimes -- just sometimes -- it doesn't. It just shows.
+                // So, force a layout by... calling clientHeight? (Thanks, The Web)
+                // Which makes things to the "right thing"
+                toolbarUnderlay.clientHeight;
             }
 
-            // If we change the transform before the layout has actually happened
-            // then the transition is just going to apply the final state and not
-            // actually animate
-            setTimeout(() => {
-                toolbarUnderlay.style.transform = "translateY(0)";
-            });
+            toolbarUnderlay.style.transform = "translateY(0)";
         }
 
         private _handleResize(): void {
