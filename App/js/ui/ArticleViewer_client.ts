@@ -11,6 +11,7 @@
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
         private _toolbarUnderlay: HTMLElement;
+        private _headerContainer: HTMLElement;
         private _currentImageWidthForImageSizing = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
         private _hadFocus = false;
@@ -53,16 +54,15 @@
         }
 
         private _insertTitle(data: { title: string, domain: string, url: string }): void {
-            var headerContainer = document.createElement("div");
+            var headerContainer = this._headerContainer = document.createElement("div");
             headerContainer.className = "articleViewer-header-container";
-
-            var subTitle = <HTMLAnchorElement>headerContainer.appendChild(document.createElement("a"));
-            subTitle.className = "articleViewer-subTitle";
 
             var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
             title.className = "articleViewer-title";
-
             title.textContent = data.title;
+
+            var subTitle = <HTMLAnchorElement>headerContainer.appendChild(document.createElement("a"));
+            subTitle.className = "articleViewer-subTitle";
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
 
@@ -148,6 +148,7 @@
 
             // Start the transition to hide the toolbar
             this._toolbarUnderlay.style.transform = "";
+            this._headerContainer.classList.toggle("articleViewer-header-container-sticky", false)
         }
 
         private _showToolbar(): void {
@@ -166,6 +167,7 @@
             }
 
             toolbarUnderlay.style.transform = "translateY(0)";
+            this._headerContainer.classList.toggle("articleViewer-header-container-sticky", true)
         }
 
         private _handleResize(): void {
