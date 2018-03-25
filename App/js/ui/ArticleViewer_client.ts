@@ -7,6 +7,8 @@
     const ARTICLE_WIDTH_PX = 1000;
     const MIN_SIZE_FOR_IMAGE_STRETCHING = 400;
     const TOOLBAR_UNDERLAY_CLASS = "articleViewer-toolbar-underlay";
+    const HEADER_ANIMATION_CLASS = "articleViewer-header-animate";
+    const HEADER_FORCE_STICKY_CLASS = "articleViewer-header-container-sticky";
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
@@ -139,21 +141,45 @@
                     return;
                 }
 
+                // Clean up the toolbar underlay
                 self._toolbarUnderlay.removeEventListener("transitionend", transitionCompleteHandler);
                 self._toolbarUnderlay.parentElement.removeChild(self._toolbarUnderlay);
                 self._toolbarUnderlay = null;
+
+                // Clean up te title -- stop it being sticky, stop it animating, and move it
+                // to the natural position.
+                self._headerContainer.classList.toggle(HEADER_FORCE_STICKY_CLASS, false);
+                self._headerContainer.classList.toggle(HEADER_ANIMATION_CLASS, false)
+                self._headerContainer.style.transform = "";
             };
 
+            // Use the toolbarUnderlay here since it's always moving
+            // even in the compact size case.
             this._toolbarUnderlay.addEventListener("transitionend", transitionCompleteHandler);
+
+            // Grab the ambient CSS transition property, and if it's not going to do anything
+            // then we don't want to transform it -- a bit of an implementation detail, but
+            // none the less we're going to take advantage of that knowledge here.
+            if (window.getComputedStyle(<Element>this._headerContainer).transitionProperty != "none") {
+                // Calculate the delta from where we currently are to where we want to be
+                // when the header is at "rest" and scrolled
+                var headerHeight = this._headerContainer.clientHeight;
+                if (this._scrollingElement.scrollTop < headerHeight) {
+                    headerHeight = this._scrollingElement.scrollTop;
+                }
+
+                this._headerContainer.style.transform = `translateY(-${headerHeight}px)`;
+            }
 
             // Start the transition to hide the toolbar
             this._toolbarUnderlay.style.transform = "";
-            this._headerContainer.classList.toggle("articleViewer-header-container-sticky", false)
         }
 
         private _showToolbar(): void {
             var toolbarUnderlay = document.createElement("div");
-            toolbarUnderlay.className = TOOLBAR_UNDERLAY_CLASS;
+            toolbarUnderlay.classList.add(TOOLBAR_UNDERLAY_CLASS);
+            toolbarUnderlay.classList.add(HEADER_ANIMATION_CLASS);
+
             document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
             this._toolbarUnderlay = toolbarUnderlay;
 
@@ -164,10 +190,28 @@
                 // So, force a layout by... calling clientHeight? (Thanks, The Web)
                 // Which makes things to the "right thing"
                 toolbarUnderlay.clientHeight;
+                this._headerContainer.clientHeight;
             }
 
+            // Calculate where the header needs to animate "from". We don't want to
+            // show the antimation to this position, so we carefully calculate it...
+            var headerHeight = this._headerContainer.clientHeight;
+            if (this._scrollingElement.scrollTop < headerHeight) {
+                headerHeight = this._scrollingElement.scrollTop;
+            }
+
+            // ... set it
+            this._headerContainer.style.transform = `translateY(-${headerHeight}px)`;
+
+            // ... force a layout pass so it's now in a good position
+            this._headerContainer.clientHeight;
+
+            // THEN we start the animation
+            this._headerContainer.classList.toggle(HEADER_ANIMATION_CLASS, true);
+            
             toolbarUnderlay.style.transform = "translateY(0)";
-            this._headerContainer.classList.toggle("articleViewer-header-container-sticky", true)
+            this._headerContainer.style.transform = "translateY(0)";
+            this._headerContainer.classList.toggle(HEADER_FORCE_STICKY_CLASS, true)
         }
 
         private _handleResize(): void {

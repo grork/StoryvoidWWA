@@ -103,6 +103,13 @@ blockquote {
     font-size: 12px;
     color: grey;
     text-decoration: none;
+    margin-bottom: 4px;
+}
+
+.articleViewer-header-animate {
+    transition-property: transform;
+    transition-duration: 367ms;
+    transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 .articleViewer-toolbar-underlay {
@@ -116,10 +123,6 @@ blockquote {
        doesn't move when this element is created */
     margin-bottom: -48px;
     transform: translateY(-48px);
-    transition-property: transform;
-    transition-duration: 367ms;
-    transition-delay: 33ms;
-    transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 @media all and (max-width: 640px) {
@@ -132,6 +135,10 @@ blockquote {
         bottom: 0px;
         top: unset;
         margin-bottom: unset;
+    }
+
+    .articleViewer-header-container {
+        transition-property: none;
     }
     /* Make sure when the toolbar is at the bottom
        we give it the appropriate space & position */
@@ -161,7 +168,8 @@ body > div.video_frame {
 
 /* Colors */
 .theme-day,
-.theme-day .articleViewer-toolbar-underlay {
+.theme-day .articleViewer-toolbar-underlay,
+.theme-day .articleViewer-header-container {
     background-color: white;
     color: black;
 }
@@ -187,7 +195,8 @@ body > div.video_frame {
         }
 
 .theme-paper,
-.theme-paper .articleViewer-toolbar-underlay  {
+.theme-paper .articleViewer-toolbar-underlay,
+.theme-paper .articleViewer-header-container {
     background-color: wheat;
     color: black;
 }
@@ -214,7 +223,8 @@ body > div.video_frame {
 
 
 .theme-dusk,
-.theme-dusk .articleViewer-toolbar-underlay {
+.theme-dusk .articleViewer-toolbar-underlay,
+.theme-dusk .articleViewer-header-container {
     background-color: darkslategrey;
     color: lightgrey;
 }
@@ -237,7 +247,8 @@ body > div.video_frame {
         }
 
 .theme-night,
-.theme-night .articleViewer-toolbar-underlay {
+.theme-night .articleViewer-toolbar-underlay,
+.theme-night .articleViewer-header-container {
     background-color: black;
     color: darkgrey;
 }
