@@ -584,7 +584,7 @@
                 cancellationSource: new Codevoid.Utilities.CancellationSource()
             };
 
-            let cancelationSource = this._currentSync.cancellationSource;
+            let cancellationSource = this._currentSync.cancellationSource;
 
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
@@ -599,7 +599,7 @@
                         if (!parameters.noEvents) {
                             this.events.dispatchEvent("syncstarting", {
                                 message: "Syncing your articles!",
-                                cancel: () => cancelationSource.cancel()
+                                cancel: () => cancellationSource.cancel()
                             });
                         }
 
@@ -645,7 +645,7 @@
                     dbInstance: this._instapaperDB,
                     folders: true,
                     bookmarks: true,
-                    cancellationSource: cancelationSource
+                    cancellationSource: cancellationSource
                 }),
                 folder: folderOperation,
             }).then((result) => {
@@ -670,7 +670,7 @@
                 });
 
                 if (!parameters.skipArticleDownload) {
-                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancelationSource);
+                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancellationSource);
                 }
             }).then(() => {
                 return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);

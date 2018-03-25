@@ -13,7 +13,7 @@ declare module Codevoid.Utilities {
     }
 
     export function addEventListeners(source: { addEventListener: any, removeEventListener: any }, handlers: any): ICancellable;
-    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancelationSource?: CancellationSource): WinJS.Promise<any>;
+    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): WinJS.Promise<any>;
 
     export interface IIndexedDatabase {
         objectStoreNames: string[];
@@ -45,7 +45,7 @@ declare module Codevoid.Utilities {
 
     export class CancellationSource {
         cancel();
-        canceled: boolean;
+        cancelled: boolean;
     }
 
     export interface EventObject<T> {

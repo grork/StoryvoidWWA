@@ -139,13 +139,13 @@
         }), WinJS.Utilities.eventMixin),
         CancellationSource: WinJS.Class.define(function() {
         }, {
-            _canceled: false,
+            _cancelled: false,
             cancel: function() {
-                this._canceled = true;
+                this._cancelled = true;
             },
-            canceled: {
-                get: function canceled_get() {
-                    return this._canceled;
+            cancelled: {
+                get: function cancelled_get() {
+                    return this._cancelled;
                 }
             }
         }),
@@ -164,7 +164,7 @@
                 while ((numberInFlight < concurrentWorkLimit) && signals.length) {
                     var signal = signals.shift();
 
-                    if (cancellable && cancellable.canceled) {
+                    if (cancellable && cancellable.cancelled) {
                         signal.promise.cancel();
                         return;
                     }

@@ -150,7 +150,7 @@
                         localFolders: db.listCurrentFolders(),
                     });
                 }.bind(this)).then(function (data) {
-                    if (cancellationSource.canceled) {
+                    if (cancellationSource.cancelled) {
                         return WinJS.Promise.wrapError(new Error("Folder Sync Cancelled after remote listing"));
                     }
 
@@ -283,8 +283,8 @@
                 }
 
                 return promise.then(function (folders) {
-                    if (options.cancellationSource.canceled) {
-                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Canceled: After folders sync"));
+                    if (options.cancellationSource.cancelled) {
+                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Cancelled: After folders sync"));
                     }
 
                     // If we've just sync'd the remote folders, theres no point
@@ -301,8 +301,8 @@
                         }),
                     });
                 }.bind(this)).then(function (data) {
-                    if (options.cancellationSource.canceled) {
-                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Canceled: After relisting remote folders"));
+                    if (options.cancellationSource.cancelled) {
+                        return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Cancelled: After relisting remote folders"));
                     }
 
                     var currentFolders = data.currentFolders.filter(function (folder) {
@@ -616,13 +616,13 @@
 
                 this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSync.Operation.start });
                 return initialize.then(function startSync() {
-                    if (!syncFolders || cancellationSource.canceled) {
+                    if (!syncFolders || cancellationSource.cancelled) {
                         return;
                     }
 
                     return this._syncFolders(db, cancellationSource);
                 }.bind(this)).then(function () {
-                    if (!syncBookmarks || cancellationSource.canceled) {
+                    if (!syncBookmarks || cancellationSource.cancelled) {
                         return;
                     }
 
