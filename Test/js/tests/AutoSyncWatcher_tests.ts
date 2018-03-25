@@ -73,7 +73,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("timerDoesGetCanceledIfSecondEventHappensInTimeWindow", () => {
+    promiseTest("timerDoesGetCancelledIfSecondEventHappensInTimeWindow", () => {
         var secondEventDispatched = false;
         var signal = new util.Signal();
 
