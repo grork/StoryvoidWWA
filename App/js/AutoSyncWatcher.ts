@@ -54,6 +54,7 @@
             this._handlersToCleanup.push(Utilities.addEventListeners(appEventSource, {
                 enteredbackground: this._handleEnteringBackground.bind(this),
                 leavingbackground: this._handleLeavingBackground.bind(this),
+                suspending: this._handleSuspending.bind(this)
             }));
 
             this._handlersToCleanup.push(Utilities.addEventListeners(networkEventSource, {
@@ -92,6 +93,11 @@
 
         private _handleEnteringBackground(e: any): void {
             this._suspendedAt = Date.now();
+        }
+
+        private _handleSuspending(e: Windows.ApplicationModel.SuspendingEventArgs) {
+            var deferral = e.suspendingOperation.getDeferral();
+            this._eventSource.dispatchEvent("cancelsync", deferral);
         }
 
         private _handleLeavingBackground() {
