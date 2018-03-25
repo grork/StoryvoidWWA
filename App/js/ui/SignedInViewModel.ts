@@ -265,7 +265,10 @@
 
             this._handlersToCleanUp.push(Utilities.addEventListeners(
                 this._autoSyncWatcher.eventSource,
-                { syncneeded: this._handleSyncNeeded.bind(this) }
+                {
+                    syncneeded: this._handleSyncNeeded.bind(this),
+                    cancelsync: this._handleCancelSync.bind(this),
+                }
             ));
         }
 
@@ -277,6 +280,20 @@
             }, () => {
                 ev.detail.complete();
             });
+        }
+
+        private _handleCancelSync(e: Utilities.EventObject<Windows.ApplicationModel.SuspendingDeferral>) {
+            if (!this._currentSync.signal) {
+                e.detail.complete();
+                return;
+            }
+
+            this._currentSync.signal.promise.done(
+                () => e.detail.complete(),
+                () => e.detail.complete()
+            );
+
+            this._currentSync.cancellationSource.cancel();
         }
 
         private _startTrackingSyncForTelemetry(sync: InstapaperSync, reason: SyncReason): void {
