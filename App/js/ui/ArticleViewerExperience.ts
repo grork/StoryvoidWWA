@@ -13,7 +13,6 @@
         private _previousTextColour: Windows.UI.Color;
         private _messenger: Codevoid.Utilities.WebViewMessenger;
         private _container: HTMLElement;
-        private _title: HTMLElement;
         private _displaySettingsFlyout: WinJS.UI.Flyout;
         private toolbar: WinJS.UI.ToolBar;
         private _pageReady: boolean = false;
@@ -119,8 +118,6 @@
         }
 
         private _openPage(): void {
-            this._title.textContent = this.viewModel.bookmark.title;
-
             // unhide it, and make it invisible
             // This is to allow the control to layout itself so that
             // when the actual webview is animated, it's rendered correctly

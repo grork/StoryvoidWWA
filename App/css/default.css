@@ -642,6 +642,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     margin-right: auto;
     margin-left: auto;
     position: relative;
+    max-width: 1400px;
     z-index: 100;
 }
 
@@ -661,6 +662,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-column: 2;
     -ms-grid-column-align: end;
     -ms-grid-row-align: start;
+    width: 288px;
 }
 
 .articleViewer-title {
