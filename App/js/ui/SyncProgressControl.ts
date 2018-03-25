@@ -53,6 +53,7 @@
         }
 
         public cancelSync(): void {
+            WinJS.Utilities.addClass(this._cancelSync, "hide");
             this.cancelCallback();
         }
     }
