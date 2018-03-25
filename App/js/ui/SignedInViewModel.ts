@@ -681,11 +681,11 @@
                     this._eventSource.dispatchEvent("synccompleted", null);
                 }
 
-                if (this._currentSync && this._currentSync.signal) {
+                if (!parameters.dontWaitForDownloads && this._currentSync && this._currentSync.signal) {
                     this._currentSync.signal.complete();
                 }
             }, (e) => {
-                if (this._currentSync && this._currentSync.signal) {
+                if (!parameters.dontWaitForDownloads && this._currentSync && this._currentSync.signal) {
                     this._currentSync.signal.error(e);
                 }
 
