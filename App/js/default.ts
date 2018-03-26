@@ -42,6 +42,8 @@
                 statusBar.backgroundColor = Windows.UI.Colors.red;
                 statusBar.backgroundOpacity = 1.0;
             }
+
+            Codevoid.Utilities.HiddenApiHelper.extendIntoTitleBar();
         }
 
         public initialize(): void {
