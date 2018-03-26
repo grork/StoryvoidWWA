@@ -81,7 +81,7 @@ blockquote {
 .articleViewer-title {
     overflow: hidden;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 16px;
     margin-right: 288px;
 }
 
@@ -197,7 +197,7 @@ body > div.video_frame {
 
 .theme-paper .articleViewer-toolbar-underlay,
 .theme-paper .articleViewer-header-container {
-    background-color: wheat;
+    background-color: #E8D2A8;
 }
 
 .theme-paper,
@@ -232,7 +232,7 @@ body > div.video_frame {
 
 .theme-dusk .articleViewer-toolbar-underlay,
 .theme-dusk .articleViewer-header-container {
-    background-color: darkslategrey;
+    background-color: #284343;
 }
 
 .theme-dusk,
@@ -264,7 +264,7 @@ body > div.video_frame {
 
 .theme-night .articleViewer-toolbar-underlay,
 .theme-night .articleViewer-header-container {
-    background-color: black;
+    background-color: #202020;
 }
 
 .theme-night,
