@@ -665,25 +665,9 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     width: 288px;
 }
 
-.articleViewer-title {
-    -ms-grid-column: 1;
-    -ms-grid-column-align: start;
-    -ms-grid-row-align: center;
-    width: 100%;
-    overflow: hidden;
-    font-size: 20px;
-    text-wrap: none;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 @media all and (max-width: 640px) {
     .articleViewer-toolbar-container {
         -ms-grid-row-align: end;
-    }
-
-    .articleViewer-title {
-        display: none;
     }
 
     .articleViewer-toolbar {
