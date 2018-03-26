@@ -7,6 +7,8 @@
     const ARTICLE_WIDTH_PX = 1000;
     const MIN_SIZE_FOR_IMAGE_STRETCHING = 400;
     const TOOLBAR_UNDERLAY_CLASS = "articleViewer-toolbar-underlay";
+    const ELEMENT_MANAGES_WIDTH = "articleViewer-manages-own-width";
+    const CONTAINED_ELEMENT_CLASS = "articleViewer-contained";
     const HEADER_ANIMATION_CLASS = "articleViewer-header-animate";
     const HEADER_FORCE_STICKY_CLASS = "articleViewer-header-container-sticky";
 
@@ -57,13 +59,17 @@
 
         private _insertTitle(data: { title: string, domain: string, url: string }): void {
             var headerContainer = this._headerContainer = document.createElement("div");
-            headerContainer.className = "articleViewer-header-container";
+            headerContainer.classList.add("articleViewer-header-container");
+            headerContainer.classList.add(ELEMENT_MANAGES_WIDTH);
 
-            var title = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            var wrapper = <HTMLElement>headerContainer.appendChild(document.createElement("div"));
+            wrapper.classList.add(CONTAINED_ELEMENT_CLASS);
+
+            var title = <HTMLElement>wrapper.appendChild(document.createElement("div"));
             title.className = "articleViewer-title";
             title.textContent = data.title;
 
-            var subTitle = <HTMLAnchorElement>headerContainer.appendChild(document.createElement("a"));
+            var subTitle = <HTMLAnchorElement>wrapper.appendChild(document.createElement("a"));
             subTitle.className = "articleViewer-subTitle";
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
@@ -86,7 +92,8 @@
         }
 
         private _setContentCssProperty(propertyToSet: { property: string, value: string }): void {
-            var contentElements = document.querySelectorAll("body > *:not(." + TOOLBAR_UNDERLAY_CLASS + ")");
+            var contentElements = Array.prototype.slice.call(document.querySelectorAll("body > *:not(." + ELEMENT_MANAGES_WIDTH + ")"));
+            contentElements = contentElements.concat(Array.prototype.slice.call(document.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
 
             // Since we're adjusting the content properties, we need
             // to go over all the found elements, and stomp the property on them.
@@ -178,6 +185,7 @@
         private _showToolbar(): void {
             var toolbarUnderlay = document.createElement("div");
             toolbarUnderlay.classList.add(TOOLBAR_UNDERLAY_CLASS);
+            toolbarUnderlay.classList.add(ELEMENT_MANAGES_WIDTH);
             toolbarUnderlay.classList.add(HEADER_ANIMATION_CLASS);
 
             document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);

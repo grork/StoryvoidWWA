@@ -1121,7 +1121,7 @@
         private static get themeDetails(): IThemeDetails[] {
             if (!DisplaySettingsViewModel._themeDetails) {
                 DisplaySettingsViewModel._themeDetails = [
-                    { theme: Settings.Theme.Day, viewerCssClass: "day", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.white },
+                    { theme: Settings.Theme.Day, viewerCssClass: "day", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.ColorHelper.fromArgb(1.0,249,249,249) },
                     { theme: Settings.Theme.Paper, viewerCssClass: "paper", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.Colors.wheat },
                     { theme: Settings.Theme.Dusk, viewerCssClass: "dusk", titlebarForeground: Windows.UI.Colors.lightGray, titlebarBackground: Windows.UI.Colors.darkSlateGray },
                     { theme: Settings.Theme.Night, viewerCssClass: "night", titlebarForeground: Windows.UI.Colors.white, titlebarBackground: Windows.UI.Colors.black },

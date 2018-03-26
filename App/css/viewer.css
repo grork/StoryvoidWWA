@@ -15,7 +15,8 @@ body {
     -ms-content-zooming: none;
 }
 
-    body > *:not(.articleViewer-toolbar-underlay) {
+    body > *:not(.articleViewer-manages-own-width),
+    .articleViewer-contained {
         margin-left: auto;
         margin-right: auto;
         width: 80vw;
@@ -65,10 +66,8 @@ blockquote {
     position: relative;
     font-family: 'Segoe UI';
     width: 100%;
-    display: -ms-grid;
-    -ms-grid-rows: auto auto;
-    -ms-grid-columns: 1fr;
     padding-top: 6px;
+    padding-bottom: 6px;
     line-height: 1.6;
     top: 0px;
     left: 0px;
@@ -80,10 +79,6 @@ blockquote {
 }
 
 .articleViewer-title {
-    -ms-grid-row: 1;
-    -ms-grid-column: 1;
-    -ms-grid-column-align: start;
-    -ms-grid-row-align: center;
     overflow: hidden;
     font-weight: bold;
     font-size: 20px;
@@ -92,18 +87,12 @@ blockquote {
 
 .articleViewer-subTitle {
     display: block;
-    -ms-grid-row: 2;
-    -ms-grid-column: 1;
-    -ms-grid-column-align: start;
-    -ms-grid-row-align: center;
-    width: 100%;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-size: 12px;
+    font-size: 16px;
     color: grey;
     text-decoration: none;
-    margin-bottom: 4px;
 }
 
 .articleViewer-header-animate {
@@ -167,10 +156,18 @@ body > div.video_frame {
     }
 
 /* Colors */
+.theme-day {
+    background-color: white;
+}
+
+.theme-day .articleViewer-toolbar-underlay,
+.theme-day .articleViewer-header-container {
+    background-color: #F9F9F9;
+}
+
 .theme-day,
 .theme-day .articleViewer-toolbar-underlay,
 .theme-day .articleViewer-header-container {
-    background-color: white;
     color: black;
 }
 
@@ -194,10 +191,18 @@ body > div.video_frame {
             color: navy;
         }
 
-.theme-paper,
+.theme-paper {
+    background-color: wheat;
+}
+
 .theme-paper .articleViewer-toolbar-underlay,
 .theme-paper .articleViewer-header-container {
     background-color: wheat;
+}
+
+.theme-paper,
+.theme-paper .articleViewer-toolbar-underlay,
+.theme-paper .articleViewer-header-container {
     color: black;
 }
 
@@ -221,11 +226,18 @@ body > div.video_frame {
             color: navy;
         }
 
+.theme-dusk {
+    background-color: darkslategrey;
+}
+
+.theme-dusk .articleViewer-toolbar-underlay,
+.theme-dusk .articleViewer-header-container {
+    background-color: darkslategrey;
+}
 
 .theme-dusk,
 .theme-dusk .articleViewer-toolbar-underlay,
 .theme-dusk .articleViewer-header-container {
-    background-color: darkslategrey;
     color: lightgrey;
 }
 
@@ -246,10 +258,18 @@ body > div.video_frame {
             color: white;
         }
 
-.theme-night,
+.theme-night {
+    background-color: black;
+}
+
 .theme-night .articleViewer-toolbar-underlay,
 .theme-night .articleViewer-header-container {
     background-color: black;
+}
+
+.theme-night,
+.theme-night .articleViewer-toolbar-underlay,
+.theme-night .articleViewer-header-container {
     color: darkgrey;
 }
 
