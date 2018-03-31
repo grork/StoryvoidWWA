@@ -45,7 +45,64 @@ html, body {
     background-color: darkslategrey;
 }
 
+.storyvoid-title-body,
 .storyvoid-content-body {
     font-weight: lighter;
-    margin-right: 2px;
+}
+
+.storyvoid-content-body {
+    margin-top: 16px;
+    margin-bottom: 20px;
+}
+
+.storyvoid-privacy-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    margin-left: -8px;
+}
+
+.storyvoid-privacy-table-header {
+    background-color: lightgray;
+}
+
+th {
+    padding: 8px;
+    text-align: left;
+    padding-left: 12px;
+}
+
+td {
+    padding: 8px;
+    vertical-align: top;
+}
+
+tr td {
+    font-weight: lighter;
+}
+
+thead > tr {
+    border-bottom: none;
+}
+
+tr {
+    border-bottom-color: darkgrey;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+ul {
+    margin-top: -8px;
+    margin-bottom: -4px;
+}
+
+li {
+    line-height: 1.8em;
+    list-style-type: none;
+    margin-left: -40px;
+}
+
+li:before {
+    content: "-";
+    padding-right: 8px;
 }
