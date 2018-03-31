@@ -45,6 +45,8 @@ img {
 */
 pre {
     overflow-x: auto;
+    padding-bottom: 16px;
+    white-space: pre-wrap;
 }
 
 p {
