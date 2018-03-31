@@ -205,6 +205,11 @@
             this._splitView.closePane();
         }
 
+        public showFeedbackHub(): void {
+            var launcher = Microsoft.Services.Store.Engagement.StoreServicesFeedbackLauncher.getDefault();
+            launcher.launchAsync().done(() => { }, () => { });
+        }
+
         public _renderFolderDetails(folderDetails: IFolderDetails): void {
             Utilities.Logging.instance.log("Bookmarks for: " + folderDetails.folder.folder_id);
 
@@ -480,6 +485,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.menuClosing);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.holdVisualTriggered);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showSettings);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showFeedbackHub);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.itemsRendered);

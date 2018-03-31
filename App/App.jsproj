@@ -138,6 +138,7 @@
     <ProjectReference Include="..\NativeInfrastructure\NativeInfrastructure.vcxproj" />
   </ItemGroup>
   <ItemGroup>
+    <SDKReference Include="Microsoft.Services.Store.Engagement, Version=10.0" />
     <SDKReference Include="WindowsMobile, Version=10.0.15063.0" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
@@ -150,5 +151,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Codevoid.Utilities.Mixpanel.1.2.2\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Codevoid.Utilities.Mixpanel.1.2.2\build\uap10.0\Codevoid.Utilities.Mixpanel.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Services.Store.Engagement.10.1711.28001\build\Microsoft.Services.Store.Engagement.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Services.Store.Engagement.10.1711.28001\build\Microsoft.Services.Store.Engagement.targets'))" />
   </Target>
+  <Import Project="..\packages\Microsoft.Services.Store.Engagement.10.1711.28001\build\Microsoft.Services.Store.Engagement.targets" Condition="Exists('..\packages\Microsoft.Services.Store.Engagement.10.1711.28001\build\Microsoft.Services.Store.Engagement.targets')" />
 </Project>
