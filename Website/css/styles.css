@@ -3,21 +3,25 @@ html, body {
     margin: 0;
     background-color: white;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 20px;
+    font-size: 17px;
 }
 
 .storyvoid-title-container {
-    background-color: red;
-}
-
-.storyvoid-title {
+    margin-top:12px;
+    margin-bottom: 30px;
     margin-left: auto;
     margin-right: auto;
     max-width: 768px;
-    font-size: 64px;
+}
+
+.storyvoid-title {
+    display: inline;
+    background-color: red;
+    font-size: 56px;
     font-weight: bold;
     color: white;
-    padding-bottom: 12px;
+    padding: 0px 18px 8px 18px;
+    margin-left: -22px;
 }
 
 .storyvoid-content-container {
@@ -26,12 +30,22 @@ html, body {
     margin-right: auto;
 }
 
-.storyvoid-content-heading {
-    font-weight: bold;
+.storyvoid-content-heading-wrapper {
     margin-top: 12px;
     margin-bottom: 8px;
+    margin-left: -12px;
+}
+
+.storyvoid-content-heading {
+    font-weight: normal;
+    color: white;
+    padding: 8px 12px 9px 12px;
+    display: inline;
+    line-height: 1.8em;
+    background-color: darkslategrey;
 }
 
 .storyvoid-content-body {
     font-weight: lighter;
+    margin-right: 2px;
 }
