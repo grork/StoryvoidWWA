@@ -16,7 +16,7 @@
         private static _client: Codevoid.Utilities.Mixpanel.MixpanelClient;
         static initialize(): WinJS.Promise<any> {
             // Test token
-            Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("57368bf65c0e0bd64fec363806164133");
+            Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("1f655fcc3028ab7be93e6c81b243a63a");
             return Telemetry._client.initializeAsync().then(() => {
                 Telemetry._client.dropEventsForPrivacy = !(new Settings.TelemetrySettings()).telemeteryCollectionEnabled;
                 Telemetry._client.start();
