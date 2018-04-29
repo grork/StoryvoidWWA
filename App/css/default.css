@@ -632,12 +632,12 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     width: 100vw;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 1fr;
+    -ms-grid-rows: 28px 1fr;
 }
 
 .articleViewer-toolbar-container {
     -ms-grid-column: 1;
-    -ms-grid-row: 1;
+    -ms-grid-row: 2;
     -ms-grid-row-align: start;
     display: -ms-grid;
     -ms-grid-columns: 1fr auto;
@@ -769,7 +769,7 @@ button.margin-increase .win-commandimage {
     position: relative;
     height: 100%;
     width: 100%;
-    -ms-grid-row: 1;
+    -ms-grid-row: 2;
 }
 
 .authenticator {
