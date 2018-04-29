@@ -62,6 +62,7 @@ body {
         -ms-grid-column: 1;
         position: relative;
         border-width: 1px;
+        margin-top: 28px;
         z-index: 100;
     }
 
@@ -121,16 +122,17 @@ button.win-command:focus {
     height: 100%;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 48px 1fr;
+    -ms-grid-rows: auto 1fr;
 }
 
 .signedIn-header {
+    padding-top: 28px;
     -ms-grid-column: 1;
     -ms-grid-row: 1;
     display: -ms-grid;
     -ms-grid-rows: 1fr;
     -ms-grid-columns: 48px 12px auto 1fr;
-    height: 100%;
+    height: auto;
     width: 100%;
 }
 
@@ -264,7 +266,7 @@ button.win-command:focus {
     width: 100vw;
     height: 100vh;
     padding: 24px;
-    padding-top: 0px;
+    padding-top: 20px;
     overflow-x: auto;
 }
 
