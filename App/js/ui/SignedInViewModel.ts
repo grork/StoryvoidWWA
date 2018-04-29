@@ -183,6 +183,10 @@
         }
 
         private _handleBookmarkUpdated(detail: IBookmarksChangedEvent): void {
+            if (!this._currentBookmarks) {
+                return;
+            }
+
             // Don't care about non-update-like events
             switch (detail.operation) {
                 case InstapaperDB.BookmarkChangeTypes.UPDATE:
@@ -537,7 +541,27 @@
                 // Try showing a saved article before doing the rest of the work.
                 var transientSettings = new Settings.TransientSettings();
                 if (transientSettings.lastViewedArticleId != -1) {
-                    articleDisplay = this._instapaperDB.getBookmarkByBookmarkId(transientSettings.lastViewedArticleId).then(bookmark => this.showArticle(bookmark, true /*restoring*/));
+                    // Since we're restoring, we should try syncing the article progress
+                    // before showing it. We're trading off time/jank for correct state.
+                    // Note, that the article could have gone away, so we need to handle
+                    // the errors by dropping them silently.
+                    articleDisplay = this._instapaperDB.getBookmarkByBookmarkId(transientSettings.lastViewedArticleId).then(bookmark => {
+                        var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+
+                        // By updating with that we have, it'll return us a new one if there is one, otherwise
+                        // it'll just give us back the same item again.
+                        return bookmarkApi.updateReadProgress({
+                            bookmark_id: bookmark.bookmark_id,
+                            progress: bookmark.progress,
+                            progress_timestamp: bookmark.progress_timestamp
+                        }).then((updatedBookmark) => {
+                            bookmark.progress = updatedBookmark.progress;
+                            bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
+                            return this._instapaperDB.updateBookmark(bookmark);
+                        }, () => bookmark /* if we failed to get it, just return the original */);
+                    }).then((bookmark) => {
+                        this.showArticle(bookmark, true /*restoring*/);
+                    });
                 }
 
                 return articleDisplay;
@@ -553,7 +577,7 @@
                 } else {
                     completedSignal.complete();
                 }
-            });
+            }, () => { });
 
             return completedSignal.promise;
         }
