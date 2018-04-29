@@ -547,7 +547,6 @@
                     // the errors by dropping them silently.
                     articleDisplay = this._instapaperDB.getBookmarkByBookmarkId(transientSettings.lastViewedArticleId).then(bookmark => {
                         var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
-
                         // By updating with that we have, it'll return us a new one if there is one, otherwise
                         // it'll just give us back the same item again.
                         return bookmarkApi.updateReadProgress({
