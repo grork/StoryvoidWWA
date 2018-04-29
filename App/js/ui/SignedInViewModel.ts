@@ -553,7 +553,10 @@
                         return bookmarkApi.updateReadProgress({
                             bookmark_id: bookmark.bookmark_id,
                             progress: bookmark.progress,
-                            progress_timestamp: bookmark.progress_timestamp
+                            // We might not have had any progress yet, but the service might have had some
+                            // but we can't say 0 for timestamp, so we need to send a low number so as not
+                            // to accidently update the progress with our 0 value.
+                            progress_timestamp: bookmark.progress_timestamp || 1
                         }).then((updatedBookmark) => {
                             bookmark.progress = updatedBookmark.progress;
                             bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
