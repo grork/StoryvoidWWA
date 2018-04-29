@@ -111,7 +111,9 @@
 
                 // Images that are small probably don't want to be fiddled with,
                 // so based on some arbitary size, screw it.
-                if (currentImage.naturalWidth < MIN_SIZE_FOR_IMAGE_STRETCHING) {
+                // Note that sometimes naturalWidth is isn't correctly handled by Edge
+                // so we check for clientwidth and natural width.
+                if (currentImage.clientWidth < MIN_SIZE_FOR_IMAGE_STRETCHING && currentImage.naturalWidth < MIN_SIZE_FOR_IMAGE_STRETCHING) {
                     continue;
                 }
 
