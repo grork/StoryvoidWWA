@@ -292,3 +292,90 @@ declare module Codevoid.Storyvoid.UI {
         signInCompleted(): void;
     }
 }
+
+// Microsot moved the MSHTMLWebViewElement declaration out of lib.d.ts, so we need
+// to duplicate it here. See this breaking change:
+// https://github.com/Microsoft/TypeScript/issues/23143
+
+interface MSWebViewAsyncOperationEventMap {
+    "complete": Event;
+    "error": Event;
+}
+
+interface MSWebViewAsyncOperation extends EventTarget {
+    readonly error: DOMError;
+    oncomplete: (this: MSWebViewAsyncOperation, ev: Event) => any;
+    onerror: (this: MSWebViewAsyncOperation, ev: Event) => any;
+    readonly readyState: number;
+    readonly result: any;
+    readonly target: MSHTMLWebViewElement;
+    readonly type: number;
+    start(): void;
+    readonly COMPLETED: number;
+    readonly ERROR: number;
+    readonly STARTED: number;
+    readonly TYPE_CAPTURE_PREVIEW_TO_RANDOM_ACCESS_STREAM: number;
+    readonly TYPE_CREATE_DATA_PACKAGE_FROM_SELECTION: number;
+    readonly TYPE_INVOKE_SCRIPT: number;
+    addEventListener<K extends keyof MSWebViewAsyncOperationEventMap>(type: K, listener: (this: MSWebViewAsyncOperation, ev: MSWebViewAsyncOperationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+    removeEventListener<K extends keyof MSWebViewAsyncOperationEventMap>(type: K, listener: (this: MSWebViewAsyncOperation, ev: MSWebViewAsyncOperationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
+
+declare var MSWebViewAsyncOperation: {
+    prototype: MSWebViewAsyncOperation;
+    new(): MSWebViewAsyncOperation;
+    readonly COMPLETED: number;
+    readonly ERROR: number;
+    readonly STARTED: number;
+    readonly TYPE_CAPTURE_PREVIEW_TO_RANDOM_ACCESS_STREAM: number;
+    readonly TYPE_CREATE_DATA_PACKAGE_FROM_SELECTION: number;
+    readonly TYPE_INVOKE_SCRIPT: number;
+};
+
+interface MSWebViewSettings {
+    isIndexedDBEnabled: boolean;
+    isJavaScriptEnabled: boolean;
+}
+
+declare var MSWebViewSettings: {
+    prototype: MSWebViewSettings;
+    new(): MSWebViewSettings;
+};
+
+interface MSHTMLWebViewElement extends HTMLElement {
+    readonly canGoBack: boolean;
+    readonly canGoForward: boolean;
+    readonly containsFullScreenElement: boolean;
+    readonly documentTitle: string;
+    height: number;
+    readonly settings: MSWebViewSettings;
+    src: string;
+    width: number;
+    addWebAllowedObject(name: string, applicationObject: any): void;
+    buildLocalStreamUri(contentIdentifier: string, relativePath: string): string;
+    capturePreviewToBlobAsync(): MSWebViewAsyncOperation;
+    captureSelectedContentToDataPackageAsync(): MSWebViewAsyncOperation;
+    getDeferredPermissionRequestById(id: number): DeferredPermissionRequest;
+    getDeferredPermissionRequests(): DeferredPermissionRequest[];
+    goBack(): void;
+    goForward(): void;
+    invokeScriptAsync(scriptName: string, ...args: any[]): MSWebViewAsyncOperation;
+    navigate(uri: string): void;
+    navigateFocus(navigationReason: NavigationReason, origin: FocusNavigationOrigin): void;
+    navigateToLocalStreamUri(source: string, streamResolver: any): void;
+    navigateToString(contents: string): void;
+    navigateWithHttpRequestMessage(requestMessage: any): void;
+    refresh(): void;
+    stop(): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: MSHTMLWebViewElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: MSHTMLWebViewElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
+
+declare var MSHTMLWebViewElement: {
+    prototype: MSHTMLWebViewElement;
+    new(): MSHTMLWebViewElement;
+};
