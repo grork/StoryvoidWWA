@@ -58,7 +58,7 @@
                 // E.g Remove keyboard,
                 //     attach keyboard
                 //     spin for ever and eat all the cpu.
-                this._content = document.createElement("x-ms-webview");
+                this._content = <MSHTMLWebViewElement>document.createElement("x-ms-webview");
                 this._content.className = "articleViewer-content";
                 this._container.insertBefore(this._content, this._lastDiv);
 
