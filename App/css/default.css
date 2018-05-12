@@ -82,7 +82,7 @@ body {
 
     .signedIn-splitview .win-splitview-pane {
         display: -ms-grid;
-        -ms-grid-rows: 48px 1fr 12px auto;
+        -ms-grid-rows: 76px 1fr 12px auto;
         -ms-grid-columns: 1fr;
     }
 
