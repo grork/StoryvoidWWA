@@ -635,12 +635,20 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-rows: 28px 1fr;
 }
 
+.articleViewer-content {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    -ms-grid-row: 2;
+}
+
 .articleViewer-toolbar-container {
     -ms-grid-column: 1;
-    -ms-grid-row: 2;
+    -ms-grid-row: 1;
     -ms-grid-row-align: start;
     display: -ms-grid;
     -ms-grid-columns: 1fr auto;
+    -ms-grid-rows: 28px 1fr;
     margin-right: auto;
     margin-left: auto;
     position: relative;
@@ -660,15 +668,23 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         display: none;
     }
 
+.articleViewer-filler-animate {
+    transition-property: transform;
+    transition-duration: 50ms;
+    transition-timing-function: ease-in;
+}
+
 .articleViewer-toolbar {
     -ms-grid-column: 2;
     -ms-grid-column-align: end;
+    -ms-grid-row: 2;
     -ms-grid-row-align: start;
     width: 288px;
 }
 
 @media all and (max-width: 640px) {
     .articleViewer-toolbar-container {
+        -ms-grid-row: 2;
         -ms-grid-row-align: end;
     }
 
@@ -764,13 +780,6 @@ button.margin-increase .win-commandimage {
     .theme-container > button.win-command:hover:active {
         opacity: 0.5;
     }
-
-.articleViewer-content {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    -ms-grid-row: 2;
-}
 
 .authenticator {
     display: -ms-grid;
