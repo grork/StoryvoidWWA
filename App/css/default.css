@@ -693,7 +693,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         -ms-grid-column-span: 3;
         -ms-grid-column-align: center;
         -ms-grid-row-align: center;
-        margin-right: -17px;
     }
 }
 
