@@ -1086,3 +1086,16 @@ button.margin-increase .win-commandimage {
     margin-left: 16px;
     margin-right: 16px;
 }
+
+.noTitleSpacer .signedIn-container .win-splitviewpanetoggle {
+    margin-top: 0px;
+}
+
+.noTitleSpacer .signedIn-header {
+    padding-top: 0px;
+}
+
+.noTitleSpacer .articleViewer-container,
+.noTitleSpacer .articleViewer-toolbar-container {
+    -ms-grid-rows: 0px 1fr;
+}

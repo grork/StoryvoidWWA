@@ -73,6 +73,13 @@
                 }
             }));
 
+            const titleBarSpacerHelper = TitleBarSpaceHelper.getInstance();
+            this._handlersToCleanup.push(Utilities.addEventListeners(titleBarSpacerHelper, {
+                spacerrequiredchanged: this._handleSpacerRequired.bind(this),
+            }));
+
+            this._handleSpacerRequired({ detail: titleBarSpacerHelper.spacerRequired });
+
             var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
                 contentanimating: (eventObject) => {
                     if (eventObject.detail.type === "entrance") {
@@ -120,6 +127,18 @@
             }
 
             this._contentList.layout = <any>layout;
+        }
+
+        private _handleSpacerRequired(required: Utilities.EventObject<TitleBarSpacerRequired>): void {
+            switch (required.detail) {
+                case TitleBarSpacerRequired.Yes:
+                    WinJS.Utilities.removeClass(document.body, "noTitleSpacer");
+                    break;
+
+                case TitleBarSpacerRequired.No:
+                    WinJS.Utilities.addClass(document.body, "noTitleSpacer");
+                    break;
+            }
         }
 
         public handleSortsChanged(e: UIEvent) {
