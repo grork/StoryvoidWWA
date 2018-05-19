@@ -17,7 +17,7 @@
             Telemetry.initialize().done(() => {
                 app.initialize();
                 deferral.complete();
-            })
+            });
         }
 
         public configureTitlebar(): void {
