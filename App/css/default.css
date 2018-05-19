@@ -679,7 +679,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-column-align: end;
     -ms-grid-row: 2;
     -ms-grid-row-align: start;
-    width: 288px;
+    width: 336px;
 }
 
 @media all and (max-width: 640px) {
