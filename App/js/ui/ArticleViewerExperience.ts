@@ -74,9 +74,8 @@
                 this._openPage();
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
-                    removed: () => {
-                        this.closeArticle();
-                    }
+                    removed: () => this.closeArticle(),
+                    dismiss: () => this.closeArticle(),
                 }));
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
@@ -196,7 +195,6 @@
             this._messenger.invokeForResult("settoolbarstate", this._toolbarVisible);
 
             // Setup OS back button support
-            this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
             this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
                 backrequested: this.goBack.bind(this),
             }));
@@ -618,6 +616,7 @@
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
         private _displaySettingsCommand: WinJS.UI.Command;
         private _toggleLikeCommand: WinJS.UI.Command;
+        private _closeArticleCommand: WinJS.UI.Command;
         private _deleteCommand: WinJS.UI.Command;
         private _archiveCommand: WinJS.UI.Command;
         private _moveCommand: WinJS.UI.Command;
@@ -654,6 +653,12 @@
                 icon: WinJS.UI.AppBarIcon.movetofolder,
                 type: "flyout",
                 onclick: this._move.bind(this),
+            });
+
+            this._closeArticleCommand = new WinJS.UI.Command(null, {
+                tooltip: "Close",
+                icon: WinJS.UI.AppBarIcon.back,
+                onclick: () => this.eventSource.dispatchEvent("dismiss", null)
             });
 
             // Save that we're looking at an article
@@ -768,6 +773,7 @@
         public getCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
             var commands = [];
 
+            commands.push(this._closeArticleCommand);
             commands.push(this._displaySettingsCommand);
             commands.push(this._toggleLikeCommand);
             commands.push(this._moveCommand);
