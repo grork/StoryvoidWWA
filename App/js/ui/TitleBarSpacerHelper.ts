@@ -35,7 +35,7 @@
 
             this._handlersToCleanup.push(Utilities.addEventListeners(this._titleBarEventSource, {
                 titlebarvisibilitychanged: (args) => {
-                    this._titleBarVisible = args.detail;
+                    this._titleBarVisible = args.detail[0];
                     this.refresh();
                 },
             }));
@@ -88,8 +88,9 @@
         private getSpacerRequired(): TitleBarSpacerRequired {
             const inTabletMode = (this.viewSettings.userInteractionMode === Windows.UI.ViewManagement.UserInteractionMode.touch);
             const isFullScreen = this.view.isFullScreenMode;
+            const isTabbingSupported = (<any>this.view).isTabGroupingSupported; // Undefined on RS4 & below
 
-            if (inTabletMode || isFullScreen || !this._titleBarVisible) {
+            if (inTabletMode || isFullScreen || !this._titleBarVisible || isTabbingSupported) {
                 return TitleBarSpacerRequired.No;
             }
 
