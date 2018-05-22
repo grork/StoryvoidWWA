@@ -26,7 +26,7 @@
 
             var titleBar = applicationView.titleBar;
 
-            var primaryColour = Windows.UI.Colors.red;
+            var primaryColour = Windows.UI.Colors.transparent;
             var textColour = Windows.UI.Colors.white;
 
             titleBar.backgroundColor = primaryColour;
@@ -35,6 +35,9 @@
             titleBar.foregroundColor = textColour;
             titleBar.inactiveBackgroundColor = primaryColour;
             titleBar.buttonInactiveBackgroundColor = primaryColour;
+
+            titleBar.buttonHoverBackgroundColor = Windows.UI.Colors.red;
+            titleBar.buttonHoverForegroundColor = textColour;
 
             if (Windows.UI.ViewManagement.StatusBar) {
                 var statusBar = Windows.UI.ViewManagement.StatusBar.getForCurrentView();

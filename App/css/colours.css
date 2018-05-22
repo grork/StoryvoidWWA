@@ -11,7 +11,7 @@
 }
 
 .signedIn-header {
-    background-color: red;
+    background-color: #BC0000;
     color: white;
 }
 
@@ -67,7 +67,7 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 }
 
 .win-splitviewcommand.folderlist-current {
-    background-color: red;
+    background-color: #BC0000;
 }
 
 .win-splitviewcommand.folderlist-current > .win-splitviewcommand-button {
@@ -75,12 +75,12 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 }
 
 .signedOut-container {
-    background-color: red;
+    background-color: #BC0000;
     color: white;
 }
 
     .signedOut-container a {
-        color: red;
+        color: #BC0000;
         background-color: white;
     }
 
@@ -137,7 +137,7 @@ progress.article-progress {
 .authenticator input {    
     border-color: white;
     background-color: transparent;
-    color: red;
+    color: #BC0000;
 }
 
     .authenticator input:hover {
@@ -169,7 +169,7 @@ progress.article-progress {
 .authenticator .authenticateButton:focus,
 .authenticator .authenticateButton:hover {
     background-color: white;
-    color: red;
+    color: #BC0000;
 }
 
     .authenticator .authenticateButton[disabled] {
@@ -178,7 +178,7 @@ progress.article-progress {
     }
 
 .authenticator > .workingContainer {
-    background-color: red;
+    background-color: #BC0000;
 }
 
     .authenticator > .workingContainer > progress {
@@ -333,7 +333,7 @@ progress.article-progress {
 
 .settingsPopup-dialog > .settingsPopup-container {
     background-color: white;
-    border-color: red;
+    border-color: #BC0000;
 }
 
 .settingsPopup-dialog.dialog {
