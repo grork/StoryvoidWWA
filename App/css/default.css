@@ -139,7 +139,8 @@ button.win-command:focus {
 .header-folderName {
     -ms-grid-column: 3;
     -ms-grid-row-align: center;
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: bolder;
 }
 
 .header-commands {
@@ -161,10 +162,8 @@ button.win-command:focus {
     border-width: 1px;
     margin: 0px;
     height: 48px;
-}
-
-.commands-sort-label {
-    transform: translateY(1px);
+    font-size: 16px;
+    font-weight: lighter;
 }
 
 .header-commands button .win-commandicon {
@@ -387,17 +386,18 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-row: 1;
     padding-right: 8px;
     overflow: hidden;
-    max-height: 58px;
+    max-height: 50px;
 }
 
 .article-title-text {
     position: relative;
     display: inline;
-    font-size: 18px;
-    padding-top: 3px;
-    left: 8px;
+    font-size: 14px;
+    font-weight: bolder;
+    padding-top: 4px;
+    left: 4px;
     top: -1px; /* Make it feel like it's got more bottom spaceing */
-    line-height: 30px;
+    line-height: 26px;
     border-bottom-width: 4px;
     border-bottom-style: solid;
     box-shadow: 8px 0px 0px red, -8px 0px 0px red;
@@ -438,13 +438,14 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     text-align: right;
     margin: 8px;
     width: calc(100% - 16px);
-    max-height: 42px;
+    max-height: 44px;
 }
 
     .article-footer > span {
         position: relative;
         display: inline;
-        font-size: 12px;
+        font-size: 14px;
+        font-weight: lighter;
     }
 
 .article.with-image > .article-footer {
@@ -457,9 +458,9 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     .article.with-image > .article-footer > span {
         padding-right: 0px;
         padding-bottom: 8px;
-        padding-top: 8px;
+        padding-top: 4px;
         box-shadow: -8px 0px 0px black, 8px 0px 0px black;
-        line-height: 28px;
+        line-height: 30px;
     }
 
 .syncProgress-visible .win-surface {
@@ -556,20 +557,24 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 }
 
 .settingsPopup-sync > .sync-title {
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bolder;
 }
 
 .settings-subTitle {
     margin-top: 8px;
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: lighter;
 }
 
 .settingsPopup-reset > .reset-title {
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bolder;
 }
 
 .settingsPopup-about > .about-title {
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bolder;
 }
 
 .settingsPopup-about > div {
@@ -582,7 +587,8 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 }
 
 .settingsPopup-privacy > .privacy-title {
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bolder;
 }
 
 .settingsPopup-privacy > div {
