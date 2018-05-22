@@ -15,10 +15,6 @@
     color: white;
 }
 
-.commands-sort-label {
-    opacity: 0.8;
-}
-
 button.win-splitviewpanetoggle[aria-expanded=false] {
     color: white;
     border-color: transparent;
