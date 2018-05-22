@@ -42,12 +42,12 @@
                     networkEventSource: Utilities.EventSource) {
 
             this._handlersToCleanup.push(Utilities.addEventListeners(dbEventSource, {
-                bookmarkschanged: () => {
+                bookmarkschanged: (e: Utilities.EventObject<IBookmarksChangedEvent>) => {
                     if (this._watchingPaused) {
                         return;
                     }
 
-                    this._resetTimer();
+                    this._resetTimer((e.detail.operation === InstapaperDB.BookmarkChangeTypes.DELETE));
                 }
             }));
 
@@ -62,12 +62,17 @@
             }));
         }
 
-        private _resetTimer(): void {
+        private _resetTimer(startNow?: boolean): void {
             if (this._currentTimer) {
                 this._currentTimer.cancel();
             }
 
-            this._currentTimer = WinJS.Promise.timeout(this.dbIdleInterval).then(() => {
+            var interval = this.dbIdleInterval;
+            if (startNow) {
+                interval = 0;
+            }
+
+            this._currentTimer = WinJS.Promise.timeout(interval).then(() => {
                 this._raiseSyncNeeded(SyncReason.Timer, false);
             });
         }
