@@ -144,6 +144,7 @@
                     this._handleShortcuts(e.detail);
                 },
                 headervisibilitychange: this._handleHeaderVisibilityChange.bind(this),
+                headerheightchanged: this._handleHeaderHeightChanged.bind(this),
             }));
 
             this.viewModel.setMessenger(this._messenger);
@@ -329,6 +330,10 @@
             } else {
                 this._hideFiller();
             }
+        }
+
+        private _handleHeaderHeightChanged(e: Utilities.EventObject<number>): void {
+            this._toolbarContainer.style.paddingTop = (e.detail - 48) + "px";
         }
 
         private _saveCurrentTitleBarColours(): void {
