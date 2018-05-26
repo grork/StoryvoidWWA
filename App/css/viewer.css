@@ -68,8 +68,8 @@ blockquote {
     position: relative;
     font-family: 'Segoe UI';
     width: 100%;
-    padding-top: 10px;
-    padding-bottom: 6px;
+    padding-top: 2px;
+    padding-bottom: 48px;
     line-height: 1.6;
     top: 0px;
     left: 0px;
@@ -84,7 +84,7 @@ blockquote {
     overflow: hidden;
     font-weight: bold;
     font-size: 16px;
-    margin-right: 336px;
+    margin-right: 17px;
 }
 
 .articleViewer-subTitle {

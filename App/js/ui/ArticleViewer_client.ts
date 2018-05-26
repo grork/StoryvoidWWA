@@ -14,8 +14,11 @@
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
+        // Underlay for the toolbar is primarily for the compact size so that
+        // the bottom-toolbar has the underlay in the right place at the right time.
         private _toolbarUnderlay: HTMLElement;
         private _headerContainer: HTMLElement;
+        private _currentHeaderContainerHeight: number = 0;
         private _currentImageWidthForImageSizing = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
         private _hadFocus = false;
@@ -93,6 +96,7 @@
             observer.observe(this._headerContainer);
 
             this._intersectionObserver = observer;
+            setTimeout(() => this._updateHeaderContainerHeight(), 0);
         }
 
         private _handleIntersectionChanged(entries: IntersectionObserverEntry[]): void {
@@ -240,6 +244,21 @@
 
         private _handleResize(): void {
             this._refreshImageWidths(this._currentImageWidthForImageSizing);
+            this._updateHeaderContainerHeight();
+        }
+
+        private _updateHeaderContainerHeight(): void {
+            if (!this._headerContainer) {
+                return;
+            }
+
+            const headerContainerHeight = this._headerContainer.clientHeight;
+            if (headerContainerHeight === this._currentHeaderContainerHeight) {
+                return;
+            }
+
+            this._currentHeaderContainerHeight = headerContainerHeight;
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("headerheightchanged", headerContainerHeight);
         }
 
         private _refreshImageWidths(articleWidth: number): void {
