@@ -510,8 +510,6 @@
 
             this.viewModel.articleClosed();
             this.viewModel.dispose();
-
-            this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
             this._restoreTitlebar();
 
             // Reset the title to the default
@@ -652,6 +650,7 @@
                 icon: WinJS.UI.AppBarIcon.font,
                 type: "flyout",
             });
+            this._displaySettingsCommand.extraClass = "article-viewer-toolbar-button-spacer";
 
             this._moveCommand = new WinJS.UI.Command(null, {
                 tooltip: "Move",
