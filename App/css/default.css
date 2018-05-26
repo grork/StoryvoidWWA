@@ -653,7 +653,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-row: 1;
     -ms-grid-row-align: start;
     display: -ms-grid;
-    -ms-grid-columns: 1fr auto;
+    -ms-grid-columns: 1fr;
     -ms-grid-rows: 28px 1fr;
     margin-right: auto;
     margin-left: auto;
@@ -681,12 +681,16 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 }
 
 .articleViewer-toolbar {
-    -ms-grid-column: 2;
-    -ms-grid-column-align: end;
+    -ms-grid-column: 1;
+    -ms-grid-column-align: stretch;
     -ms-grid-row: 2;
     -ms-grid-row-align: start;
     margin-right: 2px;
-    width: 336px;
+    margin-left: -10px;
+}
+
+.article-viewer-toolbar-button-spacer {
+    margin-left: auto !important;
 }
 
 @media all and (max-width: 640px) {
