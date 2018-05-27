@@ -12,6 +12,7 @@
         Cambria = 3,
         Constantia = 4,
         Georgia = 5,
+        SitkaText = 6,
     }
 
     export class ViewerSettings extends Codevoid.Utilities.SettingsCore {
