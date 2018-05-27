@@ -1156,6 +1156,7 @@
                     { font: Settings.Font.Cambria, label: "Cambria", fontFamily: "Cambria" },
                     { font: Settings.Font.Constantia, label: "Constantia", fontFamily: "Constantia" },
                     { font: Settings.Font.Georgia, label: "Georgia", fontFamily: "Georgia" },
+                    { font: Settings.Font.SitkaText, label: "Sitka Text", fontFamily: "SitkaText" },
                 ];
             }
 
