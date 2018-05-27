@@ -662,12 +662,20 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     z-index: 100;
 }
 
+.win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+    height: 36px;
+}
+
     .articleViewer-toolbar-container button.win-command {
         min-width: initial;
+        min-height: 36px;
+        height: 36px;
     }
 
     .articleViewer-toolbar-container button > .win-commandicon {
         margin: 11px;
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 
     .articleViewer-toolbar-container .win-commandingsurface-overflowbutton {
@@ -704,6 +712,16 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         -ms-grid-column-span: 3;
         -ms-grid-column-align: center;
         -ms-grid-row-align: center;
+    }
+
+    .articleViewer-toolbar-container button.win-command {
+        min-height: 48px;
+        height: 48px;
+    }
+
+    .articleViewer-toolbar-container button > .win-commandicon {
+        margin-top: 11px;
+        margin-bottom: 11px;
     }
 }
 

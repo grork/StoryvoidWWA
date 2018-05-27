@@ -333,7 +333,7 @@
         }
 
         private _handleHeaderHeightChanged(e: Utilities.EventObject<number>): void {
-            this._toolbarContainer.style.paddingTop = (e.detail - 48) + "px";
+            this._toolbarContainer.style.paddingTop = (e.detail - this.toolbar.element.clientHeight) + "px";
         }
 
         private _saveCurrentTitleBarColours(): void {
