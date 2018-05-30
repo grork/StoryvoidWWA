@@ -23,6 +23,7 @@
         private _fonts: WinJS.UI.Repeater;
         private _flyoutInitialized: boolean = false;
         private _previouslyFocusedElement: HTMLElement;
+        private _currentHeaderHeight: number = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
 
         constructor(element: HTMLElement, options: any) {
@@ -333,7 +334,18 @@
         }
 
         private _handleHeaderHeightChanged(e: Utilities.EventObject<number>): void {
-            this._toolbarContainer.style.paddingTop = (e.detail - this.toolbar.element.clientHeight) + "px";
+            this._currentHeaderHeight = e.detail;
+
+            if (!this.toolbar.element.clientHeight) {
+                // If the toolbar doesn't have a height yet, nothing to do.
+                return;
+            }
+
+            this._updateToolbarPaddingToKeepToolbarBelowTitle();
+        }
+
+        private _updateToolbarPaddingToKeepToolbarBelowTitle() {
+            this._toolbarContainer.style.paddingTop = (this._currentHeaderHeight - 36) + "px";
         }
 
         private _saveCurrentTitleBarColours(): void {
@@ -432,6 +444,7 @@
                 // Remove the class before getting the client width, otherwise it'll
                 // be a big fat 0.
                 WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
+                this._updateToolbarPaddingToKeepToolbarBelowTitle();
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
 
                 var shown = WinJS.Promise.as<void>();

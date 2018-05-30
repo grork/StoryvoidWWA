@@ -141,6 +141,7 @@ button.win-command:focus {
     -ms-grid-row-align: center;
     font-size: 16px;
     font-weight: bolder;
+    margin-top: -1px;
 }
 
 .header-commands {
@@ -695,6 +696,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-row-align: start;
     margin-right: 2px;
     margin-left: -12px;
+    height: 36px;
 }
 
 .article-viewer-toolbar-button-spacer {
@@ -712,6 +714,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         -ms-grid-column-span: 3;
         -ms-grid-column-align: center;
         -ms-grid-row-align: center;
+        height: 48px;
     }
 
     .articleViewer-toolbar-container button.win-command {
