@@ -345,7 +345,7 @@
         }
 
         private _updateToolbarPaddingToKeepToolbarBelowTitle() {
-            this._toolbarContainer.style.paddingTop = (this._currentHeaderHeight - 36) + "px";
+            this._toolbarContainer.style.top = (this._currentHeaderHeight) - (36 - this._toolbarFiller.clientHeight) + "px";
         }
 
         private _saveCurrentTitleBarColours(): void {
@@ -417,8 +417,10 @@
             // Adjust the multiplier for the offset depending on if we're at the bottom
             // or the top of the screen (as determined by window width
             var directionMultiplier = -1;
+            var topOffset = this._toolbarContainer.offsetTop;
             if (window.innerWidth <= 640) {
                 directionMultiplier = 1;
+                topOffset = 0;
             }
 
             if (this._toolbarVisible) {
@@ -428,7 +430,7 @@
                 }
 
                 hidden.done(() => {
-                    offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+                    offset.top = (directionMultiplier * (this._toolbarContainer.clientHeight + topOffset)) + "px";
 
                     WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
                         WinJS.Utilities.addClass(this._toolbarContainer, "hide");
@@ -445,7 +447,7 @@
                 // be a big fat 0.
                 WinJS.Utilities.removeClass(this._toolbarContainer, "hide");
                 this._updateToolbarPaddingToKeepToolbarBelowTitle();
-                offset.top = (directionMultiplier * this._toolbarContainer.clientHeight) + "px";
+                offset.top = (directionMultiplier * this._toolbarContainer.clientHeight + topOffset) + "px";
 
                 var shown = WinJS.Promise.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {

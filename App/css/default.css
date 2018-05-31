@@ -655,7 +655,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     -ms-grid-row-align: start;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 28px 1fr;
     margin-right: auto;
     margin-left: auto;
     position: relative;
@@ -692,8 +691,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 .articleViewer-toolbar {
     -ms-grid-column: 1;
     -ms-grid-column-align: stretch;
-    -ms-grid-row: 2;
-    -ms-grid-row-align: start;
     margin-right: 2px;
     margin-left: -12px;
     height: 36px;
@@ -707,6 +704,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     .articleViewer-toolbar-container {
         -ms-grid-row: 2;
         -ms-grid-row-align: end;
+        top: unset !important;
     }
 
     .articleViewer-toolbar {
