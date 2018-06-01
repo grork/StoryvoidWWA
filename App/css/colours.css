@@ -1,4 +1,20 @@
-﻿.dialog {
+﻿@supports (-webkit-backdrop-filter: blur(30px) saturate(1.25)) {
+    @media not screen and (-ms-high-contrast: active) {
+        :root {
+            --backdrop-filter: blur(30px) saturate(1.25);
+            --background-opacity: 0.65;
+        }
+    }
+}
+
+@supports not (-webkit-backdrop-filter: blur(30px) saturate(1.25)) {
+    :root {
+        --backdrop-filter: none;
+        --background-opacity: 1.0;
+    }
+}
+
+.dialog {
     background-color: rgba(255, 0, 0, 0.54);
 }
 
@@ -47,6 +63,19 @@ html.win-hoverable .header-commadns button.win-command .win-commandicon .win-com
 
 html.win-hoverable .header-commands button:enabled.win-command:hover {
     background-color: rgba(255, 255, 255, 0.34);
+}
+
+.win-flyout,
+.win-splitview-pane {
+    -webkit-backdrop-filter: var(--backdrop-filter);
+}
+
+.win-splitview-pane {
+    background-color: rgba(242, 242, 242, var(--background-opacity));
+}
+
+.win-flyout {
+    background-color: rgba(255,255,255, var(--background-opacity));
 }
 
 .signedIn-articleList.win-listview .win-focusedoutline,
@@ -222,9 +251,6 @@ progress.article-progress {
 }
     .theme-container > button:enabled.win-command:focus,
     .theme-container > button:enabled.win-command:hover {
-        outline-color: invert;
-        outline-style: outset;
-        outline-width: 1px;
         border-color: white;
     }
 
@@ -232,11 +258,11 @@ progress.article-progress {
 .theme-container > button:enabled.win-command.theme-day:hover {
     border-color: darkgray;
 }
-.articleViewer-toolbar-filler {
-    background-color: #F9F9F9;
+[data-theme='day'] .articleViewer-toolbar-filler {
+    background-color: rgba(249, 249, 249, var(--background-opacity));
 }
 
-.articleViewer-container {
+[data-theme='day'].articleViewer-container {
     background-color: white;
 }
 
@@ -260,7 +286,7 @@ progress.article-progress {
 }
 
 [data-theme='dusk'] .articleViewer-toolbar-filler {
-    background-color: #284343;
+    background-color: rgba(40, 67, 67, var(--background-opacity));
 }
 
 [data-theme='dusk'].articleViewer-container {
@@ -287,18 +313,18 @@ progress.article-progress {
 }
 
 [data-theme='night'] .articleViewer-toolbar-filler {
-    background-color: #202020;
+    background-color: rgba(32, 32, 32, var(--background-opacity));
 }
 
-[data-theme='night'] .articleViewer-container {
+[data-theme='night'].articleViewer-container {
     background-color: black;
 }
 
 [data-theme='paper'] .articleViewer-toolbar-filler {
-    background-color: #E8D2A8;
+    background-color: rgba(232, 210, 168, var(--background-opacity));
 }
 
-[data-theme='paper'] .articleViewer-container {
+[data-theme='paper'].articleViewer-container {
     background-color: wheat;
 }
 
