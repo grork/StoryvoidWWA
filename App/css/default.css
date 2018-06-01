@@ -724,6 +724,10 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         margin-top: 11px;
         margin-bottom: 11px;
     }
+
+    .win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+        height: 48px;
+    }
 }
 
 .articleViewer-displaySettings-container {
