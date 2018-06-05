@@ -78,7 +78,7 @@
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
 
-            document.body.insertBefore(headerContainer, document.body.firstChild);
+            this._scrollingElement.insertBefore(headerContainer, this._scrollingElement.firstChild);
 
             // Make sure that the document is 'scaled' at the device
             // width. Without this, the scale is all kinds of weird,
@@ -110,8 +110,10 @@
         }
 
         private _setContentCssProperty(propertyToSet: { property: string, value: string }): void {
-            var contentElements = Array.prototype.slice.call(document.querySelectorAll("body > *:not(." + ELEMENT_MANAGES_WIDTH + ")"));
-            contentElements = contentElements.concat(Array.prototype.slice.call(document.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
+            var contentElements = Array.prototype.filter.call(this._scrollingElement.children, (item: HTMLElement) => {
+                return !item.classList.contains(ELEMENT_MANAGES_WIDTH);
+            });
+            contentElements = contentElements.concat(Array.prototype.slice.call(this._scrollingElement.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
 
             // Since we're adjusting the content properties, we need
             // to go over all the found elements, and stomp the property on them.
@@ -121,7 +123,7 @@
         }
 
         private _setImgCssProperty(propertyToSet: { property: string, value: string }): void {
-            var images = document.querySelectorAll("img");
+            var images = this._scrollingElement.querySelectorAll("img");
             var currentImage: HTMLImageElement;
 
             for (var i = 0; i < images.length; i++) {
@@ -208,7 +210,7 @@
             toolbarUnderlay.classList.add(ELEMENT_MANAGES_WIDTH);
             toolbarUnderlay.classList.add(HEADER_ANIMATION_CLASS);
 
-            document.body.insertBefore(toolbarUnderlay, document.body.firstElementChild);
+            this._scrollingElement.insertBefore(toolbarUnderlay, this._scrollingElement.firstElementChild);
             this._toolbarUnderlay = toolbarUnderlay;
 
             if (this._firstToolbarStateChangeSeen) {
