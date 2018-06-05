@@ -31,7 +31,7 @@ body {
     -ms-content-zooming: none;
 }
 
-    body > *:not(.articleViewer-manages-own-width),
+    .scrollingElement > *:not(.articleViewer-manages-own-width),
     .articleViewer-contained {
         margin-left: auto;
         margin-right: auto;

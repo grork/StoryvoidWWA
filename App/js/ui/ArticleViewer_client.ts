@@ -1,4 +1,5 @@
-﻿module Codevoid.Storyvoid.UI {
+﻿/// <reference path="..\..\OverlayScrollbars\OverlayScrollbars.d.ts" />
+module Codevoid.Storyvoid.UI {
     const KEY_PLUS = 187;
     const KEY_MINUS = 189;
     const KEY_ESCAPE = 27;
@@ -148,7 +149,7 @@
             // be on the body element. This is intentional, since we don't want
             // to have to think hard about the CSS classes involved & if they
             // maybe have previously been set.
-            document.body.className = themeClass;
+            document.body.className = themeClass + " scrollingElement";
         }
 
         private _setToolbarState(toolbarIsVisible: boolean): void {

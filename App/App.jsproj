@@ -158,6 +158,8 @@
     <Content Include="default.html" />
     <Content Include="css\default.css" />
     <None Include="Package.StoreAssociation.xml" />
+    <Content Include="OverlayScrollbars\OverlayScrollbars.css" />
+    <Content Include="OverlayScrollbars\OverlayScrollbars.js" />
     <Content Include="packages.config" />
     <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
@@ -168,6 +170,7 @@
     <TypeScriptCompile Include="js\TelemetrySettings.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="js\ui\TitleBarSpacerHelper.ts" />
+    <TypeScriptCompile Include="OverlayScrollbars\OverlayScrollbars.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\winjs\winjs.d.ts" />
     <TypeScriptCompile Include="js\AppThatCanSignIn.ts" />
     <TypeScriptCompile Include="js\default.ts" />

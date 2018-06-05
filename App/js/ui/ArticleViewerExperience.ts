@@ -159,8 +159,11 @@
 
             WinJS.Promise.join([
                 this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
-                this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js"),
-            ]).done(() => {
+                this._messenger.addStyleSheet("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.css"),
+                this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.js")
+            ]).then(() => {
+                return this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js");
+            }).done(() => {
                 this._afterReady();
             });
         }
