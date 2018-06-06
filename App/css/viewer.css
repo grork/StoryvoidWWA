@@ -31,8 +31,8 @@ body {
     -ms-content-zooming: none;
 }
 
-.scrollingElement {
-    margin-bottom: 144px;
+.os-content > div {
+    padding-bottom: 144px;
 }
 
     .scrollingElement > *:not(.articleViewer-manages-own-width),
