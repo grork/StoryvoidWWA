@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * OverlayScrollbars
  * https://github.com/KingSora/OverlayScrollbars
  *
