@@ -15,6 +15,7 @@ module Codevoid.Storyvoid.UI {
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
+        private _contentElement: HTMLElement;
         // Underlay for the toolbar is primarily for the compact size so that
         // the bottom-toolbar has the underlay in the right place at the right time.
         private _toolbarUnderlay: HTMLElement;
@@ -26,9 +27,19 @@ module Codevoid.Storyvoid.UI {
         private _hadSelection = false;
         private _firstToolbarStateChangeSeen = false;
         private _intersectionObserver: IntersectionObserver;
+        private _customScrollbars: OverlayScrollbarsClass;
+        private _currentTheme: string;
 
         public initialize(): void {
-            this._scrollingElement = document.body;
+            this._customScrollbars = OverlayScrollbars(document.body, {
+                scrollbars: {
+                    autoHide: "move"
+                }
+            });
+
+            this._scrollingElement = this._customScrollbars.getElements().viewport;
+            this._contentElement = this._customScrollbars.getElements().content;
+            this._contentElement.classList.add("scrollingElement");
 
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
@@ -59,7 +70,7 @@ module Codevoid.Storyvoid.UI {
 
             // Now we've restored the scroll position, we're able to handle pushing scroll
             // changes back to the parent.
-            document.addEventListener("scroll", this._handleScroll.bind(this));
+            this._scrollingElement.addEventListener("scroll", this._handleScroll.bind(this));
         }
 
         private _insertTitle(data: { title: string, domain: string, url: string }): void {
@@ -111,10 +122,10 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _setContentCssProperty(propertyToSet: { property: string, value: string }): void {
-            var contentElements = Array.prototype.filter.call(this._scrollingElement.children, (item: HTMLElement) => {
+            var contentElements = Array.prototype.filter.call(this._contentElement.children, (item: HTMLElement) => {
                 return !item.classList.contains(ELEMENT_MANAGES_WIDTH);
             });
-            contentElements = contentElements.concat(Array.prototype.slice.call(this._scrollingElement.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
+            contentElements = contentElements.concat(Array.prototype.slice.call(this._contentElement.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
 
             // Since we're adjusting the content properties, we need
             // to go over all the found elements, and stomp the property on them.
@@ -124,7 +135,7 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _setImgCssProperty(propertyToSet: { property: string, value: string }): void {
-            var images = this._scrollingElement.querySelectorAll("img");
+            var images = this._contentElement.querySelectorAll("img");
             var currentImage: HTMLImageElement;
 
             for (var i = 0; i < images.length; i++) {
@@ -143,13 +154,23 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _setTheme(theme: string): void {
-            var themeClass = "theme-" + theme;
+            let themeClass = "theme-" + theme;
+            let overlayScrollbarClass = "os-theme-dark";
 
-            // This will intentionally overwrite any existing classes that might
-            // be on the body element. This is intentional, since we don't want
-            // to have to think hard about the CSS classes involved & if they
-            // maybe have previously been set.
-            document.body.className = themeClass + " scrollingElement";
+            switch (theme.toLowerCase()) {
+                case "night":
+                case "dusk":
+                    overlayScrollbarClass = "os-theme-light";
+                    break;
+            }
+
+            if (this._currentTheme) {
+                document.body.classList.remove(this._currentTheme);
+            }
+
+            document.body.classList.add(themeClass);
+            this._currentTheme = themeClass;
+            this._customScrollbars.options("className", overlayScrollbarClass);
         }
 
         private _setToolbarState(toolbarIsVisible: boolean): void {
@@ -211,7 +232,7 @@ module Codevoid.Storyvoid.UI {
             toolbarUnderlay.classList.add(ELEMENT_MANAGES_WIDTH);
             toolbarUnderlay.classList.add(HEADER_ANIMATION_CLASS);
 
-            this._scrollingElement.insertBefore(toolbarUnderlay, this._scrollingElement.firstElementChild);
+            this._contentElement.insertBefore(toolbarUnderlay, this._contentElement.firstElementChild);
             this._toolbarUnderlay = toolbarUnderlay;
 
             if (this._firstToolbarStateChangeSeen) {

@@ -24,11 +24,15 @@ body {
     margin-left: 0px;
     margin-right: 0px;
     margin-top: 0px;
-    margin-bottom: 144px;
+    
     font-family: Cambria;
     line-height: 1.6em;
     font-size: 20px;
     -ms-content-zooming: none;
+}
+
+.scrollingElement {
+    margin-bottom: 144px;
 }
 
     .scrollingElement > *:not(.articleViewer-manages-own-width),
@@ -91,6 +95,7 @@ blockquote {
     top: 0px;
     left: 0px;
     right: 0px;
+    z-index: 1;
 }
 
 .articleViewer-header-container-sticky {
