@@ -8,7 +8,6 @@
         private _lastDiv: HTMLElement;
         private _firstDiv: HTMLElement;
         private _toolbarContainer: HTMLElement;
-        private _toolbarFiller: HTMLElement;
         private viewModel: ArticleViewerViewModel;
         private _previousPrimaryColour: Windows.UI.Color;
         private _previousTextColour: Windows.UI.Color;
@@ -144,7 +143,6 @@
                 shortcutinvoked: (e: Utilities.EventObject<number>) => {
                     this._handleShortcuts(e.detail);
                 },
-                headervisibilitychange: this._handleHeaderVisibilityChange.bind(this),
                 headerheightchanged: this._handleHeaderHeightChanged.bind(this),
             }));
 
@@ -303,39 +301,6 @@
             }
         }
 
-        private _hideFiller(): void {
-            // Grab the ambient CSS transition property, and if it's not going to do anything
-            // then we don't want to transform it -- a bit of an implementation detail, but
-            // none the less we're going to take advantage of that knowledge here.
-            if (window.getComputedStyle(<Element>this._toolbarFiller).transitionProperty != "none") {
-                this._toolbarFiller.style.transform = `translateY(-${this._toolbarFiller.clientHeight}px)`;
-            }
-        }
-
-        private _showFiller(): void {
-            // Calculate where the header needs to animate "from". We don't want to
-            // show the antimation to this position, so we carefully calculate it...
-            var headerHeight = this._toolbarFiller.clientHeight;
-            // ... set it
-            this._toolbarFiller.style.transform = `translateY(-${headerHeight}px)`;
-
-            // ... force a layout pass so it's now in a good position
-            this._toolbarFiller.clientHeight;
-
-            // THEN we start the animation
-            this._toolbarFiller.style.transform = "translateY(0)";
-        }
-
-        private _handleHeaderVisibilityChange(e: Utilities.EventObject<boolean>): void {
-            const visible = e.detail;
-
-            if (visible) {
-                this._showFiller();
-            } else {
-                this._hideFiller();
-            }
-        }
-
         private _handleHeaderHeightChanged(e: Utilities.EventObject<number>): void {
             this._currentHeaderHeight = e.detail;
 
@@ -348,7 +313,7 @@
         }
 
         private _updateToolbarPaddingToKeepToolbarBelowTitle() {
-            this._toolbarContainer.style.top = (this._currentHeaderHeight) - (36 - this._toolbarFiller.clientHeight) + "px";
+            this._toolbarContainer.style.top = (this._currentHeaderHeight) - (40) + "px";
         }
 
         private _saveCurrentTitleBarColours(): void {
