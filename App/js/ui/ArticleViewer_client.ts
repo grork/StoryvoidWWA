@@ -125,7 +125,7 @@ module Codevoid.Storyvoid.UI {
             var contentElements = Array.prototype.filter.call(this._contentElement.children, (item: HTMLElement) => {
                 return !item.classList.contains(ELEMENT_MANAGES_WIDTH);
             });
-            contentElements = contentElements.concat(Array.prototype.slice.call(this._contentElement.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
+            contentElements = contentElements.concat(Array.prototype.slice.call(document.body.querySelectorAll(`.${CONTAINED_ELEMENT_CLASS}`)));
 
             // Since we're adjusting the content properties, we need
             // to go over all the found elements, and stomp the property on them.
