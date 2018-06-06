@@ -258,9 +258,6 @@ progress.article-progress {
 .theme-container > button:enabled.win-command.theme-day:hover {
     border-color: darkgray;
 }
-[data-theme='day'] .articleViewer-toolbar-filler {
-    background-color: rgba(249, 249, 249, var(--background-opacity));
-}
 
 [data-theme='day'].articleViewer-container {
     background-color: white;
@@ -283,10 +280,6 @@ progress.article-progress {
 
 [data-theme='dusk'] button:focus .win-commandimage {
     color: white;
-}
-
-[data-theme='dusk'] .articleViewer-toolbar-filler {
-    background-color: rgba(40, 67, 67, var(--background-opacity));
 }
 
 [data-theme='dusk'].articleViewer-container {
@@ -312,16 +305,8 @@ progress.article-progress {
     color: lightgrey;
 }
 
-[data-theme='night'] .articleViewer-toolbar-filler {
-    background-color: rgba(32, 32, 32, var(--background-opacity));
-}
-
 [data-theme='night'].articleViewer-container {
     background-color: black;
-}
-
-[data-theme='paper'] .articleViewer-toolbar-filler {
-    background-color: rgba(232, 210, 168, var(--background-opacity));
 }
 
 [data-theme='paper'].articleViewer-container {

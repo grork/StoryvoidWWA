@@ -26,7 +26,6 @@ module Codevoid.Storyvoid.UI {
         private _hadFocus = false;
         private _hadSelection = false;
         private _firstToolbarStateChangeSeen = false;
-        private _intersectionObserver: IntersectionObserver;
         private _customScrollbars: OverlayScrollbarsClass;
         private _currentTheme: string;
 
@@ -102,19 +101,7 @@ module Codevoid.Storyvoid.UI {
 
             document.head.appendChild(meta);
 
-            var observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => this._handleIntersectionChanged(entries), {
-                rootMargin: "28px"
-            });
-            observer.observe(this._headerContainer);
-
-            this._intersectionObserver = observer;
             setTimeout(() => this._updateHeaderContainerHeight(), 0);
-        }
-
-        private _handleIntersectionChanged(entries: IntersectionObserverEntry[]): void {
-            // Assume only one intersection entry
-            var entry = entries[0];
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("headervisibilitychange", entry.isIntersecting);
         }
 
         private _setBodyCssProperty(propertyToSet: { property: string, value: string }): void {
@@ -481,7 +468,6 @@ module Codevoid.Storyvoid.UI {
 
         private _dismiss(): void {
             Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("dismiss", null);
-            this._intersectionObserver.unobserve(this._headerContainer);
         }
     }
 

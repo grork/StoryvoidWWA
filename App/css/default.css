@@ -639,14 +639,14 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     width: 100vw;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 28px 1fr;
+    -ms-grid-rows: 1fr;
 }
 
 .articleViewer-content {
     position: relative;
     height: 100%;
     width: 100%;
-    -ms-grid-row: 2;
+    -ms-grid-row: 1;
 }
 
 .articleViewer-toolbar-container {
@@ -663,13 +663,13 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 }
 
 .win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
-    height: 36px;
+    height: 40px;
 }
 
     .articleViewer-toolbar-container button.win-command {
         min-width: initial;
-        min-height: 36px;
-        height: 36px;
+        min-height:40px;
+        height: 40px;
     }
 
     .articleViewer-toolbar-container button > .win-commandicon {
@@ -682,18 +682,12 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         display: none;
     }
 
-.articleViewer-filler-animate {
-    transition-property: transform;
-    transition-duration: 50ms;
-    transition-timing-function: ease-in;
-}
-
 .articleViewer-toolbar {
     -ms-grid-column: 1;
     -ms-grid-column-align: stretch;
     margin-right: 2px;
-    margin-left: -12px;
-    height: 36px;
+    margin-left: -14px;
+    height: 40px;
 }
 
 .article-viewer-toolbar-button-spacer {
@@ -702,7 +696,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
 
 @media all and (max-width: 640px) {
     .articleViewer-toolbar-container {
-        -ms-grid-row: 2;
+        -ms-grid-row: 1;
         -ms-grid-row-align: end;
         top: unset !important;
     }
@@ -1128,9 +1122,4 @@ button.margin-increase .win-commandimage {
 
 .noTitleSpacer .signedIn-header {
     padding-top: 0px;
-}
-
-.noTitleSpacer .articleViewer-container,
-.noTitleSpacer .articleViewer-toolbar-container {
-    -ms-grid-rows: 0px 1fr;
 }
