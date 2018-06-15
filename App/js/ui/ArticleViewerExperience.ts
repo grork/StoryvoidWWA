@@ -174,8 +174,12 @@
             });
 
             // Set initial states
-            this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
             this.viewModel.displaySettings.restoreSettings();
+
+            // Restore scroll after we've set the display settings
+            // so that all the sizes are correct, rather than having them
+            // change immediately after scrolling (or during the scroll)
+            this._messenger.invokeForResult("restorescroll", this.viewModel.bookmark.progress);
 
             Windows.UI.ViewManagement.ApplicationView.getForCurrentView().title = this.viewModel.bookmark.title;
 
