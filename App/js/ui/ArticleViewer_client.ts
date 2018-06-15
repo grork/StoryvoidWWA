@@ -245,12 +245,14 @@ module Codevoid.Storyvoid.UI {
             // ... force a layout pass so it's now in a good position
             this._headerContainer.clientHeight;
 
-            // THEN we start the animation
-            this._headerContainer.classList.toggle(HEADER_ANIMATION_CLASS, true);
+            // If this isn't the first state change, THEN we start the animation
+            if (this._firstToolbarStateChangeSeen) {
+                this._headerContainer.classList.toggle(HEADER_ANIMATION_CLASS, true);
+            }
             
             toolbarUnderlay.style.transform = "translateY(0)";
             this._headerContainer.style.transform = "translateY(0)";
-            this._headerContainer.classList.toggle(HEADER_FORCE_STICKY_CLASS, true)
+            this._headerContainer.classList.toggle(HEADER_FORCE_STICKY_CLASS, true);
         }
 
         private _handleResize(): void {
