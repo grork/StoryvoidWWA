@@ -186,6 +186,33 @@ body div.video_frame {
     margin-top: 32px;
 }
 
+.os-theme-dark.os-host-transition > .os-scrollbar > .os-scrollbar-track ,
+.os-theme-light.os-host-transition > .os-scrollbar > .os-scrollbar-track {
+    -webkit-transition: transform 0.2s;
+    transition: transform 0.2s;
+    transform-origin: right;
+}
+
+.os-theme-dark > .os-scrollbar:hover > .os-scrollbar-track,
+.os-theme-light > .os-scrollbar:hover > .os-scrollbar-track,
+.os-theme-dark > .os-scrollbar.active > .os-scrollbar-track,
+.os-theme-light > .os-scrollbar.active > .os-scrollbar-track {
+    transform: scaleX(2);
+}
+
+os-theme-dark > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle,
+.os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle {
+    -webkit-transition: opacity 0.3s, border-radius 0.3s;
+    transition: opacity 0.3s, border-radius 0.3s;
+}
+
+.os-theme-dark > .os-scrollbar:hover > .os-scrollbar-track > .os-scrollbar-handle,
+.os-theme-light > .os-scrollbar:hover > .os-scrollbar-track > .os-scrollbar-handle,
+.os-theme-dark > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle.active,
+.os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle.active {
+    border-radius: 0px;
+}
+
 /* Colors */
 .theme-day {
     background-color: white;
