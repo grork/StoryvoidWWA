@@ -31,7 +31,7 @@ body {
     -ms-content-zooming: none;
 }
 
-.os-content > div {
+.os-content > div:last-of-type {
     padding-bottom: 144px;
 }
 
