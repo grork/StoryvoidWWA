@@ -317,6 +317,10 @@ module Codevoid.Storyvoid.UI {
                 return;
             }
 
+            ev.stopImmediatePropagation();
+            ev.stopPropagation();
+            ev.preventDefault();
+
             // We need to see if this click was on an element that was a "a" tag, or
             // was the child of an A tag.
             var wasInsideAnchor = false;
@@ -330,10 +334,6 @@ module Codevoid.Storyvoid.UI {
                 parentElement = parentElement.parentElement;
             }
 
-            ev.stopImmediatePropagation();
-            ev.stopPropagation();
-            ev.preventDefault();
-
             // If we were inside an anchor element, we don't want
             // to "toggle" anything; we just want notify that a link was clicked
             if (wasInsideAnchor) {
@@ -341,10 +341,12 @@ module Codevoid.Storyvoid.UI {
                 return;
             }
 
+            let wasInsideContentArea = this._scrollingElement.contains(<Node>ev.target);
+
             // If we didn't have focus, then this event is likely coming from when
             // the window itself (not the frame) wasn't in focus, so we dont want
             // to toggle the toolbar & distract the reader
-            if (this._hadFocus) {
+            if (this._hadFocus && wasInsideContentArea) {
                 this._toggleToolbar();
             }
         }
