@@ -555,6 +555,10 @@
             };
 
             function isArrayLike(obj) {
+                if (obj === window) {
+                    return false;
+                }
+
                 var length = !!obj && "length" in obj && obj.length;
                 var t = type(obj);
 
