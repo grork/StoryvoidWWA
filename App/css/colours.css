@@ -354,3 +354,7 @@ progress.article-progress {
 .emptyState-container {
     color: darkgrey;
 }
+
+.folderlist-folders.win-listview .win-itembox {
+    background-color: transparent;
+}
