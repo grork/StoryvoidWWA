@@ -30,7 +30,7 @@
         folder: string;
         filename: string;
     }): string {
-        if (data.extension == ".gif") {
+        if (data.extension == "gif") {
             return null;
         }
 
@@ -493,7 +493,7 @@
                             image.src = imagesFolderName + "/" + result.filename;
                         }
 
-                        if (!firstSuccessfulImage && (result.extension != ".gif")) {
+                        if (!firstSuccessfulImage && (result.extension != "gif")) {
                             firstSuccessfulImage = getFilenameIfImageMeetsCriteria({
                                 extension: result.extension,
                                 size: result.size,
