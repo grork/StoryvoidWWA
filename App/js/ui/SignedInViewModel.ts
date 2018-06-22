@@ -887,7 +887,17 @@
                     }
                 }
 
-                commands.push(openInBrowser);
+                let isValidUri = true;
+                try {
+                    (new Windows.Foundation.Uri(bookmarks[0].url));
+                } catch (e) {
+                    isValidUri = false;
+                }
+
+                if (isValidUri) {
+                    commands.push(openInBrowser);
+                }
+
                 var downloadCommand = {
                     label: "Download",
                     icon: "download",
@@ -1013,6 +1023,21 @@
         private _promptToOpenBrowser(bookmark: IBookmark): WinJS.Promise<any> {
             var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser, or attempt to download it?", "Open in a web browser?");
             var commands = prompt.commands;
+
+            let isValidUri = true;
+            try {
+                (new Windows.Foundation.Uri(bookmark.url));
+            } catch (e) {
+                isValidUri = false;
+            }
+
+            if (!isValidUri) {
+                prompt.content = "This article can't be opened, sorry! It looks like it's not valid. Go to the original site to read it.";
+                prompt.title = "Ruh-Roh!"
+
+                return prompt.showAsync();
+            }
+
             commands.clear();
 
             var open = new Windows.UI.Popups.UICommand();
