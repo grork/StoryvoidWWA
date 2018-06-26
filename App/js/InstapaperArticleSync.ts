@@ -304,11 +304,16 @@
 
                 // See if the URL is for youtube, to allow customized processing of
                 // youtube.com addresses so we have a better reader experience
-                var uri = new Windows.Foundation.Uri(bookmark.url);
+                let uri: Windows.Foundation.Uri = null;
 
                 // Determine if this article requires customized downloading
                 // of the thumbnail (E.g. it's not gonna be in the article)
-                var thumbnailType = InstapaperArticleSync.urlRequiresCustomThumbnail(uri);
+                let thumbnailType: SpecializedThumbnail = SpecializedThumbnail.None;
+                try {
+                    uri = new Windows.Foundation.Uri(bookmark.url);
+                    thumbnailType = InstapaperArticleSync.urlRequiresCustomThumbnail(uri);
+                } catch (e) {
+                }
 
                 switch (thumbnailType) {
                     case SpecializedThumbnail.YouTube:
