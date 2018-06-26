@@ -317,13 +317,17 @@
                         case InstapaperDB.BookmarkChangeTypes.ADD:
                             bookmarksAdded++;
 
-                            var uri = new Windows.Foundation.Uri(eventData.detail.bookmark.url);
-                            if (uri.host.indexOf("youtube.com") > -1) {
-                                youtubeLinksAdded++;
-                            }
+                            try {
+                                var uri = new Windows.Foundation.Uri(eventData.detail.bookmark.url);
+                                if (uri.host.indexOf("youtube.com") > -1) {
+                                    youtubeLinksAdded++;
+                                }
 
-                            if (uri.host.indexOf("vimeo.com") > -1) {
-                                vimeoLinksAdded++;
+                                if (uri.host.indexOf("vimeo.com") > -1) {
+                                    vimeoLinksAdded++;
+                                }
+                            } catch (e) {
+                                Telemetry.instance.track("MalformedBookmarkUrlCollectingVideoLinkType", null);
                             }
                             break;
 
