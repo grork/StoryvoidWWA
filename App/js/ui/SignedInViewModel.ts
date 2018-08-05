@@ -619,6 +619,7 @@
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
             sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = syncSettings.likedArticleLimit;
+            sync.defaultBookmarkLimit = syncSettings.otherFoldersLimit;
 
             Utilities.Logging.instance.log("Starting Sync");
 

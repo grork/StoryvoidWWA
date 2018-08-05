@@ -471,7 +471,7 @@
                     return b.list({
                         folder_id: folderId,
                         have: haves,
-                        limit: this.perFolderBookmarkLimits[folderId] ||  this.defaultBookmarkLimit,
+                        limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
                     });
                 }.bind(this)).then(function (result) {
                     // Now we've told the server what our local state is, and it's telling
