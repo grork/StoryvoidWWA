@@ -8,6 +8,7 @@
                 homeArticleLimit: 250,
                 likedArticleLimit: 10,
                 archiveArticleLimit: 10,
+                otherFoldersLimit: 10,
             });
         }
 
@@ -33,6 +34,14 @@
 
         public set archiveArticleLimit(value: number) {
             this.setValue("archiveArticleLimit", value);
+        }
+
+        public get otherFoldersLimit(): number {
+            return this.getValueOrDefault<number>("otherFoldersLimit");
+        }
+
+        public set otherFoldersLimit(value: number) {
+            this.setValue("otherFoldersLimit", value);
         }
     }
 }

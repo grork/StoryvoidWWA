@@ -13,6 +13,7 @@
         private _homeArticleLimit: HTMLSelectElementWithState;
         private _likedArticleLimit: HTMLSelectElementWithState;
         private _archiveArticleLimit: HTMLSelectElementWithState;
+        private _otherFoldersArticleLimit: HTMLSelectElementWithState;
         private _allowCollectingTelemetry: HTMLSelectElementWithState;
         private _versionElement: HTMLDivElement;
         private _closeButton: HTMLButtonElement;
@@ -51,6 +52,7 @@
                 this._manageOpenStateOnSelectElement(this._homeArticleLimit);
                 this._manageOpenStateOnSelectElement(this._likedArticleLimit);
                 this._manageOpenStateOnSelectElement(this._archiveArticleLimit);
+                this._manageOpenStateOnSelectElement(this._otherFoldersArticleLimit);
                 this._manageOpenStateOnSelectElement(this._allowCollectingTelemetry);
 
                 // Setup OS back button support
@@ -63,6 +65,7 @@
                 this._selectOptionBasedOnValueNumber(syncSettings.homeArticleLimit, this._homeArticleLimit);
                 this._selectOptionBasedOnValueNumber(syncSettings.likedArticleLimit, this._likedArticleLimit);
                 this._selectOptionBasedOnValueNumber(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
+                this._selectOptionBasedOnValueNumber(syncSettings.otherFoldersLimit, this._otherFoldersArticleLimit);
 
                 this._selectOptionBasedOnValueBoolean((new Settings.TelemetrySettings()).telemeteryCollectionEnabled, this._allowCollectingTelemetry);
 
@@ -184,8 +187,9 @@
             var homeLimit = parseInt(this._homeArticleLimit.value);
             var likedLimit = parseInt(this._likedArticleLimit.value);
             var archiveLimit = parseInt(this._archiveArticleLimit.value);
+            var otherFoldersLimit = parseInt(this._otherFoldersArticleLimit.value);
 
-            this.viewModel.updateArticleSyncLimits(homeLimit, likedLimit, archiveLimit);
+            this.viewModel.updateArticleSyncLimits(homeLimit, likedLimit, archiveLimit, otherFoldersLimit);
         }
 
         public handleAllowTelemetryChange(): void {
@@ -275,11 +279,12 @@
             });
         }
 
-        public updateArticleSyncLimits(homeLimit: number, likedLimit: number, archiveLimit: number): void {
+        public updateArticleSyncLimits(homeLimit: number, likedLimit: number, archiveLimit: number, otherFoldersLimit: number): void {
             var syncSettings = new Settings.SyncSettings();
             syncSettings.homeArticleLimit = homeLimit;
             syncSettings.likedArticleLimit = likedLimit;
             syncSettings.archiveArticleLimit = archiveLimit;
+            syncSettings.otherFoldersLimit = otherFoldersLimit;
         }
 
         public updateAllowTelemetry(allowTelemetry: boolean): void {
