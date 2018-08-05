@@ -2,40 +2,87 @@ html, body {
     padding: 0;
     margin: 0;
     background-color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI',-apple-system,BlinkMacSystemFont,'Roboto', 'Helvetica Neue', sans-serif;
     font-size: 17px;
 }
 
-.storyvoid-title-container {
-    margin-top:12px;
-    margin-bottom: 30px;
+.storyvoid-limit-width {
+    /* Limit width while keeping centered */
     margin-left: auto;
     margin-right: auto;
     max-width: 768px;
+}
+
+.storyvoid-title-container {
+    /* Keep top/bottom of contained content
+       from being flush with the edges */
+    padding-top: 48px;
+    padding-bottom: 12px;
+
+    position: relative;
 }
 
 .storyvoid-title {
     display: inline;
-    background-color: red;
     font-size: 56px;
+    line-height: 76px;
     font-weight: bold;
     color: white;
-    padding: 0px 18px 8px 18px;
-    margin-left: -22px;
+    z-index: 1;
 }
 
-.storyvoid-content-container {
-    max-width: 768px;
-    margin-left: auto;
-    margin-right: auto;
+/* Helper to provide a back plate 
+   behind specific text. Intended
+   to be used with spans */
+.storyvoid-text-backplate {
+    position: relative;
+    display: inline;
+    font-weight: bolder;
+    padding-top: -4px;
+    left: 4px;
+    top: -1px; /* Make it feel like it's got more bottom spacing */
+    border-bottom-width: 4px;
+    border-bottom-style: solid;
+    background-color: red;
+    border-bottom-color: red;
+    color: white;
+    box-shadow: 14px 0px 0px red, -14px 0px 0px red; /* magic side expansion */
+}
+
+/* Lighten the text */
+.storyvoid-brand-void {
+    font-weight: 100;
+}
+
+/* smalle title below big bold title */
+.storyvoid-subtitle {
+    top: -6px;
+    font-size: 22px;
+    font-weight: 550;
+    padding-bottom: 4px;
+    line-height: 32px;
+}
+
+.storyvoid-landing-call-to-action {
+    margin-top: 18px;
+    margin-bottom: 18px;
+    margin-right: 105px;
+    color: white;
+    font-style: oblique;
+    font-weight: 100;
+    font-size: 24px;
+    opacity: 0.9;
 }
 
 .storyvoid-content-heading-wrapper {
     margin-top: 12px;
     margin-bottom: 8px;
+     /* pull text left so characters line up
+        along the left edge */
     margin-left: -12px;
 }
 
+/* similar, but different backplate effect on headings */
 .storyvoid-content-heading {
     font-weight: normal;
     color: white;
@@ -47,7 +94,7 @@ html, body {
 
 .storyvoid-title-body,
 .storyvoid-content-body {
-    font-weight: lighter;
+    font-weight: 100;
 }
 
 .storyvoid-content-body {
@@ -64,6 +111,39 @@ html, body {
 
 .storyvoid-privacy-table-header {
     background-color: lightgray;
+}
+
+.storyvoid-landing-title-backdrop {
+    margin: 0px;
+    background-color: #BC0000;
+}
+
+.storyvoid-menu-backdrop {
+    background-color: red;
+
+    color: white;
+}
+
+.storyvoid-menu {
+    height: 48px;
+    margin-bottom: 56px;
+}
+
+.storyvoid-menu-item {
+    font-weight: 100;
+    transform: translateX(-14px);
+    vertical-align: center;
+    line-height: 48px;
+    display: inline-block;
+    text-decoration: none;
+    color: white;
+    padding-right: 12px;
+    padding-left: 12px;
+    margin: 0px;
+}
+
+.storyvoid-menu-item:hover {
+    background-color: orangered;
 }
 
 th {
