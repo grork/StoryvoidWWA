@@ -41,7 +41,7 @@ module Codevoid.Storyvoid.UI {
             this._contentElement.classList.add("scrollingElement");
 
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("restorescroll", this._restoreScroll.bind(this));
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("inserttitle", this._insertTitle.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("preparefordisplay", this._prepareForDisplay.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setbodycssproperty", this._setBodyCssProperty.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("setcontentcssproperty", this._setContentCssProperty.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("refreshimagewidths", this._refreshImageWidths.bind(this));
@@ -72,7 +72,7 @@ module Codevoid.Storyvoid.UI {
             this._scrollingElement.addEventListener("scroll", this._handleScroll.bind(this));
         }
 
-        private _insertTitle(data: { title: string, domain: string, url: string }): void {
+        private _prepareForDisplay(data: { title: string, domain: string, url: string }): void {
             var headerContainer = this._headerContainer = document.createElement("div");
             headerContainer.classList.add("articleViewer-header-container");
             headerContainer.classList.add(ELEMENT_MANAGES_WIDTH);
@@ -89,6 +89,18 @@ module Codevoid.Storyvoid.UI {
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
 
+            // Find all youtube iframes, and add 'allowfullscreen' attribute
+            const youtubeIframes = document.querySelectorAll("iframe[src*='youtube.com']");
+            Array.prototype.forEach.call(youtubeIframes, (item: HTMLIFrameElement) => {
+                if (item.hasAttribute("allowfullscreen")) {
+                    return;
+                }
+
+                // Merely setting it, even empty, enables the full screen button in
+                // the youtube player.
+                item.setAttribute("allowfullscreen", "");
+            })
+            
             this._scrollingElement.insertBefore(headerContainer, this._scrollingElement.firstChild);
 
             // Make sure that the document is 'scaled' at the device
