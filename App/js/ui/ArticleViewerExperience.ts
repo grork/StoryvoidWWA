@@ -2,6 +2,12 @@
     import DOM = Codevoid.Utilities.DOM;
     import Settings = Codevoid.Storyvoid.Settings;
 
+    enum FullScreenMode {
+        Toggle,
+        EnterFullScreen,
+        ExitFullScreen
+    }
+
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
@@ -65,7 +71,16 @@
 
                 // Attach a handler so we can prevent the default link handling behaviour.
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._content, {
-                    MSWebViewNavigationStarting: this._preventNavigations.bind(this)
+                    MSWebViewNavigationStarting: this._preventNavigations.bind(this),
+                    MSWebViewContainsFullScreenElementChanged: () => {
+                        // When the hosted content switches full screen state (E.g. YouTube video), then
+                        // we need to also transition our fullscreen state
+                        if (this._content.containsFullScreenElement) {
+                            this.viewModel.goFullScreen(FullScreenMode.EnterFullScreen);
+                        } else {
+                            this.viewModel.exitFullScreen(FullScreenMode.ExitFullScreen);
+                        }
+                    }
                 }));
 
                 // Attach handlers for cross-page messaging
@@ -167,7 +182,7 @@
         }
 
         private _afterReady(): void {
-            this._messenger.invokeForResult("inserttitle", {
+            this._messenger.invokeForResult("preparefordisplay", {
                 title: this.viewModel.bookmark.title,
                 domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
                 url: this.viewModel.bookmark.url,
@@ -468,18 +483,8 @@
             this.closeArticle();
         }
 
-        private exitFullscreen(): boolean {
-            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            if (!view.isFullScreenMode) {
-                return false;
-            }
-
-            view.exitFullScreenMode();
-            return true;
-        }
-
         private handleDismiss(): void {
-            if (this.exitFullscreen()) {
+            if (this.viewModel.exitFullScreen(FullScreenMode.ExitFullScreen)) {
                 return;
             }
 
@@ -488,7 +493,7 @@
 
         private closeArticle(): void {
             // Make sure when we're closing we actually exit full screen
-            this.exitFullscreen();
+            this.viewModel.exitFullScreen(FullScreenMode.ExitFullScreen);
 
             if (this._messenger) {
                 this._messenger.dispose();
@@ -884,7 +889,7 @@
 
         private _initializeFullScreenCommand(): void {
             this._fullScreenCommand = new WinJS.UI.Command(null, {
-                onclick: this._toggleFullScreen.bind(this),
+                onclick: this._setFullScreenMode.bind(this, FullScreenMode.Toggle),
             });
 
             this._updateFullScreenButtonState();
@@ -899,21 +904,55 @@
             }
         }
 
-        private _toggleFullScreen() {
-            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+        private _setFullScreenMode(mode: FullScreenMode) {
+            const view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            let desiredInFullscreen = !view.isFullScreenMode;
 
-            if (!view.isFullScreenMode) {
-                var transitionedToFullScreen = view.tryEnterFullScreenMode();
-                if (transitionedToFullScreen) {
-                    Telemetry.instance.track("EnteredFullscreen", null);
-                    this._handleTransitionToFullScreen();
-                }
-            } else {
-                Telemetry.instance.track("ExitedFullscreen", null);
-                view.exitFullScreenMode();
+            switch (mode) {
+                case FullScreenMode.EnterFullScreen:
+                    desiredInFullscreen = true;
+                    break;
+
+                case FullScreenMode.ExitFullScreen:
+                    desiredInFullscreen = false;
+
+                default:
+                case FullScreenMode.Toggle:
+                    break;
+            }
+
+            if (!view.isFullScreenMode && desiredInFullscreen) {
+                this.goFullScreen(mode);
+            } else if (view.isFullScreen && !desiredInFullscreen) {
+                this.exitFullScreen(mode);
             }
         }
 
+        public goFullScreen(reason: FullScreenMode): void {
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+
+            if (view.isFullScreenMode) {
+                return;
+            }
+
+            var transitionedToFullScreen = view.tryEnterFullScreenMode();
+            if (transitionedToFullScreen) {
+                Telemetry.instance.track("EnteredFullscreen", toPropertySet({ reason: reason }));
+                this._handleTransitionToFullScreen();
+            }
+        }
+
+        public exitFullScreen(reason: FullScreenMode): boolean {
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+            if (!view.isFullScreenMode) {
+                return false;
+            }
+
+            Telemetry.instance.track("ExitedFullscreen", toPropertySet({ reason: reason }));
+            view.exitFullScreenMode();
+            return true;
+        }
+        
         private _handleTransitionToFullScreen() {
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
 
