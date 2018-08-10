@@ -662,10 +662,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     z-index: 100;
 }
 
-.win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
-    height: 40px;
-}
-
     .articleViewer-toolbar-container button.win-command {
         min-width: initial;
         min-height:40px;
