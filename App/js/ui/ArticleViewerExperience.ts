@@ -868,7 +868,7 @@
                 this._archiveCommand.icon = "\uEC51";
             } else {
                 this._archiveCommand.tooltip = "Archive";
-                this._archiveCommand.icon = "\uEC50";
+                this._archiveCommand.icon = "\uE7B8";
             }
         }
 
