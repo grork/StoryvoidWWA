@@ -265,6 +265,12 @@ module Codevoid.Storyvoid.UI {
             toolbarUnderlay.style.transform = "translateY(0)";
             this._headerContainer.style.transform = "translateY(0)";
             this._headerContainer.classList.toggle(HEADER_FORCE_STICKY_CLASS, true);
+
+            // Make sure that we force the animation class on the container for when
+            // it's hidden (where we want the animation to play instantly)
+            if (!this._firstToolbarStateChangeSeen) {
+                setTimeout(() => this._headerContainer.classList.toggle(HEADER_ANIMATION_CLASS, true), 0);
+            }
         }
 
         private _handleResize(): void {
