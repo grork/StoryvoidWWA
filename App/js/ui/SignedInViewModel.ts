@@ -963,7 +963,7 @@
             if (this._currentFolderDbId !== this.commonFolderDbIds.archive) {
                 var archiveCommand = {
                     label: "Archive",
-                    icon: "\uEC50",
+                    icon: "\uE7B8",
                     onclick: () => {
                         Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "ArticleList" }));
                         this.archive(bookmarks);
