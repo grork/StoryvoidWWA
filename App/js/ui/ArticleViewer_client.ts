@@ -113,6 +113,49 @@ module Codevoid.Storyvoid.UI {
 
             document.head.appendChild(meta);
 
+            // Elements that don't by default have a margin/padding will be
+            // placed right up against the top of the content area. This
+            // isn't very pretty. But since the DOM can be arbitary between
+            // the root, and the candidate element, we can't just specify
+            // a CSS rule. Nor can we say 'oh, img tags get top margin', since
+            // there are other images where they're naturally laying out fine.
+            //
+            // So, instead, we're going to dive the DOM. We're targetting
+            // images an iframes that don't have children. We also want
+            // to stop early -- which is to say that we want to stop if we
+            // find any elements that are offset from their parent.
+            let allChildren = this._contentElement.querySelectorAll("*");
+            for (let i = 0; i < allChildren.length; i++) {
+                let candidate = <HTMLElement>allChildren[i];
+
+                // If the element has more children, we need to go to the next one
+                if (candidate.firstElementChild) {
+                    continue;
+                }
+
+                // If the element we just found has no height then it's
+                // not going to be interesting, since it's not really participating in layout
+                if (candidate.offsetHeight < 1) {
+                    continue;
+                }
+
+                // Is this element offset from it's layout parent? Then we don't need to do anything
+                if (candidate.offsetTop > 0) {
+                    break;
+                }
+
+                const imageCandidate: HTMLImageElement = <HTMLImageElement>candidate;
+                const hasHeight = imageCandidate.naturalHeight && (imageCandidate.naturalHeight < MIN_SIZE_FOR_IMAGE_STRETCHING);
+                const hasWidth = imageCandidate.naturalWidth && (imageCandidate.naturalWidth < MIN_SIZE_FOR_IMAGE_STRETCHING);
+                const isIframe = candidate.tagName.toLowerCase() === "iframe";
+                
+                if (isIframe || (hasWidth && hasHeight)) {
+                    imageCandidate.classList.add("articleViewer-content-firstItem-adjustment");
+                }
+
+                break;
+            }
+
             setTimeout(() => this._updateHeaderContainerHeight(), 0);
         }
 

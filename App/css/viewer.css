@@ -139,6 +139,15 @@ blockquote {
     opacity: 0;
 }
 
+/* Sometimes the first peice of content is something that
+   doesn't naturaly have padding/margin at the top. So, to
+   avoid having them against the top of the content area,
+   this will push them down.
+*/
+.articleViewer-content-firstItem-adjustment {
+    margin-top: 40px;
+}
+
 @media all and (max-width: 640px) {
     /* When the app is small, toolbar moves to the
        bottom, so rather than being sticky, lets make
