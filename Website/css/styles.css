@@ -261,7 +261,7 @@ html, body {
 }
 
 .storyvoid-theme-dusk-image {
-    background-image: url("../images/Article_Dusk.png");
+    background-image: url("../images/Article_Dusk.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     min-height: 350px;
@@ -269,7 +269,7 @@ html, body {
 }
 
 .storyvoid-theme-night-image {
-    background-image: url("../images/Article_night.png");
+    background-image: url("../images/Article_night.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     min-height: 350px;
