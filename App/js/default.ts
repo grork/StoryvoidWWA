@@ -51,8 +51,7 @@
 
         public initialize(): void {
             super.initialize();
-
-            Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "tile" }));
+            Telemetry.trackAppLaunched("tile");
         }
 
         protected getSignedInViewModel(app: UI.IAppWithAbilityToSignIn): UI.ISignedInViewModel {

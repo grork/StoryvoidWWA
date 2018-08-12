@@ -35,5 +35,15 @@
         static get instance(): Codevoid.Utilities.Mixpanel.MixpanelClient {
             return Telemetry._client;
         }
+
+        public static trackAppLaunched(launchType: string) {
+            const deviceFamily = Windows.System.Profile.AnalyticsInfo.versionInfo.deviceFamily;
+            const versionInfo = Windows.ApplicationModel.Package.current.id.version;
+            Telemetry.instance.track("AppLaunched", toPropertySet({
+                launchType: launchType,
+                platform: deviceFamily,
+                appVersion: `${versionInfo.major}.${versionInfo.minor}.${versionInfo.build}`
+            }));
+        }
     }
 }
