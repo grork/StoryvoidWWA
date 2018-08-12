@@ -107,7 +107,13 @@
 
                 var viewerSettings = new Settings.ViewerSettings();
                 this._setToolbar(viewerSettings.toolbarVisible);
-            });
+                });
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(window, {
+                resize: this._handleResizeToCheckInteractionMode.bind(this)
+            }));
+
+            this._handleResizeToCheckInteractionMode();
         }
 
         public _lastDivFocused(): void {
@@ -130,6 +136,13 @@
             }
 
             e.preventDefault();
+        }
+
+        private _handleResizeToCheckInteractionMode(): void {
+            const viewSettings = Windows.UI.ViewManagement.UIViewSettings.getForCurrentView();
+            if (viewSettings.userInteractionMode === Windows.UI.ViewManagement.UserInteractionMode.touch) {
+                this.viewModel.enteredTabletMode();
+            }
         }
 
         private _openPage(): void {
@@ -622,6 +635,7 @@
         private _displaySettings: DisplaySettingsViewModel = new DisplaySettingsViewModel();
         private _displayedSignal: Utilities.Signal = new Utilities.Signal();
         private _initialProgress: number;
+        private _wasEverInTabletMode: boolean = false;
         public isRestoring: boolean = true;
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
@@ -697,6 +711,11 @@
             }
         }
 
+        public enteredTabletMode(): void {
+            this._wasEverInTabletMode = true;
+        }
+
+
         public get displaySettingsCommand(): WinJS.UI.Command {
             return this._displaySettingsCommand;
         }
@@ -740,6 +759,7 @@
                 wasAutomaticallyRestored: this.isRestoring,
                 wasScrolled: (this._initialProgress != this.bookmark.progress),
                 progressChange: this.bookmark.progress - this._initialProgress,
+                wasInTabletMode: this._wasEverInTabletMode
             }));
         }
 

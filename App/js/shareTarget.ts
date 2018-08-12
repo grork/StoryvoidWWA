@@ -27,7 +27,8 @@
             }
 
             super.initialize();
-            Telemetry.instance.track("AppLaunched", toPropertySet({ launchType: "shareTarget" }));
+            const deviceFamily = Windows.System.Profile.AnalyticsInfo.versionInfo.deviceFamily;
+            Telemetry.trackAppLaunched("shareTarget");
 
             var viewModel = <UI.ShareTargetSignedInViewModel>this.signedInViewModel;
             var shareOperation = shareArgs.shareOperation;
