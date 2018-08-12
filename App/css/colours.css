@@ -100,14 +100,19 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 }
 
 .signedOut-container {
-    background-color: #BC0000;
-    color: white;
+    background-color: white;
+    color: black;
 }
 
     .signedOut-container a {
-        color: #BC0000;
-        background-color: white;
+        color: white;
+        background-color: #BC0000;
     }
+
+.signedOut-welcome {
+    background-color: #BC0000;
+    color: white;
+}
 
 .pane-section-splitter {
     border-color: lightgray;
@@ -159,42 +164,43 @@ progress.article-progress {
     background-color: transparent;
 }
 
-.authenticator input {    
-    border-color: white;
+.authenticator input {
+    border-color: black;
     background-color: transparent;
-    color: #BC0000;
+    color: white;
 }
 
     .authenticator input:hover {
-        border-color: white;
+        border-color: #BC0000;
     }
 
     .authenticator input:focus {
-        border-color: white !important;
+        border-color: #BC0000 !important;
     }
 
     .authenticator input:not(:focus) {
-        color: white;
+        color: black;
     }
 
     .authenticator input::-ms-input-placeholder {
-        color: white;
+        color: darkgrey;
     }
 
     .authenticator input:focus::-ms-input-placeholder {
-        color: grey;
+        color: lightgrey;
     }
 
 .authenticator .authenticateButton {
-    color: white;
-    border-color: white;
+    color: black;
+    border-color: black;
     background-color: transparent;
 }
 
 .authenticator .authenticateButton:focus,
 .authenticator .authenticateButton:hover {
-    background-color: white;
-    color: #BC0000;
+    background-color: #BC0000;
+    border-color: #BC0000;
+    color: white;
 }
 
     .authenticator .authenticateButton[disabled] {
@@ -203,11 +209,11 @@ progress.article-progress {
     }
 
 .authenticator > .workingContainer {
-    background-color: #BC0000;
+    background-color: white;
 }
 
     .authenticator > .workingContainer > progress {
-        color: white;
+        color: #BC0000;
     }
 
 .codevoid-logviewer {
