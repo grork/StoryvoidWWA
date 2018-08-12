@@ -10,7 +10,9 @@ html, body {
     /* Limit width while keeping centered */
     margin-left: auto;
     margin-right: auto;
-    max-width: 768px;
+    max-width: 1024px;
+    padding-left: 24px;
+    padding-right: 24px;
 }
 
 .storyvoid-title-container {
@@ -47,6 +49,22 @@ html, body {
     border-bottom-color: red;
     color: white;
     box-shadow: 14px 0px 0px red, -14px 0px 0px red; /* magic side expansion */
+}
+
+.storyvoid-text-small-backplate {
+    position: relative;
+    display: inline;
+    font-weight: bold;
+    padding-top: -4px;
+    left: 4px;
+    top: -1px; /* Make it feel like it's got more bottom spacing */
+    border-bottom-width: 4px;
+    border-bottom-style: solid;
+    background-color: red;
+    border-bottom-color: red;
+    color: white;
+    margin-right: 8px;
+    box-shadow: 6px 0px 0px red, -6px 0px 0px red; /* magic side expansion */
 }
 
 /* Lighten the text */
@@ -118,9 +136,12 @@ html, body {
     background-color: #BC0000;
 }
 
+.storyvoid-store-logo {
+    width: 124px;
+}
+
 .storyvoid-menu-backdrop {
     background-color: red;
-
     color: white;
 }
 
@@ -143,7 +164,160 @@ html, body {
 }
 
 .storyvoid-menu-item:hover {
-    background-color: orangered;
+    background-color: #BC0000;
+}
+
+.storyvoid-feature-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 475px;
+    margin-bottom: 48px;
+}
+
+.storyvoid-feature-row > div {
+    flex: 1;
+}
+
+.storyvoid-feature-text {
+    font-weight: 100;
+}
+
+.storyvoid-feature-text h1 {
+    margin: 0px
+}
+
+.storyvoid-feature-text p {
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+
+.storyvoid-feature-text-container {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.storyvoid-feature-text-left {
+    align-items: flex-end;
+}
+
+.storyvoid-feature-text-right {
+    align-items: flex-start;
+}
+
+.storyvoid-feature-text > div {
+    max-width: 512px;
+    box-sizing: border-box;
+    padding-top: 24px;
+}
+
+.storyvoid-feature-image-container {
+    overflow-x: hidden;
+    overflow-y: visible;
+}
+
+.storyvoid-feature-image {
+    background-size: cover;
+    background-repeat: no-repeat;
+    max-width: 100%;
+}
+
+.storyvoid-feature-image-article-list {
+    transform: translateX(56px);
+    background-image: url("../images/ArticleList.jpg");
+    min-height: 450px;
+    max-height: 85vh;
+    box-shadow: -4px 10px 20px -15px black;
+}
+
+.storyvoid-theme-spread {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 350px;
+    margin-top: 48px;
+    margin-bottom: 96px;
+}
+
+.storyvoid-theme-spread > div {
+    box-shadow: -4px 10px 20px -15px black;
+}
+
+.storyvoid-theme-day-image {
+    background-image: url("../images/Article_Day.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 350px;
+    width: 100%;
+}
+
+.storyvoid-theme-paper-image {
+    background-image: url("../images/Article_Paper.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 350px;
+    width: 100%;
+}
+
+.storyvoid-theme-dusk-image {
+    background-image: url("../images/Article_Dusk.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 350px;
+    width: 100%;
+}
+
+.storyvoid-theme-night-image {
+    background-image: url("../images/Article_night.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 350px;
+    width: 100%;
+}
+
+.storyvoid-feature-image-container-appearance {
+    overflow-x: visible;
+}
+
+.storyvoid-feature-image-appearance {
+    transform: translateX(-56px);
+    background-image: url("../images/Appearance_Picker.jpg");
+    background-position: right;
+    min-height: 475px;
+    max-height: 85vh;
+    box-shadow: 4px 10px 20px -15px black;
+}
+.storyvoid-feature-row-store {
+    min-height: unset;
+}
+.storyvoid-feature-store-preview {
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+.storyvoid-footer-container {
+    background-color: black;
+}
+
+.storyvoid-footer {
+    display: flex;
+    flex-direction: row;
+    color: white;
+    min-height: 36px;
+    align-content: center;
+    justify-content: space-between;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.storyvoid-footer a {
+    text-decoration: none;
+    color: white;
+}
+
+.storyvoid-footer > div {
+    align-self: center;
 }
 
 th {
@@ -185,4 +359,45 @@ li {
 li:before {
     content: "-";
     padding-right: 8px;
+}
+
+@media screen and (max-width: 1036px) {
+    .storyvoid-feature-text,
+    .storyvoid-feature-text-left,
+    .storyvoid-feature-text-right {
+        align-items: center;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+@media screen and (max-width: 800px) {
+    .storyvoid-feature-row {
+        display: block;
+        min-height: unset;
+    }
+
+    .storyvoid-feature-text,
+    .storyvoid-feature-text-left,
+    .storyvoid-feature-text-right {
+        align-items: center;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .storyvoid-feature-text > div {
+        max-width: unset;
+    }
+
+    .storyvoid-feature-image-container {
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+    .storyvoid-feature-image-article-list,
+    .storyvoid-feature-image-appearance {
+        transform: unset;
+    }
+
+    .storyvoid-footer {
+        display: block;
+    }
 }
