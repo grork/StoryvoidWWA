@@ -413,7 +413,6 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     line-height: 26px;
     border-bottom-width: 4px;
     border-bottom-style: solid;
-    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
 }
 
 .article-summary {

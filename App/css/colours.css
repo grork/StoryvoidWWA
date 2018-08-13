@@ -146,9 +146,17 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 }
 
 .article-title-text {
+    color: white;
     background-color: red;
     border-bottom-color: red;
-    color: white;
+    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+}
+
+.win-focused .article-title-text,
+.win-container:hover .article-title-text {
+    background-color: #BC0000;
+    border-bottom-color: #BC0000;
+    box-shadow: 8px 0px 0px #BC0000, -8px 0px 0px #BC0000;
 }
 
 .article-footer {
