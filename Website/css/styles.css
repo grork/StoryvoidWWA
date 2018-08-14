@@ -146,7 +146,7 @@ html, body {
 }
 
 .storyvoid-menu {
-    height: 48px;
+    min-height: 48px;
     margin-bottom: 56px;
 }
 
@@ -269,7 +269,7 @@ html, body {
 }
 
 .storyvoid-theme-night-image {
-    background-image: url("../images/Article_night.jpg");
+    background-image: url("../images/Article_Night.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     min-height: 350px;
