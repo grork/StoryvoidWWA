@@ -41,8 +41,10 @@
 
                 <div class="accountInformationContainer show"
                      data-part="accountInformationContainer">
-                    To use Storyvoid, you'll need to have an Instapaper Account.
-                    To get an account, sign up at <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a> and follow the instructions.
+                    To use Storyvoid, you'll need to have an Instapaper Account. If you don't have one, sign up for a free account at <a href="http://instapaper.com/user/register" target="_blank">instapaper.com</a> and follow the instructions.
+                    <br />
+                    <br />
+                    If you do, just sign in above to get going!
                 </div>
             </div>
 
@@ -198,11 +200,18 @@
                     </div>
                 </div>
                 <div class="settingsPopup-reset">
-                    <div class="reset-title">Reset settings</div>
+                    <div class="reset-title">Reset settings &amp; Data</div>
                     <div>Here, you can reset all your settings to get back to a spick-and-span, pristine state.</div>
                     <div>When you sign out of the application, we clear all your data from this device -- nothing is left behind!</div>
+                    <div class="settings-subTitle">Article Settings</div>
+                    <div>Reset your article viewer settings &mdash; typeface, text size &amp; spacing, and theme &mdash; to the defaults, just like it was when you viewed your first article.</div>
                     <button data-event="{ click: resetViewerSettings }">Reset my viewer settings (e.g. theme, typeface etc.)</button>
-                    <button data-event="{ click: redownload }">Delete my downloaded articles, and redownload them.</button>
+                    <div class="settings-subTitle">Data &amp; Downloads</div>
+                    <div>
+                        Have a problem with a specfic article? Some how missing a folder or article? Try resetting them by having the application
+                        remove the downloaded copies of them, and redownloading them. If you've got an a lot of articles, this might take a while.
+                    </div>
+                    <button data-event="{ click: redownload }">Remove the local copy of my articles, and redownload them</button>
                 </div>
                 <div class="settingsPopup-privacy">
                     <div class="privacy-title">Privacy</div>

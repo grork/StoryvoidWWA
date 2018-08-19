@@ -5,6 +5,7 @@
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _emptyStateListeners: Codevoid.Utilities.ICancellable;
         private _folderNameElement: HTMLElement;
+        private _headerCommandsContainer: HTMLElement;
         private _contentContainer: HTMLDivElement;
         private _articleTemplate: WinJS.Binding.Template;
         private _imageArticleTemplate: WinJS.Binding.Template;
@@ -158,7 +159,29 @@
         }
 
         public signOut(): void {
-            this.viewModel.signOut(true/*clearCredentials*/).done(null);
+            const confirmSignoutDialog = new Windows.UI.Popups.MessageDialog(
+                "When you sign out, everything you've downloaded will be removed, and you'll need to sign in again to use the app again. Your data will still be in your Instapaper account at instapaper.com",
+                "Are you sure?");
+
+            confirmSignoutDialog.commands.clear();
+
+            const signoutCommand = new Windows.UI.Popups.UICommand("Signout");
+            signoutCommand.id = "signout";
+
+            const staySignedInCommand = new Windows.UI.Popups.UICommand("Stay signed in");
+            staySignedInCommand.id = "staySignedIn";
+
+            confirmSignoutDialog.commands.append(signoutCommand);
+            confirmSignoutDialog.commands.append(staySignedInCommand);
+
+
+            confirmSignoutDialog.showAsync().done((command) => {
+                if (command.id != "signout") {
+                    return;
+                }
+
+                this.viewModel.signOut(true/*clearCredentials*/).done(null);
+            });
         }
 
         public menuInvoked(e: MouseEvent): void {
@@ -413,7 +436,13 @@
                 this._contentList.selectionMode = WinJS.UI.SelectionMode.multi;
                 this._contentList.tapBehavior = WinJS.UI.TapBehavior.toggleSelect;
                 this._selectModeToggle.icon = "cancel";
+
+                const currentTooltip = this._selectModeToggle.tooltip;
+                this._selectModeToggle.tooltip = (<any>this._selectModeToggle).alternativeToolTip;
+                (<any>this._selectModeToggle).alternativeToolTip = currentTooltip;
                 this._inSelectionMode = true;
+
+                WinJS.Utilities.addClass(this._headerCommandsContainer, "header-inSelectionMode");
             } else {
                 this._exitSelectionMode();
             }
@@ -447,6 +476,13 @@
             this._removeToolBar();
 
             this._selectModeToggle.icon = "bullets";
+
+            const currentTooltip = this._selectModeToggle.tooltip;
+            this._selectModeToggle.tooltip = (<any>this._selectModeToggle).alternativeToolTip;
+            (<any>this._selectModeToggle).alternativeToolTip = currentTooltip;
+
+            WinJS.Utilities.removeClass(this._headerCommandsContainer, "header-inSelectionMode");
+
             this._inSelectionMode = false;
         }
 

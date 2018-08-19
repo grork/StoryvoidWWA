@@ -23,6 +23,7 @@
             super(element, options);
             
             this._navigationManager = Windows.UI.Core.SystemNavigationManager.getForCurrentView();
+            element.tabIndex = -1; // Make sure the background can get focus so it doesn't jump to the body
 
             WinJS.Utilities.addClass(element, "settingsPopup-dialog");
             WinJS.Utilities.addClass(element, "dialog");
