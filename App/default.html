@@ -149,10 +149,11 @@
                 <div class="signedIn-header">
                     <div class="header-folderName"
                          data-part="_folderNameElement"></div>
-                    <div class="header-commands">
+                    <div class="header-commands"
+                         data-part="_headerCommandsContainer">
 
                         <div data-win-control="WinJS.UI.Tooltip"
-                             data-win-options="{ innerHTML: 'Sorts' }">
+                             data-win-options="{ innerHTML: 'Sorting options' }">
                             <select class="commands-sort"
                                     data-win-control="WinJS.UI.Repeater"
                                     data-event="{ change: handleSortsChanged }"
@@ -163,12 +164,12 @@
 
                         <button data-win-control="WinJS.UI.Command"
                                 data-event="{ click: startSync }"
-                                data-win-options="{ type: 'button', tooltip: 'Sync', icon: '\uE117'}"></button>
+                                data-win-options="{ type: 'button', tooltip: 'Sync your articles', icon: '\uE117'}"></button>
 
                         <button data-part="_selectModeToggle"
                                 data-event="{ click: toggleSelectionMode }"
                                 data-win-control="WinJS.UI.Command"
-                                data-win-options="{type: 'button', icon: 'bullets', tooltip: 'Toggle selection mode'}"></button>
+                                data-win-options="{type: 'button', icon: 'bullets', tooltip: 'Enter selection mode', alternativeToolTip: 'Exit selection mode', extraClass: 'header-showDuringSelection'}"></button>
                     </div>
                 </div>
                 <div class="signedIn-content">

@@ -159,6 +159,10 @@ button.win-command:focus {
         height: 48px;
     }
 
+    .header-commands.header-inSelectionMode > *:not(.header-showDuringSelection) {
+        display: none !important;
+    }
+
 .commands-sort {
     border-width: 1px;
     margin: 0px;
