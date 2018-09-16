@@ -499,7 +499,6 @@
                 var telemetrySettings = new Settings.TelemetrySettings();
                 // Save setting about telemetery enbabled state
                 var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
-                var installID = telemetrySettings.installID;
                 telemetrySettings.removeAllSettings();
 
                 Telemetry.instance.clearSuperProperties();
@@ -511,14 +510,12 @@
                 return WinJS.Promise.timeout().then(() => {
                     return {
                         allowTelemetry: allowTelemetry,
-                        installID: installID
                     };
                 });
             }).then((savedTelemetry: { allowTelemetry: boolean; installID: string }) => {
                 var telemetrySettings = new Settings.TelemetrySettings();
                 // Restore telemetry enabled state
                 telemetrySettings.telemeteryCollectionEnabled = savedTelemetry.allowTelemetry;
-                telemetrySettings.installID = savedTelemetry.installID;
 
                 // Dispatch event after we've told the app to sign out
                 // so that the animation plays w/ full content rather

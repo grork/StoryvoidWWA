@@ -18,16 +18,30 @@
             // Test token
             Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("1f655fcc3028ab7be93e6c81b243a63a");
             return Telemetry._client.initializeAsync().then(() => {
-                Telemetry._client.dropEventsForPrivacy = !(new Settings.TelemetrySettings()).telemeteryCollectionEnabled;
+                const settings = new Settings.TelemetrySettings();
+                Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;
                 Telemetry._client.start();
 
-                if (!Telemetry._client.hasSuperProperty("distinct_id")) {
-                    var settings = new Settings.TelemetrySettings();
-                    if (!settings.installID) {
-                        settings.installID = Codevoid.Utilities.GuidHelper.generateGuidAsString();
+                if (!Telemetry._client.hasUserIdentity()) {
+                    Telemetry._client.generateAndSetUserIdentity();
+                }
+
+                if (!settings.firstSeenDateSent) {
+                    const now = new Date();
+                    let name = now.valueOf().toString();
+                    if (Utilities.HiddenApiHelper.isInternalUser()) {
+                        name = "It Me";
                     }
 
-                    Telemetry._client.setSuperPropertyAsString("distinct_id", settings.installID);
+                    Telemetry._client.updateProfile(
+                        Utilities.Mixpanel.UserProfileOperation.set_Once,
+                        toPropertySet({
+                            [Utilities.Mixpanel.EngageReservedPropertyNames.created]: now,
+                            [Utilities.Mixpanel.EngageReservedPropertyNames.name]: name
+                        })
+                    );
+
+                    settings.firstSeenDateSent = true;
                 }
             });
         }

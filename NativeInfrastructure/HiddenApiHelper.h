@@ -7,6 +7,7 @@ namespace Codevoid::Utilities {
     public:
         static void ExtendIntoTitleBar();
         static void DontExtendIntoTitleBar();
+        static bool IsInternalUser();
     };
 
     [Windows::Foundation::Metadata::AllowForWebAttribute]
