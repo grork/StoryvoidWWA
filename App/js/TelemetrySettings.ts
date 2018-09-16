@@ -5,19 +5,19 @@
             super("TelemetrySettings",
                 Windows.Storage.ApplicationData.current.localSettings,
                 {
-                    installID: "",
                     telemetryCollectionEnabled: true,
+                    firstSeenDateSent: false,
                     lastFolderCountSeen: 0,
                     lastHomeArticleCountSeen: 0,
                 });
         }
 
-        public get installID(): string {
-            return this.getValueOrDefault<string>("installID");
+        public get firstSeenDateSent(): boolean {
+            return this.getValueOrDefault<boolean>("firstSeenDateSent");
         }
 
-        public set installID(value: string) {
-            this.setValue("installID", value);
+        public set firstSeenDateSent(value: boolean) {
+            this.setValue("firstSeenDateSent", value);
         }
 
         public get telemeteryCollectionEnabled(): boolean {

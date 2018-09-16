@@ -9,14 +9,12 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="WebViewNotifier.cpp" />
-    <ClCompile Include="GuidHelper.cpp" />
     <ClCompile Include="HiddenApiHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="WebViewNotifier.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="GuidHelper.h" />
     <ClInclude Include="HiddenApiHelper.h" />
   </ItemGroup>
   <ItemGroup>

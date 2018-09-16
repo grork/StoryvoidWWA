@@ -213,14 +213,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="GuidHelper.h" />
     <ClInclude Include="HiddenApiHelper.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="WebViewNotifier.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GuidHelper.cpp" />
     <ClCompile Include="HiddenApiHelper.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <PathCch.h>
 #include "HiddenApiHelper.h"
 
 using namespace Codevoid::Utilities;
@@ -13,6 +14,19 @@ void HiddenApiHelper::ExtendIntoTitleBar()
 void HiddenApiHelper::DontExtendIntoTitleBar()
 {
     CoreApplication::GetCurrentView()->TitleBar->ExtendViewIntoTitleBar = false;
+}
+
+bool HiddenApiHelper::IsInternalUser()
+{
+    auto basePath = Windows::Storage::ApplicationData::Current->LocalFolder->Path;
+    wchar_t internalUserFilePath[MAX_PATH];
+    if (PathCchCombine(internalUserFilePath, MAX_PATH, basePath->Data(), L"Internal.user") != S_OK)
+    {
+        return false;
+    }
+
+    auto fileAttributes = GetFileAttributes(internalUserFilePath);
+    return fileAttributes != INVALID_FILE_ATTRIBUTES;
 }
 
 TitleBarVisibilityHelper::TitleBarVisibilityHelper()
