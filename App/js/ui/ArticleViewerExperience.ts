@@ -883,12 +883,13 @@
                 onclick: this._archive.bind(this),
             });
 
+            this._archiveCommand.icon = "\uE7B8";
+
             if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.archive) {
                 this._archiveCommand.tooltip = "Move to unread";
-                this._archiveCommand.icon = "\uEC51";
+                this._archiveCommand.extraClass = "article-viewer-toolbar-unarchive";
             } else {
                 this._archiveCommand.tooltip = "Archive";
-                this._archiveCommand.icon = "\uE7B8";
             }
         }
 
