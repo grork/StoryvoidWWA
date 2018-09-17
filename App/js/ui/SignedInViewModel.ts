@@ -883,9 +883,12 @@
                 var openInBrowser = {
                     label: "Open in browser",
                     icon: "globe",
+                    tooltip: "Open article in your browser",
                     onclick: () => {
                         Telemetry.instance.track("OpenInBrowser", toPropertySet({ location: "ArticleList" }));
                         Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmarks[0].url));
+
+                        this.raiseCommandInvokedEvent();
                     }
                 }
 
@@ -903,6 +906,7 @@
                 var downloadCommand = {
                     label: "Download",
                     icon: "download",
+                    tooltip: "Download article",
                     onclick: () => {
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                             Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
@@ -911,6 +915,8 @@
                                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                             });
                         });
+
+                        this.raiseCommandInvokedEvent();
                     }
                 };
 
@@ -921,8 +927,10 @@
                 var unlikeCommand = {
                     label: "Unlike",
                     icon: "\uEA92",
+                    tooltip: "Unlike article(s)",
                     onclick: () => {
                         this.unlike(bookmarks);
+                        this.raiseCommandInvokedEvent();
                     }
                 };
 
@@ -931,9 +939,11 @@
                 var deleteCommand = {
                     label: "Delete",
                     icon: "delete",
+                    tooltip: "Delete article(s)",
                     onclick: () => {
                         Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "ArticleList" }));
                         this.delete(bookmarks);
+                        this.raiseCommandInvokedEvent();
                     },
                 };
 
@@ -943,6 +953,7 @@
             var moveCommand = {
                 label: "Move",
                 icon: "movetofolder",
+                tooltip: "Move to another folder",
                 onclick: (e: UIEvent) => {
                     var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
                     moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).done((result: boolean) => {
@@ -952,6 +963,8 @@
 
                         Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "ArticleList" }));
                     });
+
+                    this.raiseCommandInvokedEvent();
                 },
             };
 
@@ -961,9 +974,12 @@
                 var archiveCommand = {
                     label: "Archive",
                     icon: "\uE7B8",
+                    tooltip: "Archive article(s)",
                     onclick: () => {
                         Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "ArticleList" }));
+
                         this.archive(bookmarks);
+                        this.raiseCommandInvokedEvent();
                     }
                 };
 
@@ -1095,6 +1111,10 @@
                 var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
             });
+        }
+
+        private raiseCommandInvokedEvent(): void {
+            this._eventSource.dispatchEvent("commandInvoked", null);
         }
 
         public static get sorts(): ISortsInfo[] {

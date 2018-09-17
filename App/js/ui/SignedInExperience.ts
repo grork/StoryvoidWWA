@@ -71,6 +71,9 @@
 
                     // Ensure the first item in the list gets focus.
                     this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
+                },
+                commandInvoked: () => {
+                    this._exitSelectionMode();
                 }
             }));
 
@@ -555,7 +558,7 @@
 
         switch (folder) {
             case InstapaperDB.CommonFolderIds.Archive:
-                result = "\uE8F1";
+                result = "\uE7B8";
                 break;
 
             case InstapaperDB.CommonFolderIds.Liked:

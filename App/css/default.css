@@ -705,6 +705,18 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     margin-left: auto !important;
 }
 
+/*
+ * Place a little 'x' over the bottom right corner
+ * the icon to help people know it'll unarchive something
+ */
+.article-viewer-toolbar-unarchive > span > span:after {
+    content: '\F0B8';
+    position: absolute;
+    top: 2px;
+    left: -4px;
+    font-size: 32px;
+}
+
 @media all and (max-width: 640px) {
     .articleViewer-toolbar-container {
         -ms-grid-row: 1;
