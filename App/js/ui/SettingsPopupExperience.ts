@@ -213,6 +213,11 @@
             this.close();
         }
 
+        public forgetMeAndSignout(): void {
+            this.viewModel.forgetMeAndSignout().done(() => { });
+            this.close();
+        }
+
         public dumpDb(): void {
             this.viewModel.articleListViewModel.dumpDb().done((dumpData: string) => {
                 Utilities.Logging.instance.log("Dumped");
@@ -255,6 +260,7 @@
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype._lastDivFocused);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.resetViewerSettings);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.redownload);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.forgetMeAndSignout);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.dumpDb);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showLogViewer);
@@ -292,6 +298,12 @@
             var telemetrySettings = new Settings.TelemetrySettings();
             telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
             Telemetry.instance.dropEventsForPrivacy = !allowTelemetry;
+        }
+
+        public forgetMeAndSignout(): WinJS.Promise<any> {
+            return this.articleListViewModel.signOut(true).then(() => {
+                Telemetry.instance.deleteProfile();
+            });
         }
     }
 }
