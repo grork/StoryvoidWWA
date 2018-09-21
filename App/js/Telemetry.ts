@@ -22,28 +22,34 @@
                 Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;
                 Telemetry._client.start();
 
-                if (!Telemetry._client.hasUserIdentity()) {
-                    Telemetry._client.generateAndSetUserIdentity();
-                }
-
-                if (!settings.firstSeenDateSent) {
-                    const now = new Date();
-                    let name = now.valueOf().toString();
-                    if (Utilities.HiddenApiHelper.isInternalUser()) {
-                        name = "It Me";
-                    }
-
-                    Telemetry._client.updateProfile(
-                        Utilities.Mixpanel.UserProfileOperation.set_Once,
-                        toPropertySet({
-                            [Utilities.Mixpanel.EngageReservedPropertyNames.created]: now,
-                            [Utilities.Mixpanel.EngageReservedPropertyNames.name]: name
-                        })
-                    );
-
-                    settings.firstSeenDateSent = true;
-                }
+                Telemetry.initializeIdentity();
             });
+        }
+
+        static initializeIdentity(): void {
+            const settings = new Settings.TelemetrySettings();
+
+            if (!Telemetry._client.hasUserIdentity()) {
+                Telemetry._client.generateAndSetUserIdentity();
+            }
+
+            if (!settings.firstSeenDateSent) {
+                const now = new Date();
+                let name = now.valueOf().toString();
+                if (Utilities.HiddenApiHelper.isInternalUser()) {
+                    name = "It Me";
+                }
+
+                Telemetry._client.updateProfile(
+                    Utilities.Mixpanel.UserProfileOperation.set_Once,
+                    toPropertySet({
+                        [Utilities.Mixpanel.EngageReservedPropertyNames.created]: now,
+                        [Utilities.Mixpanel.EngageReservedPropertyNames.name]: name
+                    })
+                );
+
+                settings.firstSeenDateSent = true;
+            }
         }
 
         static get instance(): Codevoid.Utilities.Mixpanel.MixpanelClient {

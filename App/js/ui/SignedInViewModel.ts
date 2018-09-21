@@ -528,6 +528,8 @@
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             var completedSignal = new Codevoid.Utilities.Signal();
 
+            Telemetry.initializeIdentity();
+
             Telemetry.instance.track("SignedIn", toPropertySet({
                 usedSavedCredentials: usingSavedCredentials,
                 type: "app",
