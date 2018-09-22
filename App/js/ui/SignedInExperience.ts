@@ -187,11 +187,27 @@
             });
         }
 
-        public menuInvoked(e: MouseEvent): void {
-            // Grab the element under the touch / pointer event
-            var currentElement = document.elementFromPoint(e.x, e.y);
+        public menuInvoked(e: PointerEvent): void {
+            let elementPosition: { x: number, y: number } = { x: e.x, y: e.y };
 
-            var data: IBookmark;
+            // When invoked via keyboard, theres no position information.
+            // However, we can guess it by getting the position of the focused
+            // element, and using that to generate the position information.
+            if (!e.pointerType) {
+                if (!document.activeElement) {
+                    return;
+                }
+
+                const boundingRect = document.activeElement.getBoundingClientRect();
+                elementPosition = {
+                    x: boundingRect.left + (boundingRect.width / 2),
+                    y: boundingRect.top + (boundingRect.height / 2)
+                };
+            }
+
+            let data: IBookmark;
+            // Grab the element under the touch / pointer event
+            let currentElement = document.elementFromPoint(elementPosition.x, elementPosition.y);
 
             // Dumpster drive between element under the pointer, until we hit
             // where the handler is attached, looking for the data on each element
@@ -213,7 +229,7 @@
             // Now we've got some commands, show them to the user
             var commands = this.viewModel.getCommandInformationForBookmarks([data]);
             this._menu.commands = <any[]>commands;
-            this._menu.showAt(e);
+            this._menu.showAt(elementPosition);
             Telemetry.instance.track("ContextMenuShown", null);
 
             // Set the transform of the listview 'content' (E.g. inside the scroller)

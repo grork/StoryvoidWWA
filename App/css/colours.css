@@ -38,7 +38,7 @@ button.win-splitviewpanetoggle[aria-expanded=false] {
     border-width: 1px;
 }
 
-.signedIn-container > button.win-splitviewpanetoggle.win-keyboard:focus {
+.signedIn-container button.win-splitviewpanetoggle.win-keyboard:focus {
     border-color: white;
 }
 

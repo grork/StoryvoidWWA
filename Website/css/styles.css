@@ -120,14 +120,14 @@ html, body {
     margin-bottom: 20px;
 }
 
-.storyvoid-privacy-table {
+.storyvoid-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
     margin-left: -8px;
 }
 
-.storyvoid-privacy-table-header {
+.storyvoid-table-header {
     background-color: lightgray;
 }
 

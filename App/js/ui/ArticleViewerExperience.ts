@@ -8,6 +8,10 @@
         ExitFullScreen
     }
 
+    function isFunctionKey(e: KeyboardEvent): boolean {
+        return (e.keyCode >= WinJS.Utilities.Key.F1) && (e.keyCode <= WinJS.Utilities.Key.F12);
+    }
+
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
@@ -265,7 +269,7 @@
                 return;
             }
 
-            if (e.ctrlKey) {
+            if (e.ctrlKey || isFunctionKey(e)) {
                 this._handleShortcuts(e.keyCode);
             }
 
@@ -307,11 +311,11 @@
                     this.viewModel.toggleLikeCommand.onclick();
                     break;
 
-                case WinJS.Utilities.Key.f:
+                case WinJS.Utilities.Key.F11:
                     this.viewModel.fullScreenCommand.onclick();
                     break;
 
-                case WinJS.Utilities.Key.s:
+                case WinJS.Utilities.Key.d:
                     this._showToolbarIfNotVisible().done(() => {
                         this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
                     });
@@ -319,16 +323,18 @@
 
                 case WinJS.Utilities.Key.m:
                     this._showToolbarIfNotVisible().done(() => {
-                                this.viewModel.moveCommand.onclick({ currentTarget: this.viewModel.moveCommand.element });
+                        this.viewModel.moveCommand.onclick({ currentTarget: this.viewModel.moveCommand.element });
                     });
                     break;
 
-                case WinJS.Utilities.Key.d:
+                case WinJS.Utilities.Key.deleteKey:
                     this.viewModel.deleteCommand.onclick();
                     break;
 
                 case WinJS.Utilities.Key.t:
-                    this._lastDivFocused();
+                    this._showToolbarIfNotVisible().done(() => {
+                        this._lastDivFocused();
+                    });
                     break;
             }
         }
@@ -646,27 +652,27 @@
             this._initializeFullScreenCommand();
 
             this._deleteCommand = new WinJS.UI.Command(null, {
-                tooltip: "Delete",
+                tooltip: "Delete (Ctrl + Del)",
                 icon: "delete",
                 onclick: this._delete.bind(this),
             });
 
             this._displaySettingsCommand = new WinJS.UI.Command(null, {
-                tooltip: "Display Settings",
+                tooltip: "Display Settings (Ctrl + D)",
                 icon: WinJS.UI.AppBarIcon.font,
                 type: "flyout",
             });
             this._displaySettingsCommand.extraClass = "article-viewer-toolbar-button-spacer";
 
             this._moveCommand = new WinJS.UI.Command(null, {
-                tooltip: "Move",
+                tooltip: "Move (Ctrl + M)",
                 icon: WinJS.UI.AppBarIcon.movetofolder,
                 type: "flyout",
                 onclick: this._move.bind(this),
             });
 
             this._closeArticleCommand = new WinJS.UI.Command(null, {
-                tooltip: "Close",
+                tooltip: "Close (Esc)",
                 icon: WinJS.UI.AppBarIcon.back,
                 onclick: () => this.eventSource.dispatchEvent("dismiss", null)
             });
@@ -829,12 +835,12 @@
         }
 
         private _setToggleLikeToUnlike() {
-            this._toggleLikeCommand.tooltip = "Unlike";
+            this._toggleLikeCommand.tooltip = "Unlike (Ctrl + L)";
             this._toggleLikeCommand.icon = "\uE00B";
         }
 
         private _setToggleLikeToLike() {
-            this._toggleLikeCommand.tooltip = "Like";
+            this._toggleLikeCommand.tooltip = "Like (Ctrl + L)";
             this._toggleLikeCommand.icon = "\uE006";
         }
 
@@ -886,10 +892,10 @@
             this._archiveCommand.icon = "\uE7B8";
 
             if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.archive) {
-                this._archiveCommand.tooltip = "Move to home";
+                this._archiveCommand.tooltip = "Move to home (Ctrl + A)";
                 this._archiveCommand.extraClass = "article-viewer-toolbar-unarchive";
             } else {
-                this._archiveCommand.tooltip = "Archive";
+                this._archiveCommand.tooltip = "Archive (Ctrl + A)";
             }
         }
 
@@ -1004,12 +1010,12 @@
         }
 
         private _setFullScreenCommandToExit(): void {
-            this._fullScreenCommand.tooltip = "Exit Full Screen";
+            this._fullScreenCommand.tooltip = "Exit Full Screen (F11)";
             this._fullScreenCommand.icon = "\uE1D8";
         }
 
         private _setFullScreenCommandToEnter(): void {
-            this._fullScreenCommand.tooltip = "Exit Full Screen";
+            this._fullScreenCommand.tooltip = "Enter Full Screen (F11)";
             this._fullScreenCommand.icon = "\uE1D9";
         }
 

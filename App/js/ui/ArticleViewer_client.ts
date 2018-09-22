@@ -5,6 +5,9 @@ module Codevoid.Storyvoid.UI {
     const KEY_ESCAPE = 27;
     const KEY_ALT = 18;
 
+    const KEY_F1 = 112;
+    const KEY_F12 = 123;
+
     const ARTICLE_WIDTH_PX = 1000;
     const MIN_SIZE_FOR_IMAGE_STRETCHING = 400;
     const TOOLBAR_UNDERLAY_CLASS = "articleViewer-toolbar-underlay";
@@ -12,6 +15,10 @@ module Codevoid.Storyvoid.UI {
     const CONTAINED_ELEMENT_CLASS = "articleViewer-contained";
     const HEADER_ANIMATION_CLASS = "articleViewer-header-animate";
     const HEADER_FORCE_STICKY_CLASS = "articleViewer-header-container-sticky";
+
+    function isFunctionKey(e: KeyboardEvent): boolean {
+        return (e.keyCode >= KEY_F1) && (e.keyCode <= KEY_F12);
+    }
 
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
@@ -438,7 +445,8 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _handleKeyDown(ev: KeyboardEvent): void {
-            // Handle these keys as 
+            // Handle these keys as otherwise they'll cause
+            // the browser default behaviour to happen.
             if (((ev.keyCode === KEY_PLUS) || (ev.keyCode === KEY_MINUS)) && ev.ctrlKey) {
                 ev.preventDefault();
                 return;
@@ -450,7 +458,7 @@ module Codevoid.Storyvoid.UI {
                 return;
             }
 
-            if (ev.ctrlKey) {
+            if (ev.ctrlKey || isFunctionKey(ev)) {
                 Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("shortcutinvoked", ev.keyCode);
                 return;
             }
