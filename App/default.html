@@ -152,6 +152,10 @@
                     <div class="header-commands"
                          data-part="_headerCommandsContainer">
 
+                        <button data-win-control="WinJS.UI.Command"
+                                data-event="{ click: goToHomeFolder }"
+                                data-win-options="{ type: 'button', tooltip: 'Go to the Home folder', icon: '\uE80F', extraClass: 'header-hide-when-in-home-folder'}"></button>
+
                         <div data-win-control="WinJS.UI.Tooltip"
                              data-win-options="{ innerHTML: 'Sorting options' }">
                             <select class="commands-sort"

@@ -278,6 +278,8 @@
 
             this._folderNameElement.textContent = folderDetails.folder.title;
 
+            this._headerCommandsContainer.classList.toggle("header-in-home-folder", (folderDetails.folder.folder_id === Codevoid.Storyvoid.InstapaperDB.CommonFolderIds.Unread));
+
             this._clearEmptyStateListeners();
 
             // Set the item template before you set the data source
@@ -390,6 +392,10 @@
         public startSync(): void {
             this._splitView.closePane();
             this.viewModel.startSync(SyncReason.Explicit);
+        }
+
+        public goToHomeFolder(): void {
+            this.viewModel.switchCurrentFolderTo(this.viewModel.commonFolderDbIds.unread);
         }
 
         public folderClicked(e: any): void {
@@ -561,6 +567,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showSettings);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.showFeedbackHub);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.startSync);
+    WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.goToHomeFolder);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.folderClicked);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.itemsRendered);
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.contentListSelectionChanged);
