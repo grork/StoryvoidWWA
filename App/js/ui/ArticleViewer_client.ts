@@ -5,7 +5,9 @@ module Codevoid.Storyvoid.UI {
     const KEY_ESCAPE = 27;
     const KEY_ALT = 18;
     const KEY_DELETE = 46;
+    const KEY_A = 65;
     const KEY_L = 76;
+ 
 
     const KEY_F1 = 112;
     const KEY_F12 = 123;
@@ -29,6 +31,7 @@ module Codevoid.Storyvoid.UI {
         // the bottom-toolbar has the underlay in the right place at the right time.
         private _toolbarUnderlay: HTMLElement;
         private _headerContainer: HTMLElement;
+        private _footerButtonsContainer: HTMLElement;
         private _currentHeaderContainerHeight: number = 0;
         private _currentImageWidthForImageSizing = 0;
         private _keyDownMap: { [key: number]: boolean } = {};
@@ -56,6 +59,7 @@ module Codevoid.Storyvoid.UI {
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("refreshimagewidths", this._refreshImageWidths.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settheme", this._setTheme.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settoolbarstate", this._setToolbarState.bind(this));
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("articlepropertychanged", this._updateArticleButtons.bind(this)); 
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -81,9 +85,9 @@ module Codevoid.Storyvoid.UI {
             this._scrollingElement.addEventListener("scroll", this._handleScroll.bind(this));
         }
 
-        private _prepareForDisplay(data: { title: string, domain: string, url: string }): void {
+        private _prepareForDisplay(data: { title: string, domain: string, url: string; state: { liked: boolean; archive: boolean } }): void {
             this._insertHeader(data);
-            this._insertFooter();
+            this._insertFooter(data.state);
 
             // Make sure that the document is 'scaled' at the device
             // width. Without this, the scale is all kinds of weird,
@@ -131,7 +135,7 @@ module Codevoid.Storyvoid.UI {
             this._scrollingElement.insertBefore(headerContainer, this._scrollingElement.firstChild);
         }
 
-        private _insertFooter(): void {
+        private _insertFooter(state: { liked: boolean; archive: boolean }): void {
             const container = document.createElement("div");
             container.classList.add("articleViewer-footer");
 
@@ -141,16 +145,28 @@ module Codevoid.Storyvoid.UI {
 
             container.appendChild(separator);
 
-            const buttonContainer = document.createElement("div");
-            this._insertFooterCommandButtons(buttonContainer);
+            const buttonsContainer = document.createElement("div");
+            this._footerButtonsContainer = buttonsContainer;
+            this._insertFooterCommandButtons(buttonsContainer, state.liked, state.archive);
 
-            container.appendChild(buttonContainer);
+            container.appendChild(buttonsContainer);
 
             this._contentElement.appendChild(container);
         }
 
-        private _insertFooterCommandButtons(buttonContainer: HTMLElement): void {
+        private _updateArticleButtons(state: { liked: boolean, archive: boolean }): void {
+            if (!this._footerButtonsContainer) {
+                return;
+            }
+
+            // Clear the existing buttons before rebuilding them
+            this._footerButtonsContainer.innerHTML = "";
+            this._insertFooterCommandButtons(this._footerButtonsContainer, state.liked, state.archive);
+        }
+
+        private _insertFooterCommandButtons(buttonContainer: HTMLElement, liked: boolean, archive: boolean): void {
             buttonContainer.classList.add("footer-buttons");
+            const likeIcon = liked ? "\uE00B" : "\uEB51";
             [
                 {
                     icon: "\uE8BB",
@@ -163,9 +179,14 @@ module Codevoid.Storyvoid.UI {
                     handler: this._sendShortcutInvoked.bind(this, KEY_DELETE)
                 },
                 {
-                    icon: "\uEB51",
+                    icon: likeIcon,
                     tooltip: "Like",
                     handler: this._sendShortcutInvoked.bind(this, KEY_L)
+                },
+                {
+                    icon: "\uE7B8",
+                    tooltip: "Archive",
+                    handler: this._sendShortcutInvoked.bind(this, KEY_A),
                 }
             ].forEach((buttonDetail) => {
                 const button = document.createElement("a");
