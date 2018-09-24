@@ -4,6 +4,8 @@ module Codevoid.Storyvoid.UI {
     const KEY_MINUS = 189;
     const KEY_ESCAPE = 27;
     const KEY_ALT = 18;
+    const KEY_DELETE = 46;
+    const KEY_L = 76;
 
     const KEY_F1 = 112;
     const KEY_F12 = 123;
@@ -140,32 +142,41 @@ module Codevoid.Storyvoid.UI {
             container.appendChild(separator);
 
             const buttonContainer = document.createElement("div");
+            this._insertFooterCommandButtons(buttonContainer);
+
+            container.appendChild(buttonContainer);
+
+            this._contentElement.appendChild(container);
+        }
+
+        private _insertFooterCommandButtons(buttonContainer: HTMLElement): void {
             buttonContainer.classList.add("footer-buttons");
             [
                 {
                     icon: "\uE8BB",
-                    tooltip: "Close"
+                    tooltip: "Close",
+                    handler: this._dismiss.bind(this)
                 },
                 {
                     icon: "\uE74D",
-                    tooltip: "Delete"
+                    tooltip: "Delete",
+                    handler: this._sendShortcutInvoked.bind(this, KEY_DELETE)
                 },
                 {
                     icon: "\uEB51",
-                    tooltip: "Like"
+                    tooltip: "Like",
+                    handler: this._sendShortcutInvoked.bind(this, KEY_L)
                 }
             ].forEach((buttonDetail) => {
                 const button = document.createElement("a");
                 button.innerHTML = buttonDetail.icon;
                 button.setAttribute("aria-role", "button");
                 button.setAttribute("title", buttonDetail.tooltip);
+                button.tabIndex = 0;
+
+                button.addEventListener("click", buttonDetail.handler);
                 buttonContainer.appendChild(button);
             });
-
-            container.appendChild(buttonContainer);
-
-
-            this._contentElement.appendChild(container);
         }
 
         private _adjustFirstImageMarginIfNeeded(): void {
@@ -506,7 +517,7 @@ module Codevoid.Storyvoid.UI {
             }
 
             if (ev.ctrlKey || isFunctionKey(ev)) {
-                Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("shortcutinvoked", ev.keyCode);
+                this._sendShortcutInvoked(ev.keyCode);
                 return;
             }
 
@@ -527,6 +538,10 @@ module Codevoid.Storyvoid.UI {
             // Update the map of keys curently pressed to no longer include the
             // key that was just released.
             this._keyDownMap[ev.keyCode] = false;
+        }
+
+        private _sendShortcutInvoked(keyCode: number): void {
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.sendMessage("shortcutinvoked", keyCode);
         }
 
         private _handleScroll(): void {
