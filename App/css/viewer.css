@@ -148,11 +148,45 @@ blockquote {
     margin-top: 40px;
 }
 
-@media all and (max-width: 640px) {
+.articleViewer-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Segoe MDL2 Assets';
+    color: lightgrey;
+    margin-top: 24px;
+}
+
+    .articleViewer-footer .footer-separator {
+        font-size: 72px;
+    }
+
+    .articleViewer-footer .footer-buttons {
+        font-size: 24px;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start
+    }
+
+    .articleViewer-footer .footer-buttons > a {
+        cursor: pointer;
+        width: 50px;
+        text-align: center;
+        margin-top: 36px;
+        text-decoration: none;
+        color: lightgrey;
+    }
+
+        .articleViewer-footer .footer-buttons > a:hover {
+            color: darkslategrey;
+        }
+
+
+ @media all and (max-width: 640px) {
     /* When the app is small, toolbar moves to the
-       bottom, so rather than being sticky, lets make
-       it fixed at the bottom. */
-    .articleViewer-toolbar-underlay {
+        bottom, so rather than being sticky, lets make
+        it fixed at the bottom. */
+        .articleViewer-toolbar-underlay {
         -webkit-backdrop-filter: var(--backdrop-filter);
         transform: translateY(48px);
         position: fixed;
