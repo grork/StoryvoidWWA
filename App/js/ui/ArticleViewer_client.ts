@@ -80,6 +80,36 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _prepareForDisplay(data: { title: string, domain: string, url: string }): void {
+            this._insertHeader(data);
+            this._insertFooter();
+
+            // Make sure that the document is 'scaled' at the device
+            // width. Without this, the scale is all kinds of weird,
+            // and some of the elements font size is not scaled by the
+            // device scale factor. This ensures they are.
+            var meta = document.createElement("meta");
+            meta.name = "viewport";
+            meta.content = "width=device-width";
+
+            document.head.appendChild(meta);
+
+            this._adjustFirstImageMarginIfNeeded();
+
+            // Find all youtube iframes, and add 'allowfullscreen' attribute
+            const youtubeIframes = document.querySelectorAll("iframe[src*='youtube.com']");
+            Array.prototype.forEach.call(youtubeIframes, (item: HTMLIFrameElement) => {
+                if (item.hasAttribute("allowfullscreen")) {
+                    return;
+                }
+                // Merely setting it, even empty, enables the full screen button in
+                // the youtube player.
+                item.setAttribute("allowfullscreen", "");
+            });
+
+            setTimeout(() => this._updateHeaderContainerHeight(), 0);
+        }
+
+        private _insertHeader(data: { title: string; domain: string; url: string; }): void {
             var headerContainer = this._headerContainer = document.createElement("div");
             headerContainer.classList.add("articleViewer-header-container");
             headerContainer.classList.add(ELEMENT_MANAGES_WIDTH);
@@ -96,30 +126,49 @@ module Codevoid.Storyvoid.UI {
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
 
-            // Find all youtube iframes, and add 'allowfullscreen' attribute
-            const youtubeIframes = document.querySelectorAll("iframe[src*='youtube.com']");
-            Array.prototype.forEach.call(youtubeIframes, (item: HTMLIFrameElement) => {
-                if (item.hasAttribute("allowfullscreen")) {
-                    return;
-                }
-
-                // Merely setting it, even empty, enables the full screen button in
-                // the youtube player.
-                item.setAttribute("allowfullscreen", "");
-            })
-            
             this._scrollingElement.insertBefore(headerContainer, this._scrollingElement.firstChild);
+        }
 
-            // Make sure that the document is 'scaled' at the device
-            // width. Without this, the scale is all kinds of weird,
-            // and some of the elements font size is not scaled by the
-            // device scale factor. This ensures they are.
-            var meta = document.createElement("meta");
-            meta.name = "viewport";
-            meta.content = "width=device-width";
+        private _insertFooter(): void {
+            const container = document.createElement("div");
+            container.classList.add("articleViewer-footer");
 
-            document.head.appendChild(meta);
+            const separator = document.createElement("div");
+            separator.innerHTML = '\uE712';
+            separator.classList.add("footer-separator");
 
+            container.appendChild(separator);
+
+            const buttonContainer = document.createElement("div");
+            buttonContainer.classList.add("footer-buttons");
+            [
+                {
+                    icon: "\uE8BB",
+                    tooltip: "Close"
+                },
+                {
+                    icon: "\uE74D",
+                    tooltip: "Delete"
+                },
+                {
+                    icon: "\uEB51",
+                    tooltip: "Like"
+                }
+            ].forEach((buttonDetail) => {
+                const button = document.createElement("a");
+                button.innerHTML = buttonDetail.icon;
+                button.setAttribute("aria-role", "button");
+                button.setAttribute("title", buttonDetail.tooltip);
+                buttonContainer.appendChild(button);
+            });
+
+            container.appendChild(buttonContainer);
+
+
+            this._contentElement.appendChild(container);
+        }
+
+        private _adjustFirstImageMarginIfNeeded(): void {
             // Elements that don't by default have a margin/padding will be
             // placed right up against the top of the content area. This
             // isn't very pretty. But since the DOM can be arbitary between
@@ -155,15 +204,13 @@ module Codevoid.Storyvoid.UI {
                 const hasHeight = imageCandidate.naturalHeight && (imageCandidate.naturalHeight < MIN_SIZE_FOR_IMAGE_STRETCHING);
                 const hasWidth = imageCandidate.naturalWidth && (imageCandidate.naturalWidth < MIN_SIZE_FOR_IMAGE_STRETCHING);
                 const isIframe = candidate.tagName.toLowerCase() === "iframe";
-                
+
                 if (isIframe || (hasWidth && hasHeight)) {
                     imageCandidate.classList.add("articleViewer-content-firstItem-adjustment");
                 }
 
                 break;
             }
-
-            setTimeout(() => this._updateHeaderContainerHeight(), 0);
         }
 
         private _setBodyCssProperty(propertyToSet: { property: string, value: string }): void {
