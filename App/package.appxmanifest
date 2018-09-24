@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
   <!-- Store ID
-    Identity Name="23345Codevoid.Storyvoid" Version="1.0.8.0" Publisher="CN=F3EEBC4B-772E-47AD-8643-5B81F8231009" /
+    Identity Name="23345Codevoid.Storyvoid" Version="1.1.0.0" Publisher="CN=F3EEBC4B-772E-47AD-8643-5B81F8231009" /
   -->
-  <Identity Name="Codevoid.Storyvoid" Version="1.0.8.0" Publisher="CN=Codevoid" />
+  <Identity Name="Codevoid.Storyvoid" Version="1.1.0.0" Publisher="CN=Codevoid" />
   <mp:PhoneIdentity PhoneProductId="df3f2451-f088-456f-a7bf-d8842de4a983" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Storyvoid</DisplayName>
