@@ -32,7 +32,7 @@ body {
 }
 
 .os-content > div:last-of-type {
-    padding-bottom: 144px;
+    padding-bottom: 72px;
 }
 
     .scrollingElement > *:not(.articleViewer-manages-own-width),
@@ -159,6 +159,8 @@ blockquote {
 
     .articleViewer-footer .footer-separator {
         font-size: 72px;
+        -ms-user-select: none;
+        cursor: default;
     }
 
     .articleViewer-footer .footer-buttons {
@@ -168,15 +170,16 @@ blockquote {
         align-items: flex-start
     }
 
-    .articleViewer-footer .footer-buttons > a {
-        cursor: pointer;
-        width: 50px;
-        text-align: center;
-        margin-top: 36px;
-        text-decoration: none;
-        color: lightgrey;
-    }
+        .articleViewer-footer .footer-buttons > a {
+            cursor: pointer;
+            width: 50px;
+            text-align: center;
+            margin-top: 36px;
+            text-decoration: none;
+            color: lightgrey;
+        }
 
+        .articleViewer-footer .footer-buttons > a:focus,
         .articleViewer-footer .footer-buttons > a:hover {
             color: darkslategrey;
         }
