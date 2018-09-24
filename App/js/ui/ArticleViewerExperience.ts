@@ -12,6 +12,13 @@
         return (e.keyCode >= WinJS.Utilities.Key.F1) && (e.keyCode <= WinJS.Utilities.Key.F12);
     }
 
+    function getLikeAndArchiveForBookmark(bookmark: IBookmark): { liked: boolean; archive: boolean } {
+        return {
+            liked: (bookmark.starred === 1),
+            archive: bookmark.folder_id === Codevoid.Storyvoid.InstapaperDB.CommonFolderIds.Archive
+        };
+    }
+
     export class ArticleViewerExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _content: MSHTMLWebViewElement;
@@ -203,6 +210,7 @@
                 title: this.viewModel.bookmark.title,
                 domain: this._extractDomainFromUrl(this.viewModel.bookmark.url),
                 url: this.viewModel.bookmark.url,
+                state: getLikeAndArchiveForBookmark(this.viewModel.bookmark)
             });
 
             // Set initial states
@@ -853,16 +861,20 @@
                 updateBookmark = this._instapaperDB.likeBookmark(this.bookmark.bookmark_id);
             }
 
-            updateBookmark.done((bookmark) => {
+            updateBookmark.done((bookmark: IBookmark) => {
                 this.bookmark = bookmark;
+                let liked = false;
 
                 if (this.bookmark.starred === 1) {
+                    liked = true;
                     Telemetry.instance.track("LikedArticle", null);
                     this._setToggleLikeToUnlike();
                 } else {
                     Telemetry.instance.track("UnlikedArticle", null);
                     this._setToggleLikeToLike();
                 }
+
+                this._messenger.invokeForResult("articlepropertychanged", getLikeAndArchiveForBookmark(bookmark));
             });
         }
 
