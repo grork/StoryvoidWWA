@@ -149,14 +149,25 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
     color: white;
     background-color: red;
     border-bottom-color: red;
-    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+    box-shadow: 8px 0px 0px 1px red, -8px 0px 0px 0px red;
 }
 
 .win-focused .article-title-text,
 .win-container:hover .article-title-text {
     background-color: #BC0000;
     border-bottom-color: #BC0000;
-    box-shadow: 8px 0px 0px #BC0000, -8px 0px 0px #BC0000;
+    box-shadow: 8px 0px 0px 1px #BC0000, -8px 0px 0px 0px #BC0000;
+}
+
+.win-focused .article-title-begin-blur-shadow-fix,
+.win-container:hover .article-title-begin-blur-shadow-fix {
+    background-color: #BC0000;
+    box-shadow: 0px 0px 0px 1px #BC0000;
+}
+
+.article-title-begin-blur-shadow-fix {
+    background-color: red;
+    box-shadow: 0px 0px 0px 1px red;
 }
 
 .article-footer {
