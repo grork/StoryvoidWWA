@@ -417,11 +417,20 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     display: inline;
     font-size: 14px;
     font-weight: bolder;
-    padding-top: 6px;
+    padding-top: 4px;
+    top: -1px;
     left: 4px;
     line-height: 26px;
-    border-bottom-width: 6px;
+    border-bottom-width: 4px;
     border-bottom-style: solid;
+    vertical-align: 4px;
+}
+
+.article-title-begin-blur-shadow-fix {
+    position: absolute;
+    width: 10px;
+    top: -0.75px;
+    height: 26px;
 }
 
 .article-summary {
