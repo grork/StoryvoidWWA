@@ -31,7 +31,8 @@ body {
     -ms-content-zooming: none;
 }
 
-.os-content > div:last-of-type {
+.os-content > div:last-of-type,
+.video_frame {
     padding-bottom: 72px;
 }
 
