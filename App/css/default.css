@@ -377,8 +377,8 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     display: -ms-grid;
     -ms-grid-rows: auto 1fr auto;
     -ms-grid-columns: 1fr;
-    width: 248px;
-    height: 248px;
+    width: 256px;
+    height: 256px;
 }
 
 @media all and (max-width: 550px) {
@@ -433,13 +433,28 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     height: 26px;
 }
 
-.article-summary {
+/*
+    -webkit-line-camp allows you to limit text to a fixed number of lines (good)
+    and show an ellipsis (goood!). However, when placed in a grid cell with a non
+    fixed height, in Edge, it doesn't limit the text display, and just draws the
+    ellipsis mid-flow. So, put the actual text (artical-summary) in a container
+    div and magic happens.
+ */
+.article-summary-container {
     -ms-grid-row: 2;
+}
+
+.article-summary {
     overflow: hidden;
     font-size: 14px;
     margin: 8px;
     margin-top: 8px;
     margin-bottom: 4px;
+
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
 }
 
 .article-image {
