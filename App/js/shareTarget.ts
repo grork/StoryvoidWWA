@@ -149,6 +149,9 @@ module Codevoid.Storyvoid.UI {
                 });
             }).done((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
                 Telemetry.instance.track("SharedSuccessfully", null);
+                Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
+                    sharedArticles: 1,
+                }));
 
                 if (this._shareOperation) {
                     // We successfully saved the article, so give the customer

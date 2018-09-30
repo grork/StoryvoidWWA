@@ -372,6 +372,10 @@
                                 && (foldersAdded == 0)
                                 && (foldersRemoved == 0)) {
                                 Telemetry.instance.track("EmptySync", null);
+                            } else {
+                                Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
+                                    nonEmptySyncs: 1,
+                                }));
                             }
 
                             this._logTotalHomeAndFoldersForTelemetry();

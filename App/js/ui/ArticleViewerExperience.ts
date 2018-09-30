@@ -538,8 +538,6 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
-            Telemetry.instance.track("ArticleViewLength", null);
-
             WinJS.UI.Animation.slideDown(this.element).done(() => {
                 // Restore focus to a previous element.
                 // Note that if you do this in the dismiss handler from the WebView
@@ -755,6 +753,10 @@
         }
 
         public signalArticleDisplayed(): void {
+            Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
+                viewedArticleCount: 1,
+            }));
+
             Telemetry.instance.startTimedEvent("ArticleViewed");
 
             var articlesViewedThisSession: number = 0;
