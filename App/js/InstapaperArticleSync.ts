@@ -440,7 +440,7 @@
                 // characters, and allow them to be persisted into the DB later.
                 var documentContentAsText = articleDocument.body.innerText;
                 if (documentContentAsText) {
-                    processedInformation.extractedDescription = documentContentAsText.substr(0, 200);
+                    processedInformation.extractedDescription = documentContentAsText.substr(0, 400);
                 }
 
                 return imagesCompleted;
