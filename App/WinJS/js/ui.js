@@ -45315,7 +45315,7 @@ define('WinJS/Controls/Flyout',[
                 },
 
                 _checkScrollPosition: function Flyout_checkScrollPosition(showing) {
-                    if (this.hidden && !showing) {
+                    if ((this.hidden && !showing) || !this._currentPosition){
                         return;
                     }
 
