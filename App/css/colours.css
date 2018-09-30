@@ -3,6 +3,7 @@
         :root {
             --backdrop-filter: blur(30px) saturate(1.25);
             --background-opacity: 0.65;
+            --floating-element-shadow: 0 6px 20px rgba(0, 0, 0,.2);
         }
     }
 }
@@ -11,6 +12,7 @@
     :root {
         --backdrop-filter: none;
         --background-opacity: 1.0;
+        --floating-element-shadow: none;
     }
 }
 
@@ -74,8 +76,13 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
     background-color: rgba(242, 242, 242, var(--background-opacity));
 }
 
+.win-splitview-panewrapper {
+    box-shadow: var(--floating-element-shadow);
+}
+
 .win-flyout {
     background-color: rgba(255,255,255, var(--background-opacity));
+    box-shadow: var(--floating-element-shadow);
 }
 
 .signedIn-articleList.win-listview .win-focusedoutline,
@@ -366,6 +373,7 @@ progress.article-progress {
 .settingsPopup-dialog > .settingsPopup-container {
     background-color: white;
     border-color: #BC0000;
+    box-shadow: var(--floating-element-shadow);
 }
 
 .settingsPopup-dialog.dialog {
