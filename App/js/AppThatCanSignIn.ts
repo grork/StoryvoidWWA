@@ -11,6 +11,25 @@
             } else {
                 this.signedIn(credentials, true /*usingSavedCredentials*/);
             }
+
+            // RS5 seems to have removed the default disablement of the zoom
+            // controls (mouse, keyboard), so this adds them back by handling
+            // the appropriate events, and stopping the events.
+            Utilities.addEventListeners(document, {
+                mousewheel: (ev: MouseWheelEvent) => {
+                    if (!ev.ctrlKey) {
+                        return;
+                    }
+
+                    ev.preventDefault();
+                },
+                keydown: (ev: KeyboardEvent) => {
+                    // Equal, Dash, really mean plus & minus, the traditional zoom keys
+                    if (((ev.keyCode === WinJS.Utilities.Key.equal) || (ev.keyCode === WinJS.Utilities.Key.dash)) && ev.ctrlKey) {
+                        ev.preventDefault();
+                    }
+                }
+            });
         }
 
         public signOut(wasPreviouslySignedIn?: boolean): void {
