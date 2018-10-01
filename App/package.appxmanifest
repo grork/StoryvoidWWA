@@ -21,7 +21,7 @@
       <uap:VisualElements DisplayName="Storyvoid" Description="Storyvoid: An Instapaper client for Windows 10" BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
         <uap:DefaultTile Wide310x150Logo="images\Wide310x150Logo.png" Square310x310Logo="images\Square310x310Logo.png" Square71x71Logo="images\Square71x71Logo.png">
         </uap:DefaultTile>
-        <uap:SplashScreen Image="images\splashscreen.png" BackgroundColor="white" />
+        <uap:SplashScreen Image="images\splashscreen.png" BackgroundColor="transparent" />
       </uap:VisualElements>
       <Extensions>
         <uap:Extension Category="windows.shareTarget" StartPage="shareTarget.html">
