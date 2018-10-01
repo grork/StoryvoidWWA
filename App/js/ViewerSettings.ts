@@ -1,9 +1,25 @@
 ﻿module Codevoid.Storyvoid.Settings {
+    function areColoursEqual(first: Windows.UI.Color, second: Windows.UI.Color): boolean {
+        return (
+            first.r === second.r
+            && first.g === second.g
+            && first.b === second.b
+            && first.a === second.a
+        );
+    }
+
     export enum Theme {
         Day = 1,
         Paper = 2,
         Dusk = 3,
         Night = 4,
+        MatchSystem = 100,
+    }
+
+    export enum UITheme {
+        Automatic = 1,
+        Light = 2,
+        Dark = 3,
     }
 
     export enum Font {
@@ -20,12 +36,13 @@
             super("ViewerSettings",
                 Windows.Storage.ApplicationData.current.localSettings,
                 {
-                    currentTheme: Theme.Day,
+                    currentTheme: Theme.MatchSystem,
                     currentTypeface: Font.Cambria,
                     currentFontSize: 20,
                     currentLineHeight: 1.6,
                     currentArticleWidth: 80,
                     toolbarVisible: true,
+                    uiTheme: UITheme.Automatic,
                 });
         }
 
@@ -75,6 +92,42 @@
 
         public set toolbarVisible(value: boolean) {
             this.setValue("toolbarVisible", value);
+        }
+
+        public get uiTheme(): number {
+            return this.getValueOrDefault<number>("uiTheme");
+        }
+
+        public set uiTheme(value: number) {
+            this.setValue("uiTheme", value);
+        }
+
+        public getUITheme(): UITheme {
+            let theme = this.uiTheme;
+            if (theme != UITheme.Automatic) {
+                return theme;
+            }
+
+            // Since we are set to automatic, we need to detect it
+            const uiSettings = new Windows.UI.ViewManagement.UISettings();
+            const backgroundColor = uiSettings.getColorValue(Windows.UI.ViewManagement.UIColorType.background);
+            if (areColoursEqual(backgroundColor, Windows.UI.Colors.black)) {
+                return UITheme.Dark;
+            }
+
+            return UITheme.Light;
+        }
+
+        public refreshThemeOnDOM(): void {
+            document.body.classList.toggle("win-ui-dark", this.getUITheme() === Settings.UITheme.Dark);
+        }
+
+        public static getDisplayedUITheme(): Theme {
+            if (document.body.classList.contains("win-ui-dark")) {
+                return Theme.Night;
+            }
+
+            return Theme.Day
         }
     }
 }

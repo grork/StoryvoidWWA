@@ -612,6 +612,11 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     font-weight: lighter;
 }
 
+.settingsPopup-ui > .ui-title {
+    font-size: 16px;
+    font-weight: bolder;
+}
+
 .settingsPopup-reset > .reset-title {
     font-size: 16px;
     font-weight: bolder;
@@ -860,6 +865,20 @@ button.margin-increase .win-commandimage {
     .theme-container > button.win-command:hover:active {
         opacity: 0.5;
     }
+
+.theme-container .theme-match-system {
+    display: flex;
+    justify-content: center;
+    width: auto;
+    margin-top: 12px;
+}
+
+.theme-match-system:hover,
+.theme-match-system:focus {
+    text-decoration: underline;
+    cursor: pointer;
+    opacity: 0.5;
+}
 
 .authenticator {
     display: -ms-grid;
