@@ -15,6 +15,7 @@
         private _archiveArticleLimit: HTMLSelectElementWithState;
         private _otherFoldersArticleLimit: HTMLSelectElementWithState;
         private _allowCollectingTelemetry: HTMLSelectElementWithState;
+        private _uiTheme: HTMLSelectElementWithState;
         private _versionElement: HTMLDivElement;
         private _closeButton: HTMLButtonElement;
         private _previouslyFocusedElement: HTMLElement;
@@ -55,6 +56,7 @@
                 this._manageOpenStateOnSelectElement(this._archiveArticleLimit);
                 this._manageOpenStateOnSelectElement(this._otherFoldersArticleLimit);
                 this._manageOpenStateOnSelectElement(this._allowCollectingTelemetry);
+                this._manageOpenStateOnSelectElement(this._uiTheme);
 
                 // Setup OS back button support
                 this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
@@ -69,6 +71,9 @@
                 this._selectOptionBasedOnValueNumber(syncSettings.otherFoldersLimit, this._otherFoldersArticleLimit);
 
                 this._selectOptionBasedOnValueBoolean((new Settings.TelemetrySettings()).telemeteryCollectionEnabled, this._allowCollectingTelemetry);
+
+                let viewerSettings = new Settings.ViewerSettings();
+                this._selectOptionBasedOnValueNumber(viewerSettings.uiTheme, this._uiTheme);
 
                 var version = Windows.ApplicationModel.Package.current.id.version;
                 var versionLabel = " " + version.major + "." + version.minor + "." + version.build + "." + version.revision;
@@ -198,6 +203,11 @@
             this.viewModel.updateAllowTelemetry(isAllowed);
         }
 
+        public handleUIThemeChange(): void {
+            let theme = parseInt(this._uiTheme.value);
+            this.viewModel.updateUITheme(theme);
+        }
+
         public resetViewerSettings(): void {
             var viewerSettings = new Settings.ViewerSettings();
             viewerSettings.removeAllSettings();
@@ -267,6 +277,7 @@
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.showDbFiddler);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleArticleLimitChanged);
     WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleAllowTelemetryChange);
+    WinJS.Utilities.markSupportedForProcessing(SettingsPopupExperience.prototype.handleUIThemeChange);
 
     export class SettingsPopupViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.SettingsPopupExperience" };
@@ -298,6 +309,12 @@
             var telemetrySettings = new Settings.TelemetrySettings();
             telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
             Telemetry.instance.dropEventsForPrivacy = !allowTelemetry;
+        }
+
+        public updateUITheme(uiTheme: Settings.UITheme): void {
+            const viewerSettings = new Settings.ViewerSettings();
+            viewerSettings.uiTheme = uiTheme;
+            viewerSettings.refreshThemeOnDOM();
         }
 
         public forgetMeAndSignout(): WinJS.Promise<any> {

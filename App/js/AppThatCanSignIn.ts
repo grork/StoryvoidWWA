@@ -1,22 +1,10 @@
 ﻿module Codevoid.Storyvoid.UI {
-
-    function areColoursEqual(first: Windows.UI.Color, second: Windows.UI.Color): boolean {
-        return (
-            first.r === second.r
-            && first.g === second.g
-            && first.b === second.b
-            && first.a === second.a
-        );
-    }
     export class AppThatCanSignIn implements IAppWithAbilityToSignIn {
         private _signedOutViewModel: Codevoid.Storyvoid.UI.SignedOutViewModel;
         private _signedInViewModel: Codevoid.Storyvoid.UI.ISignedInViewModel;
         public initialize(): void {
-            const uiSettings = new Windows.UI.ViewManagement.UISettings();
-            const backgroundColor = uiSettings.getColorValue(Windows.UI.ViewManagement.UIColorType.background);
-            if (areColoursEqual(backgroundColor, Windows.UI.Colors.black)) {
-                document.body.classList.add("win-ui-dark");
-            }
+            const viewerSettings = new Settings.ViewerSettings();
+            viewerSettings.refreshThemeOnDOM();
 
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 

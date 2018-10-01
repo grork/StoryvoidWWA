@@ -118,7 +118,7 @@
 
                 var viewerSettings = new Settings.ViewerSettings();
                 this._setToolbar(viewerSettings.toolbarVisible);
-                });
+            });
 
             this._handlersToCleanup.push(Utilities.addEventListeners(window, {
                 resize: this._handleResizeToCheckInteractionMode.bind(this)
@@ -611,8 +611,13 @@
         }
 
         public switchThemeToNight(): void {
-            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "nights" }));
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "night" }));
             this.viewModel.displaySettings.setTheme(Settings.Theme.Night);
+        }
+
+        public switchThemeToMatchSystem(): void {
+            Telemetry.instance.track("ThemeChanged", toPropertySet({ theme: "matchsystem" }));
+            this.viewModel.displaySettings.setTheme(Settings.Theme.MatchSystem);
         }
     }
 
@@ -631,6 +636,7 @@
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToPaper);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToDusk);
     WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToNight);
+    WinJS.Utilities.markSupportedForProcessing(ArticleViewerExperience.prototype.switchThemeToMatchSystem);
 
     export class ArticleViewerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.ArticleViewerExperience" };
@@ -1190,8 +1196,16 @@
         }
 
         public setTheme(theme: Settings.Theme): void {
-            var themeDetails: IThemeDetails;
+            let originalTheme = theme;
+            if (theme === Settings.Theme.MatchSystem) {
+                // When we're using the automatic theme, we need
+                // to defer to the UI theme that is being used,
+                // which itself can be automatic
+                theme = Settings.ViewerSettings.getDisplayedUITheme();
+            }
+
             // Find the theme details we want
+            let themeDetails: IThemeDetails;
             DisplaySettingsViewModel.themeDetails.forEach((details) => {
                 if (details.theme != theme) {
                     return;
@@ -1202,7 +1216,7 @@
 
             // tell everyone
             this._messenger.invokeForResult("settheme", themeDetails.viewerCssClass);
-            this._settings.currentTheme = theme;
+            this._settings.currentTheme = originalTheme;
             this._eventSource.dispatchEvent("settheme", themeDetails);
         }
 
@@ -1238,6 +1252,7 @@
                     { theme: Settings.Theme.Paper, viewerCssClass: "paper", titlebarForeground: Windows.UI.Colors.black, titlebarBackground: Windows.UI.ColorHelper.fromArgb(1.0, 0xE8, 0xD2, 0xA8) },
                     { theme: Settings.Theme.Dusk, viewerCssClass: "dusk", titlebarForeground: Windows.UI.Colors.lightGray, titlebarBackground: Windows.UI.ColorHelper.fromArgb(1.0, 0x28, 0x43, 0x43) },
                     { theme: Settings.Theme.Night, viewerCssClass: "night", titlebarForeground: Windows.UI.Colors.white, titlebarBackground: Windows.UI.ColorHelper.fromArgb(1.0, 0x20, 0x20, 0x20) },
+                    { theme: Settings.Theme.MatchSystem, viewerCssClass: null, titlebarForeground: null, titlebarBackground: null }
                 ];
             }
 

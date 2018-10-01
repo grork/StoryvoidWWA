@@ -142,6 +142,10 @@
                                     data-win-control="WinJS.UI.Command"
                                     data-event="{click: switchThemeToNight }"
                                     data-win-options="{ tooltip: 'Night theme'}"></button>
+                            <div data-event="{ click: switchThemeToMatchSystem }"
+                                 tabindex="0"
+                                 class="theme-match-system"
+                                 role="button">Match my system's theme</div>
                         </div>
                     </div>
                 </div>
@@ -198,6 +202,17 @@
                             <option value="100">100 Latest Articles</option>
                         </select>
                     </div>
+                </div>
+                <div class="settingsPopup-ui">
+                    <div class="ui-title">UI</div>
+                    <div>By default, the application will match what ever your computers theme is set to. However if you'd like to override that, just pick one below. By default your viewer settings
+                    will follow your setting here. To change those settings, just pick one in the viewer display settings.</div>
+                    <div class="settings-subTitle">Theme</div>
+                    <select data-part="_uiTheme" data-event="{ change: handleUIThemeChange }">
+                        <option value="1">Match my computers theme</option>
+                        <option value="2">Light</option>
+                        <option value="3">Dark</option>
+                    </select>
                 </div>
                 <div class="settingsPopup-reset">
                     <div class="reset-title">Reset settings &amp; Data</div>
