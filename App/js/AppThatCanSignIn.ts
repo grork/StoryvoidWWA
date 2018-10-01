@@ -2,7 +2,10 @@
     export class AppThatCanSignIn implements IAppWithAbilityToSignIn {
         private _signedOutViewModel: Codevoid.Storyvoid.UI.SignedOutViewModel;
         private _signedInViewModel: Codevoid.Storyvoid.UI.ISignedInViewModel;
+        private _uiSettings: Windows.UI.ViewManagement.UISettings;
         public initialize(): void {
+            this._uiSettings = new Windows.UI.ViewManagement.UISettings();
+
             const viewerSettings = new Settings.ViewerSettings();
             viewerSettings.refreshThemeOnDOM();
 
@@ -31,6 +34,12 @@
                     if (((ev.keyCode === WinJS.Utilities.Key.equal) || (ev.keyCode === WinJS.Utilities.Key.dash)) && ev.ctrlKey) {
                         ev.preventDefault();
                     }
+                }
+            });
+
+            Utilities.addEventListeners(this._uiSettings, {
+                colorvalueschanged: () => {
+                    viewerSettings.refreshThemeOnDOM();
                 }
             });
         }
