@@ -129,6 +129,11 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
         background-color: #BC0000;
     }
 
+    .win-ui-dark .signedOut-container {
+        background-color: #212121;
+        color: white;
+    }
+
 .signedOut-welcome {
     background-color: #BC0000;
     color: white;
@@ -241,6 +246,10 @@ progress.article-progress,
     .authenticator input:focus::-ms-input-placeholder {
         color: lightgrey;
     }
+
+.win-ui-dark .authenticator input:focus::-ms-input-placeholder {
+    color: grey;
+}
 
 .authenticator .authenticateButton {
     color: black;

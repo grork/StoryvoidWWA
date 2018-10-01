@@ -884,7 +884,7 @@ button.margin-increase .win-commandimage {
     display: -ms-grid;
     /* 1    2    3    4    5 */
     -ms-grid-rows: auto auto auto;
-    -ms-grid-columns: minmax(150px,300px);
+    -ms-grid-columns: minmax(150px,320px);
 }
 
     .authenticator > .errorMessageContainer.hide {
