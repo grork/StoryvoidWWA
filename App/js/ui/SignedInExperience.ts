@@ -1,6 +1,25 @@
 ﻿module Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
+    function executeMatchingCommand(commands: ICommandOptions[], ev: KeyboardEvent): boolean {
+        let foundCommand: ICommandOptions;
+        commands.some((command) => {
+            if (ev.keyCode !== command.keyCode) {
+                return false;
+            }
+
+            foundCommand = command;
+            return true;
+        });
+
+        if (!foundCommand) {
+            return false;
+        }
+
+        foundCommand.onclick(ev);
+        return true;
+    }
+
     export class SignedInExperience extends Codevoid.UICore.Control {
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _emptyStateListeners: Codevoid.Utilities.ICancellable;
@@ -99,18 +118,15 @@
 
             this._handlersToCleanup.push(Utilities.addEventListeners(window, {
                 resize: this._handleSizeChange.bind(this),
-                keydown: (e: KeyboardEvent) => {
-                    if (e.key != "F5") {
-                        return;
-                    }
-
-                    this.startSync();
-                }
             }));
 
             this._handleSizeChange();
 
             this.viewModel.readyForEvents();
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this.element, {
+                keydown: this._handleKeyboardInput.bind(this),
+            }));
         }
 
         private _handleSizeChange() {
@@ -131,6 +147,31 @@
             }
 
             this._contentList.layout = <any>layout;
+        }
+
+        private _handleKeyboardInput(e: KeyboardEvent): void {
+            let handled = false;
+
+            switch (e.keyCode) {
+                case WinJS.Utilities.Key.F5:
+                    handled = true;
+                    this.startSync();
+                    break;
+            }
+
+            if (!handled && this._contentList.currentItem.hasFocus) {
+                // Check if selection would result in a supported command being handled
+                const selectedBookmark = this.viewModel.getBookmarkAtIndex(this._contentList.currentItem.index);
+                if (selectedBookmark) {
+                    const commands = this.viewModel.getCommandInformationForBookmarks([selectedBookmark]);
+                    handled = executeMatchingCommand(commands, e);
+                }
+            }
+
+
+            if (handled) {
+                e.preventDefault();
+            }
         }
 
         private _handleSpacerRequired(required: Utilities.EventObject<TitleBarSpacerRequired>): void {

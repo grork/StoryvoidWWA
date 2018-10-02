@@ -18,10 +18,11 @@
         comparer: (firstBookmark: IBookmark, secondBookmark: IBookmark) => number
     }
 
-    interface ICommandOptions {
+    export interface ICommandOptions {
         label: string;
         icon: string;
         onclick: (e?: UIEvent) => void;
+        keyCode: number;
     }
 
     export class SignedInViewModel implements Codevoid.Storyvoid.UI.ISignedInViewModel {
@@ -466,6 +467,14 @@
             return this._currentFolder.folder.folder_id;
         }
 
+        public getBookmarkAtIndex(index: number): IBookmark {
+            if (!this._currentFolder) {
+                return null;
+            }
+
+            return this._currentFolder.bookmarks.getAt(index);
+        }
+
         public signOut(clearCredentials: boolean): WinJS.Promise<any> {
             if (this._currentSync.cancellationSource) {
                 this._currentSync.cancellationSource.cancel();
@@ -899,7 +908,8 @@
                         Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmarks[0].url));
 
                         this.raiseCommandInvokedEvent();
-                    }
+                    },
+                    keyCode: WinJS.Utilities.Key.v,
                 }
 
                 let isValidUri = true;
@@ -927,7 +937,8 @@
                         });
 
                         this.raiseCommandInvokedEvent();
-                    }
+                    },
+                    keyCode: WinJS.Utilities.Key.d,
                 };
 
                 commands.push(downloadCommand);
@@ -941,7 +952,8 @@
                     onclick: () => {
                         this.unlike(bookmarks);
                         this.raiseCommandInvokedEvent();
-                    }
+                    },
+                    keyCode: WinJS.Utilities.Key.u,
                 };
 
                 commands.push(unlikeCommand);
@@ -955,6 +967,7 @@
                         this.delete(bookmarks);
                         this.raiseCommandInvokedEvent();
                     },
+                    keyCode: WinJS.Utilities.Key.deleteKey,
                 };
 
                 commands.push(deleteCommand);
@@ -976,6 +989,7 @@
 
                     this.raiseCommandInvokedEvent();
                 },
+                keyCode: WinJS.Utilities.Key.m,
             };
 
             commands.push(moveCommand);
@@ -990,7 +1004,8 @@
 
                         this.archive(bookmarks);
                         this.raiseCommandInvokedEvent();
-                    }
+                    },
+                    keyCode: WinJS.Utilities.Key.a,
                 };
 
                 commands.push(archiveCommand);
