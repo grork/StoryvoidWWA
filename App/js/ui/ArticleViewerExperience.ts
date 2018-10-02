@@ -40,6 +40,7 @@
         private _flyoutInitialized: boolean = false;
         private _previouslyFocusedElement: HTMLElement;
         private _currentHeaderHeight: number = 0;
+        private _closed: boolean = false;
         private _keyDownMap: { [key: number]: boolean } = {};
 
         constructor(element: HTMLElement, options: any) {
@@ -519,6 +520,12 @@
         }
 
         private closeArticle(): void {
+            if (this._closed) {
+                return;
+            }
+
+            this._closed = true;
+
             // Make sure when we're closing we actually exit full screen
             this.viewModel.exitFullScreen(FullScreenMode.ExitFullScreen);
 
