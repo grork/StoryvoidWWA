@@ -120,6 +120,11 @@ html, body {
     margin-bottom: 20px;
 }
 
+.storyvoid-content-subtitle {
+    font-style: oblique;
+    padding-top: 8px;
+}
+
 .storyvoid-table {
     width: 100%;
     border-collapse: collapse;
