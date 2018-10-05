@@ -85,12 +85,6 @@
                 signedout: () => {
                     this._signOutRequested();
                 },
-                signincomplete: () => {
-                    var shouldFocus = this.element.contains(<HTMLElement>document.activeElement) || (document.activeElement == document.body);
-
-                    // Ensure the first item in the list gets focus.
-                    this._contentList.currentItem = { index: 0, hasFocus: shouldFocus };
-                },
                 commandInvoked: () => {
                     this._exitSelectionMode();
                 }
@@ -157,9 +151,31 @@
                     handled = true;
                     this.startSync();
                     break;
+
+                case WinJS.Utilities.Key.o:
+                    if (!e.ctrlKey) {
+                        break;
+                    }
+
+                    handled = true;
+                    this._sortsElement.focus();
+                    break;
+
+                case WinJS.Utilities.Key.graveAccent:
+                    if (!e.ctrlKey) {
+                        break;
+                    }
+
+                    handled = true;
+                    if (this._splitView.paneOpened) {
+                        this._splitView.closePane();
+                    } else {
+                        this._splitView.openPane();
+                    }
+                    break;
             }
 
-            if (!handled && this._contentList.currentItem.hasFocus) {
+            if (!handled && this._contentList.element.contains(document.activeElement) && this._contentList.currentItem.hasFocus) {
                 // Check if selection would result in a supported command being handled
                 const selectedBookmark = this.viewModel.getBookmarkAtIndex(this._contentList.currentItem.index);
                 if (selectedBookmark) {
@@ -167,7 +183,6 @@
                     handled = executeMatchingCommand(commands, e);
                 }
             }
-
 
             if (handled) {
                 e.preventDefault();
@@ -338,6 +353,12 @@
 
             this._contentList.itemDataSource.getCount().done((count) => {
                 this._updateEmptyStateBasedOnBookmarkCount(count);
+
+                // Delay the focus to give the list a chance to render
+                setTimeout(() => {
+                    // Ensure the first item in the list gets focus.
+                    this._contentList.currentItem = { index: 0, hasFocus: true };
+                }, 500);
             });
         }
 
