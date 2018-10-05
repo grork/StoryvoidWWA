@@ -345,6 +345,10 @@
                         this._lastDivFocused();
                     });
                     break;
+
+                case WinJS.Utilities.Key.w:
+                    this.closeArticle();
+                    break;
             }
         }
 
