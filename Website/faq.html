@@ -8,6 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Storyvoid - Instapaper App for Windows 10 - FAQ &amp; Support</title>
     <link href="css/styles.css" rel="stylesheet" />
+    <script>
+        function showMeTheEmail(e) {
+            e.preventDefault();
+            var user = "storyvoid";
+            var domain = "@c" + "o" + "d" + "e" + "v" + "o";
+            domain = domain + "id.net";
+            window.open("mailto:" + user + domain + "?subject=Storyvoid Support Request");
+        }
+    </script>
 </head>
 
 <body>
@@ -178,7 +187,7 @@
             <ol>
                 <li>On Twitter, via the <a href="https://twitter.com/@storyvoid">
                     @storyvoid account</a> -- mentions, or DMs</li>
-                <li>E-mail: See our email address <a href="https://www.google.com/recaptcha/mailhide/d?k=01gCJxOrCbQewGpOPc3gZsrw==&c=lndtoXD7beLbw_K2pvetg04QeKeT12Kgk_pAAvx0OUw=">here</a></li>
+                <li><a href="" onclick="showMeTheEmail(event)">E-mail us</a></li>
             </ol>
 
             If you're having problems with how the article looks in the app, it
