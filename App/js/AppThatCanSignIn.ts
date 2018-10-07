@@ -3,7 +3,7 @@
         private _signedOutViewModel: Codevoid.Storyvoid.UI.SignedOutViewModel;
         private _signedInViewModel: Codevoid.Storyvoid.UI.ISignedInViewModel;
         private _uiSettings: Windows.UI.ViewManagement.UISettings;
-        public initialize(): void {
+        public initialize(): WinJS.Promise<any> {
             this._uiSettings = new Windows.UI.ViewManagement.UISettings();
 
             const viewerSettings = new Settings.ViewerSettings();
@@ -12,10 +12,11 @@
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
             var credentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
+            let work: WinJS.Promise<any> = WinJS.Promise.as();
             if (!credentials) {
                 this.signOut(false/*wasPreviouslySignedIn*/);
             } else {
-                this.signedIn(credentials, true /*usingSavedCredentials*/);
+                work = this.signedIn(credentials, true /*usingSavedCredentials*/);
             }
 
             // RS5 seems to have removed the default disablement of the zoom
@@ -42,6 +43,8 @@
                     viewerSettings.refreshThemeOnDOM();
                 }
             });
+
+            return work;
         }
 
         public signOut(wasPreviouslySignedIn?: boolean): void {
@@ -92,7 +95,7 @@
             });
         }
 
-        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): void {
+        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): WinJS.Promise<void> {
             var signedInElement = <HTMLElement>document.body.firstElementChild;
 
             if (!this._signedInViewModel) {
@@ -107,7 +110,7 @@
             // a startup flow, and thus no need to play an entrance
             // animation
             if (usingSavedCredentials) {
-                return;
+                return signedInResult;
             }
             // Assume the sibling element ot signed in is "signed out".
             var signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
@@ -160,6 +163,8 @@
                     signedOutElement.style.transform = "translateX(-100vw)";
                 });
             });
+
+            return signedInResult;
         }
 
         protected get signedInViewModel(): ISignedInViewModel {

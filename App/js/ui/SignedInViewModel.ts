@@ -449,7 +449,6 @@
                 this._pendingDbOpen = null;
 
                 this._listenForDbSyncNeeded();
-                this.startSync(SyncReason.Launched);
             }, (e) => {
                 this._pendingDbOpen.error(e);
                 this._pendingDbOpen = null;
@@ -589,12 +588,13 @@
                             return this._instapaperDB.updateBookmark(bookmark);
                         }, () => bookmark /* if we failed to get it, just return the original */);
                     }).then((bookmark) => {
-                        this.showArticle(bookmark, true /*restoring*/);
+                        return this.showArticle(bookmark, true /*restoring*/);
                     });
                 }
 
                 return articleDisplay;
             }).done(() => {
+                this.startSync(SyncReason.Launched);
                 this.refreshCurrentFolder();
 
                 // We just signed in, we should probably start a sync.
