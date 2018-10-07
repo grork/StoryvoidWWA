@@ -311,44 +311,57 @@
         }
 
         private _handleShortcuts(keyCode: WinJS.Utilities.Key): void {
+            let shortcutInvoked: string;
             switch (keyCode) {
                 case WinJS.Utilities.Key.a:
+                    shortcutInvoked = "Archive";
                     this.viewModel.archiveCommand.onclick();
                     break;
 
                 case WinJS.Utilities.Key.l:
+                    shortcutInvoked = "ToggleLike";
                     this.viewModel.toggleLikeCommand.onclick();
                     break;
 
                 case WinJS.Utilities.Key.F11:
+                    shortcutInvoked = "ToggleFullscreen";
                     this.viewModel.fullScreenCommand.onclick();
                     break;
 
                 case WinJS.Utilities.Key.d:
+                    shortcutInvoked = "ShowDisplaySettings";
                     this._showToolbarIfNotVisible().done(() => {
                         this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
                     });
                     break;
 
                 case WinJS.Utilities.Key.m:
+                    shortcutInvoked = "Move";
                     this._showToolbarIfNotVisible().done(() => {
                         this.viewModel.moveCommand.onclick({ currentTarget: this.viewModel.moveCommand.element });
                     });
                     break;
 
                 case WinJS.Utilities.Key.deleteKey:
+                    shortcutInvoked = "Delete";
                     this.viewModel.deleteCommand.onclick();
                     break;
 
                 case WinJS.Utilities.Key.t:
+                    shortcutInvoked = "FocusToolbar";
                     this._showToolbarIfNotVisible().done(() => {
                         this._lastDivFocused();
                     });
                     break;
 
                 case WinJS.Utilities.Key.w:
+                    shortcutInvoked = "Close";
                     this.closeArticle();
                     break;
+            }
+
+            if (!shortcutInvoked) {
+                Telemetry.instance.track("ArticleViewerKeyboardCommand" + shortcutInvoked, null);
             }
         }
 

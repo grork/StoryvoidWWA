@@ -148,6 +148,7 @@
 
             switch (e.keyCode) {
                 case WinJS.Utilities.Key.F5:
+                    Telemetry.instance.track("ManualSync", null);
                     handled = true;
                     this.startSync();
                     break;
@@ -158,6 +159,7 @@
                     }
 
                     handled = true;
+                    Telemetry.instance.track("ManualSortsFocus", null);
                     this._sortsElement.focus();
                     break;
 
@@ -168,8 +170,10 @@
 
                     handled = true;
                     if (this._splitView.paneOpened) {
+                        Telemetry.instance.track("KeyboardCloseBurger", null);
                         this._splitView.closePane();
                     } else {
+                        Telemetry.instance.track("KeyboardOpenBurger", null);
                         this._splitView.openPane();
                     }
                     break;
@@ -179,6 +183,7 @@
                 // Check if selection would result in a supported command being handled
                 const selectedBookmark = this.viewModel.getBookmarkAtIndex(this._contentList.currentItem.index);
                 if (selectedBookmark) {
+                    Telemetry.instance.track("ArticleListCommandInvokedWithKeyboard", null);
                     const commands = this.viewModel.getCommandInformationForBookmarks([selectedBookmark]);
                     handled = executeMatchingCommand(commands, e);
                 }
