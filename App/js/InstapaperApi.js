@@ -182,6 +182,7 @@
                     request.data = data;
                 }
 
+                const startTime = Date.now();
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError).then(function stripMetaAndUserObject(data) {
                     appassert(Array.isArray(data), "Expected array for data");
                     appassert(data.length > 1, "expected at least 2 objects");
@@ -190,6 +191,7 @@
                         meta: data.shift(),
                         user: data.shift(),
                         bookmarks: data,
+                        duration: Date.now() - startTime
                     };
                 });
             },

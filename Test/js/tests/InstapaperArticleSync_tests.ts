@@ -123,7 +123,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
             strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
             strictEqual(syncedBookmark.hasImages, false, "Didn't expect images");
-            strictEqual(syncedBookmark.extractedDescription, "Bacon ipsum dolor sit amet tail prosciutto drumstick ea. Fugiat culpa eiusmod qui, enim officia consequat cow t-bone prosciutto beef ribs. Ribeye kielbasa esse capicola excepteur, ham labore pancetta ", "Wrong number of extracted description letters");
+            strictEqual(syncedBookmark.extractedDescription, "Bacon ipsum dolor sit amet tail prosciutto drumstick ea. Fugiat culpa eiusmod qui, enim officia consequat cow t-bone prosciutto beef ribs. Ribeye kielbasa esse capicola excepteur, ham labore pancetta pariatur andouille corned beef cillum tongue. Pork loin flank pork belly, boudin labore hamburger meatball bacon. Meatball id adipisicing corned beef deserunt beef ribs. Bresaola et ut ham hock dolor ", "Wrong number of extracted description letters");
         });
     });
 

@@ -480,6 +480,8 @@
                     var rd = result.meta;
                     var operations = [];
 
+                    this.dispatchEvent("bookmarkslistcompleted", { duration: result.duration });
+
                     // Process any existing bookmarks. Note that this can included bookmarks
                     // in this folder we aren't currently aware of (e.g. added), and ones we
                     // think are in another folder. This also includes updating read progress
@@ -537,7 +539,7 @@
                     }
 
                     return WinJS.Promise.join(operations);
-                });
+                }.bind(this));
             },
             _syncLikes: function _syncLikes(db) {
                 var b = this._bookmarks;

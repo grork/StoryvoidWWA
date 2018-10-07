@@ -1,6 +1,10 @@
 ﻿module Codevoid.Storyvoid.UI {
     var ARTICLES_FOLDER_NAME = "Articles";
 
+    function logArticleDownloadTime(e: Utilities.EventObject<{ bookmark_id: number; articleDownloadDuration: number }>) {
+        Telemetry.instance.track("ArticleBodyDownloaded", toPropertySet({ duration: e.detail.articleDownloadDuration }));
+    }
+
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
@@ -382,6 +386,9 @@
                             this._logTotalHomeAndFoldersForTelemetry();
                             break;
                     }
+                },
+                bookmarkslistcompleted: (e: Utilities.EventObject<{ duration: number }>) => {
+                    Telemetry.instance.track("BookmarksListed", toPropertySet({ duration: e.detail.duration }));
                 }
             });
         }
@@ -714,6 +721,7 @@
                             message: "Syncing \"" + e.detail.title + "\"",
                         });
                     },
+                    syncarticlebodycompleted: logArticleDownloadTime
                 });
 
                 if (!parameters.skipArticleDownload) {
@@ -931,6 +939,7 @@
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                             Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
                             var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
+                            Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
                             articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB, new Utilities.CancellationSource()).then((bookmark) => {
                                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                             });
