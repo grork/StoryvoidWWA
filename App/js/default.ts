@@ -15,8 +15,9 @@
         private handleActivated(args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs): void {
             var deferral = args.activatedOperation.getDeferral();
             Telemetry.initialize().done(() => {
-                app.initialize();
-                deferral.complete();
+                app.initialize().done(() => {
+                    deferral.complete();
+                });
             });
         }
 
@@ -49,9 +50,11 @@
             Codevoid.Utilities.HiddenApiHelper.extendIntoTitleBar();
         }
 
-        public initialize(): void {
-            super.initialize();
+        public initialize(): WinJS.Promise<void> {
+            const baseInit = super.initialize();
             Telemetry.trackAppLaunched("tile");
+
+            return baseInit;
         }
 
         protected getSignedInViewModel(app: UI.IAppWithAbilityToSignIn): UI.ISignedInViewModel {
