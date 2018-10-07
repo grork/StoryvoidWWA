@@ -38,7 +38,6 @@
         private _fontSelector: HTMLSelectElement;
         private _fonts: WinJS.UI.Repeater;
         private _flyoutInitialized: boolean = false;
-        private _previouslyFocusedElement: HTMLElement;
         private _currentHeaderHeight: number = 0;
         private _closed: boolean = false;
         private _keyDownMap: { [key: number]: boolean } = {};
@@ -56,10 +55,6 @@
             // Update the titlebar style to match the document
             // NB: Must be done before setting theme;
             this._saveCurrentTitleBarColours();
-
-            // Capture previously focused element so we focus it when the
-            // viewer is dismissed.
-            this._previouslyFocusedElement = <HTMLElement>document.activeElement;
 
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
@@ -228,12 +223,15 @@
             this.toolbar.data = this.viewModel.getCommands();
 
             this.element.style.opacity = ""; // Allow default styles to sort themselves out
-            this._content.focus();
 
             if (this.viewModel.isRestoring) {
                 this.viewModel.signalArticleDisplayed();
+                setTimeout(() => {
+                    this._firstDivFocused();
+                }, 20);
             } else {
                 WinJS.UI.Animation.slideUp(this.element).done(() => {
+                    this._firstDivFocused();
                     this.viewModel.signalArticleDisplayed();
                 });
             }
@@ -563,15 +561,6 @@
                 this._displaySettingsFlyout.element);
 
             WinJS.UI.Animation.slideDown(this.element).done(() => {
-                // Restore focus to a previous element.
-                // Note that if you do this in the dismiss handler from the WebView
-                // before yielding to the browser, you'll get the escape key event
-                // twice for no apparently good reason.
-                try {
-                    this._previouslyFocusedElement.focus();
-                } catch (e) { }
-                this._previouslyFocusedElement = null;
-
                 // Flip this flag to allow the next navigate to complete, because
                 // we're normally supressing navigations after the first load.
                 this._pageReady = false;
@@ -582,6 +571,7 @@
                 this._content.navigate("about:blank");
 
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
+                this.viewModel.eventSource.dispatchEvent("closed", null);
                 this.viewModel = null;
             });
         }

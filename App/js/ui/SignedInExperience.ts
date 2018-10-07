@@ -87,6 +87,9 @@
                 },
                 commandInvoked: () => {
                     this._exitSelectionMode();
+                },
+                articleclosed: () => {
+                    this._contentList.element.focus();
                 }
             }));
 
@@ -362,7 +365,8 @@
                 // Delay the focus to give the list a chance to render
                 setTimeout(() => {
                     // Ensure the first item in the list gets focus.
-                    this._contentList.currentItem = { index: 0, hasFocus: true };
+                    const documentBodyFocused = (document.body === document.activeElement);
+                    this._contentList.currentItem = { index: 0, hasFocus: documentBodyFocused };
                 }, 500);
             });
         }

@@ -27,6 +27,7 @@ module Codevoid.Storyvoid.UI {
     class ArticleViewer_client {
         private _scrollingElement: HTMLElement;
         private _contentElement: HTMLElement;
+        private _focusHelperElement: HTMLElement;
         // Underlay for the toolbar is primarily for the compact size so that
         // the bottom-toolbar has the underlay in the right place at the right time.
         private _toolbarUnderlay: HTMLElement;
@@ -59,7 +60,7 @@ module Codevoid.Storyvoid.UI {
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("refreshimagewidths", this._refreshImageWidths.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settheme", this._setTheme.bind(this));
             Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("settoolbarstate", this._setToolbarState.bind(this));
-            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("articlepropertychanged", this._updateArticleButtons.bind(this)); 
+            Codevoid.Utilities.WebViewMessenger_Client.Instance.addHandlerForMessage("articlepropertychanged", this._updateArticleButtons.bind(this));
 
             // Handle the mouse wheel event so ctrl+wheel doesn't zoom the page
             document.addEventListener("mousewheel", this._handleWheel);
@@ -77,6 +78,12 @@ module Codevoid.Storyvoid.UI {
         }
 
         private _restoreScroll(targetScrollPosition: number, completion): void {
+            // Focus the hidden element to ensure that keyboard interactions
+            // will work when the article is visible. We need to do this
+            // before we scroll so that focus doesn't jump; this is at the top
+            // of the layout so would jump to top if we did it after the scroll
+            this._focusHelperElement.focus();
+
             var targetScrollPosition = this._scrollingElement.scrollHeight * targetScrollPosition;
             this._scrollingElement.scrollTop = targetScrollPosition;
 
@@ -131,6 +138,13 @@ module Codevoid.Storyvoid.UI {
             subTitle.className = "articleViewer-subTitle";
             subTitle.textContent = data.domain;
             subTitle.href = data.url;
+
+            // Create an invisible element that doesn't show up, so we can
+            // force focus into the article when it loads.
+            var focusHelperElement = <HTMLDivElement>wrapper.appendChild(document.createElement("div"));
+            focusHelperElement.tabIndex = -1; // Stop it from being a tabstop
+            focusHelperElement.className = "articleViewer-focus-helper";
+            this._focusHelperElement = focusHelperElement;
 
             this._scrollingElement.insertBefore(headerContainer, this._scrollingElement.firstChild);
         }
