@@ -176,8 +176,17 @@
                 return bookmark;
             });
 
+
+            const articleStartTime = Date.now();
+
             var processArticle = WinJS.Promise.join({
-                file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder),
+                file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then((result) => {
+                    this._eventSource.dispatchEvent("syncarticlebodycompleted", {
+                        bookmark_id: bookmark_id,
+                        articleDownloadDuration: Date.now() - articleStartTime,
+                    });
+                    return result;
+                }),
                 localBookmark: localBookmark
             }).then((result) => {
                 return this._processArticle(result.file, result.localBookmark, cancellationSource);
@@ -205,7 +214,6 @@
                 return dbInstance.updateBookmark(result.localBookmark);
             }).then((bookmark) => {
                 this._eventSource.dispatchEvent("syncingarticlecompleted", { bookmark_id: bookmark_id });
-
                 return bookmark;
             });
         }
