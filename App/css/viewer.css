@@ -120,6 +120,14 @@ blockquote {
     text-decoration: none;
 }
 
+/* Hides the focus helper element, and ensures that it doesn't show keyboard
+   focus when it's focused */
+.articleViewer-focus-helper {
+    height: 0;
+    width: 0;
+    outline: 0;
+}
+
 .articleViewer-header-animate {
     transition-property: transform;
     transition-duration: 367ms;

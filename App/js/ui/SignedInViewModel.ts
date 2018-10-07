@@ -1069,6 +1069,18 @@
             viewer.isRestoring = restoring;
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
 
+            let toDispose = Utilities.addEventListeners(viewer.eventSource, {
+                closed: () => {
+                    if (!toDispose) {
+                        return;
+                    }
+
+                    toDispose.cancel();
+                    toDispose = null;
+                    this.events.dispatchEvent("articleclosed", null);
+                }
+            });
+
             return viewer.displayed;
         }
 
