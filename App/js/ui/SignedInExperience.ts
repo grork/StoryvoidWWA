@@ -191,17 +191,27 @@
                     break;
             }
 
-            if (!handled && this._contentList.element.contains(document.activeElement) && this._contentList.currentItem.hasFocus) {
-                // Check if selection would result in a supported command being handled
-                const selectedBookmark = this.viewModel.getBookmarkAtIndex(this._contentList.currentItem.index);
-                if (selectedBookmark) {
-                    Telemetry.instance.track("ArticleListCommandInvokedWithKeyboard", null);
-                    const commands = this.viewModel.getCommandInformationForBookmarks([selectedBookmark]);
+            if (!handled && this._contentList.element.contains(document.activeElement)) {
+                let commands: ICommandOptions[] = [];
+                if (this._inSelectionMode && this._toolBar && this._toolBar.data && this._toolBar.data.length) {
+                    // If we're in selection mode, and our toolbar has some commands, we can assume we already
+                    // have some computed commands, so we don't need to calculate them again (hack!). The data
+                    // types are a little off, but if we force a cast, it matches for our needs
+                    commands = <ICommandOptions[]>(<any>this._toolBar.data);
+                } else if (this._contentList.currentItem.hasFocus) {
+                    // Not in selection mode/no toolbar, but our current item has focus, we can operate on that
+                    const bookmarksToOperateOn = [this.viewModel.getBookmarkAtIndex(this._contentList.currentItem.index)];
+                    commands = this.viewModel.getCommandInformationForBookmarks(bookmarksToOperateOn);
+                }
+
+                // If there were any commands, try to execute it.
+                if (commands.length) {
                     handled = executeMatchingCommand(commands, e);
                 }
             }
 
             if (handled) {
+                Telemetry.instance.track("ArticleListCommandInvokedWithKeyboard", null);
                 e.preventDefault();
             }
         }
