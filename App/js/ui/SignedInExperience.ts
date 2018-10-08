@@ -109,6 +109,15 @@
                 }
             });
 
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._contentList, {
+                keyboardnavigating: (e: Utilities.EventObject<{ oldFocus: number; newFocus: number }>) => {
+                    Sharing.instance.bookmarkToShare = null;
+                    this._contentList.itemDataSource.itemFromIndex(e.detail.newFocus).then((item) => {
+                        Sharing.instance.bookmarkToShare = item.data;
+                    });
+                }
+            }));
+
             this._sorts.data = new WinJS.Binding.List(SignedInViewModel.sorts);
             this._sortsElement = <HTMLSelectElement>this._sorts.element;
             this._sortsElement.selectedIndex = 0;
@@ -292,6 +301,7 @@
 
             // Now we've got some commands, show them to the user
             var commands = this.viewModel.getCommandInformationForBookmarks([data]);
+            Sharing.instance.bookmarkToShare = data;
             this._menu.commands = <any[]>commands;
             this._menu.showAt(elementPosition);
             Telemetry.instance.track("ContextMenuShown", null);

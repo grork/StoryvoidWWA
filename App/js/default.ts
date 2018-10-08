@@ -23,7 +23,7 @@
 
         public configureTitlebar(): void {
             var applicationView = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            applicationView.setPreferredMinSize({ height: 320, width: 320 });
+            applicationView.setPreferredMinSize({ height: 320, width: 400 });
 
             var titleBar = applicationView.titleBar;
 
