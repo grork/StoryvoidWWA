@@ -24,6 +24,7 @@
 
     export interface ICommandOptions {
         label: string;
+        tooltip?: string;
         icon: string;
         onclick: (e?: UIEvent) => void;
         keyCode: number;
@@ -495,6 +496,9 @@
                 this._app.signOut(true);
             }
 
+            // No bookmark to share currently, so clear it
+            Sharing.instance.bookmarkToShare = null;
+
             if (this._autoSyncWatcher) {
                 this._autoSyncWatcher.dispose();
                 this._autoSyncWatcher = null;
@@ -951,6 +955,9 @@
                 };
 
                 commands.push(downloadCommand);
+
+                Sharing.instance.bookmarkToShare = bookmarks[0];
+                commands.push(Sharing.instance.getShareCommand());
             }
 
             if (this._currentFolderDbId === this.commonFolderDbIds.liked) {

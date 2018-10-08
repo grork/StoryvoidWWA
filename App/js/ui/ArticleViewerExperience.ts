@@ -661,6 +661,7 @@
         private _archiveCommand: WinJS.UI.Command;
         private _moveCommand: WinJS.UI.Command;
         private _fullScreenCommand: WinJS.UI.Command;
+        private _shareCommand: WinJS.UI.Command;
         private _eventSource: Utilities.EventSource;
         private _remoteEventHandlers: Utilities.ICancellable;
         private _messenger: Utilities.WebViewMessenger;
@@ -703,6 +704,8 @@
                 onclick: () => this.eventSource.dispatchEvent("dismiss", null)
             });
 
+            this._shareCommand = new WinJS.UI.Command(null, Codevoid.Storyvoid.UI.Sharing.instance.getShareCommand());
+
             // Save that we're looking at an article
             var transientSettings = new Settings.TransientSettings();
             transientSettings.lastViewedArticleId = bookmark.bookmark_id;
@@ -712,6 +715,9 @@
             // push a progress update to the service when the viewer is
             // is closed.
             this._initialProgress = bookmark.progress;
+
+            // Update current bookmark being shared with the article we've opened
+            Sharing.instance.bookmarkToShare = bookmark;
         }
 
         public dispose(): void {
@@ -830,6 +836,7 @@
             commands.push(this._toggleLikeCommand);
             commands.push(this._moveCommand);
             commands.push(this._archiveCommand);
+            commands.push(this._shareCommand);
             commands.push(this._fullScreenCommand);
             commands.push(this._deleteCommand);
 
