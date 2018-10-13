@@ -128,11 +128,15 @@ module Codevoid.Storyvoid.UI {
                 this._reportedStarted = true;
             }
 
+            // Track how long the share takes
+            const start = Date.now();
+            let duration: number = 0;
+
             WinJS.Promise.join({
                 operation: bookmarks.add({
                     title: this._articleDetails.title,
                     url: this._articleDetails.url.absoluteUri
-                }),
+                }).then((r) => { duration = Date.now() - start; return r; }),
                 delay: WinJS.Promise.timeout(1000), // Let the user see the spinner for a second minimum
             }).then(() => {
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Complete);
@@ -148,7 +152,7 @@ module Codevoid.Storyvoid.UI {
                     }),
                 });
             }).done((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
-                Telemetry.instance.track("SharedSuccessfully", null);
+                Telemetry.instance.track("SharedSuccessfully", toPropertySet({ duration: duration }));
                 Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                     sharedArticles: 1,
                 }));
