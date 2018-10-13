@@ -7,6 +7,8 @@
         Normal,
         ToggleFullScreen,
         FullScreen,
+        PictureInPicture,
+        TogglePictureInPicture,
     }
 
     function isFunctionKey(e: KeyboardEvent): boolean {
@@ -365,6 +367,11 @@
                     shortcutInvoked = "Share";
                     Sharing.instance.getShareCommand().onclick();
                     break;
+
+                case WinJS.Utilities.Key.p:
+                    shortcutInvoked = "TogglePictureInPicture";
+                    this.viewModel.pictureInPictureCommand.onclick();
+                    break;
             }
 
             if (!shortcutInvoked) {
@@ -670,6 +677,7 @@
         private _archiveCommand: WinJS.UI.Command;
         private _moveCommand: WinJS.UI.Command;
         private _fullScreenCommand: WinJS.UI.Command;
+        private _pictureInPictureCommand: WinJS.UI.Command;
         private _shareCommand: WinJS.UI.Command;
         private _eventSource: Utilities.EventSource;
         private _remoteEventHandlers: Utilities.ICancellable;
@@ -686,7 +694,7 @@
 
             this._initializeToggleCommand();
             this._initializeArchiveCommand();
-            this._initializeFullScreenCommand();
+            this._initializeViewModeCommands();
 
             this._deleteCommand = new WinJS.UI.Command(null, {
                 tooltip: "Delete (Ctrl + Del)",
@@ -788,6 +796,10 @@
             return this._fullScreenCommand;
         }
 
+        public get pictureInPictureCommand(): WinJS.UI.Command {
+            return this._pictureInPictureCommand;
+        }
+
         public signalArticleDisplayed(): void {
             Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                 viewedArticleCount: 1,
@@ -848,6 +860,11 @@
             commands.push(this._archiveCommand);
             commands.push(this._shareCommand);
             commands.push(this._fullScreenCommand);
+
+            if (Windows.UI.ViewManagement.ApplicationView.getForCurrentView().isViewModeSupported(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay)) {
+                commands.push(this._pictureInPictureCommand);
+            }
+
             commands.push(this._deleteCommand);
 
             return new WinJS.Binding.List(commands);
@@ -969,11 +986,18 @@
             this._updateWindowState();
         }
 
-        private _initializeFullScreenCommand(): void {
+        private _initializeViewModeCommands(): void {
             this._fullScreenCommand = new WinJS.UI.Command(null, {
                 onclick: () => {
                     Telemetry.instance.track("ToggleFullScreen", null);
                     this._setScreenMode(ScreenMode.ToggleFullScreen);
+                }
+            });
+
+            this._pictureInPictureCommand = new WinJS.UI.Command(null, {
+                onclick: () => {
+                    Telemetry.instance.track("TogglePictureInPicture", null);
+                    this._setScreenMode(ScreenMode.TogglePictureInPicture);
                 }
             });
 
@@ -997,17 +1021,42 @@
                 return;
             }
 
-            if (targetScreenMode === ScreenMode.ToggleFullScreen) {
+            if (targetScreenMode === ScreenMode.ToggleFullScreen || targetScreenMode === ScreenMode.TogglePictureInPicture) {
                 switch (currentMode) {
                     case ScreenMode.FullScreen:
-                        targetScreenMode = ScreenMode.Normal;
+                        if (targetScreenMode === ScreenMode.ToggleFullScreen) {
+                            targetScreenMode = ScreenMode.Normal;
+                        }
+
+                        if (targetScreenMode === ScreenMode.TogglePictureInPicture) {
+                            targetScreenMode = ScreenMode.PictureInPicture;
+                        }
+                        break;
+
+                    case ScreenMode.PictureInPicture:
+                        if (targetScreenMode === ScreenMode.ToggleFullScreen) {
+                            targetScreenMode = ScreenMode.FullScreen;
+                        }
+
+                        if (targetScreenMode === ScreenMode.TogglePictureInPicture) {
+                            targetScreenMode = ScreenMode.Normal;
+                        }
                         break;
 
                     case ScreenMode.Normal:
-                        targetScreenMode = ScreenMode.FullScreen;
+                        if (targetScreenMode === ScreenMode.ToggleFullScreen) {
+                            targetScreenMode = ScreenMode.FullScreen;
+                        } else {
+                            targetScreenMode = ScreenMode.PictureInPicture;
+                        }
                         break;
                 }
             }
+
+            // Always switch to normal mode, since we might be going directly to another state.
+            // If we _Are_ in normal mode (which shouldn't happen due to a check above), this just
+            // no-ops
+            this.switchToNormalWindowMode();
 
             const view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
             switch (targetScreenMode) {
@@ -1015,8 +1064,11 @@
                     view.tryEnterFullScreenMode();
                     break;
 
+                case ScreenMode.PictureInPicture:
+                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay).done(null, () => { });
+                    break;
+
                 case ScreenMode.Normal:
-                    this.switchToNormalWindowMode();
                     break;
             }
         }
@@ -1025,6 +1077,10 @@
             var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
             if (view.isFullScreenMode) {
                 return ScreenMode.FullScreen;
+            }
+
+            if (view.viewMode === Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay) {
+                return ScreenMode.PictureInPicture;
             }
 
             return ScreenMode.Normal;
@@ -1042,11 +1098,18 @@
             switch (this._screenMode) {
                 case ScreenMode.FullScreen:
                     this._setFullScreenCommandToExit();
+                    this._setPictureInPictureCommandToEnter();
+                    break;
+
+                case ScreenMode.PictureInPicture:
+                    this._setFullScreenCommandToEnter();
+                    this._setPictureInPictureCommandToExit();
                     break;
 
                 case ScreenMode.Normal:
                 default:
                     this._setFullScreenCommandToEnter();
+                    this._setPictureInPictureCommandToEnter();
                     break;
             }
 
@@ -1060,12 +1123,21 @@
 
         public switchToNormalWindowMode(): boolean {
             const screenMode = this._getScreenModeFromWindow();
-            if (screenMode === ScreenMode.Normal) {
-                return false;
+            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
+
+            switch (screenMode) {
+                case ScreenMode.Normal:
+                    return false;
+
+                case ScreenMode.FullScreen:
+                    view.exitFullScreenMode();
+                    break;
+
+                case ScreenMode.PictureInPicture:
+                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.default).done(null, () => {});
+                    break;
             }
 
-            var view = Windows.UI.ViewManagement.ApplicationView.getForCurrentView();
-            view.exitFullScreenMode();
             return true;
         }
 
@@ -1077,6 +1149,16 @@
         private _setFullScreenCommandToEnter(): void {
             this._fullScreenCommand.tooltip = "Enter Full Screen (F11)";
             this._fullScreenCommand.icon = "\uE1D9";
+        }
+
+        private _setPictureInPictureCommandToExit(): void {
+            this._pictureInPictureCommand.tooltip = "Exit Picture In Picture (Ctrl + P)";
+            this._pictureInPictureCommand.icon = "\uE8A7";
+        }
+
+        private _setPictureInPictureCommandToEnter(): void {
+            this._pictureInPictureCommand.tooltip = "Enter Picture In Picture (Ctrl + P)";
+            this._pictureInPictureCommand.icon = "\uE944";
         }
 
         private _handleLinkInvocation(url: string): void {
