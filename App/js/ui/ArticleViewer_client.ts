@@ -7,6 +7,7 @@ module Codevoid.Storyvoid.UI {
     const KEY_DELETE = 46;
     const KEY_A = 65;
     const KEY_L = 76;
+    const KEY_BACKSPACE = 8;
  
 
     const KEY_F1 = 112;
@@ -558,6 +559,7 @@ module Codevoid.Storyvoid.UI {
 
             switch (ev.keyCode) {
                 case KEY_ESCAPE:
+                case KEY_BACKSPACE:
                     this._dismiss();
                     break;
 
