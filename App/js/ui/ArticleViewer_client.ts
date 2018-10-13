@@ -7,6 +7,7 @@ module Codevoid.Storyvoid.UI {
     const KEY_DELETE = 46;
     const KEY_A = 65;
     const KEY_L = 76;
+    const KEY_S = 83;
     const KEY_BACKSPACE = 8;
  
 
@@ -202,6 +203,11 @@ module Codevoid.Storyvoid.UI {
                     icon: "\uE7B8",
                     tooltip: "Archive",
                     handler: this._sendShortcutInvoked.bind(this, KEY_A),
+                },
+                {
+                    icon: '\uE72D',
+                    tooltip: "Share",
+                    handler: this._sendShortcutInvoked.bind(this, KEY_S),
                 }
             ].forEach((buttonDetail) => {
                 const button = document.createElement("a");

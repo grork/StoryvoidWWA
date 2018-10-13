@@ -357,6 +357,11 @@
                     shortcutInvoked = "Close";
                     this.closeArticle();
                     break;
+
+                case WinJS.Utilities.Key.s:
+                    shortcutInvoked = "Share";
+                    Sharing.instance.getShareCommand().onclick();
+                    break;
             }
 
             if (!shortcutInvoked) {
