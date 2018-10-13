@@ -914,7 +914,7 @@
                 var openInBrowser = {
                     label: "Open in browser",
                     icon: "globe",
-                    tooltip: "Open article in your browser",
+                    tooltip: "Open article in your browser (V)",
                     onclick: () => {
                         Telemetry.instance.track("OpenInBrowser", toPropertySet({ location: "ArticleList" }));
                         Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmarks[0].url));
@@ -938,7 +938,7 @@
                 var downloadCommand = {
                     label: "Download",
                     icon: "download",
-                    tooltip: "Download article",
+                    tooltip: "Download article (D)",
                     onclick: () => {
                         Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                             Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
@@ -957,14 +957,16 @@
                 commands.push(downloadCommand);
 
                 Sharing.instance.bookmarkToShare = bookmarks[0];
-                commands.push(Sharing.instance.getShareCommand());
+                const shareCommand = Sharing.instance.getShareCommand();
+                shareCommand.tooltip = "Share article (S)";
+                commands.push(shareCommand);
             }
 
             if (this._currentFolderDbId === this.commonFolderDbIds.liked) {
                 var unlikeCommand = {
                     label: "Unlike",
                     icon: "\uEA92",
-                    tooltip: "Unlike article(s)",
+                    tooltip: "Unlike article(s) (L)",
                     onclick: () => {
                         this.unlike(bookmarks);
                         this.raiseCommandInvokedEvent();
@@ -977,7 +979,7 @@
                 var deleteCommand = {
                     label: "Delete",
                     icon: "delete",
-                    tooltip: "Delete article(s)",
+                    tooltip: "Delete article(s) (Delete)",
                     onclick: () => {
                         Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "ArticleList" }));
                         this.delete(bookmarks);
@@ -992,7 +994,7 @@
             var moveCommand = {
                 label: "Move",
                 icon: "movetofolder",
-                tooltip: "Move to another folder",
+                tooltip: "Move to another folder (M)",
                 onclick: (e: UIEvent) => {
                     var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
                     moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).done((result: boolean) => {
@@ -1014,7 +1016,7 @@
                 var archiveCommand = {
                     label: "Archive",
                     icon: "\uE7B8",
-                    tooltip: "Archive article(s)",
+                    tooltip: "Archive article(s) (A)",
                     onclick: () => {
                         Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "ArticleList" }));
 
