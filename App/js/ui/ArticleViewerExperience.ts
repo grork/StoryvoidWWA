@@ -280,13 +280,14 @@
                 this._handleShortcuts(e.keyCode);
             }
 
-            switch (e.key.toLowerCase()) {
-                case "esc":
+            switch (e.keyCode) {
+                case WinJS.Utilities.Key.escape:
+                case WinJS.Utilities.Key.backspace:
                     this.handleDismiss();
                     handled = true;
                     break;
 
-                case "alt":
+                case WinJS.Utilities.Key.alt:
                     this._toggleToolbar();
                     handled = true;
                     break;
