@@ -43,6 +43,8 @@
                     currentArticleWidth: 80,
                     toolbarVisible: true,
                     uiTheme: UITheme.Automatic,
+                    pictureInPictureWidth: -1,
+                    pictureInPictureHeight: -1,
                 });
         }
 
@@ -92,6 +94,22 @@
 
         public set toolbarVisible(value: boolean) {
             this.setValue("toolbarVisible", value);
+        }
+
+        public get pictureInPictureSize(): Windows.Foundation.Size {
+            const width = this.getValueOrDefault("pictureInPictureWidth");
+            const height = this.getValueOrDefault("pictureInPictureHeight");
+
+            if (width === -1 || height === -1) {
+                return null;
+            }
+
+            return { width: <any>width, height: <any>height };
+        }
+
+        public set pictureInPictureSize(size: Windows.Foundation.Size) {
+            this.setValue("pictureInPictureWidth", size.width);
+            this.setValue("pictureInPictureHeight", size.height);
         }
 
         public get uiTheme(): number {
