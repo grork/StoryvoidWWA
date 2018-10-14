@@ -984,6 +984,10 @@
 
         public refreshStateDueToSizeChange(): void {
             this._updateWindowState();
+
+            if (this._screenMode === ScreenMode.PictureInPicture) {
+                this._capturePictureInPictureSize();
+            }
         }
 
         private _initializeViewModeCommands(): void {
@@ -1065,12 +1069,28 @@
                     break;
 
                 case ScreenMode.PictureInPicture:
-                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay).done(null, () => { });
+                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay, this._getPictureInPictureSize()).done(null, () => { });
                     break;
 
                 case ScreenMode.Normal:
                     break;
             }
+        }
+
+        private _capturePictureInPictureSize(): void {
+            const size = { width: window.outerWidth, height: window.outerHeight };
+            const settings = new Settings.ViewerSettings();
+            settings.pictureInPictureSize = size;
+        }
+
+        private _getPictureInPictureSize(): Windows.UI.ViewManagement.ViewModePreferences {
+            const preferences = Windows.UI.ViewManagement.ViewModePreferences.createDefault(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay);
+            const settings = new Settings.ViewerSettings();
+            if (settings.pictureInPictureSize) {
+                preferences.customSize = settings.pictureInPictureSize;
+            }
+
+            return preferences;
         }
 
         private _getScreenModeFromWindow(): ScreenMode {
