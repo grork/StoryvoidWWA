@@ -282,12 +282,19 @@ declare module Codevoid.Storyvoid.UI {
         dataContext: any;
     }
 
+    export interface IAppLaunchInformation {
+        bookmark_id: number;
+        originalUrl: Windows.Foundation.Uri;
+    }
+
     export interface IAppWithAbilityToSignIn {
+        readonly launchInformation: IAppLaunchInformation;
         signOut(wasPreviouslySignedIn?: boolean): void;
         signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): void;
     }
 
     export interface ISignedInViewModel extends UICore.ViewModel {
+        processLaunchInformation?(launchInformation: IAppLaunchInformation): void;
         signedIn(usingSavedCredentials: boolean): WinJS.Promise<any>;
         signInCompleted(): void;
     }

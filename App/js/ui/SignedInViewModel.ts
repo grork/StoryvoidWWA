@@ -566,34 +566,17 @@
 
                 // Try showing a saved article before doing the rest of the work.
                 var transientSettings = new Settings.TransientSettings();
-                if (transientSettings.lastViewedArticleId != -1) {
+                let lastViewedArticleId = transientSettings.lastViewedArticleId;
+                if (this._app.launchInformation && this._app.launchInformation.bookmark_id) {
+                    lastViewedArticleId = this._app.launchInformation.bookmark_id;
+                }
+
+                if (lastViewedArticleId != -1) {
                     // Since we're restoring, we should try syncing the article progress
                     // before showing it. We're trading off time/jank for correct state.
                     // Note, that the article could have gone away, so we need to handle
                     // the errors by dropping them silently.
-                    articleDisplay = this._instapaperDB.getBookmarkByBookmarkId(transientSettings.lastViewedArticleId).then(bookmark => {
-                        if (!bookmark) {
-                            return null;
-                        }
-
-                        var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
-                        // By updating with that we have, it'll return us a new one if there is one, otherwise
-                        // it'll just give us back the same item again.
-                        return bookmarkApi.updateReadProgress({
-                            bookmark_id: bookmark.bookmark_id,
-                            progress: bookmark.progress,
-                            // We might not have had any progress yet, but the service might have had some
-                            // but we can't say 0 for timestamp, so we need to send a low number so as not
-                            // to accidently update the progress with our 0 value.
-                            progress_timestamp: bookmark.progress_timestamp || 1
-                        }).then((updatedBookmark) => {
-                            bookmark.progress = updatedBookmark.progress;
-                            bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
-                            return this._instapaperDB.updateBookmark(bookmark);
-                        }, () => bookmark /* if we failed to get it, just return the original */);
-                    }).then((bookmark) => {
-                        return this.showArticle(bookmark, true /*restoring*/);
-                    });
+                    articleDisplay = this.displayArticle(lastViewedArticleId, true);
                 }
 
                 return articleDisplay;
@@ -613,6 +596,40 @@
             }, () => { });
 
             return completedSignal.promise;
+        }
+
+        public processLaunchInformation(launchInformation: IAppLaunchInformation): void {
+            if (launchInformation.bookmark_id < 1) {
+                return;
+            }
+
+            this.displayArticle(launchInformation.bookmark_id, false);
+        }
+
+        private displayArticle(bookmark_id: number, restoring: boolean): WinJS.Promise<any> {
+            return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
+                if (!bookmark) {
+                    return null;
+                }
+
+                var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+                // By updating with that we have, it'll return us a new one if there is one, otherwise
+                // it'll just give us back the same item again.
+                return bookmarkApi.updateReadProgress({
+                    bookmark_id: bookmark.bookmark_id,
+                    progress: bookmark.progress,
+                    // We might not have had any progress yet, but the service might have had some
+                    // but we can't say 0 for timestamp, so we need to send a low number so as not
+                    // to accidently update the progress with our 0 value.
+                    progress_timestamp: bookmark.progress_timestamp || 1
+                }).then((updatedBookmark) => {
+                    bookmark.progress = updatedBookmark.progress;
+                    bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
+                    return this._instapaperDB.updateBookmark(bookmark);
+                }, () => bookmark /* if we failed to get it, just return the original */);
+            }).then((bookmark) => {
+                return this.showArticle(bookmark, restoring);
+            });
         }
 
         public signInCompleted(): void {
