@@ -1,8 +1,10 @@
 ﻿module Codevoid.Storyvoid.UI {
     export class AppThatCanSignIn implements IAppWithAbilityToSignIn {
-        private _signedOutViewModel: Codevoid.Storyvoid.UI.SignedOutViewModel;
-        private _signedInViewModel: Codevoid.Storyvoid.UI.ISignedInViewModel;
+        private _signedOutViewModel: SignedOutViewModel;
+        private _signedInViewModel: ISignedInViewModel;
         private _uiSettings: Windows.UI.ViewManagement.UISettings;
+        private _launchInformation: IAppLaunchInformation;
+
         public initialize(): WinJS.Promise<any> {
             this._uiSettings = new Windows.UI.ViewManagement.UISettings();
 
@@ -112,6 +114,7 @@
             if (usingSavedCredentials) {
                 return signedInResult;
             }
+
             // Assume the sibling element ot signed in is "signed out".
             var signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
 
@@ -167,12 +170,28 @@
             return signedInResult;
         }
 
+        public processLaunchInformation(launchInformation: IAppLaunchInformation): void {
+            if (!this._signedInViewModel || !launchInformation) {
+                return;
+            }
+
+            this._signedInViewModel.processLaunchInformation(launchInformation);
+        }
+
         protected get signedInViewModel(): ISignedInViewModel {
             return this._signedInViewModel;
         }
 
         protected getSignedInViewModel(app: IAppWithAbilityToSignIn): ISignedInViewModel {
             throw new Error("Must implement this method to support signing in");
+        }
+
+        public get launchInformation(): IAppLaunchInformation {
+            return this._launchInformation;
+        }
+
+        public set launchInformation(launchInformation: IAppLaunchInformation) {
+            this._launchInformation = launchInformation;
         }
     }
 }

@@ -29,6 +29,11 @@
             <uap:DataFormat>URI</uap:DataFormat>
           </uap:ShareTarget>
         </uap:Extension>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="storyvoid">
+            <uap:DisplayName>Storyvoid</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

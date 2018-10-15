@@ -1,24 +1,75 @@
 ﻿module Codevoid.Storyvoid {
+    let appInititialized = false;
+
+    function extractLaunchInformationFromUri(uri: Windows.Foundation.Uri): UI.IAppLaunchInformation {
+        const result: UI.IAppLaunchInformation = {
+            bookmark_id: 0,
+            originalUrl: null,
+        };
+
+        let rawBookmarkId: string;
+        let rawOriginalUrl: string;
+
+        // Theres no way on the queryParsed object to easily
+        // see if there is a key present, so just loop through
+        // them all and pull out the ones we're going to do
+        // something with.
+        uri.queryParsed.forEach((entry) => {
+            switch (entry.name) {
+                case "bookmark_id":
+                    rawBookmarkId = entry.value;
+                    break;
+
+                case "original_url":
+                    rawOriginalUrl = entry.value;
+                    break;
+            }
+        });
+
+        const bookmarkId = parseInt(rawBookmarkId, 10);
+        if (!isNaN(bookmarkId)) {
+            result.bookmark_id = bookmarkId;
+        }
+        
+        try {
+            const originalUrl = new Windows.Foundation.Uri(rawOriginalUrl);
+            result.originalUrl = originalUrl;
+        } catch { }
+
+        return result;
+    }
+
     export class App extends UI.AppThatCanSignIn {
 
         constructor() {
             super();
 
-            var activationEvents = Utilities.addEventListeners(Windows.UI.WebUI.WebUIApplication, {
+            Utilities.addEventListeners(Windows.UI.WebUI.WebUIApplication, {
                 activated: (args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs) => {
-                    activationEvents.cancel();
                     this.handleActivated(args);
                 }
             });
         }
 
         private handleActivated(args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs): void {
-            var deferral = args.activatedOperation.getDeferral();
-            Telemetry.initialize().done(() => {
-                app.initialize().done(() => {
-                    deferral.complete();
+            let launchInformation: UI.IAppLaunchInformation;
+            if (args.kind === Windows.ApplicationModel.Activation.ActivationKind.protocol) {
+                const protocolArgs = <Windows.UI.WebUI.WebUIProtocolActivatedEventArgs>(<any>args);
+                launchInformation = extractLaunchInformationFromUri(protocolArgs.uri)
+            }
+
+            if (!appInititialized) {
+                appInititialized = true;
+                app.launchInformation = launchInformation;
+                var deferral = args.activatedOperation.getDeferral();
+                Telemetry.initialize().done(() => {
+                    app.initialize().done(() => {
+                        deferral.complete();
+                    });
                 });
-            });
+            } else {
+                app.processLaunchInformation(launchInformation);
+            }
         }
 
         public configureTitlebar(): void {
