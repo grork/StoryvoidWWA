@@ -567,8 +567,10 @@
                 // Try showing a saved article before doing the rest of the work.
                 var transientSettings = new Settings.TransientSettings();
                 let lastViewedArticleId = transientSettings.lastViewedArticleId;
+                let originalUrl: Windows.Foundation.Uri = null;
                 if (this._app.launchInformation && this._app.launchInformation.bookmark_id) {
                     lastViewedArticleId = this._app.launchInformation.bookmark_id;
+                    originalUrl = this._app.launchInformation.originalUrl;
                 }
 
                 if (lastViewedArticleId != -1) {
@@ -576,7 +578,7 @@
                     // before showing it. We're trading off time/jank for correct state.
                     // Note, that the article could have gone away, so we need to handle
                     // the errors by dropping them silently.
-                    articleDisplay = this.displayArticle(lastViewedArticleId, true);
+                    articleDisplay = this.displayArticle(lastViewedArticleId, true, originalUrl);
                 }
 
                 return articleDisplay;
@@ -603,30 +605,23 @@
                 return;
             }
 
-            this.displayArticle(launchInformation.bookmark_id, false);
+            this.displayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
         }
 
-        private displayArticle(bookmark_id: number, restoring: boolean): WinJS.Promise<any> {
+        private displayArticle(bookmark_id: number, restoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
             return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
-                if (!bookmark) {
+                if (!bookmark && !originalUrl) {
+                    // No bookmark locally, and no original URL for us to fallback to, means we
+                    // can't try and ask the service, since we don't have anything to fallback to
                     return null;
                 }
 
-                var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
-                // By updating with that we have, it'll return us a new one if there is one, otherwise
-                // it'll just give us back the same item again.
-                return bookmarkApi.updateReadProgress({
-                    bookmark_id: bookmark.bookmark_id,
-                    progress: bookmark.progress,
-                    // We might not have had any progress yet, but the service might have had some
-                    // but we can't say 0 for timestamp, so we need to send a low number so as not
-                    // to accidently update the progress with our 0 value.
-                    progress_timestamp: bookmark.progress_timestamp || 1
-                }).then((updatedBookmark) => {
-                    bookmark.progress = updatedBookmark.progress;
-                    bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
-                    return this._instapaperDB.updateBookmark(bookmark);
-                }, () => bookmark /* if we failed to get it, just return the original */);
+                if (!bookmark) {
+                    // Attempt to download it from the service
+                    return this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl);
+                }
+
+                return this.refreshBookmarkWithLatestReadProgress(bookmark);
             }).then((bookmark) => {
                 if (!bookmark) {
                     return;
@@ -634,6 +629,46 @@
 
                 return this.showArticle(bookmark, restoring);
             });
+        }
+
+        private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): WinJS.Promise<IBookmark> {
+            var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+            // By updating with that we have, it'll return us a new one if there is one, otherwise
+            // it'll just give us back the same item again.
+            return bookmarkApi.updateReadProgress({
+                bookmark_id: bookmark.bookmark_id,
+                progress: bookmark.progress,
+                // We might not have had any progress yet, but the service might have had some
+                // but we can't say 0 for timestamp, so we need to send a low number so as not
+                // to accidently update the progress with our 0 value.
+                progress_timestamp: bookmark.progress_timestamp || 1
+            }).then((updatedBookmark) => {
+                bookmark.progress = updatedBookmark.progress;
+                bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
+                return this._instapaperDB.updateBookmark(bookmark);
+            }, () => bookmark);
+        }
+
+        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): WinJS.Promise<IBookmark> {
+            var prompt = new Windows.UI.Popups.MessageDialog("We couldn't download the article you wanted to open, would you like to open it in a web browser?", "Open in a web browser?");
+            var commands = prompt.commands;
+            commands.clear();
+
+            var open = new Windows.UI.Popups.UICommand();
+            open.label = "Open";
+            open.invoked = (command: Windows.UI.Popups.UICommand) => {
+                Windows.System.Launcher.launchUriAsync(originalUrl);
+            };
+
+            commands.push(open);
+            commands.push(new Windows.UI.Popups.UICommand("No"));
+
+            prompt.cancelCommandIndex = 1;
+            prompt.defaultCommandIndex = 0;
+
+            prompt.showAsync();
+
+            return WinJS.Promise.as(null);
         }
 
         public signInCompleted(): void {
