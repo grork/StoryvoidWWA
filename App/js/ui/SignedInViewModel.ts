@@ -628,6 +628,10 @@
                     return this._instapaperDB.updateBookmark(bookmark);
                 }, () => bookmark /* if we failed to get it, just return the original */);
             }).then((bookmark) => {
+                if (!bookmark) {
+                    return;
+                }
+
                 return this.showArticle(bookmark, restoring);
             });
         }
@@ -1080,7 +1084,7 @@
         public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
             // Sometimes the article has gone, but we thought we were viewing it, so
             // handle it by no-oping after clearing the saved article ID.
-            if (restoring && !bookmark) {
+            if (!bookmark) {
                 (new Settings.TransientSettings()).clearLastViewedArticleId();
                 return WinJS.Promise.as();
             }
