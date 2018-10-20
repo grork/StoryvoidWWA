@@ -2,6 +2,10 @@
     let appInititialized = false;
 
     function extractLaunchInformationFromUri(uri: Windows.Foundation.Uri): UI.IAppLaunchInformation {
+        if (!uri || uri.host !== "openarticle") {
+            return;
+        }
+
         const result: UI.IAppLaunchInformation = {
             bookmark_id: 0,
             originalUrl: null,
@@ -40,7 +44,6 @@
     }
 
     export class App extends UI.AppThatCanSignIn {
-
         constructor() {
             super();
 
