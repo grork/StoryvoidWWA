@@ -182,6 +182,7 @@ declare module Codevoid.Storyvoid {
         getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
 
         // Bookmark interface
+        addBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
         moveBookmark(bookmark_id: number, destinationfolder_dbid: number): WinJS.Promise<IBookmark>;
         removeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
         likeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
