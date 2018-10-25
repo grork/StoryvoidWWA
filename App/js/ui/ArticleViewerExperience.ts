@@ -845,6 +845,12 @@
         }
 
         public updateProgress(progress: number): void {
+            // When viewing an article that is now orphaned, don't
+            // try to update the progress for it.
+            if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.orphaned) {
+                return;
+            }
+
             this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).done((bookmark) => {
                 this.bookmark = bookmark;
             });

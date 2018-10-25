@@ -650,7 +650,25 @@
         }
 
         private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): WinJS.Promise<IBookmark> {
-            var prompt = new Windows.UI.Popups.MessageDialog("We couldn't download the article you wanted to open, would you like to open it in a web browser?", "Open in a web browser?");
+            const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+
+            return bookmarksApi.updateReadProgress({
+                bookmark_id: bookmark_id,
+                progress: 0.0,
+                progress_timestamp: 1,
+            }).then((result: IBookmark) => {
+                result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
+                return this._instapaperDB.addBookmark(result);
+            }).then((result: IBookmark) => {
+                return this.syncSingleArticle(result);
+            }, (e) => {
+                this.promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl);
+                return null;
+            });
+        }
+
+        private promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl: Windows.Foundation.Uri): void {
+            var prompt = new Windows.UI.Popups.MessageDialog("We couldn't download the article you wanted to open, would you like to open it in a web browser instead?", "Open in a web browser?");
             var commands = prompt.commands;
             commands.clear();
 
@@ -662,13 +680,10 @@
 
             commands.push(open);
             commands.push(new Windows.UI.Popups.UICommand("No"));
-
             prompt.cancelCommandIndex = 1;
             prompt.defaultCommandIndex = 0;
 
             prompt.showAsync();
-
-            return WinJS.Promise.as(null);
         }
 
         public signInCompleted(): void {
@@ -963,6 +978,17 @@
             this.refreshCurrentFolder();
         }
 
+        private syncSingleArticle(bookmark: IBookmark): WinJS.Promise<IBookmark> {
+            return Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
+                var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
+                Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
+                return articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource());
+            }).then((bookmark) => {
+                Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
+                return bookmark;
+            });
+        }
+
         public getCommandInformationForBookmarks(bookmarks: IBookmark[]): ICommandOptions[] {
             var commands: ICommandOptions[] = [];
 
@@ -996,15 +1022,8 @@
                     icon: "download",
                     tooltip: "Download article (D)",
                     onclick: () => {
-                        Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
-                            Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
-                            var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
-                            Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
-                            articleSync.syncSingleArticle(bookmarks[0].bookmark_id, this._instapaperDB, new Utilities.CancellationSource()).then((bookmark) => {
-                                Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
-                            });
-                        });
-
+                        Telemetry.instance.track("DownloadBookmark", toPropertySet({ location: "ArticleList" }));
+                        this.syncSingleArticle(bookmarks[0]);
                         this.raiseCommandInvokedEvent();
                     },
                     keyCode: WinJS.Utilities.Key.d,
@@ -1180,12 +1199,7 @@
             var download = new Windows.UI.Popups.UICommand();
             download.label = "Download";
             download.invoked = (command: Windows.UI.Popups.UICommand) => {
-                Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
-                    var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
-                    articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource()).then((bookmark) => {
-                        Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
-                    });
-                });
+                this.syncSingleArticle(bookmark);
             };
 
             commands.push(download);
