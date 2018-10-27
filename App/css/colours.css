@@ -76,10 +76,12 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
     -webkit-backdrop-filter: var(--backdrop-filter);
 }
 
+.fullscreenspinner-dialog.dialog,
 .win-splitview-pane {
     background-color: rgba(242, 242, 242, var(--background-opacity));
 }
 
+.win-ui-dark .fullscreenspinner-dialog.dialog,
 .win-ui-dark .win-splitview-pane {
     background-color: rgba(33, 33, 33, var(--background-opacity));
 }
@@ -489,4 +491,12 @@ html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:
 
 .folderlist-folders.win-listview .win-itembox {
     background-color: transparent;
+}
+
+.fullscreenspinner-dialog.dialog {
+    -webkit-backdrop-filter: var(--backdrop-filter);
+}
+
+.fullscreenspinner-dialog progress {
+    color: #BC0000;
 }

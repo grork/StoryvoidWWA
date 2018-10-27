@@ -205,8 +205,10 @@
                 </div>
                 <div class="settingsPopup-ui">
                     <div class="ui-title">UI</div>
-                    <div>By default, the application will match what ever your computers theme is set to. However if you'd like to override that, just pick one below. By default your viewer settings
-                    will follow your setting here. To change those settings, just pick one in the viewer display settings.</div>
+                    <div>
+                        By default, the application will match what ever your computers theme is set to. However if you'd like to override that, just pick one below. By default your viewer settings
+                        will follow your setting here. To change those settings, just pick one in the viewer display settings.
+                    </div>
                     <div class="settings-subTitle">Theme</div>
                     <select data-part="_uiTheme" data-event="{ change: handleUIThemeChange }">
                         <option value="1">Match my computers theme</option>
@@ -233,7 +235,7 @@
                         You can sign out, and be forgotten. Note, that this does <em>not remove</em> your Instapaper account from the instapaper service.
                         To do that, please go to <a href="https://www.instapaper.com">instapaper.com</a> to do that.
                     </div>
-                    <button data-event="{ click: forgetMeAndSignout }">Sign out &amp; forget me</button> 
+                    <button data-event="{ click: forgetMeAndSignout }">Sign out &amp; forget me</button>
                 </div>
                 <div class="settingsPopup-privacy">
                     <div class="privacy-title">Privacy</div>
@@ -280,6 +282,36 @@
             </button>
             <div data-part="_lastDiv"
                  data-event="{ focusin: _lastDivFocused }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
+        </div>
+    </div>
+
+    <div data-win-control="WinJS.Binding.Template"
+         data-templateid="fullscreenSpinner">
+        <div class="fullscreenspinner-container"
+             data-part="_container"
+             role="dialog">
+            <div data-part="_firstDiv"
+                 data-event="{ focusin: focusCancelButton }"
+                 role="menuitem"
+                 aria-hidden="true"
+                 tabindex="0"
+                 style="display: inline"></div>
+
+            <progress class="win-progress-ring win-large"></progress>
+            <div>Downloading your article&#8230;</div>
+
+            <button class="fullscreenspinner-cancelButton"
+                    data-part="_cancelButton"
+                    data-event="{ click: cancel }">
+                Cancel
+            </button>
+
+            <div data-part="_lastDiv"
+                 data-event="{ focusin: focusCancelButton }"
                  role="menuitem"
                  aria-hidden="true"
                  tabindex="0"

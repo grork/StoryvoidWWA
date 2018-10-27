@@ -628,9 +628,16 @@
                     // Attempt to download it from the service, but do not
                     // allow the promise chain to wait on it, so if the download
                     // takes a really long time we're not sat at the splasyscreen
-                    this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl).then((downloadedBookmark) => {
+                    const downloadResult = this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl);
+
+                    downloadResult.article.then((downloadedBookmark) => {
                         return openArticle(downloadedBookmark, false);
-                    }).done(null, () => { });
+                    }).then(null, () => { }).done(() => {
+
+                        // Once the promise from displaying the the article is complete
+                        // We can 
+                        downloadResult.displayComplete();
+                    });
 
                     return null;
                 }
@@ -657,22 +664,56 @@
             }, () => bookmark);
         }
 
-        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): WinJS.Promise<IBookmark> {
+        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): { article: WinJS.Promise<IBookmark>; displayComplete(): void } {
             const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+            let spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
+            spinner.show({ after: 2000 });
 
-            return bookmarksApi.updateReadProgress({
+            // If the spinner is dismissed for cancellation reasons,
+            // we need to cancel any more work, since we don't want
+            // to show if the customer has given up
+            spinner.waitForCompletion().done((successful: boolean) => {
+                if (successful) {
+                    return;
+                }
+
+                // If it's not successful, dismiss the spinner 
+                downloadAndOpen.cancel();
+            });
+
+            // Get the article state from the service
+            let downloadAndOpen = bookmarksApi.updateReadProgress({
                 bookmark_id: bookmark_id,
                 progress: 0.0,
                 progress_timestamp: 1,
             }).then((result: IBookmark) => {
+                // Insert it as an orphan into the DB
                 result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
                 return this._instapaperDB.addBookmark(result);
             }).then((result: IBookmark) => {
+                // Get The content from the service using the orphan bookmark we added
                 return this.syncSingleArticle(result);
             }, (e) => {
-                this.promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl);
+                if (!e || (e.name !== "Canceled")) {
+                    // If there was an error downloading the article, then prompt
+                    // to open in a browser
+                    this.promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl);
+                }
+
+                spinner.complete(false);
+
                 return null;
+            }).then((result) => {
+                // Make sure we pass along any downloaded bookmark data
+                return result;
             });
+
+            return {
+                article: downloadAndOpen,
+                displayComplete() {
+                    spinner.complete(true);
+                }
+            };
         }
 
         private promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl: Windows.Foundation.Uri): void {
