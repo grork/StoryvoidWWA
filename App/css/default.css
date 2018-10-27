@@ -1195,3 +1195,28 @@ button.margin-increase .win-commandimage {
 .noTitleSpacer .signedIn-header {
     padding-top: 0px;
 }
+
+.fullscreenspinner-dialog.dialog {
+    z-index: 500;
+}
+
+.fullscreenspinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fullscreenspinner-container > * {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.fullscreenspinner-container > progress.win-progress-ring {
+    width: 100px;
+    height: 100px;
+}
+
+.fullscreenspinner-dialog:focus {
+    border-style: none;
+    outline: none;
+}

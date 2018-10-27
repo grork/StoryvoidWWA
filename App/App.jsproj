@@ -169,6 +169,7 @@
     <TypeScriptCompile Include="js\Telemetry.ts" />
     <TypeScriptCompile Include="js\TelemetrySettings.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
+    <TypeScriptCompile Include="js\ui\FullscreenSpinner.ts" />
     <TypeScriptCompile Include="js\ui\Sharing.ts" />
     <TypeScriptCompile Include="js\ui\TitleBarSpacerHelper.ts" />
     <TypeScriptCompile Include="OverlayScrollbars\OverlayScrollbars.d.ts" />
