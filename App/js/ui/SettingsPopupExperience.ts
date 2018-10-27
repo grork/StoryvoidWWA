@@ -43,8 +43,8 @@
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.element, {
                     keydown: (e: KeyboardEvent) => {
-                        switch (e.key.toLowerCase()) {
-                            case "esc":
+                        switch (e.keyCode) {
+                            case WinJS.Utilities.Key.escape:
                                 this.close(null);
                                 break;
                         }
@@ -126,7 +126,6 @@
                 keydown: (e: KeyboardEvent) => {
                     switch (e.keyCode) {
                         case WinJS.Utilities.Key.escape:
-                            console.log("Escaped");
                             if (dropDown.isOpen) {
                                 e.stopPropagation();
                             }
