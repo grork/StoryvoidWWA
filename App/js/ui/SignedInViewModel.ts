@@ -609,6 +609,14 @@
         }
 
         private displayArticle(bookmark_id: number, restoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
+            const openArticle = (bookmarkToOpen, isRestoring): WinJS.Promise<any> => {
+                if (!bookmarkToOpen) {
+                    return null;
+                }
+
+                return this.showArticle(bookmarkToOpen, isRestoring);
+            };
+            
             return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
                 if (!bookmark && !originalUrl) {
                     // No bookmark locally, and no original URL for us to fallback to, means we
@@ -617,18 +625,18 @@
                 }
 
                 if (!bookmark) {
-                    // Attempt to download it from the service
-                    return this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl);
+                    // Attempt to download it from the service, but do not
+                    // allow the promise chain to wait on it, so if the download
+                    // takes a really long time we're not sat at the splasyscreen
+                    this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl).then((downloadedBookmark) => {
+                        return openArticle(downloadedBookmark, false);
+                    }).done(null, () => { });
+
+                    return null;
                 }
 
                 return this.refreshBookmarkWithLatestReadProgress(bookmark);
-            }).then((bookmark) => {
-                if (!bookmark) {
-                    return;
-                }
-
-                return this.showArticle(bookmark, restoring);
-            });
+            }).then(bookmark => openArticle(bookmark, restoring));
         }
 
         private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): WinJS.Promise<IBookmark> {
