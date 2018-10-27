@@ -121,6 +121,15 @@ module Codevoid.Storyvoid.UI {
                 item.setAttribute("allowfullscreen", "");
             });
 
+            // Find all images, and set draggable attribute to false to prevent dragging
+            // of images.
+            const images = document.querySelectorAll("img");
+            Array.prototype.forEach.call(images, (item: HTMLImageElement) => {
+                // Merely setting it, even empty, enables the full screen button in
+                // the youtube player.
+                item.setAttribute("draggable", "false");
+            });
+
             setTimeout(() => this._updateHeaderContainerHeight(), 0);
         }
 
