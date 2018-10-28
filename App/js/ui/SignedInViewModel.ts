@@ -578,7 +578,7 @@
                     // before showing it. We're trading off time/jank for correct state.
                     // Note, that the article could have gone away, so we need to handle
                     // the errors by dropping them silently.
-                    articleDisplay = this.displayArticle(lastViewedArticleId, true, originalUrl);
+                    articleDisplay = this.externallyInintiatedDisplayArticle(lastViewedArticleId, true, originalUrl);
                 }
 
                 return articleDisplay;
@@ -605,45 +605,44 @@
                 return;
             }
 
-            this.displayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
+            this.externallyInintiatedDisplayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
         }
 
-        private displayArticle(bookmark_id: number, restoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
-            const openArticle = (bookmarkToOpen, isRestoring): WinJS.Promise<any> => {
-                if (!bookmarkToOpen) {
-                    return null;
-                }
+        private _externallyInitiatedDisplayArticle: WinJS.Promise<any>;
 
-                return this.showArticle(bookmarkToOpen, isRestoring);
-            };
-            
-            return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
-                if (!bookmark && !originalUrl) {
-                    // No bookmark locally, and no original URL for us to fallback to, means we
-                    // can't try and ask the service, since we don't have anything to fallback to
-                    return null;
-                }
+        private externallyInintiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
+            if (this._externallyInitiatedDisplayArticle) {
+                this._externallyInitiatedDisplayArticle.cancel();
+                this._externallyInitiatedDisplayArticle = null;
+            }
 
+            let completionHandler: () => void;
+
+            this._externallyInitiatedDisplayArticle = this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
                 if (!bookmark) {
                     // Attempt to download it from the service, but do not
                     // allow the promise chain to wait on it, so if the download
                     // takes a really long time we're not sat at the splasyscreen
                     const downloadResult = this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl);
 
-                    downloadResult.article.then((downloadedBookmark) => {
-                        return openArticle(downloadedBookmark, false);
-                    }).then(null, () => { }).done(() => {
+                    isRestoring = false;
+                    completionHandler = downloadResult.displayComplete;
 
-                        // Once the promise from displaying the the article is complete
-                        // We can 
-                        downloadResult.displayComplete();
-                    });
-
-                    return null;
+                    return downloadResult.downloaded;
                 }
 
                 return this.refreshBookmarkWithLatestReadProgress(bookmark);
-            }).then(bookmark => openArticle(bookmark, restoring));
+            }).then((bookmarkToShow) => {
+                return this.showArticle(bookmarkToShow, isRestoring);
+            }).then(null, () => { }).then(() => {
+                if (completionHandler) {
+                    completionHandler();
+                }
+
+                this._externallyInitiatedDisplayArticle = null;
+            });
+
+            return this._externallyInitiatedDisplayArticle;
         }
 
         private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): WinJS.Promise<IBookmark> {
@@ -664,7 +663,7 @@
             }, () => bookmark);
         }
 
-        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): { article: WinJS.Promise<IBookmark>; displayComplete(): void } {
+        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): { downloaded: WinJS.Promise<IBookmark>; displayComplete(): void } {
             const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
             let spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
             spinner.show({ after: 2000 });
@@ -677,15 +676,15 @@
                     return;
                 }
 
-                // If it's not successful, dismiss the spinner 
+                // If it's not successful, dismiss the spinner
                 downloadAndOpen.cancel();
             });
 
             // Get the article state from the service
             let downloadAndOpen = bookmarksApi.updateReadProgress({
-                bookmark_id: bookmark_id,
-                progress: 0.0,
-                progress_timestamp: 1,
+                    bookmark_id: bookmark_id,
+                    progress: 0.0,
+                    progress_timestamp: 1,
             }).then((result: IBookmark) => {
                 // Insert it as an orphan into the DB
                 result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
@@ -694,22 +693,18 @@
                 // Get The content from the service using the orphan bookmark we added
                 return this.syncSingleArticle(result);
             }, (e) => {
-                if (!e || (e.name !== "Canceled")) {
-                    // If there was an error downloading the article, then prompt
-                    // to open in a browser
+                if ((!e || (e.name !== "Canceled")) && originalUrl) {
+                    // If there was an error downloading the article but not a cancellation
+                    // then prompt to open in a browser
                     this.promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl);
                 }
 
                 spinner.complete(false);
-
                 return null;
-            }).then((result) => {
-                // Make sure we pass along any downloaded bookmark data
-                return result;
             });
 
             return {
-                article: downloadAndOpen,
+                downloaded: downloadAndOpen,
                 displayComplete() {
                     spinner.complete(true);
                 }
