@@ -690,6 +690,7 @@
         public isRestoring: boolean = true;
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
+            this.updateCurrentArticle(this);
             this._eventSource = new Utilities.EventSource();
 
             this._initializeToggleCommand();
@@ -719,7 +720,7 @@
             this._closeArticleCommand = new WinJS.UI.Command(null, {
                 tooltip: "Close (Esc)",
                 icon: WinJS.UI.AppBarIcon.back,
-                onclick: () => this.eventSource.dispatchEvent("dismiss", null)
+                onclick: this.closeArticle.bind(this),
             });
 
             this._shareCommand = new WinJS.UI.Command(null, Codevoid.Storyvoid.UI.Sharing.instance.getShareCommand());
@@ -764,6 +765,12 @@
                     progress: this.bookmark.progress,
                     progress_timestamp: this.bookmark.progress_timestamp
                 }).done(() => { }, () => { });
+            }
+
+            // When cleaning up, make sure we remove the reference to ourselves
+            // as the current article ('cause, you know, we're no longer current)
+            if (ArticleViewerViewModel._currentArticle === this) {
+                ArticleViewerViewModel._currentArticle = null;
             }
         }
 
@@ -842,6 +849,24 @@
                     this._handleLinkInvocation(e.detail);
                 }
             });
+        }
+
+        private closeArticle(): void {
+            this.eventSource.dispatchEvent("dismiss", null)
+        }
+
+        private static _currentArticle: ArticleViewerViewModel;
+        private updateCurrentArticle(article: ArticleViewerViewModel): void {
+            if (ArticleViewerViewModel._currentArticle) {
+                // Hide it quickly so that keyboard focus does
+                // the right thing, rather than showing, and then hiding
+                // which will cause the keyboard focus will be in the
+                // wrong place (Not in the article)
+                ArticleViewerViewModel._currentArticle.closeArticle();
+                ArticleViewerViewModel._currentArticle = null;
+            }
+
+            ArticleViewerViewModel._currentArticle = article;
         }
 
         public updateProgress(progress: number): void {
