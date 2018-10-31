@@ -11,6 +11,7 @@ declare function deepEqual(actual: any, expected: any, message: string);
 declare function notDeepEqual(actual: any, expected: any, message: string);
 declare function strictEqual(actual: any, expected: any, message: string);
 declare function notStrictEqual(actual: any, expected: any, message: string);
+declare function raises(block: () => void, expected?: any, message?: string);
 declare var QUnit: QUnit;
 
 interface QUnit {

@@ -5,8 +5,6 @@ module CodevoidTests.InstapaperArticleSyncTests {
     import util = Codevoid.Utilities;
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
-    var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
-    var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
 
     QUnit.module("AutoSyncWatcher");
 

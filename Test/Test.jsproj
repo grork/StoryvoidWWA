@@ -106,6 +106,7 @@
     <TypeScriptCompile Include="js\tests\InstapaperArticleSync_tests.ts" />
     <TypeScriptCompile Include="js\tests\Settings_Tests.ts" />
     <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
+    <TypeScriptCompile Include="js\tests\WhatToRead_tests.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
     <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
     <TypeScriptCompile Include="js\tests\AutoSyncWatcher_tests.ts" />
@@ -159,6 +160,9 @@
     </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\AutoSyncWatcher.ts">
       <Link>js\AutoSyncWatcher.ts</Link>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="..\App\js\WhatToRead.ts">
+      <Link>js\WhatToRead.ts</Link>
     </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>

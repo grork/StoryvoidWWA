@@ -137,11 +137,11 @@ declare module Codevoid.Storyvoid {
     }
 
     export interface IBookmark {
+        title: string;
+        url: string;
         bookmark_id: number;
         progress: number;
         progress_timestamp: number;
-        title: string;
-        url: string;
         folder_id: string;
         folder_dbid: number;
         time: number;
@@ -172,7 +172,7 @@ declare module Codevoid.Storyvoid {
 
     export class InstapaperDB {
         constructor();
-        initialize(): WinJS.Promise<InstapaperDB>;
+        initialize(name?: string, version?: string): WinJS.Promise<InstapaperDB>;
         deleteAllData(): WinJS.Promise<any>;
         dispose(): void;
 
