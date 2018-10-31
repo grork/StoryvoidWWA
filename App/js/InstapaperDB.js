@@ -24,15 +24,20 @@
             }
 
             return func.apply(this, arguments);
-        }
+        };
     }
 
     WinJS.Namespace.define("Codevoid.Storyvoid", {
         InstapaperDB: WinJS.Class.mix(WinJS.Class.define(function InstapaperDB_Constructor() {
         }, {
             _db: null,
+            _name: null,
+            _version: null,
             commonFolderDbIds: null,
-            initialize: function initialize() {
+            initialize: function initialize(name, version) {
+                this._name = name || Codevoid.Storyvoid.InstapaperDB.DBName;
+                this._version = version || Codevoid.Storyvoid.InstapaperDB.DBVersion;
+
                 var schema = {};
                 schema[Codevoid.Storyvoid.InstapaperDB.DBBookmarksTable] = {
                     key: {
@@ -84,8 +89,8 @@
                 };
 
                 return db.open({
-                    server: Codevoid.Storyvoid.InstapaperDB.DBName,
-                    version: Codevoid.Storyvoid.InstapaperDB.DBVersion,
+                    server: this._name,
+                    version: this._version,
                     schema: schema,
                 }, Codevoid.Storyvoid.InstapaperDB.createDefaultData).then(function saveDbDuringInit(db) {
                     this._db = db;
@@ -713,7 +718,7 @@
             }),
             deleteAllData: checkDb(function () {
                 this.dispose();
-                return db.deleteDb(Codevoid.Storyvoid.InstapaperDB.DBName);
+                return db.deleteDb(this._name);
             }),
             dispose: function dispose() {
                 if (this._db) {

@@ -12,8 +12,8 @@
         pendingDbs = [];
     }
 
-    function getNewInstapaperDBAndInit() {
-        return new InstapaperDB().initialize().then(function (idb) {
+    function getNewInstapaperDBAndInit(name, version) {
+        return new InstapaperDB().initialize(name, version).then(function (idb) {
             pendingDbs.push(idb);
 
             return idb;
@@ -60,7 +60,7 @@
         });
     }
 
-    function deleteDb() {
+    function deleteDb(name) {
         pendingDbs.forEach(function (idb) {
             idb.dispose();
         });
@@ -68,7 +68,7 @@
         pendingDbs = [];
 
         return WinJS.Promise.timeout().then(function () {
-            return db.deleteDb(InstapaperDB.DBName);
+            return db.deleteDb(name || InstapaperDB.DBName);
         }).then(function () {
             ok(true);
         });

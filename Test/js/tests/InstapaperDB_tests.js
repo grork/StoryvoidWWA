@@ -330,7 +330,6 @@
 
     module("InstapaperDBBookmarks");
 
-
     function emptyUnreadBookmarksTableReturnsEmptyData() {
         return getNewInstapaperDBAndInit().then(function (idb) {
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
@@ -1569,4 +1568,86 @@
             strictEqual(data.archive.deletes[0].type, InstapaperDB.BookmarkChangeTypes.DELETE, "Incorrect edit type");
         });
     });
+
+    module("InstapaperDBCore");
+    function deleteCoreInfraDbs() {
+        return WinJS.Promise.join([
+            deleteDb("One"),
+            deleteDb("Two"),
+        ]);
+    }
+
+    promiseTest("deleteCoreDbs", deleteCoreInfraDbs);
+
+    function canCreateTwoDataBasesAndTheyreIsolated() {
+        const dbNameOne = "One";
+        const dbNameTwo = "Two";
+        let dbOne;
+        let dbTwo;
+
+        const bookmarkOne = {
+            title: "Bookmark1",
+            bookmark_id: "1",
+            folder_dbid: null,
+        };
+
+        const bookmarkTwo = {
+            title: "Bookmark2",
+            bookmark_id: "2",
+            folder_dbid: null
+        };
+
+        return WinJS.Promise.join([
+            getNewInstapaperDBAndInit(dbNameOne),
+            getNewInstapaperDBAndInit(dbNameTwo)
+        ]).then((result) => {
+            dbOne = result[0];
+            dbTwo = result[1];
+            bookmarkOne.folder_dbid = dbOne.commonFolderDbIds.unread;
+            bookmarkTwo.folder_dbid = dbTwo.commonFolderDbIds.unread;
+
+            return WinJS.Promise.join([
+                dbOne.addBookmark(bookmarkOne),
+                dbTwo.addBookmark(bookmarkTwo)
+            ]);
+        }).then(() => {
+            return WinJS.Promise.join([
+                dbOne.listCurrentBookmarks(),
+                dbTwo.listCurrentBookmarks()
+            ]);
+        }).then((result) => {
+            strictEqual(result[0].length, 1, "Wrong number of bookmarks in DB 1");
+            strictEqual(result[1].length, 1, "Wrong number of bookmarks in DB 2");
+
+            strictEqual(result[0][0].title, bookmarkOne.title, "DB one bookmark has wrong title");
+            strictEqual(result[0][0].bookmark_id, bookmarkOne.bookmark_id, "DB one bookmark has wrong ID");
+
+            strictEqual(result[1][0].title, bookmarkTwo.title, "DB two bookmark has wrong title");
+            strictEqual(result[1][0].bookmark_id, bookmarkTwo.bookmark_id, "DB two bookmark has wrong ID");
+
+            return WinJS.Promise.join([
+                dbOne.deleteAllData(),
+                dbTwo.deleteAllData()
+            ]).then(() => {
+                return WinJS.Promise.join([
+                    getNewInstapaperDBAndInit(dbNameOne),
+                    getNewInstapaperDBAndInit(dbNameTwo),
+                ]);
+            }).then((result) => {
+                dbOne = result[0];
+                dbTwo = result[0];
+            });
+        }).then(() => {
+            return WinJS.Promise.join([
+                dbOne.listCurrentBookmarks(),
+                dbTwo.listCurrentBookmarks()
+            ]);
+        }).then((result) => {
+            strictEqual(result[0].length, 0, "Wrong number of bookmarks in DB 1");
+            strictEqual(result[1].length, 0, "Wrong number of bookmarks in DB 2");
+        });
+    }
+
+    promiseTest("canCreateTwoDataBasesAndTheyreIsolated", canCreateTwoDataBasesAndTheyreIsolated);
+    promiseTest("deleteCoreDbsPostTest", deleteCoreInfraDbs);
 })();
