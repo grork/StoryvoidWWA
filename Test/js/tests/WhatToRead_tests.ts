@@ -67,7 +67,7 @@ module CodevoidTests.WhatToReadTests {
 
 
         // NB: Oldest is the lowest number
-        bookmarks[3].progress_timestamp = -1; // Oldest
+        bookmarks[3].progress_timestamp = 1; // Oldest
         bookmarks[5].progress_timestamp = timestamp * 2; // Newest
         bookmarks[7].progress_timestamp = 10; // Second newest
 
@@ -103,7 +103,7 @@ module CodevoidTests.WhatToReadTests {
             // Basic info
             strictEqual(firstGroup.name, "Recently Read", "First group had the wrong title");
             ok(Array.isArray(firstGroup.bookmarks), "First group bookmarks didn't have an array");
-            strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in first group");
+            strictEqual(firstGroup.bookmarks.length, 3, "Wrong number of bookmarks in first group");
 
             strictEqual(secondGroup.name, "Recently Added", "Second group had the wrong title");
             ok(Array.isArray(secondGroup.bookmarks), "Second group bookmarks didn't have an array");
@@ -123,4 +123,58 @@ module CodevoidTests.WhatToReadTests {
         });
     });
 
+    dbTest("emptyDbReturnsNoGroups", (db) => {
+        const toRead = new Codevoid.Storyvoid.WhatToRead(db);
+        return toRead.getStuffToRead().then((result) => {
+            ok(!!result, "Didn't get a result set");
+            strictEqual(result.length, 0, "Wrong number of groups");
+        });
+    });
+
+    dbTest("noItemsWithProgressReturnsOnlyAddedGroup", (db) => {
+        const toRead = new Codevoid.Storyvoid.WhatToRead(db);
+        const originalBookmarks = getSampleBookmarks(db.commonFolderDbIds.unread);
+        originalBookmarks.forEach((item) => {
+            item.progress_timestamp = 0;
+        });
+
+        return addBookmarksToDb(originalBookmarks, db).then(() => {
+            return toRead.getStuffToRead();
+        }).then((result) => {
+            ok(!!result, "Didn't get a result set");
+            strictEqual(result.length, 1, "Wrong number of groups");
+
+            const firstGroup = result[0];
+
+            strictEqual(firstGroup.name, "Recently Added", "Group had the wrong title");
+            ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
+            strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in group");
+
+            // Check that items don't have progress
+            ok(firstGroup.bookmarks.every((item) => (item.progress_timestamp === 0)), "Despite no progress group, items have progress");
+        });
+    });
+
+    dbTest("onlyReadGroupReturnedWhenAllItemsHaveProgressButTotalItemsAreAtLimitOfGroupSize", (db) => {
+        const toRead = new Codevoid.Storyvoid.WhatToRead(db);
+        const originalBookmarks = getSampleBookmarks(db.commonFolderDbIds.unread).slice(0, 5);
+        originalBookmarks.forEach((item) => {
+            item.progress = 0.5;
+            item.progress_timestamp = 1;
+        });
+
+        return addBookmarksToDb(originalBookmarks, db).then(() => {
+            return toRead.getStuffToRead();
+        }).then((result) => {
+            ok(!!result, "Didn't get a result set");
+            strictEqual(result.length, 1, "Wrong number of groups");
+
+            const firstGroup = result[0];
+
+            // Basic info
+            strictEqual(firstGroup.name, "Recently Read", "Group had the wrong title");
+            ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
+            strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in the group");
+        });
+    });
 }
