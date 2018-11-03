@@ -49,6 +49,10 @@
         return 0;
     }
 
+    function hasProgress(item: IBookmark): boolean {
+        return (item.progress_timestamp > 0);
+    }
+
     export interface IReadGroup {
         readonly name: string;
         readonly bookmarks: IBookmark[];
@@ -70,7 +74,7 @@
                 byAdded.sort(sortByNewlyAdded);
 
                 // Clamp recently read to 5
-                byRecentlyRead = byRecentlyRead.slice(0, 5);
+                byRecentlyRead = byRecentlyRead.filter(hasProgress).slice(0, 5);
 
                 // Build list of id's that are in the top-5
                 const readIds: { [id: number]: boolean } = {};
@@ -83,16 +87,23 @@
                     return !readIds[added.bookmark_id];
                 }).slice(0, 5);
 
-                return [
-                    {
+                const result = [];
+
+                if (byRecentlyRead.length) {
+                    result.push({
                         name: "Recently Read",
                         bookmarks: byRecentlyRead
-                    },
-                    {
+                    });
+                }
+
+                if (byAdded.length) {
+                    result.push({
                         name: "Recently Added",
                         bookmarks: byAdded
-                    }
-                ];
+                    });
+                }
+
+                return result;
             });
         }
     }
