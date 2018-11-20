@@ -59,6 +59,8 @@
     }
 
     export class WhatToRead {
+        private _jumpListSaveInProgress: WinJS.Promise<void>;
+
         constructor(private db: InstapaperDB) {
             if (!db) {
                 throw new Error("Must supply DB object");
@@ -105,6 +107,44 @@
 
                 return result;
             });
+        }
+
+        public refreshJumplists(): void {
+            if (this._jumpListSaveInProgress) {
+                return;
+            }
+
+            this._jumpListSaveInProgress = WinJS.Promise.join({
+                currentList: Windows.UI.StartScreen.JumpList.loadCurrentAsync(),
+                groups: this.getStuffToRead()
+            }).then((result: { currentList: Windows.UI.StartScreen.JumpList; groups: IReadGroup[] }) => {
+                result.currentList.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
+                result.currentList.items.clear();
+
+                const jumpListItem = Windows.UI.StartScreen.JumpListItem;
+                result.groups.forEach((group) => {
+                    group.bookmarks.forEach((bookmark) => {
+                        const uri = `storyvoid://openarticle/?bookmark_id=${bookmark.bookmark_id}&original_uri=${bookmark.url}`;
+                        const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
+                        jumpItem.groupName = group.name;
+                        result.currentList.items.append(jumpItem);
+                    });
+                });
+
+                return result.currentList.saveAsync();
+            }).then(null, () => {
+                Telemetry.instance.track("ErrorSavingJumpList", null);
+            }).then(() => {
+                this._jumpListSaveInProgress = null;
+            });
+        }
+
+        public static clearJumpList(): WinJS.Promise<void> {
+            return Windows.UI.StartScreen.JumpList.loadCurrentAsync().then((list) => {
+                list.items.clear();
+                list.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
+                return list.saveAsync();
+            }).then(null, () => { });
         }
     }
 }

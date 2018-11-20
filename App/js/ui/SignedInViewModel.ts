@@ -5,6 +5,36 @@
         Telemetry.instance.track("ArticleBodyDownloaded", toPropertySet({ duration: e.detail.articleDownloadDuration }));
     }
 
+    function sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+        if (firstBookmark.time < secondBookmark.time) {
+            return -1;
+        } else if (firstBookmark.time > secondBookmark.time) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    function sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+        if (firstBookmark.time < secondBookmark.time) {
+            return 1;
+        } else if (firstBookmark.time > secondBookmark.time) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+    function sortMostProgressFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
+        if (firstBookmark.progress < secondBookmark.progress) {
+            return -1;
+        } else if (firstBookmark.progress > secondBookmark.progress) {
+            return 1;
+        } else {
+            return sortOldestFirst(firstBookmark, secondBookmark);
+        }
+    }
+
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
@@ -46,6 +76,8 @@
         private static _sorts: ISortsInfo[];
         private _currentSync: { signal: Codevoid.Utilities.Signal; cancellationSource: Codevoid.Utilities.CancellationSource };
         private _autoSyncWatcher: AutoSyncWatcher;
+        private _jumpListIdleWriter: Utilities.Debounce;
+        private _whatToRead: WhatToRead;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
@@ -341,6 +373,8 @@
                             bookmarksRemoved++;
                             break;
                     }
+
+                    this._jumpListIdleWriter.bounce();
                 },
                 folderschanged: (eventData: Utilities.EventObject<IFoldersChangedEvent>) => {
                     switch (eventData.detail.operation) {
@@ -352,6 +386,8 @@
                             foldersRemoved++;
                             break;
                     }
+
+                    this._jumpListIdleWriter.bounce();
                 },
             });
 
@@ -385,6 +421,7 @@
                             }
 
                             this._logTotalHomeAndFoldersForTelemetry();
+                            this._jumpListIdleWriter.bounce();
                             break;
                     }
                 },
@@ -441,6 +478,9 @@
                 },
             }));
 
+            this._whatToRead = new WhatToRead(this._instapaperDB);
+            this._jumpListIdleWriter = new Utilities.Debounce(() => this._whatToRead.refreshJumplists(), 1_000);
+
             this._instapaperDB.initialize().done((result) => {
                 this._dbOpened = true;
                 this._currentFolderDbId = this.commonFolderDbIds.unread;
@@ -487,6 +527,8 @@
                 this._currentSync.cancellationSource.cancel();
             }
 
+            this._jumpListIdleWriter.cancel();
+
             this.disposeDB();
 
             Telemetry.instance.track("SignedOut", toPropertySet({ clearingCredentials: clearCredentials }));
@@ -508,7 +550,8 @@
             return idb.initialize().then(() => {
                 return WinJS.Promise.join([
                     idb.deleteAllData(),
-                    this._cleanupDownloadedArticles()
+                    this._cleanupDownloadedArticles(),
+                    WhatToRead.clearJumpList(),
                 ]);
             }).then(() => {
                 this._clientInformation = null;
@@ -1289,43 +1332,13 @@
         public static get sorts(): ISortsInfo[] {
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [
-                    { label: "Oldest", sort: SortOption.Oldest, comparer: SignedInViewModel.sortOldestFirst },
-                    { label: "Newest", sort: SortOption.Newest, comparer: SignedInViewModel.sortNewestFirst },
-                    { label: "Progress", sort: SortOption.Progress, comparer: SignedInViewModel.sortMostProgressFirst },
+                    { label: "Oldest", sort: SortOption.Oldest, comparer: sortOldestFirst },
+                    { label: "Newest", sort: SortOption.Newest, comparer: sortNewestFirst },
+                    { label: "Progress", sort: SortOption.Progress, comparer: sortMostProgressFirst },
                 ];
             }
 
             return SignedInViewModel._sorts;
-        }
-
-        private static sortOldestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
-            if (firstBookmark.time < secondBookmark.time) {
-                return -1;
-            } else if (firstBookmark.time > secondBookmark.time) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-
-        private static sortNewestFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
-            if (firstBookmark.time < secondBookmark.time) {
-                return 1;
-            } else if (firstBookmark.time > secondBookmark.time) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-
-        private static sortMostProgressFirst(firstBookmark: IBookmark, secondBookmark: IBookmark): number {
-            if (firstBookmark.progress < secondBookmark.progress) {
-                return -1;
-            } else if (firstBookmark.progress > secondBookmark.progress) {
-                return 1;
-            } else {
-                return SignedInViewModel.sortOldestFirst(firstBookmark, secondBookmark);
-            }
         }
     }
 }
