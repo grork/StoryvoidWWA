@@ -907,4 +907,149 @@
 
         ok(!customCalled, "Didn't expect custom handler to be called after detaching them");
     });
+
+    module("DebounceTests");
+
+    test("constructingDebounceWithoutOperationOrTimeoutFails", () => {
+        let failed = false;
+        try {
+            let constructed = new Codevoid.Utilities.Debounce(null, null);
+        } catch (e) {
+            failed = true;
+        }
+
+        ok(failed, "Didn't get failure constructoring object without parameters");
+    });
+
+    test("constructingDebounceWithoutOperationButWithTimeoutFails", () => {
+        let failed = false;
+        try {
+            let constructed = new Codevoid.Utilities.Debounce(null, 1);
+        } catch (e) {
+            failed = true;
+        }
+
+        ok(failed, "Didn't get failure constructoring object without operation");
+    });
+
+    test("constructingDebounceWithOperationButWithouyTimeoutFails", () => {
+        let failed = false;
+        try {
+            let constructed = new Codevoid.Utilities.Debounce(() => { }, 0);
+        } catch (e) {
+            failed = true;
+        }
+
+        ok(failed, "Didn't get failure constructoring object without timeout");
+    });
+
+    promiseTest("debouncingDoesNotHappenWithoutBouncing", () => {
+        let completeCallback = null;
+        let wasCalled = false;
+        let completionPromise = new WinJS.Promise(function (c, e, p) {
+            completeCallback = () => {
+                wasCalled = true;
+                c();
+            }
+        });
+
+        let bouncer = new Codevoid.Utilities.Debounce(() => {
+            completeCallback();
+        }, 1);
+
+        return WinJS.Promise.any([
+            WinJS.Promise.timeout(10),
+            completionPromise
+        ]).then((results) => {
+            ok(!wasCalled, "Did not expect completion handler to be called");
+        });
+    });
+
+    promiseTest("debouncingHappensAfterOneBounce", () => {
+        let completeCallback = null;
+        let wasCalled = false;
+        let completionPromise = new WinJS.Promise(function (c, e, p) {
+            completeCallback = () => {
+                wasCalled = true;
+                c();
+            }
+        });
+
+        let bouncer = new Codevoid.Utilities.Debounce(() => {
+            completeCallback();
+        }, 1);
+
+        bouncer.bounce();
+
+        return WinJS.Promise.any([
+            WinJS.Promise.timeout(100),
+            completionPromise
+        ]).then((results) => {
+            ok(wasCalled, "Did not expect completion handler to be called");
+            equal(results.key, "1", "Wrong promise completed");
+        });
+    });
+
+    promiseTest("debouncingHappensDelayedOverMultipleBounces", () => {
+        let end = -1;
+        let completeCallback = null;
+        let wasCalled = false;
+        let completionPromise = new WinJS.Promise(function (c, e, p) {
+            completeCallback = () => {
+                end = Date.now() - start;
+                wasCalled = true;
+                c();
+            }
+        });
+
+
+        let bouncer = new Codevoid.Utilities.Debounce(() => {
+            completeCallback();
+        }, 20);
+
+        const resetBounce = () => bouncer.bounce();
+
+        const start = Date.now();
+        resetBounce(); // Start it
+        setTimeout(resetBounce, 15); // Bounce to 35ms
+        setTimeout(resetBounce, 30); // Bounce to 50ms
+        setTimeout(resetBounce, 45); // Bounce to 65ms
+
+        return WinJS.Promise.join([
+            WinJS.Promise.timeout(20),
+            completionPromise
+        ]).then((results) => {
+            ok(wasCalled, "Did not expect completion handler to be called");
+            ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
+            ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
+        });
+    });
+
+    promiseTest("debouncingAfterCompletionDoesNotCompleteASecondTime", () => {
+        let completionCount = 0;
+        let completeCallback = null;
+        let wasCalled = false;
+        let completionPromise = new WinJS.Promise(function (c, e, p) {
+            completeCallback = () => {
+                completionCount += 1;
+                wasCalled = true;
+                c();
+            }
+        });
+
+
+        let bouncer = new Codevoid.Utilities.Debounce(() => {
+            completeCallback();
+        }, 1);
+
+        bouncer.bounce();
+        setTimeout(() => { bouncer.bounce() }, 10)
+
+        return WinJS.Promise.join([
+            WinJS.Promise.timeout(30),
+            completionPromise
+        ]).then((results) => {
+            equal(completionCount, 1, "Bounce Completed more than once");
+        });
+    });
 })();
