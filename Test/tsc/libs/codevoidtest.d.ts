@@ -12,3 +12,7 @@ declare module CodevoidTests {
         disposed: boolean;
     }
 }
+
+declare module Codevoid.Storyvoid {
+    let Telemetry: any;
+}

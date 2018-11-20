@@ -3,7 +3,7 @@
 
     function extractLaunchInformationFromUri(uri: Windows.Foundation.Uri): UI.IAppLaunchInformation {
         if (!uri || uri.host !== "openarticle") {
-            return;
+            return null;
         }
 
         const result: UI.IAppLaunchInformation = {
@@ -59,6 +59,17 @@
             if (args.kind === Windows.ApplicationModel.Activation.ActivationKind.protocol) {
                 const protocolArgs = <Windows.UI.WebUI.WebUIProtocolActivatedEventArgs>(<any>args);
                 launchInformation = extractLaunchInformationFromUri(protocolArgs.uri)
+            } else if (args.arguments) {
+                // Jump lists don't pass a specific activation kind (it's just launch), so lets try parsing it as an argument
+                // *WHY WINDOWS, WHY*
+                let uriFromArgument: Windows.Foundation.Uri;
+                try {
+                    uriFromArgument = new Windows.Foundation.Uri(args.arguments);
+                } catch (e) {
+                    // Bad URI, assume bad actor
+                }
+
+                launchInformation = extractLaunchInformationFromUri(uriFromArgument);
             }
 
             if (!appInititialized) {
