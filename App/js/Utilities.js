@@ -1,6 +1,49 @@
 ﻿(function () {
     "use strict";
 
+    class DebounceImpl {
+        constructor(debounceOperation, idleTimeout) {
+            if (!debounceOperation) {
+                throw new Error("An operation must be supplied at construction time");
+            }
+
+            if (idleTimeout < 1) {
+                throw new Error("Timeout must be greater than 0");
+            }
+
+            this.completed = false;
+            this.idleTimeout = idleTimeout;
+            this.operation = () => {
+                if (this.completed) {
+                    return;
+                }
+
+                this.completed = true;
+                debounceOperation();
+            };
+
+            this.timeoutId = null;
+        }
+
+        cancel() {
+            if (this.timeoutId === null) {
+                return;
+            }
+
+            clearTimeout(this.timeoutId);
+        }
+
+        bounce() {
+            if (this.completed) {
+                return;
+            }
+
+            this.cancel();
+
+            this.timeoutId = setTimeout(this.operation, this.idleTimeout);
+        }
+    }
+
     if (!window.alert) {
         (function () {
             var alertsToShow = [];
@@ -84,6 +127,7 @@
                 this._progress(progressInfo);
             },
         }), WinJS.Utilities.eventMixin),
+        Debounce: DebounceImpl,
         /// <summary>
         /// Logging helper class that provides structured & unstructured logging.
         /// Structured in this case means support for saying "this message should be presented without reformatting"

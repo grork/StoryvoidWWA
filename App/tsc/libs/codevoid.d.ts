@@ -81,6 +81,12 @@ declare module Codevoid.Utilities {
 
         //#endregion Methods
     }
+
+    export class Debounce {
+        constructor(debouncedOperation: () => void, idleTimeout: number);
+        cancel(): void;
+        bounce(): void;
+    }
 }
 
 declare module Codevoid.OAuth {
