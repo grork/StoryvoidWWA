@@ -83,7 +83,7 @@ declare module Codevoid.Utilities {
     }
 
     export class Debounce {
-        constructor(debouncedOperation: () => void, idleTimeout: number);
+        constructor(debouncedOperation: () => void, idleTimeout: number, completeOnlyOnce?: boolean);
         cancel(): void;
         bounce(): void;
     }
