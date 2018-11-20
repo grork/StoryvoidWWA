@@ -2,7 +2,7 @@
     "use strict";
 
     class DebounceImpl {
-        constructor(debounceOperation, idleTimeout) {
+        constructor(debounceOperation, idleTimeout, completeOnlyOnce) {
             if (!debounceOperation) {
                 throw new Error("An operation must be supplied at construction time");
             }
@@ -12,9 +12,10 @@
             }
 
             this.completed = false;
+            this.completeOnlyOnce = completeOnlyOnce || false;
             this.idleTimeout = idleTimeout;
             this.operation = () => {
-                if (this.completed) {
+                if (this.completeOnlyOnce && this.completed) {
                     return;
                 }
 
@@ -34,7 +35,7 @@
         }
 
         bounce() {
-            if (this.completed) {
+            if (this.completeOnlyOnce && this.completed) {
                 return;
             }
 

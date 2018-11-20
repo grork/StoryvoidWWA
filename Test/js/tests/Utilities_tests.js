@@ -1040,7 +1040,7 @@
 
         let bouncer = new Codevoid.Utilities.Debounce(() => {
             completeCallback();
-        }, 1);
+        }, 1, true /*completeOnlyOnce*/);
 
         bouncer.bounce();
         setTimeout(() => { bouncer.bounce() }, 10)
@@ -1050,6 +1050,34 @@
             completionPromise
         ]).then((results) => {
             equal(completionCount, 1, "Bounce Completed more than once");
+        });
+    });
+
+    promiseTest("debouncingCanDebounceMoreThanOnce", () => {
+        let completionCount = 0;
+        let completeCallback = null;
+        let wasCalled = false;
+        let completionPromise = new WinJS.Promise(function (c, e, p) {
+            completeCallback = () => {
+                completionCount += 1;
+                wasCalled = true;
+                c();
+            }
+        });
+
+
+        let bouncer = new Codevoid.Utilities.Debounce(() => {
+            completeCallback();
+        }, 1);
+
+        bouncer.bounce();
+        setTimeout(() => { bouncer.bounce() }, 10)
+
+        return WinJS.Promise.join([
+            WinJS.Promise.timeout(30),
+            completionPromise
+        ]).then((results) => {
+            equal(completionCount, 2, "Bounce Completed more than once");
         });
     });
 })();
