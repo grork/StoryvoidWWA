@@ -200,6 +200,7 @@
                         const uri = `storyvoid://openarticle/?bookmark_id=${bookmark.bookmark_id}&original_uri=${bookmark.url}`;
                         const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
                         jumpItem.groupName = group.name;
+                        jumpItem.logo = new Windows.Foundation.Uri("ms-appx:///images/Article44x44.png");
                         items.push(jumpItem);
                     });
                 });
