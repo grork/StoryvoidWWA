@@ -986,7 +986,7 @@
             completionPromise
         ]).then((results) => {
             ok(wasCalled, "Did not expect completion handler to be called");
-            equal(results.key, "1", "Wrong promise completed");
+            strictEqual(results.key, "1", "Wrong promise completed");
         });
     });
 
@@ -1049,7 +1049,7 @@
             WinJS.Promise.timeout(30),
             completionPromise
         ]).then((results) => {
-            equal(completionCount, 1, "Bounce Completed more than once");
+            strictEqual(completionCount, 1, "Bounce Completed more than once");
         });
     });
 
@@ -1077,7 +1077,7 @@
             WinJS.Promise.timeout(30),
             completionPromise
         ]).then((results) => {
-            equal(completionCount, 2, "Bounce Completed more than once");
+            strictEqual(completionCount, 2, "Bounce Completed more than once");
         });
     });
 })();
