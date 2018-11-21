@@ -1,4 +1,6 @@
 ﻿module Codevoid.Storyvoid {
+    import StartScreen = Windows.UI.StartScreen;
+
     const unreadFolderId = InstapaperDB.CommonFolderIds.Unread;
 
     // Sorts things so that newest items (e.g. higher time value implies
@@ -49,13 +51,18 @@
         return 0;
     }
 
-    function hasProgress(item: IBookmark): boolean {
-        return (item.progress_timestamp > 0);
+    function hasProgressAndNotUnpinned(item: IBookmark): boolean {
+        return (item.progress_timestamp > 0) && !item.doNotAddToJumpList;
     }
 
     export interface IReadGroup {
         readonly name: string;
         readonly bookmarks: IBookmark[];
+    }
+
+    export interface IJumpListItem {
+        removedByUser: boolean;
+        arguments: string;
     }
 
     export class WhatToRead {
@@ -76,7 +83,7 @@
                 byAdded.sort(sortByNewlyAdded);
 
                 // Clamp recently read to 5
-                byRecentlyRead = byRecentlyRead.filter(hasProgress).slice(0, 5);
+                byRecentlyRead = byRecentlyRead.filter(hasProgressAndNotUnpinned).slice(0, 5);
 
                 // Build list of id's that are in the top-5
                 const readIds: { [id: number]: boolean } = {};
@@ -86,7 +93,7 @@
 
                 // Clamp recently added to 5 that _aren't_ also in the recently read list.
                 byAdded = byAdded.filter((added) => {
-                    return !readIds[added.bookmark_id];
+                    return !readIds[added.bookmark_id] && !added.doNotAddToJumpList;
                 }).slice(0, 5);
 
                 const result = [];
@@ -114,28 +121,88 @@
                 return;
             }
 
-            this._jumpListSaveInProgress = WinJS.Promise.join({
-                currentList: Windows.UI.StartScreen.JumpList.loadCurrentAsync(),
-                groups: this.getStuffToRead()
-            }).then((result: { currentList: Windows.UI.StartScreen.JumpList; groups: IReadGroup[] }) => {
-                result.currentList.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
-                result.currentList.items.clear();
+            let currentList: StartScreen.JumpList;
+            this._jumpListSaveInProgress = StartScreen.JumpList.loadCurrentAsync().then((list) => {
+                currentList = list;
+                return this._refreshJumpListImpl(list.items);
+            }).then(() => {
+                currentList.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
+                // Ignore errors, but trace them. This can be a flaked API, apparently
+                // https://blog.jayway.com/2018/05/31/uwp-jump-lists-done-right/
+                return currentList.saveAsync().then(null, () => Telemetry.instance.track("ErrorSavingJumpList", null));
+            }).then(() => {
+                this._jumpListSaveInProgress = null;
+            });
+        }
+
+        private _refreshJumpListImpl(items: IJumpListItem[]): WinJS.Promise<void> {
+            const removedDbIds: number[] = [];
+
+            // Process the current jump list items, and build
+            // a list of any explicitly removed items from the DB
+            items.forEach((current) => {
+                if (!current.removedByUser) {
+                    return;
+                }
+
+                let bookmarkId: number;
+                // Extract the IDs from the Uri
+                (new Windows.Foundation.Uri(current.arguments)).queryParsed.forEach((entry) => {
+                    switch (entry.name) {
+                        case "bookmark_id":
+                            bookmarkId = parseInt(entry.value, 10);
+                            break;
+                    }
+                });
+
+                if (!bookmarkId) {
+                    return;
+                }
+
+                removedDbIds.push(bookmarkId);
+            });
+
+            let updateRemovedPins: WinJS.Promise<void> = WinJS.Promise.as();
+            if (removedDbIds.length > 0) {
+                // Get bookmarks by the removed IDs
+                const bookmarks = removedDbIds.map((id) => {
+                    return this.db.getBookmarkByBookmarkId(id);
+                });
+
+                updateRemovedPins = WinJS.Promise.join(bookmarks).then((bookmarks: IBookmark[]) => {
+                    // Filter out any bookmarks that we didn't find (e.g. are null)
+                    bookmarks = bookmarks.filter(b => !!b);
+                    if (bookmarks.length < 1) {
+                        return WinJS.Promise.as([]);
+                    }
+
+                    // now update all the bookmarks to have the explicitlyUnpinned property
+                    const updates = bookmarks.map(bookmark => {
+                        bookmark.doNotAddToJumpList = true;
+                        return this.db.updateBookmark(bookmark, true /*dontRaiseChangeNotification*/);
+                    });
+
+                    return WinJS.Promise.join(updates);
+                });
+            }
+
+            return updateRemovedPins.then(() => {
+                // Since we've updated the DB with any explicitly
+                // removed items, we can just load from the DB
+                return this.getStuffToRead();
+            }).then((groups: IReadGroup[]) => {
+                // Convert the what to read list into the JumpList and save it.
+                items.length = 0;
 
                 const jumpListItem = Windows.UI.StartScreen.JumpListItem;
-                result.groups.forEach((group) => {
+                groups.forEach((group) => {
                     group.bookmarks.forEach((bookmark) => {
                         const uri = `storyvoid://openarticle/?bookmark_id=${bookmark.bookmark_id}&original_uri=${bookmark.url}`;
                         const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
                         jumpItem.groupName = group.name;
-                        result.currentList.items.append(jumpItem);
+                        items.push(jumpItem);
                     });
                 });
-
-                return result.currentList.saveAsync();
-            }).then(null, () => {
-                Telemetry.instance.track("ErrorSavingJumpList", null);
-            }).then(() => {
-                this._jumpListSaveInProgress = null;
             });
         }
 
