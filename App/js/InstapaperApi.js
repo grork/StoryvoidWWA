@@ -200,7 +200,10 @@
                     throw new Error("Requires URL");
                 }
 
-                var data = [{ key: "url", value: parameters.url }];
+                var data = [
+                    { key: "url", value: parameters.url },
+                    { key: "resolve_final_url", value: 0 }, // Don't resolve the URL to the final destination
+                ];
 
                 if (parameters.title) {
                     data.push({ key: "title", value: parameters.title });
