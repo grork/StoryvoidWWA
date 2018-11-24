@@ -90,6 +90,14 @@
                 },
                 articleclosed: () => {
                     this._contentList.element.focus();
+                },
+                uipresented: () => {
+                    // Delay the focus to give the list a chance to render
+                    setTimeout(() => {
+                        // Ensure the first item in the list gets focus.
+                        const documentBodyFocused = (document.body === document.activeElement);
+                        this._contentList.currentItem = { index: 0, hasFocus: documentBodyFocused };
+                    }, 500);
                 }
             }));
 
@@ -381,13 +389,6 @@
 
             this._contentList.itemDataSource.getCount().done((count) => {
                 this._updateEmptyStateBasedOnBookmarkCount(count);
-
-                // Delay the focus to give the list a chance to render
-                setTimeout(() => {
-                    // Ensure the first item in the list gets focus.
-                    const documentBodyFocused = (document.body === document.activeElement);
-                    this._contentList.currentItem = { index: 0, hasFocus: documentBodyFocused };
-                }, 500);
             });
         }
 
