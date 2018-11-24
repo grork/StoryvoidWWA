@@ -1,48 +1,6 @@
 ﻿module Codevoid.Storyvoid {
     let appInititialized = false;
 
-    function extractLaunchInformationFromUri(uri: Windows.Foundation.Uri): UI.IAppLaunchInformation {
-        if (!uri || uri.host !== "openarticle") {
-            return null;
-        }
-
-        const result: UI.IAppLaunchInformation = {
-            bookmark_id: 0,
-            originalUrl: null,
-        };
-
-        let rawBookmarkId: string;
-        let rawOriginalUrl: string;
-
-        // Theres no way on the queryParsed object to easily
-        // see if there is a key present, so just loop through
-        // them all and pull out the ones we're going to do
-        // something with.
-        uri.queryParsed.forEach((entry) => {
-            switch (entry.name) {
-                case "bookmark_id":
-                    rawBookmarkId = entry.value;
-                    break;
-
-                case "original_url":
-                    rawOriginalUrl = entry.value;
-                    break;
-            }
-        });
-
-        const bookmarkId = parseInt(rawBookmarkId, 10);
-        if (!isNaN(bookmarkId)) {
-            result.bookmark_id = bookmarkId;
-        }
-        
-        try {
-            const originalUrl = new Windows.Foundation.Uri(rawOriginalUrl);
-            result.originalUrl = originalUrl;
-        } catch { }
-
-        return result;
-    }
-
     export class App extends UI.AppThatCanSignIn {
         constructor() {
             super();
@@ -58,7 +16,7 @@
             let launchInformation: UI.IAppLaunchInformation;
             if (args.kind === Windows.ApplicationModel.Activation.ActivationKind.protocol) {
                 const protocolArgs = <Windows.UI.WebUI.WebUIProtocolActivatedEventArgs>(<any>args);
-                launchInformation = extractLaunchInformationFromUri(protocolArgs.uri)
+                launchInformation = Deeplinking.extractBookmarkInformationFromUri(protocolArgs.uri);
             } else if (args.arguments) {
                 // Jump lists don't pass a specific activation kind (it's just launch), so lets try parsing it as an argument
                 // *WHY WINDOWS, WHY*
@@ -69,7 +27,7 @@
                     // Bad URI, assume bad actor
                 }
 
-                launchInformation = extractLaunchInformationFromUri(uriFromArgument);
+                launchInformation = Deeplinking.extractBookmarkInformationFromUri(uriFromArgument);
             }
 
             if (!appInititialized) {
