@@ -305,6 +305,7 @@ declare module Codevoid.Storyvoid.UI {
         processLaunchInformation?(launchInformation: IAppLaunchInformation): void;
         signedIn(usingSavedCredentials: boolean): WinJS.Promise<any>;
         signInCompleted(): void;
+        uiPresented?(): void;
     }
 }
 

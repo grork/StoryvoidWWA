@@ -112,6 +112,7 @@
             // a startup flow, and thus no need to play an entrance
             // animation
             if (usingSavedCredentials) {
+                this.signedInViewModel.uiPresented();
                 return signedInResult;
             }
 
@@ -147,6 +148,7 @@
                     // Allow the ambient state of CSS apply at this point
                     signedInElement.style.transform = "";
                     signedOutElement.style.transform = "";
+                    this._signedInViewModel.uiPresented();
 
                     // If we'd actually seen an signedOutViewmodel, clean it up.
                     // This is what actually remove UI for signed out state from the DOM.

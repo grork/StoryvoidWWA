@@ -626,9 +626,6 @@
 
                 return articleDisplay;
             }).done(() => {
-                this.startSync(SyncReason.Launched);
-                this.refreshCurrentFolder();
-
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
@@ -636,8 +633,11 @@
                         completedSignal.complete();
                     });
                 } else {
+                    this.startSync(SyncReason.Launched);
                     completedSignal.complete();
                 }
+
+                this.refreshCurrentFolder();
             }, () => { });
 
             return completedSignal.promise;
@@ -886,11 +886,13 @@
                     syncarticlebodycompleted: logArticleDownloadTime
                 });
 
-                if (!parameters.skipArticleDownload) {
+                if (!parameters.skipArticleDownload && this._instapaperDB) {
                     return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancellationSource);
                 }
             }).then(() => {
-                return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
+                if (this._instapaperDB) {
+                    return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
+                }
             }).then(() => {
                 Utilities.Logging.instance.log("Completed Sync");
 
@@ -1323,6 +1325,10 @@
                 var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
             });
+        }
+
+        public uiPresented(): void {
+            this.events.dispatchEvent("uipresented", null);
         }
 
         private raiseCommandInvokedEvent(): void {
