@@ -164,6 +164,9 @@
     <TypeScriptCompile Include="..\App\js\WhatToRead.ts">
       <Link>js\WhatToRead.ts</Link>
     </TypeScriptCompile>
+        <TypeScriptCompile Include="..\App\js\Deeplinking.ts">
+      <Link>js\Deeplinking.ts</Link>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\ui\core.ts">
       <Link>js\ui\core.ts</Link>
     </TypeScriptCompile>

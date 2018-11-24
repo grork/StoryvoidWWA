@@ -1,4 +1,5 @@
-﻿module Codevoid.Storyvoid {
+﻿/// <reference path="deeplinking.ts" />
+module Codevoid.Storyvoid {
     import StartScreen = Windows.UI.StartScreen;
 
     const unreadFolderId = InstapaperDB.CommonFolderIds.Unread;
@@ -145,21 +146,12 @@
                     return;
                 }
 
-                let bookmarkId: number;
-                // Extract the IDs from the Uri
-                (new Windows.Foundation.Uri(current.arguments)).queryParsed.forEach((entry) => {
-                    switch (entry.name) {
-                        case "bookmark_id":
-                            bookmarkId = parseInt(entry.value, 10);
-                            break;
-                    }
-                });
-
-                if (!bookmarkId) {
+                const linkInformation = Deeplinking.extractBookmarkInformationFromUri(new Windows.Foundation.Uri(current.arguments));
+                if (!linkInformation.bookmark_id) {
                     return;
                 }
 
-                removedDbIds.push(bookmarkId);
+                removedDbIds.push(linkInformation.bookmark_id);
             });
 
             let updateRemovedPins: WinJS.Promise<void> = WinJS.Promise.as();
@@ -197,7 +189,7 @@
                 const jumpListItem = Windows.UI.StartScreen.JumpListItem;
                 groups.forEach((group) => {
                     group.bookmarks.forEach((bookmark) => {
-                        const uri = `storyvoid://openarticle/?bookmark_id=${bookmark.bookmark_id}&original_uri=${bookmark.url}`;
+                        const uri = Codevoid.Storyvoid.Deeplinking.getUriForBookmark(bookmark);
                         const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
                         jumpItem.groupName = group.name;
                         jumpItem.logo = new Windows.Foundation.Uri("ms-appx:///images/Article44x44.png");
