@@ -1042,10 +1042,13 @@
         public videoContentFillsWindow(): void {
             Telemetry.instance.track("VideoContentWentFullScreen", null);
             this._setScreenMode(ScreenMode.FullScreen);
+
+            this.displaySettings.temporarilyApplyTheme(Settings.Theme.Night);
         }
 
         public videoContentInline(): void {
             Telemetry.instance.track("VideoContentWentWindowed", null);
+            this.displaySettings.restoreSettings();
             this.switchToNormalWindowMode();
         }
 
@@ -1369,27 +1372,26 @@
         }
 
         public setTheme(theme: Settings.Theme): void {
-            let originalTheme = theme;
+            let targetTheme = theme;
             if (theme === Settings.Theme.MatchSystem) {
                 // When we're using the automatic theme, we need
                 // to defer to the UI theme that is being used,
                 // which itself can be automatic
-                theme = Settings.ViewerSettings.getDisplayedUITheme();
+                theme = Settings.ViewerSettings.getCurrentSystemTheme();
             }
 
             // Find the theme details we want
-            let themeDetails: IThemeDetails;
-            DisplaySettingsViewModel.themeDetails.forEach((details) => {
-                if (details.theme != theme) {
-                    return;
-                }
-
-                themeDetails = details;
-            });
+            let themeDetails = DisplaySettingsViewModel.getDetailsForTheme(theme);
 
             // tell everyone
             this._messenger.invokeForResult("settheme", themeDetails.viewerCssClass);
-            this._settings.currentTheme = originalTheme;
+            this._settings.currentTheme = targetTheme;
+            this._eventSource.dispatchEvent("settheme", themeDetails);
+        }
+
+        public temporarilyApplyTheme(theme: Settings.Theme): void {
+            const themeDetails = DisplaySettingsViewModel.getDetailsForTheme(theme);
+            this._messenger.invokeForResult("settheme", themeDetails.viewerCssClass);
             this._eventSource.dispatchEvent("settheme", themeDetails);
         }
 
@@ -1430,6 +1432,20 @@
             }
 
             return DisplaySettingsViewModel._themeDetails;
+        }
+
+        private static getDetailsForTheme(theme: Settings.Theme): IThemeDetails {
+            // Find the theme details we want
+            let themeDetails: IThemeDetails;
+            DisplaySettingsViewModel.themeDetails.forEach((details) => {
+                if (details.theme != theme) {
+                    return;
+                }
+
+                themeDetails = details;
+            });
+
+            return themeDetails;
         }
     }
 }
