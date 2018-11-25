@@ -96,11 +96,9 @@
             // Bounce the UI thread to allow layout to complete
             // so that things are positioned appropriately
             WinJS.Promise.timeout().done(() => {
-                var alignment = "top";
+                var alignment = "bottom";
                 
-                if (targetPosition.hasAttribute("aria-haspopup")) {
-                    alignment = "bottom";
-                } else if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
+                if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
                     alignment = "right";
                 }
 

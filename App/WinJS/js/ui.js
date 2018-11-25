@@ -10445,18 +10445,18 @@ define('WinJS/Animations',[
             // animations are prepared, so that we can begin every animation at once. We do this to avoid a small 1-2px gap appearing between the overflowArea
             // and the actionArea that would appear were we to start these animations at separate times
             if (menuPositionedAbove) {
-                actionArea.style[transformNames.scriptName] = "translateY(" + deltaHeight + "px)";
-                _ElementUtilities._getComputedStyle(actionArea).opacity;
-                var transition = _BaseUtils._merge(transitionToUse, { to: "translateY(0px)" });
-                actionAreaAnimations.push({ element: actionArea, transition: transition });
+                //actionArea.style[transformNames.scriptName] = "translateY(" + deltaHeight + "px)";
+                //_ElementUtilities._getComputedStyle(actionArea).opacity;
+                //var transition = _BaseUtils._merge(transitionToUse, { to: "translateY(0px)" });
+                //actionAreaAnimations.push({ element: actionArea, transition: transition });
             } else {
-                actionAreaAnimations = resizeTransition(actionAreaClipper, actionArea, {
-                    from: closedHeight,
-                    to: openedHeight,
-                    actualSize: openedHeight,
-                    dimension: "height",
-                    anchorTrailingEdge: false
-                });
+                //actionAreaAnimations = resizeTransition(actionAreaClipper, actionArea, {
+                //    from: closedHeight,
+                //    to: openedHeight,
+                //    actualSize: openedHeight,
+                //    dimension: "height",
+                //    anchorTrailingEdge: false
+                //});
             }
 
             // Now we set up the overflowArea animations. The overflowArea animation has two parts:
@@ -10500,18 +10500,18 @@ define('WinJS/Animations',[
             var actionAreaAnimations = [];
             var transitionToUse = getResizeDefaultTransitions().defaultResizeShrinkTransition;
             if (menuPositionedAbove) {
-                actionArea.style[transformNames.scriptName] = "translateY(0px)";
-                _ElementUtilities._getComputedStyle(actionArea).opacity;
-                var transition = _BaseUtils._merge(transitionToUse, { to: "translateY(" + -deltaHeight + "px)" });
-                actionAreaAnimations.push({ element: actionArea, transition: transition });
+                //actionArea.style[transformNames.scriptName] = "translateY(0px)";
+                //_ElementUtilities._getComputedStyle(actionArea).opacity;
+                //var transition = _BaseUtils._merge(transitionToUse, { to: "translateY(" + -deltaHeight + "px)" });
+                //actionAreaAnimations.push({ element: actionArea, transition: transition });
             } else {
-                actionAreaAnimations = resizeTransition(actionAreaClipper, actionArea, {
-                    from: openedHeight,
-                    to: closedHeight,
-                    actualSize: openedHeight,
-                    dimension: "height",
-                    anchorTrailingEdge: false
-                });
+                //actionAreaAnimations = resizeTransition(actionAreaClipper, actionArea, {
+                //    from: openedHeight,
+                //    to: closedHeight,
+                //    actualSize: openedHeight,
+                //    dimension: "height",
+                //    anchorTrailingEdge: false
+                //});
             }
             // Set up
             overflowAreaClipper.style[transformNames.scriptName] = "translateY(0px)";

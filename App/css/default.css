@@ -711,28 +711,40 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     z-index: 100;
 }
 
-    .articleViewer-toolbar-container button.win-command {
-        min-width: initial;
-        min-height:40px;
-        height: 40px;
-    }
-
-    .articleViewer-toolbar-container button > .win-commandicon {
-        margin: 11px;
-        margin-top: 5px;
-        margin-bottom: 5px;
-    }
-
-    .articleViewer-toolbar-container .win-commandingsurface-overflowbutton {
-        display: none;
-    }
-
 .articleViewer-toolbar {
     -ms-grid-column: 1;
     -ms-grid-column-align: stretch;
     margin-right: 2px;
     margin-left: -14px;
     height: 40px;
+}
+
+    .articleViewer-toolbar .win-commandingsurface.win-commandingsurface-opened .win-commandingsurface-actionarea,
+    .articleViewer-toolbar .win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+        height: 40px;
+    }
+
+    .articleViewer-toolbar .win-commandingsurface-overflowbutton,
+    .articleViewer-toolbar button.win-command {
+        min-width: initial;
+        min-height: 40px;
+        height: 40px;
+    }
+
+    .articleViewer-toolbar .win-commandingsurface-overflowbutton,
+    .articleViewer-toolbar button > .win-commandicon {
+        margin: 11px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .articleViewer-toolbar .win-commandingsurface .win-commandingsurface-overflowarea .win-commandingsurface-spacer,
+    .articleViewer-toolbar button > .win-label {
+        display: none;
+    }
+
+.articleViewer-toolbar .win-commandingsurface .win-commandingsurface-actionarea .win-commandingsurface-spacer {
+    min-height: unset;
 }
 
 .article-viewer-toolbar-button-spacer {
@@ -767,12 +779,18 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         height: 48px;
     }
 
-    .articleViewer-toolbar-container button.win-command {
+    .articleViewer-toolbar .win-commandingsurface.win-commandingsurface-opened .win-commandingsurface-actionarea,
+    .articleViewer-toolbar .win-commandingsurface.win-commandingsurface-closed.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+        height: 48px;
+    }
+
+    .articleViewer-toolbar .win-commandingsurface-overflowbutton,
+    .articleViewer-toolbar button.win-command {
         min-height: 48px;
         height: 48px;
     }
 
-    .articleViewer-toolbar-container button > .win-commandicon {
+    .articleViewer-toolbar button > .win-commandicon {
         margin-top: 11px;
         margin-bottom: 11px;
     }
