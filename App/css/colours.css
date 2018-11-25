@@ -87,7 +87,7 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 }
 
 .win-splitview-panewrapper {
-    box-shadow: var(--floating-element-shadow);
+    box-shadow: var(--floating-element-shadow) !important;
 }
 
 .win-flyout {
@@ -337,26 +337,29 @@ progress.article-progress,
 }
     
 /* Day (e.g. white) Theme */
-html.win-hoverable [data-theme='day'] .articleViewer-toolbar-container button:enabled.win-command:focus,
-html.win-hoverable [data-theme='day'] .articleViewer-toolbar-container button:enabled.win-command:hover {
+[data-theme='day'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='day'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='day'].articleViewer-toolbar button:enabled.win-command:focus,
+[data-theme='day'].articleViewer-toolbar button:enabled.win-command:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-color: rgba(0, 0, 0, 0.4);
     color: black;
 }
 
-html.win-hoverable [data-theme='day'] .articleViewer-toolbar-container button:enabled.win-command:hover .win-commandglyph {
+html.win-hoverable [data-theme='day'].articleViewer-toolbar button:enabled.win-command:hover .win-commandingsurface-ellipsis,
+html.win-hoverable [data-theme='day'].articleViewer-toolbar button:enabled.win-command:hover .win-commandglyph {
     color: black;
 }
 
-[data-theme='day'] .articleViewer-toolbar-container button:enabled.win-command:focus {
+[data-theme='day'].articleViewer-toolbar button:enabled.win-commandingsurface-overflowbutton:focus
+[data-theme='day'].articleViewer-toolbar button:enabled.win-command:focus {
     border-color: black;
 }
 
+[data-theme='day'] button.win-commandingsurface-overflowbutton,
 [data-theme='day'] button.win-command,
-[data-theme='day'] button .win-commandimage {
-    color: black;
-}
-
+[data-theme='day'] button .win-commandimage,
+[data-theme='day'] button:focus .win-commandingsurface-overflowbutton,
 [data-theme='day'] button:focus .win-commandimage {
     color: black;
 }
@@ -365,27 +368,30 @@ html.win-hoverable [data-theme='day'] .articleViewer-toolbar-container button:en
     background-color: white;
 }
 
-/* Paper (Wheaty/yellow) Theme */
-[data-theme='paper'] .articleViewer-toolbar-container button:enabled.win-command:focus,
-[data-theme='paper'] .articleViewer-toolbar-container button:enabled.win-command:hover {
+/* Paper (Wheat/yellow) Theme */
+[data-theme='paper'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='paper'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='paper'].articleViewer-toolbar button:enabled.win-command:focus,
+[data-theme='paper'].articleViewer-toolbar button:enabled.win-command:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-color: rgba(0, 0, 0, 0.4);
     color: black;
 }
 
-html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:enabled.win-command:hover .win-commandglyph {
+html.win-hoverable [data-theme='paper'].articleViewer-toolbar button:enabled.win-command:hover .win-commandingsurface-ellipsis,
+html.win-hoverable [data-theme='paper'].articleViewer-toolbar button:enabled.win-command:hover .win-commandglyph {
     color: black;
 }
 
-[data-theme='paper'] .articleViewer-toolbar-container button:enabled.win-command:focus {
+[data-theme='paper'].articleViewer-toolbar button:enabled.win-commandingsurface-overflowbutton:focus
+[data-theme='paper'].articleViewer-toolbar button:enabled.win-command:focus {
     border-color: black;
 }
 
+[data-theme='paper'] button.win-commandingsurface-overflowbutton,
 [data-theme='paper'] button.win-command,
-[data-theme='paper'] button .win-commandimage {
-    color: black;
-}
-
+[data-theme='paper'] button .win-commandimage,
+[data-theme='paper'] button:focus .win-commandingsurface-overflowbutton,
 [data-theme='paper'] button:focus .win-commandimage {
     color: black;
 }
@@ -395,21 +401,34 @@ html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:
 }
 
 /* Dusk (e.g. greyish) Theme */
-[data-theme='dusk'] .articleViewer-toolbar-container button:enabled.win-command:focus,
-[data-theme='dusk'] .articleViewer-toolbar-container button:enabled.win-command:hover {
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus .win-commandingsurface-ellipsis,
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover .win-commandingsurface-ellipsis,
+[data-theme='dusk'].articleViewer-toolbar button:enabled.win-command:focus,
+[data-theme='dusk'].articleViewer-toolbar button:enabled.win-command:hover,
+html.win-hoverable [data-theme='dusk'].articleViewer-toolbar button:enabled.win-command:hover .win-commandglyph {
     background-color: grey;
+    border-color: white;
     color: lightgrey;
 }
 
-    [data-theme='dusk'] .articleViewer-toolbar-container button:enabled.win-command:focus {
-        border-color: white;
-    }
+html.win-hoverable [data-theme='dusk'].articleViewer-toolbar button:enabled.win-command:hover .win-commandglyph {
+    border-color: white;
+}
 
+
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton .win-commandingsurface-ellipsis,
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton,
+[data-theme='dusk'] button.win-commandingsurface-overflowbutton,
 [data-theme='dusk'] button.win-command,
 [data-theme='dusk'] button .win-commandimage {
     color: darkgray;
 }
 
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='dusk'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='dusk'] button:focus .win-commandingsurface-overflowbutton,
 [data-theme='dusk'] button:focus .win-commandimage {
     color: white;
 }
@@ -419,22 +438,28 @@ html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:
 }
 
 /* Night (e.g. Black) Theme */
-[data-theme='night'] .articleViewer-toolbar-container {
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus .win-commandingsurface-ellipsis,
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover .win-commandingsurface-ellipsis,
+[data-theme='night'].articleViewer-toolbar button:enabled.win-command:focus,
+[data-theme='night'].articleViewer-toolbar button:enabled.win-command:hover,
+html.win-hoverable [data-theme='night'].articleViewer-toolbar button:enabled.win-command:hover .win-commandglyph {
+    background-color: grey;
     color: white;
 }
-    [data-theme='night'] .articleViewer-toolbar-container button:enabled.win-command:focus,
-    [data-theme='night'] .articleViewer-toolbar-container button:enabled.win-command:hover {
-        background-color: grey;
-        color: white;
-    }
 
-    [data-theme='night'] .articleViewer-toolbar-container button:enabled.win-command:focus {
-        border-color: white;
-    }
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:hover,
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton:focus,
+[data-theme='night'].articleViewer-toolbar button:enabled.win-command:hover,
+[data-theme='night'].articleViewer-toolbar button:enabled.win-command:focus {
+    border-color: white;
+}
 
-
-[data-theme='night'] button.win-command,
-[data-theme='night'] button .win-commandimage {
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton .win-commandingsurface-ellipsis,
+[data-theme='night'].articleViewer-toolbar .win-commandingsurface button:enabled.win-commandingsurface-overflowbutton,
+[data-theme='night'].articleViewer-toolbar button.win-command,
+[data-theme='night'].articleViewer-toolbar button .win-commandimage {
     color: lightgrey;
 }
 
@@ -442,6 +467,7 @@ html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:
     background-color: black;
 }
 
+/* End of explicit theme colours */
 
 .theme-day.win-command,
 .theme-day.win-command:hover {
@@ -463,7 +489,7 @@ html.win-hoverable [data-theme='paper'] .articleViewer-toolbar-container button:
     background-color: black !important;
 }
 
-.articleViewer-toolbar-container .win-commandingsurface .win-commandingsurface-actionarea {
+.articleViewer-toolbar .win-commandingsurface .win-commandingsurface-actionarea {
     background-color: transparent;
 }
 

@@ -101,6 +101,7 @@
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
                     removed: () => this.closeArticle(),
                     dismiss: () => this.closeArticle(),
+                    showMove: () => this.toolbar.close(),
                 }));
 
                 this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
@@ -341,9 +342,7 @@
 
                 case WinJS.Utilities.Key.m:
                     shortcutInvoked = "Move";
-                    this._showToolbarIfNotVisible().done(() => {
-                        this.viewModel.moveCommand.onclick({ currentTarget: this.viewModel.moveCommand.element });
-                    });
+                    this.viewModel.moveCommand.onclick({ currentTarget: this.element });
                     break;
 
                 case WinJS.Utilities.Key.deleteKey:
@@ -407,6 +406,7 @@
 
         private _handleThemeChange(e: Utilities.EventObject<IThemeDetails>): void {
             this._container.setAttribute("data-theme", e.detail.viewerCssClass);
+            this.toolbar.element.setAttribute("data-theme", e.detail.viewerCssClass);
 
             var titleBar = Windows.UI.ViewManagement.ApplicationView.getForCurrentView().titleBar;
             this._setTitleBar(e.detail.titlebarBackground, e.detail.titlebarForeground);
@@ -699,8 +699,10 @@
 
             this._deleteCommand = new WinJS.UI.Command(null, {
                 tooltip: "Delete (Ctrl + Del)",
+                label: "Delete",
                 icon: "delete",
                 onclick: this._delete.bind(this),
+                section: "secondary",
             });
 
             this._displaySettingsCommand = new WinJS.UI.Command(null, {
@@ -712,9 +714,13 @@
 
             this._moveCommand = new WinJS.UI.Command(null, {
                 tooltip: "Move (Ctrl + M)",
+                label: "Move",
                 icon: WinJS.UI.AppBarIcon.movetofolder,
                 type: "flyout",
-                onclick: this._move.bind(this),
+                onclick: () => {
+                    this._move(<any>{ currentTarget: this._pictureInPictureCommand.element });
+                },
+                section: "secondary",
             });
 
             this._closeArticleCommand = new WinJS.UI.Command(null, {
@@ -723,7 +729,9 @@
                 onclick: this.closeArticle.bind(this),
             });
 
-            this._shareCommand = new WinJS.UI.Command(null, Codevoid.Storyvoid.UI.Sharing.instance.getShareCommand());
+            const shareCommandOptions = Codevoid.Storyvoid.UI.Sharing.instance.getShareCommand();
+            shareCommandOptions.section = "secondary";
+            this._shareCommand = new WinJS.UI.Command(null, shareCommandOptions);
 
             // Save that we're looking at an article
             var transientSettings = new Settings.TransientSettings();
@@ -973,6 +981,7 @@
         }
 
         private _move(e: UIEvent): void {
+            this.eventSource.dispatchEvent("showMove", null);
             var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
             moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).done((result: boolean) => {
                 if (!result) {

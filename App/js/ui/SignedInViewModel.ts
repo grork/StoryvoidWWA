@@ -58,6 +58,7 @@
         icon: string;
         onclick: (e?: UIEvent) => void;
         keyCode: number;
+        section?: string;
     }
 
     export class SignedInViewModel implements Codevoid.Storyvoid.UI.ISignedInViewModel {
