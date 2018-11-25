@@ -140,7 +140,7 @@
             document.body.classList.toggle("win-ui-dark", this.getUITheme() === Settings.UITheme.Dark);
         }
 
-        public static getDisplayedUITheme(): Theme {
+        public static getCurrentSystemTheme(): Theme {
             if (document.body.classList.contains("win-ui-dark")) {
                 return Theme.Night;
             }
