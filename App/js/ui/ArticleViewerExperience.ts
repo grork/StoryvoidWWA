@@ -687,10 +687,12 @@
         private _initialProgress: number;
         private _wasEverInTabletMode: boolean = false;
         private _screenMode: ScreenMode = ScreenMode.Unset;
+        private _activity: Activity;
         public isRestoring: boolean = true;
 
         constructor(public bookmark: IBookmark, private _instapaperDB: InstapaperDB) {
             this.updateCurrentArticle(this);
+            this._activity = new Activity(bookmark);
             this._eventSource = new Utilities.EventSource();
 
             this._initializeToggleCommand();
@@ -751,6 +753,11 @@
             if (this._remoteEventHandlers) {
                 this._remoteEventHandlers.cancel();
                 this._remoteEventHandlers = null;
+            }
+
+            if (this._activity) {
+                this._activity.end();
+                this._activity = null;
             }
 
             this._messenger = null;
@@ -816,6 +823,7 @@
         }
 
         public signalArticleDisplayed(): void {
+            let activityStart = this._activity.start();
             Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                 viewedArticleCount: 1,
             }));
@@ -830,7 +838,11 @@
             articlesViewedThisSession += 1;
             Telemetry.instance.setSessionPropertyAsInteger("ArticlesViewed", articlesViewedThisSession);
 
-            this._displayedSignal.complete();
+            // This is dependent on an OS API that is not widely used, so lets be safe, and eat
+            // all errors from it, so we can still show the article
+            activityStart.then(null, () => { }).done(() => {
+                this._displayedSignal.complete();
+            });
         }
 
         public articleClosed(): void {
