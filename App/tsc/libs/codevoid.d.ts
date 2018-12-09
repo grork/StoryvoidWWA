@@ -154,6 +154,7 @@ declare module Codevoid.Storyvoid {
         contentAvailableLocally: boolean;
         hasImages: boolean;
         firstImagePath: string;
+        firstImageOriginalUrl: string;
         localFolderRelativePath: string;
         description: string;
         extractedDescription: string;

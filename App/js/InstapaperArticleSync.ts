@@ -6,10 +6,15 @@
     import http = Windows.Web.Http;
     import c = Windows.Foundation.Collections;
 
+    interface IFirstImageInformation {
+        localPath: string;
+        originalUrl: string;
+    }
+
     interface IProcessedArticleInformation {
         relativePath: string;
         hasImages: boolean;
-        firstImagePath: string,
+        firstImageInformation: IFirstImageInformation,
         extractedDescription: string;
         failedToDownload: boolean;
         articleUnavailable: boolean;
@@ -208,7 +213,10 @@
                     result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
                     result.localBookmark.hasImages = result.articleInformation.hasImages;
                     result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
-                    result.localBookmark.firstImagePath = result.articleInformation.firstImagePath;
+                    if (result.articleInformation.firstImageInformation) {
+                        result.localBookmark.firstImagePath = result.articleInformation.firstImageInformation.localPath;
+                        result.localBookmark.firstImageOriginalUrl = result.articleInformation.firstImageInformation.originalUrl;
+                    }
                 }
 
                 return dbInstance.updateBookmark(result.localBookmark);
@@ -293,10 +301,10 @@
             var articleDocument: Document;
 
             var filePath = file.path.substr(this._localFolderPathLength).replace(/\\/g, "/");
-            var processedInformation = {
+            var processedInformation: IProcessedArticleInformation = {
                 relativePath: filePath,
                 hasImages: false,
-                firstImagePath: undefined,
+                firstImageInformation: undefined,
                 extractedDescription: null,
                 failedToDownload: false,
                 articleUnavailable: false,
@@ -433,7 +441,7 @@
                     this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
                     imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id, cancellationSource).then((firstImagePath) => {
                         if (firstImagePath) {
-                            processedInformation.firstImagePath = firstImagePath;
+                            processedInformation.firstImageInformation = firstImagePath;
                         } else {
                             // if we never found a first image, that successfully downloaded
                             // we should just assume that there were no real images.
@@ -460,9 +468,9 @@
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): WinJS.Promise<any> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): WinJS.Promise<IFirstImageInformation> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
-            var firstSuccessfulImage = "";
+            var firstSuccessfulImage: IFirstImageInformation;
 
             return imagesFolder.then((folder: st.StorageFolder) => {
                 if (cancellationSource.cancelled) {
@@ -507,12 +515,21 @@
                         }
 
                         if (!firstSuccessfulImage && (result.extension != "gif")) {
-                            firstSuccessfulImage = getFilenameIfImageMeetsCriteria({
+                            firstSuccessfulImage = { localPath: "", originalUrl: "" };
+                            firstSuccessfulImage.localPath = getFilenameIfImageMeetsCriteria({
                                 extension: result.extension,
                                 size: result.size,
                                 folder: this._destinationFolder.name + "/" + imagesFolderName,
                                 filename: result.filename
                             });
+
+                            // If we did find a candidate image for the first image, lets also
+                            // save the original URI into the database. This is so that when we create
+                            // external information for this article later (UserActivity, or shareing)
+                            // we have an externally accessible image URL 
+                            if (firstSuccessfulImage.localPath) {
+                                firstSuccessfulImage.originalUrl = sourceUrl.absoluteUri;
+                            }
                         }
 
                         this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });

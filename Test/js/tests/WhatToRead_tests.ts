@@ -33,6 +33,7 @@ module CodevoidTests.WhatToReadTests {
             contentAvailableLocally: base.contentAvailableLocally || false,
             hasImages: base.hasImages || false,
             firstImagePath: base.firstImagePath || null,
+            firstImageOriginalUrl: base.firstImageOriginalUri || null,
             localFolderRelativePath: base.localFolderRelativePath || null,
             description: base.description || null,
             extractedDescription: base.description || null,
