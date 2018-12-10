@@ -205,15 +205,11 @@ button.win-command:focus {
     overflow-y: hidden;
     display: -ms-grid;
     -ms-grid-columns: 1fr;
-    -ms-grid-rows: 44px 8px 1fr;
+    -ms-grid-rows: auto 8px 1fr;
 }
 
 .syncing-container {
-    height: 52px;
-    transition-property: transform;
-    transition-duration: 200ms;
     width: 100%;
-    transform: translateY(-52px);
 }
 
 .signedIn-contentContainer {
@@ -240,36 +236,9 @@ button.win-command:focus {
         -ms-grid-columns: 1fr;
     }
 
-@keyframes animateOut {
-    from {
-        transform: translateY(0px);
-    }
-
-    to {
-        transform: translateY(44px);
-    }
-}
-
-.syncProgressAnimation-out {
-    animation-name: animateOut;
-    animation-duration: 200ms;
-}
-
-@keyframes animateIn {
-    from {
-        transform: translateY(0px);
-    }
-
-    to {
-        /* Note, this is not the full height for the row
-           this is to allow for the margin jump to *look* smooth */
-        transform: translateY(-44px);
-    }
-}
-
-.syncProgressAnimation-in {
-    animation-name: animateIn;
-    animation-duration: 200ms;
+.syncProgressAnimation {
+    transition-property: transform;
+    transition-duration: 200ms;
 }
 
 .signedOut-container {
