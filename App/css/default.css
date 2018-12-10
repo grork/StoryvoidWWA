@@ -488,6 +488,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     padding-top: 8px;
 }
 
+    .syncProgress-root .syncProgress-announce,
     .syncProgress-root .syncProgress-progress,
     .syncProgress-root .syncProgress-checkmark {
         -ms-grid-row: 1;
@@ -498,16 +499,25 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         height: 24px;
     }
 
-    .syncProgress-root .syncProgress-checkmark {
-        font-family: "Segoe MDL2 Assets", "Symbols";
-        font-size: 20px;
+.syncProgress-announce,
+.syncProgress-checkmark {
+    font-family: "Segoe MDL2 Assets", "Symbols";
+    font-size: 20px;
+}
+
+    .syncProgress-checkmark::after {
+        content: "\E008";
     }
 
-        .syncProgress-root .syncProgress-checkmark::after {
-            content: "\E008";
-            line-height: 1.33em;
-            font-weight: 400;
-        }
+    .syncProgress-announce::after {
+        content: "\E789";
+    }
+
+    .syncProgress-checkmark::after,
+    .syncProgress-announce::after {
+        line-height: 1.33em;
+        font-weight: 400;
+    }
 
     .syncProgress-root .syncProgress-message {
         -ms-grid-row: 1;
