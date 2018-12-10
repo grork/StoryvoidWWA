@@ -178,6 +178,7 @@
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="js\ui\FullscreenSpinner.ts" />
     <TypeScriptCompile Include="js\ui\Sharing.ts" />
+    <TypeScriptCompile Include="js\ui\WhatsNewControl.ts" />
     <TypeScriptCompile Include="js\ui\TitleBarSpacerHelper.ts" />
     <TypeScriptCompile Include="js\WhatToRead.ts" />
     <TypeScriptCompile Include="OverlayScrollbars\OverlayScrollbars.d.ts" />

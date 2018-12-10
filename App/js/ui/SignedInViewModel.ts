@@ -1336,6 +1336,10 @@
             this._eventSource.dispatchEvent("commandInvoked", null);
         }
 
+        public shouldShowWhatsNew(): boolean {
+            return true;
+        }
+
         public static get sorts(): ISortsInfo[] {
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [

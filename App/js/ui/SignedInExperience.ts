@@ -29,6 +29,7 @@
         private _articleTemplate: WinJS.Binding.Template;
         private _imageArticleTemplate: WinJS.Binding.Template;
         private _progressTemplate: WinJS.Binding.Template;
+        private _whatsNewTemplate: WinJS.Binding.Template;
         private _contentList: WinJS.UI.ListView<any>;
         private _emptyStateContainer: HTMLDivElement;
         private _splitToggle: WinJS.UI.SplitViewPaneToggle;
@@ -427,12 +428,17 @@
 
         private _showSyncProgress(initialMessage: string, cancelCallback: () => void): WinJS.Promise<void> {
             var headerContainer = document.createElement("div");
-            var syncProgress = new Codevoid.Storyvoid.UI.SyncProgressControl(headerContainer, {
+            var syncProgress = new SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
                 template: this._progressTemplate,
                 eventSource: this.viewModel.events,
                 cancelCallback: cancelCallback
             });
+
+            if (this._notificationBeingDisplayed()) {
+                this._switchNotificationElement(headerContainer);
+                return WinJS.Promise.as();
+            }
 
             return this._addNotificationElement(headerContainer);
         }
@@ -440,8 +446,29 @@
         private _hideSyncProgress(): void {
             WinJS.Promise.timeout(2 * 1000).done(() => {
                 Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
-                this._removeNotificationElement(this._notificationContainer.firstElementChild);
+
+                if (!this.viewModel.shouldShowWhatsNew()) {
+                    this._removeNotificationElement(this._notificationContainer.firstElementChild);
+                } else {
+                    this._showWhatsNewBanner();
+                }
             });
+        }
+
+        private _notificationBeingDisplayed(): boolean {
+            return (this._notificationContainer.childElementCount > 0);
+        }
+
+        private _showWhatsNewBanner(): void {
+            const whatsNewControl = new WhatsNewControl(document.createElement("div"), {
+                template: this._whatsNewTemplate,
+                initialMessage: "We updated! Including Thingy, Whotsit, and doohicky!",
+                cancelCallback: () => {
+                    this._removeNotificationElement(whatsNewControl.element);
+                }
+            });
+
+            this._switchNotificationElement(whatsNewControl.element);
         }
 
         private _addNotificationElement(element: HTMLElement): WinJS.Promise<void> {
@@ -480,12 +507,12 @@
             return signal.promise;
         }
 
-        private _switchNotificationElement(element: Element): Element {
+        private _switchNotificationElement(element: Element): void {
             const currentElement = this._notificationContainer.firstElementChild;
+            Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
             this._notificationContainer.removeChild(currentElement);
-            this._notificationContainer.appendChild(element);
 
-            return currentElement;
+            this._notificationContainer.appendChild(element);
         }
 
         private _removeNotificationElement(element: Element): WinJS.Promise<void> {

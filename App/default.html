@@ -28,6 +28,7 @@
     <script src="/js/ui/TitleBarSpacerHelper.js"></script>
     <script src="/js/ui/SignedOutExperience.js"></script>
     <script src="/js/ui/SyncProgressControl.js"></script>
+    <script src="/js/ui/WhatsNewControl.js"></script>
     <script src="/js/ui/FullscreenSpinner.js"></script>
     <script src="/js/WhatToRead.js"></script>
     <script src="/js/ui/SignedInViewModel.js"></script>
@@ -61,7 +62,7 @@
                           data-win-bind="textContent: this Codevoid.Storyvoid.UI.SignedInExperience.showTitleOrUrl"></span>
 
                 </div>
-                
+
                 <div class="article-summary-container">
                     <div class="article-summary"
                          data-win-bind="textContent: this Codevoid.Storyvoid.UI.SignedInExperience.showDescriptionOrExtractedDescription"></div>
@@ -113,6 +114,18 @@
                 <a href="#" class="syncProgress-cancel" data-part="_cancelSync">Cancel</a>
             </div>
         </div>
+
+        <div class="template-whatsnewcontrol"
+             data-win-control="WinJS.Binding.Template"
+             data-part="_whatsNewTemplate">
+            <div class="syncProgress-root">
+                <div class="syncProgress-announce"></div>
+
+                <div class="syncProgress-message" data-part="_messageContainer"></div>
+                <a href="#" class="syncProgress-cancel" data-part="_cancelSync">Close</a>
+            </div>
+        </div>
+
 
         <div data-win-control="WinJS.UI.Tooltip"
              data-win-options="{ innerHTML: 'Toggle navigation pane' }">
