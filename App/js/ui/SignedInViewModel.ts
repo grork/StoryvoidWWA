@@ -1340,6 +1340,10 @@
             return true;
         }
 
+        public getWhatsNewMessage(): string {
+            return "We've updated! We've added Dark Mode, Picture-in-Picture, Windows Timeline and more."
+        }
+
         public static get sorts(): ISortsInfo[] {
             if (!SignedInViewModel._sorts) {
                 SignedInViewModel._sorts = [

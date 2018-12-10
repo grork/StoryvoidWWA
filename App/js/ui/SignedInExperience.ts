@@ -462,7 +462,7 @@
         private _showWhatsNewBanner(): void {
             const whatsNewControl = new WhatsNewControl(document.createElement("div"), {
                 template: this._whatsNewTemplate,
-                initialMessage: "We updated! Including Thingy, Whotsit, and doohicky!",
+                initialMessage: this.viewModel.getWhatsNewMessage(),
                 cancelCallback: () => {
                     this._removeNotificationElement(whatsNewControl.element);
                 }
