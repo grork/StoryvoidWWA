@@ -7,7 +7,8 @@
         private template: WinJS.Binding.Template;
         private _handlersToCleanup: Codevoid.Utilities.ICancellable[] = [];
         private _messageContainer: HTMLElement;
-        private _cancelSync: HTMLAnchorElement;
+        private _close: HTMLAnchorElement;
+        private _detailsLink: HTMLAnchorElement;
         private cancelCallback: () => void;
 
         constructor(element: HTMLElement, options: any) {
@@ -20,7 +21,11 @@
 
                 this._messageContainer.textContent = this.initialMessage;
 
-                this._handlersToCleanup.push(Utilities.addEventListeners(this._cancelSync, {
+                this._handlersToCleanup.push(Utilities.addEventListeners(this._close, {
+                    click: () => this.dismiss()
+                }));
+
+                this._handlersToCleanup.push(Utilities.addEventListeners(this._detailsLink, {
                     click: () => this.dismiss()
                 }));
             });
@@ -35,7 +40,7 @@
         }
 
         public dismiss(): void {
-            WinJS.Utilities.addClass(this._cancelSync, "hide");
+            WinJS.Utilities.addClass(this._close, "hide");
             this.cancelCallback();
         }
     }
