@@ -425,7 +425,7 @@
             }
         }
 
-        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): void {
+        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): WinJS.Promise<void> {
             var headerContainer = document.createElement("div");
             var syncProgress = new Codevoid.Storyvoid.UI.SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
@@ -434,10 +434,24 @@
                 cancelCallback: cancelCallback
             });
 
-            this._syncProgressContainer.appendChild(headerContainer);
+            return this._addNotificationElement(headerContainer);
+        }
+
+        private _hideSyncProgress(): void {
+            WinJS.Promise.timeout(2 * 1000).done(() => {
+                Codevoid.Utilities.DOM.disposeOfControl(this._syncProgressContainer.firstElementChild);
+                this._removeNotificationElement(this._syncProgressContainer.firstElementChild);
+            });
+        }
+
+        private _addNotificationElement(element: HTMLElement): WinJS.Promise<void> {
+            const signal = new Utilities.Signal();
+
+            this._syncProgressContainer.appendChild(element);
+            let height = this._syncProgressContainer.clientHeight;
 
             var animHandler = Utilities.addEventListeners(this._contentContainer, {
-                animationend: (e: TransitionEvent) => {
+                transitionend: (e: TransitionEvent) => {
                     // We'll see other bubbling events from other transitions
                     // make sure we're only handling the one WE started.
                     if (e.target != this._contentContainer) {
@@ -447,38 +461,65 @@
                     animHandler.cancel();
 
                     WinJS.Utilities.addClass(this._contentContainer, "syncProgress-visible");
-                    WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation-out");
+                    WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation");
+                    WinJS.Utilities.removeClass(this._syncProgressContainer, "syncProgressAnimation");
+                    this._contentContainer.style.transform = "";
+                    signal.complete();
                 }
             });
 
-            WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation-out");
+            this._syncProgressContainer.style.transform = `translateY(-${height}px)`;
 
-            this._syncProgressContainer.style.transform = "translate(0px)";
+            WinJS.Promise.timeout().done(() => {
+                WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation");
+                WinJS.Utilities.addClass(this._syncProgressContainer, "syncProgressAnimation");
+                this._contentContainer.style.transform = `translateY(${height}px)`;
+                this._syncProgressContainer.style.transform = "translateY(0px)";
+            });
+
+            return signal.promise;
         }
 
-        private _hideSyncProgress(): void {
-            WinJS.Promise.timeout(2 * 1000).done(() => {
-                var animHandler = Utilities.addEventListeners(this._contentContainer, {
-                    animationend: (e: TransitionEvent) => {
-                        // We'll see other bubbling events from other transitions
-                        // make sure we're only handling the one WE started.
-                        if (e.target != this._contentContainer) {
-                            return;
-                        }
+        private _switchNotificationElement(element: Element): Element {
+            const currentElement = this._syncProgressContainer.firstElementChild;
+            this._syncProgressContainer.removeChild(currentElement);
+            this._syncProgressContainer.appendChild(element);
 
-                        animHandler.cancel();
+            return currentElement;
+        }
 
-                        WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation-in");
-                        WinJS.Utilities.removeClass(this._contentContainer, "syncProgress-visible");
+        private _removeNotificationElement(element: Element): WinJS.Promise<void> {
+            const signal = new Utilities.Signal();
 
-                        WinJS.Utilities.empty(this._syncProgressContainer);
-                        Codevoid.Utilities.DOM.disposeOfControl(this._syncProgressContainer.firstElementChild);
+            let height = this._syncProgressContainer.clientHeight;
+            var animHandler = Utilities.addEventListeners(this._contentContainer, {
+                transitionend: (e: TransitionEvent) => {
+                    // We'll see other bubbling events from other transitions
+                    // make sure we're only handling the one WE started.
+                    if (e.target != this._contentContainer) {
+                        return;
                     }
-                });
 
-                WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation-in");
-                this._syncProgressContainer.style.transform = "";
+                    animHandler.cancel();
+
+                    WinJS.Utilities.removeClass(this._contentContainer, "syncProgressAnimation");
+                    WinJS.Utilities.removeClass(this._syncProgressContainer, "syncProgressAnimation");
+                    WinJS.Utilities.removeClass(this._contentContainer, "syncProgress-visible");
+                    this._contentContainer.style.transform = "";
+                    this._syncProgressContainer.style.transform = "";
+
+                    this._syncProgressContainer.removeChild(element);
+
+                    signal.complete();
+                }
             });
+
+            WinJS.Utilities.addClass(this._contentContainer, "syncProgressAnimation");
+            WinJS.Utilities.addClass(this._syncProgressContainer, "syncProgressAnimation");
+            this._syncProgressContainer.style.transform = `translateY(-${height}px)`;
+            this._contentContainer.style.transform = `translateY(-${height}px)`;
+
+            return signal.promise;
         }
         
         public startSync(): void {
