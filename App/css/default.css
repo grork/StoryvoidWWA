@@ -481,16 +481,16 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
     margin-top: -2px !important;
 }
 
-.syncProgress-root {
+.notification-root {
     display: -ms-grid;
     -ms-grid-rows: 36px;
     -ms-grid-columns: 12px auto 8px 1fr auto 16px;
     padding-top: 8px;
 }
 
-    .syncProgress-root .syncProgress-announce,
-    .syncProgress-root .syncProgress-progress,
-    .syncProgress-root .syncProgress-checkmark {
+    .notification-root .notification-announce,
+    .notification-root .notification-progress,
+    .notification-root .notification-checkmark {
         -ms-grid-row: 1;
         -ms-grid-column: 2;
         -ms-grid-column-align: center;
@@ -499,27 +499,27 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         height: 24px;
     }
 
-.syncProgress-announce,
-.syncProgress-checkmark {
+.notification-announce,
+.notification-checkmark {
     font-family: "Segoe MDL2 Assets", "Symbols";
     font-size: 20px;
 }
 
-    .syncProgress-checkmark::after {
+    .notification-checkmark::after {
         content: "\E008";
     }
 
-    .syncProgress-announce::after {
+    .notification-announce::after {
         content: "\E789";
     }
 
-    .syncProgress-checkmark::after,
-    .syncProgress-announce::after {
+    .notification-checkmark::after,
+    .notification-announce::after {
         line-height: 1.33em;
         font-weight: 400;
     }
 
-    .syncProgress-root .syncProgress-message {
+    .notification-root .notification-message {
         -ms-grid-row: 1;
         -ms-grid-column: 4;
         -ms-grid-row-align: center;
@@ -528,7 +528,7 @@ signedIn-articleList .win-itemcontainer .win-focusedoutline {
         overflow: hidden;
     }
 
-    .syncProgress-root .syncProgress-cancel {
+    .notification-root .notification-cancel {
         display: block;
         -ms-grid-row-align: center;
         -ms-grid-row: 1;
