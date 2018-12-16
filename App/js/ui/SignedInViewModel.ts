@@ -79,6 +79,7 @@
         private _autoSyncWatcher: AutoSyncWatcher;
         private _jumpListIdleWriter: Utilities.Debounce;
         private _whatToRead: WhatToRead;
+        private _wasSignedInAutomatically: boolean = false;
 
         constructor(private _app: IAppWithAbilityToSignIn) {
             this._eventSource = new Utilities.EventSource();
@@ -579,7 +580,7 @@
                         allowTelemetry: allowTelemetry,
                     };
                 });
-            }).then((savedTelemetry: { allowTelemetry: boolean; installID: string }) => {
+            }).then((savedTelemetry: { allowTelemetry: boolean }) => {
                 var telemetrySettings = new Settings.TelemetrySettings();
                 // Restore telemetry enabled state
                 telemetrySettings.telemeteryCollectionEnabled = savedTelemetry.allowTelemetry;
@@ -594,6 +595,7 @@
         public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             var completedSignal = new Codevoid.Utilities.Signal();
+            this._wasSignedInAutomatically = usingSavedCredentials;
 
             Telemetry.initializeIdentity();
 
@@ -650,6 +652,10 @@
             }
 
             this.externallyInintiatedDisplayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
+        }
+
+        public get wasAutomaticallySignedIn(): boolean {
+            return this._wasSignedInAutomatically;
         }
 
         private _externallyInitiatedDisplayArticle: WinJS.Promise<any>;
@@ -1334,14 +1340,6 @@
 
         private raiseCommandInvokedEvent(): void {
             this._eventSource.dispatchEvent("commandInvoked", null);
-        }
-
-        public shouldShowWhatsNew(): boolean {
-            return true;
-        }
-
-        public getWhatsNewMessage(): string {
-            return "We've updated! We've added Dark Mode, Picture-in-Picture, Windows Timeline and more."
         }
 
         public static get sorts(): ISortsInfo[] {

@@ -177,6 +177,7 @@
     <TypeScriptCompile Include="js\ui\Activity.ts" />
     <TypeScriptCompile Include="js\ui\core.ts" />
     <TypeScriptCompile Include="js\ui\FullscreenSpinner.ts" />
+    <TypeScriptCompile Include="js\PermanentSettings.ts" />
     <TypeScriptCompile Include="js\ui\Sharing.ts" />
     <TypeScriptCompile Include="js\ui\WhatsNewControl.ts" />
     <TypeScriptCompile Include="js\ui\TitleBarSpacerHelper.ts" />

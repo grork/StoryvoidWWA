@@ -447,7 +447,7 @@
             WinJS.Promise.timeout(2 * 1000).done(() => {
                 Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
 
-                if (!this.viewModel.shouldShowWhatsNew()) {
+                if (!WhatsNewControl.shouldShowWhatsNew()) {
                     this._removeNotificationElement(this._notificationContainer.firstElementChild);
                 } else {
                     this._showWhatsNewBanner();
@@ -460,9 +460,16 @@
         }
 
         private _showWhatsNewBanner(): void {
+            if (!this.viewModel.wasAutomaticallySignedIn) {
+                // We don't want to show what's new if the user
+                // has manually signed in (E.g. first run, or new user)
+                this._removeNotificationElement(this._notificationContainer.firstElementChild);
+                WhatsNewControl.markAsShown();
+                return;
+            }
+
             const whatsNewControl = new WhatsNewControl(document.createElement("div"), {
                 template: this._whatsNewTemplate,
-                initialMessage: this.viewModel.getWhatsNewMessage(),
                 cancelCallback: () => {
                     this._removeNotificationElement(whatsNewControl.element);
                 }
