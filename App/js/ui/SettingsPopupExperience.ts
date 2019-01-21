@@ -308,6 +308,13 @@
             var telemetrySettings = new Settings.TelemetrySettings();
             telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
             Telemetry.instance.dropEventsForPrivacy = !allowTelemetry;
+
+            if (Telemetry.instance.dropEventsForPrivacy) {
+                // Since it's off, lets make sure we're not uploading _anything_
+                // and handle any errors when it fails, since we don't care about
+                // those.
+                Telemetry.instance.clearStorageAsync().done(null, () => { });
+            }
         }
 
         public updateUITheme(uiTheme: Settings.UITheme): void {
