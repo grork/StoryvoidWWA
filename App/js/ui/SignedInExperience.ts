@@ -360,8 +360,7 @@
         }
 
         public showFeedbackHub(): void {
-            var launcher = Microsoft.Services.Store.Engagement.StoreServicesFeedbackLauncher.getDefault();
-            launcher.launchAsync().done(() => { }, () => { });
+            Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri("https://www.codevoid.net/storyvoid/faq.html#support")).done(null, () => { });
         }
 
         public _renderFolderDetails(folderDetails: IFolderDetails): void {
