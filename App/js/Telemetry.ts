@@ -15,13 +15,11 @@
     export class Telemetry {
         private static _client: Codevoid.Utilities.Mixpanel.MixpanelClient;
         static initialize(): WinJS.Promise<any> {
-            // Test token
+            const settings = new Settings.TelemetrySettings();
             Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("PLACEHOLDER");
+            Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;
             return Telemetry._client.initializeAsync().then(() => {
-                const settings = new Settings.TelemetrySettings();
-                Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;
                 Telemetry._client.start();
-
                 Telemetry.initializeIdentity();
             });
         }
