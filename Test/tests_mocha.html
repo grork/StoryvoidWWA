@@ -2,13 +2,44 @@
 <html>
 <head>
     <title>Mocha Test Pages</title>
+    <!-- Bootstrap to make things look nice -->
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/bootstrap-reboot.css" />
+
+    <!-- Make it look actually pretty -->
+    <style>
+        .test-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+
+            .test-button-container > .btn {
+                margin-left: 12px;
+                margin-right: 12px;
+                min-width: 75px;
+            }
+    </style>
+
+
+    <!-- Test Support  -->
     <link rel="stylesheet" href="/mocha.css" />
     <script src="/mocha.js"></script>
     <script src="/power-assert.js"></script>
+    <script src="/js/tests/testdefault.js"></script>
+
+    <!-- Code Under test &amp; dependencies -->
+
+    <!-- Tests -->
     <script src="/js/tests/simple_mocha.js"></script>
 </head>
 <body>
+    <div class="test-button-container">
+        <button class="btn btn-primary" id="runButton">Run</button>
+        <button class="btn btn-secondary" id="closeButton">Close</button>
+        <button class="btn btn-secondary" id="goBackButton">Back</button>
+    </div>
     <div id="mocha"></div>
-    <button id="doit">Run</button>
 </body>
 </html>

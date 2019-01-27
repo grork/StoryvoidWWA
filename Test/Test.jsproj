@@ -59,6 +59,12 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="..\node_modules\bootstrap\dist\css\bootstrap-reboot.css">
+      <Link>css\bootstrap-reboot.css</Link>
+    </Content>
+    <Content Include="..\node_modules\bootstrap\dist\css\bootstrap.css">
+      <Link>css\bootstrap.css</Link>
+    </Content>
     <Content Include="..\node_modules\mocha\mocha.css">
       <Link>mocha.css</Link>
     </Content>

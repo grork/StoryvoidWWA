@@ -1,15 +1,31 @@
 ﻿// "Default" js file for the tests pages.
 // This is needed because Edge does not allow inline script
 (function () {
+    if (typeof(mocha) !== 'undefined' && typeof(qunit) === 'undefined') {
+        // If mocha is available, but not qunit, lets init a qunit style interface for mocha
+        mocha.setup({
+            ui: 'qunit',
+            ignoreLeaks: false // Warn about global variable issues
+        });
+    }
+
+
     document.addEventListener("DOMContentLoaded", function () {
-        var backButton = document.getElementById("goBackButton");
+        let backButton = document.getElementById("goBackButton");
         backButton.addEventListener("click", function () {
             window.history.back();
         });
 
-        var closeButton = document.getElementById("closeButton");
+        let closeButton = document.getElementById("closeButton");
         closeButton.addEventListener("click", function () {
             window.close();
         });
+
+        let runButton = document.getElementById("runButton");
+        if (runButton) {
+            runButton.addEventListener("click", () => {
+                mocha.run();
+            });
+        }
     });
 })();
