@@ -59,6 +59,17 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="..\node_modules\mocha\mocha.css">
+      <Link>mocha.css</Link>
+    </Content>
+    <Content Include="..\node_modules\mocha\mocha.js">
+      <Link>mocha.js</Link>
+    </Content>
+    <Content Include="..\node_modules\power-assert\build\power-assert.js">
+      <Link>power-assert.js</Link>
+    </Content>
+    <Content Include="js\tests\simple_mocha.js" />
+    <Content Include="mocha_tests.html" />
     <Content Include="StoryVoidTest.cer" />
     <None Include="StoryVoidTest.pfx" />
     <Content Include="StoryVoidTest.pvk" />
@@ -164,7 +175,7 @@
     <TypeScriptCompile Include="..\App\js\WhatToRead.ts">
       <Link>js\WhatToRead.ts</Link>
     </TypeScriptCompile>
-        <TypeScriptCompile Include="..\App\js\Deeplinking.ts">
+    <TypeScriptCompile Include="..\App\js\Deeplinking.ts">
       <Link>js\Deeplinking.ts</Link>
     </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\ui\core.ts">
