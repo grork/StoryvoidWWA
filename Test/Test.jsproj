@@ -69,7 +69,7 @@
       <Link>power-assert.js</Link>
     </Content>
     <Content Include="js\tests\simple_mocha.js" />
-    <Content Include="mocha_tests.html" />
+    <Content Include="tests_mocha.html" />
     <Content Include="StoryVoidTest.cer" />
     <None Include="StoryVoidTest.pfx" />
     <Content Include="StoryVoidTest.pvk" />
