@@ -201,8 +201,7 @@
                 }
 
                 var data = [
-                    { key: "url", value: parameters.url },
-                    { key: "resolve_final_url", value: 0 }, // Don't resolve the URL to the final destination
+                    { key: "url", value: parameters.url }
                 ];
 
                 if (parameters.title) {

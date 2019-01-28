@@ -112,7 +112,9 @@
             // a startup flow, and thus no need to play an entrance
             // animation
             if (usingSavedCredentials) {
-                this.signedInViewModel.uiPresented();
+                if (this.signedInViewModel.uiPresented) {
+                    this.signedInViewModel.uiPresented();
+                }
                 return signedInResult;
             }
 
