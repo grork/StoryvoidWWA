@@ -51,12 +51,12 @@
         EventSource: WinJS.Class.mix(WinJS.Class.define(function() {}), WinJS.Utilities.eventMixin),
     });
 
-    module("utilitiesSignal");
+    QUnit.module("utilitiesSignal");
 
     function canConstructSignal() {
         var signal = new Signal();
-        ok(signal, "Didn't get a valid signal");
-        ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
+        QUnit.assert.ok(signal, "Didn't get a valid signal");
+        QUnit.assert.ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
     }
 
     function signalCanBeCancelled() {
@@ -68,14 +68,14 @@
 
         signal.promise.cancel();
 
-        ok(wasCancelled, "Promise wasn't cancelled");
+        QUnit.assert.ok(wasCancelled, "Promise wasn't cancelled");
     }
 
     function cancelledSignalHasOriginalSignalInEvent() {
         var signal = new Signal();
         var wasCancelled = false;
         signal.addEventListener("cancelled", function (e) {
-            strictEqual(signal, e.detail.signal);
+            QUnit.assert.strictEqual(signal, e.detail.signal);
         });
 
         signal.promise.cancel();
@@ -90,15 +90,15 @@
 
         signal.complete();
 
-        ok(completed, "Signal didn't complete");
+        QUnit.assert.ok(completed, "Signal didn't complete");
     }
 
     function signalCompletesWithValue() {
         var signal = new Signal();
         var completed = false;
         signal.promise.done(function (data) {
-            ok(data, "didn't get data");
-            ok(data.isComplete, "Should have had complete property");
+            QUnit.assert.ok(data, "didn't get data");
+            QUnit.assert.ok(data.isComplete, "Should have had complete property");
         });
 
         signal.complete({ isComplete: true });
@@ -118,7 +118,7 @@
         } catch(e) {
         }
 
-        strictEqual(completed, 1, "Shouldn't complete more than once");
+        QUnit.assert.strictEqual(completed, 1, "Shouldn't complete more than once");
 
     }
 
@@ -130,7 +130,7 @@
         try {
             signal.complete();
         } catch(e) {
-            ok(true, "Got exception!");
+            QUnit.assert.ok(true, "Got exception!");
         }
     }
 
@@ -138,39 +138,39 @@
         var signal = new Signal();
         var errorCalled = false;
         signal.promise.done(function () {
-            ok(false, "shouldn't be called");
+            QUnit.assert.ok(false, "shouldn't be called");
         }, function () {
             errorCalled = true;
         });
 
         signal.error();
 
-        ok(errorCalled, "Error wasn't called");
+        QUnit.assert.ok(errorCalled, "Error wasn't called");
     }
 
     function errorRaisedOnPromiseWithErrorInfo() {
         var signal = new Signal();
         var errorCalled = false;
         signal.promise.done(function () {
-            ok(false, "shouldn't be called");
+            QUnit.assert.ok(false, "shouldn't be called");
         }, function (errorInfo) {
             errorCalled = true;
-            ok(errorInfo, "no error info");
-            ok(errorInfo.errorDetail, "No error details");
+            QUnit.assert.ok(errorInfo, "no error info");
+            QUnit.assert.ok(errorInfo.errorDetail, "No error details");
         });
 
         signal.error({ errorDetail: "detail" });
 
-        ok(errorCalled, "Error wasn't called");
+        QUnit.assert.ok(errorCalled, "Error wasn't called");
     }
 
     function progressReported() {
         var signal = new Signal();
         var progress = 0;
         signal.promise.done(function () {
-            ok(false, "complete shouldn't be called");
+            QUnit.assert.ok(false, "complete shouldn't be called");
         }, function () {
-            ok(false, "Error shouldn't be called");
+            QUnit.assert.ok(false, "Error shouldn't be called");
         }, function () {
             progress++;
         });
@@ -178,7 +178,7 @@
         signal.progress();
         signal.progress();
 
-        strictEqual(progress, 2, "expected progress to be called twice");
+        QUnit.assert.strictEqual(progress, 2, "expected progress to be called twice");
     }
 
     function progressReportedWithData() {
@@ -188,9 +188,9 @@
         var signal = new Signal();
         var progress = [];
         signal.promise.done(function () {
-            ok(false, "complete shouldn't be called");
+            QUnit.assert.ok(false, "complete shouldn't be called");
         }, function () {
-            ok(false, "Error shouldn't be called");
+            QUnit.assert.ok(false, "Error shouldn't be called");
         }, function (data) {
             progress.push(data);
         });
@@ -198,24 +198,24 @@
         signal.progress(item1);
         signal.progress(item2);
 
-        strictEqual(progress.length, 2, "expected progress to be called twice");
-        strictEqual(progress[0], item1, "First item wasn't correct");
-        strictEqual(progress[1], item2, "second item wasn't correct");
+        QUnit.assert.strictEqual(progress.length, 2, "expected progress to be called twice");
+        QUnit.assert.strictEqual(progress[0], item1, "First item wasn't correct");
+        QUnit.assert.strictEqual(progress[1], item2, "second item wasn't correct");
     }
 
-    test("canConstructSignal", canConstructSignal);
-    test("signalCanBeCancelled", signalCanBeCancelled);
-    test("cancelledSignalHasOriginalSignalInEvent", cancelledSignalHasOriginalSignalInEvent);
-    test("signalCanComplete", signalCanComplete);
-    test("signalCompletesWithValue", signalCompletesWithValue);
-    test("signalCantCompleteMoreThanOnce", signalCantCompleteMoreThanOnce);
-    test("signalThrowsWhenCompletingTwice", signalThrowsWhenCompletingTwice);
-    test("errorRaisedOnPromise", errorRaisedOnPromise);
-    test("errorRaisedOnPromiseWithErrorInfo", errorRaisedOnPromiseWithErrorInfo);
-    test("progressReported", progressReported);
-    test("progressReportedWithData", progressReportedWithData);
+    QUnit.test("canConstructSignal", canConstructSignal);
+    QUnit.test("signalCanBeCancelled", signalCanBeCancelled);
+    QUnit.test("cancelledSignalHasOriginalSignalInEvent", cancelledSignalHasOriginalSignalInEvent);
+    QUnit.test("signalCanComplete", signalCanComplete);
+    QUnit.test("signalCompletesWithValue", signalCompletesWithValue);
+    QUnit.test("signalCantCompleteMoreThanOnce", signalCantCompleteMoreThanOnce);
+    QUnit.test("signalThrowsWhenCompletingTwice", signalThrowsWhenCompletingTwice);
+    QUnit.test("errorRaisedOnPromise", errorRaisedOnPromise);
+    QUnit.test("errorRaisedOnPromiseWithErrorInfo", errorRaisedOnPromiseWithErrorInfo);
+    QUnit.test("progressReported", progressReported);
+    QUnit.test("progressReportedWithData", progressReportedWithData);
 
-    module("UtilitiesPromiseSerializer");
+    QUnit.module("UtilitiesPromiseSerializer");
 
     promiseTest("handlerAppliedToAllPromises", function () {
         var promisesCompleted = 0;
@@ -228,7 +228,7 @@
 
 
         return Codevoid.Utilities.serialize(data, doWork).then(function () {
-            strictEqual(promisesCompleted, 10);
+            QUnit.assert.strictEqual(promisesCompleted, 10);
         });
     });
 
@@ -245,7 +245,7 @@
         };
 
         return Codevoid.Utilities.serialize(data, doWork).then(function () {
-            strictEqual(promisesCompleted, data.length);
+            QUnit.assert.strictEqual(promisesCompleted, data.length);
         });
     });
 
@@ -254,7 +254,7 @@
         var completedPromises = 0;
         var data = [1, 2, 3, 4, 5, 6, 8, 9, 10];
         var doWork = function () {
-            ok(!promiseExecuting, "A promise was already executing");
+            QUnit.assert.ok(!promiseExecuting, "A promise was already executing");
             promiseExecuting = true;
             return WinJS.Promise.timeout(10).then(function () {
                 promiseExecuting = false;
@@ -263,7 +263,7 @@
         };
 
         return Codevoid.Utilities.serialize(data, doWork).then(function () {
-            strictEqual(completedPromises, data.length);
+            QUnit.assert.strictEqual(completedPromises, data.length);
         });
     });
 
@@ -274,7 +274,7 @@
 
         var doWork = function () {
             promiseExecuting++;
-            ok(promiseExecuting < 3, "Only expected up to to promises")
+            QUnit.assert.ok(promiseExecuting < 3, "Only expected up to to promises")
             return WinJS.Promise.timeout(10).then(function () {
                 promiseExecuting--;
                 completedPromises++;
@@ -282,8 +282,8 @@
         };
 
         return Codevoid.Utilities.serialize(data, doWork, 2).then(function () {
-            strictEqual(promiseExecuting, 0, "All promises should be complete");
-            strictEqual(completedPromises, data.length);
+            QUnit.assert.strictEqual(promiseExecuting, 0, "All promises should be complete");
+            QUnit.assert.strictEqual(completedPromises, data.length);
         });
     });
 
@@ -298,9 +298,9 @@
         var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         return Codevoid.Utilities.serialize(data, doWork).then(function () {
-            ok(false, "Shouldn't succeed");
+            QUnit.assert.ok(false, "Shouldn't succeed");
         }, function () {
-            ok(true, "should have gotten error");
+            QUnit.assert.ok(true, "should have gotten error");
         });
     });
 
@@ -314,7 +314,7 @@
 
         return Codevoid.Utilities.serialize(data, doWork).then(function (values) {
             values.forEach(function (value, index) {
-                strictEqual(value, data[index], "Values & Order didn't match at index: " + index);
+                QUnit.assert.strictEqual(value, data[index], "Values & Order didn't match at index: " + index);
             });
         });
     });
@@ -336,13 +336,13 @@
         var cancel = new Codevoid.Utilities.CancellationSource();
 
         return Codevoid.Utilities.serialize(data, doWork, 0, cancel).then(function () {
-            ok(false, "shouldn't succeed");
+            QUnit.assert.ok(false, "shouldn't succeed");
         }, function () {
-            strictEqual(promisesCompleted, 5);
+            QUnit.assert.strictEqual(promisesCompleted, 5);
         });
     });
 
-    module("utilitiesControlUnload");
+    QUnit.module("utilitiesControlUnload");
     
     promiseTest("disposingOfControlCallsUnload", function () {
         var playground = getPlayground();
@@ -351,7 +351,7 @@
 
         return WinJS.UI.process(controlElement).then(function () {
             domUtilities.disposeOfControl(controlElement);
-            ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
         });
     });
 
@@ -369,7 +369,7 @@
             domUtilities.disposeOfControlTree(parent);
 
             controls.forEach(function (control) {
-                ok(control.winControl.disposed, "Control wasn't disposed");
+                QUnit.assert.ok(control.winControl.disposed, "Control wasn't disposed");
             });
         });
     });
@@ -389,10 +389,10 @@
             domUtilities.disposeOfControlTree(playground.firstChild);
 
             var unloadOrder = CodevoidTests.CustomUnloadingControl.unloadedOrder;
-            strictEqual(unloadOrder.length, 6, "Incorrect number of controls");
+            QUnit.assert.strictEqual(unloadOrder.length, 6, "Incorrect number of controls");
 
             for (var i = 1; i < unloadOrder.length; i++) {
-                ok(unloadOrder[i - 1] > unloadOrder[i], "Incorrect unload order detected. Control '" + unloadOrder[i - 1] + "' was not after '" + unloadOrder[i] + "'");
+                QUnit.assert.ok(unloadOrder[i - 1] > unloadOrder[i], "Incorrect unload order detected. Control '" + unloadOrder[i - 1] + "' was not after '" + unloadOrder[i] + "'");
             }
 
             CodevoidTests.CustomUnloadingControl.unloadedOrder = null;
@@ -412,8 +412,8 @@
             };
 
             domUtilities.disposeOfControlTree(playground);
-            ok(controlElement.winControl.disposed, "Control wasn't disposed");
-            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
 
@@ -426,8 +426,8 @@
         return WinJS.UI.processAll(playground).then(function () {
 
             domUtilities.empty(playground);
-            ok(controlElement.winControl.disposed, "Control wasn't disposed");
-            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
 
@@ -442,19 +442,19 @@
 
             domUtilities.removeChild(playground, parent);
 
-            ok(controlElement.winControl.disposed, "Control wasn't disposed");
-            ok(controlElement2.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            QUnit.assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
 
-    module("UtilitiesClasses");
+    QUnit.module("UtilitiesClasses");
 
-    test("canDerive", function () {
+    QUnit.test("canDerive", function () {
         var control = Codevoid.Utilities.derive(WinJS.Class.define(function () { }, { test: null }), function () { }, { test2: null });
-        ok(control, "No control created");
+        QUnit.assert.ok(control, "No control created");
     });
 
-    test("canInstantiateDerivedClass", function () {
+    QUnit.test("canInstantiateDerivedClass", function () {
         var baseConstructed = false;
         var derivedConstructed = false;
 
@@ -469,11 +469,11 @@
 
         var instance = new derived();
 
-        ok(baseConstructed, "Base class constructor wasn't called");
-        ok(derivedConstructed, "Derived class wasn't constructed");
+        QUnit.assert.ok(baseConstructed, "Base class constructor wasn't called");
+        QUnit.assert.ok(derivedConstructed, "Derived class wasn't constructed");
     });
 
-    test("derivedClassesConstructorsCalledInCorrectOrder", function () {
+    QUnit.test("derivedClassesConstructorsCalledInCorrectOrder", function () {
         var constructorOrder = [];
         var baseConstructed = false;
         var derivedConstructed = false;
@@ -491,36 +491,36 @@
 
         var instance = new derived();
 
-        ok(baseConstructed, "Base class constructor wasn't called");
-        ok(derivedConstructed, "Derived class wasn't constructed");
+        QUnit.assert.ok(baseConstructed, "Base class constructor wasn't called");
+        QUnit.assert.ok(derivedConstructed, "Derived class wasn't constructed");
 
-        strictEqual(constructorOrder.length, 2, "Incorrect number of constructors called");
-        strictEqual(constructorOrder[0], 1, "Base class wasn't called first");
-        strictEqual(constructorOrder[1], 2, "Derived class wasn't called second");
+        QUnit.assert.strictEqual(constructorOrder.length, 2, "Incorrect number of constructors called");
+        QUnit.assert.strictEqual(constructorOrder[0], 1, "Base class wasn't called first");
+        QUnit.assert.strictEqual(constructorOrder[1], 2, "Derived class wasn't called second");
     });
 
-    test("propertyHelperCanCreateProperty", function () {
+    QUnit.test("propertyHelperCanCreateProperty", function () {
         var object = WinJS.Class.mix(WinJS.Class.define(function () {
         }, {
             sample: Codevoid.Utilities.property("sample", null),
         }), WinJS.Utilities.eventMixin);
-        ok(object, "type wasn't created");
+        QUnit.assert.ok(object, "type wasn't created");
 
         var instance = new object();
-        ok(instance, "Instance wasn't created");
-        ok("sample" in instance, "Property not found on instance");
-        strictEqual(instance.sample, null, "Value wasn't set correctly");
+        QUnit.assert.ok(instance, "Instance wasn't created");
+        QUnit.assert.ok("sample" in instance, "Property not found on instance");
+        QUnit.assert.strictEqual(instance.sample, null, "Value wasn't set correctly");
     });
 
-    test("propertyRaisesEventWhenChanged", function () {
+    QUnit.test("propertyRaisesEventWhenChanged", function () {
         var object = WinJS.Class.mix(WinJS.Class.define(function () {
         }, {
             sample: Codevoid.Utilities.property("sample", null),
         }), WinJS.Utilities.eventMixin);
-        ok(object, "type wasn't created");
+        QUnit.assert.ok(object, "type wasn't created");
 
         var instance = new object();
-        ok(instance, "Instance wasn't created");
+        QUnit.assert.ok(instance, "Instance wasn't created");
         
         var valueChanged = false;
         instance.addEventListener("sampleChanged", function () {
@@ -529,41 +529,41 @@
 
         instance.sample = Date.now();
 
-        ok(valueChanged, "Value Didn't change");
+        QUnit.assert.ok(valueChanged, "Value Didn't change");
     });
 
-    test("propertyRaisesEventWithCorrectDataWhenChanged", function () {
+    QUnit.test("propertyRaisesEventWithCorrectDataWhenChanged", function () {
         var object = WinJS.Class.mix(WinJS.Class.define(function () {
         }, {
             sample: Codevoid.Utilities.property("sample", null),
         }), WinJS.Utilities.eventMixin);
-        ok(object, "type wasn't created");
+        QUnit.assert.ok(object, "type wasn't created");
 
         var instance = new object();
-        ok(instance, "Instance wasn't created");
+        QUnit.assert.ok(instance, "Instance wasn't created");
 
         var valueChanged = false;
         var newValue = Date.now();
         instance.addEventListener("sampleChanged", function (e) {
             valueChanged = true;
-            strictEqual(e.detail.previous, null, "Previous value incorrect");
-            strictEqual(e.detail.current, newValue, "New value incorrect");
+            QUnit.assert.strictEqual(e.detail.previous, null, "Previous value incorrect");
+            QUnit.assert.strictEqual(e.detail.current, newValue, "New value incorrect");
         });
 
         instance.sample = newValue;
 
-        ok(valueChanged, "Value Didn't change");
+        QUnit.assert.ok(valueChanged, "Value Didn't change");
     });
 
-    test("propertyRaisesEventWhenChanged", function () {
+    QUnit.test("propertyRaisesEventWhenChanged", function () {
         var object = WinJS.Class.mix(WinJS.Class.define(function () {
         }, {
             sample: Codevoid.Utilities.property("sample", null),
         }), WinJS.Utilities.eventMixin);
-        ok(object, "type wasn't created");
+        QUnit.assert.ok(object, "type wasn't created");
 
         var instance = new object();
-        ok(instance, "Instance wasn't created");
+        QUnit.assert.ok(instance, "Instance wasn't created");
 
         var valueChanged = false;
         var newValue = Date.now();
@@ -574,10 +574,10 @@
 
         instance.sample = newValue;
 
-        ok(!valueChanged, "Value changed, shouldn't have");
+        QUnit.assert.ok(!valueChanged, "Value changed, shouldn't have");
     });
 
-    test("addEventListenerCanAddListeners", function () {
+    QUnit.test("addEventListenerCanAddListeners", function () {
         var source = new CodevoidTests.EventSource();
         var eventWasRaised = false;
         
@@ -589,10 +589,10 @@
 
         source.dispatchEvent("custom", {});
 
-        ok(eventWasRaised, "No event raised");
+        QUnit.assert.ok(eventWasRaised, "No event raised");
     });
 
-    test("addEventListenerCanAddMoreThanOneListener", function () {
+    QUnit.test("addEventListenerCanAddMoreThanOneListener", function () {
         var source = new CodevoidTests.EventSource();
         var eventWasRaised = false;
         var event2WasRaised = false;
@@ -609,11 +609,11 @@
         source.dispatchEvent("custom", {});
         source.dispatchEvent("custom2", {});
 
-        ok(eventWasRaised, "No event raised");
-        ok(event2WasRaised, "No event raised");
+        QUnit.assert.ok(eventWasRaised, "No event raised");
+        QUnit.assert.ok(event2WasRaised, "No event raised");
     });
 
-    test("cancellingEventListenerRemovesListeners", function () {
+    QUnit.test("cancellingEventListenerRemovesListeners", function () {
         var source = new CodevoidTests.EventSource();
         var eventWasRaised = false;
         var event2WasRaised = false;
@@ -630,8 +630,8 @@
         source.dispatchEvent("custom", {});
         source.dispatchEvent("custom2", {});
 
-        ok(eventWasRaised, "No event raised");
-        ok(event2WasRaised, "No event raised");
+        QUnit.assert.ok(eventWasRaised, "No event raised");
+        QUnit.assert.ok(event2WasRaised, "No event raised");
 
         cancel.cancel();
 
@@ -642,36 +642,36 @@
         source.dispatchEvent("custom", {});
         source.dispatchEvent("custom2", {});
 
-        ok(!eventWasRaised, "Event raised");
-        ok(!event2WasRaised, "Event raised");
+        QUnit.assert.ok(!eventWasRaised, "Event raised");
+        QUnit.assert.ok(!event2WasRaised, "Event raised");
     });
 
-    module("UtilitiesTemplates");
+    QUnit.module("UtilitiesTemplates");
 
     promiseTest("canLoadTemplate", function () {
         return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then(function (template) {
-            ok(template, "Template Loaded!");
+            QUnit.assert.ok(template, "Template Loaded!");
             domUtilities.clearTemplateCaches();
         });
     });
 
     promiseTest("itemReturnedIsABindingTemplate", function () {
         return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then(function (template) {
-            ok(template, "Template Loaded!");
-            ok(template instanceof WinJS.Binding.Template, "Template isn't a WinJS.Binding.Template");
+            QUnit.assert.ok(template, "Template Loaded!");
+            QUnit.assert.ok(template instanceof WinJS.Binding.Template, "Template isn't a WinJS.Binding.Template");
             domUtilities.clearTemplateCaches();
         });
     });
 
     promiseTest("loadingTemplateInNonExistantFileErrors", function () {
         return domUtilities.loadTemplate("/foo.html", "testTemplate").then(null, function () {
-            ok(true, "Should have failed to load template");
+            QUnit.assert.ok(true, "Should have failed to load template");
         });
     });
 
     promiseTest("loadingNonExistantTemplateInLegitimateFileErrors", function () {
         return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "foo").then(null, function () {
-            ok(true, "Should have failed to load template");
+            QUnit.assert.ok(true, "Should have failed to load template");
         });
     });
 
@@ -683,14 +683,14 @@
             var instance = {};
             domUtilities.marryPartsToControl(playground, instance);
 
-            ok(instance.content, "Content not found");
-            strictEqual(instance.content.innerText, "Test", "Incorrect element");
+            QUnit.assert.ok(instance.content, "Content not found");
+            QUnit.assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
             
-            ok(instance.otherContent, "Other Content not found");
-            strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+            QUnit.assert.ok(instance.otherContent, "Other Content not found");
+            QUnit.assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
 
-            ok(instance.aControl, "No Control found");
-            ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
+            QUnit.assert.ok(instance.aControl, "No Control found");
+            QUnit.assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
         });
     });
 
@@ -708,16 +708,16 @@
             var instance = {};
             domUtilities.marryPartsToControl(templateContainer, instance);
 
-            ok(!instance.fakePart, "Didn't expect to find fake part");
+            QUnit.assert.ok(!instance.fakePart, "Didn't expect to find fake part");
 
-            ok(instance.content, "Content not found");
-            strictEqual(instance.content.innerText, "Test", "Incorrect element");
+            QUnit.assert.ok(instance.content, "Content not found");
+            QUnit.assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
 
-            ok(instance.otherContent, "Other Content not found");
-            strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+            QUnit.assert.ok(instance.otherContent, "Other Content not found");
+            QUnit.assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
 
-            ok(instance.aControl, "No Control found");
-            ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
+            QUnit.assert.ok(instance.aControl, "No Control found");
+            QUnit.assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
         });
     });
 
@@ -762,33 +762,33 @@
 
             parts.parent.dispatchEvent(customEvent);
 
-            ok(customCalled, "Custom handler wasn't called");
+            QUnit.assert.ok(customCalled, "Custom handler wasn't called");
 
             var custom2Event = document.createEvent("Event");
             custom2Event.initEvent("custom2", true, true);
 
             parts.child.dispatchEvent(custom2Event);
 
-            ok(custom2Called, "Custom2 handler wasn't called");
+            QUnit.assert.ok(custom2Called, "Custom2 handler wasn't called");
 
             var customRootEvent = document.createEvent("Event");
             customRootEvent.initEvent("customRoot", true, true);
             playground.dispatchEvent(customRootEvent);
 
-            ok(customRootCalled, "Custom root handler wasn't called");
+            QUnit.assert.ok(customRootCalled, "Custom root handler wasn't called");
         });
     });
 
-    test("domWithNoEventAttributesIsOK", function () {
+    QUnit.test("domWithNoEventAttributesIsOK", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         playground.appendChild(newElement);
 
         domUtilities.marryEventsToHandlers(playground);
-        ok(true, "Shouldn't fail, unless an exception is thrown");
+        QUnit.assert.ok(true, "Shouldn't fail, unless an exception is thrown");
     });
 
-    test("canAttachMoreThanOneEventOnAnElement", function () {
+    QUnit.test("canAttachMoreThanOneEventOnAnElement", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         newElement.setAttribute("data-event", "{ custom: handleCustom, custom2: handleCustom2 }");
@@ -823,17 +823,17 @@
 
         newElement.dispatchEvent(customEvent);
 
-        ok(customCalled, "Custom handler wasn't called");
+        QUnit.assert.ok(customCalled, "Custom handler wasn't called");
 
         var custom2Event = document.createEvent("Event");
         custom2Event.initEvent("custom2", true, true);
 
         newElement.dispatchEvent(custom2Event);
 
-        ok(custom2Called, "Custom2 handler wasn't called");
+        QUnit.assert.ok(custom2Called, "Custom2 handler wasn't called");
     });
 
-    test("eventAttributesWithMissingHandlersThrowsException", function () {
+    QUnit.test("eventAttributesWithMissingHandlersThrowsException", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         newElement.setAttribute("data-event", "{ custom: handleCustom }");
@@ -856,10 +856,10 @@
 
         newElement.dispatchEvent(customEvent);
 
-        ok(exceptionWasThrown, "Married events to handlers when handler was missing");
+        QUnit.assert.ok(exceptionWasThrown, "Married events to handlers when handler was missing");
     });
 
-    test("marryingEventsReturnsObjectToCancelThemWith", function () {
+    QUnit.test("marryingEventsReturnsObjectToCancelThemWith", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         newElement.setAttribute("data-event", "{ custom: handleCustom }");
@@ -869,14 +869,14 @@
 
         var cancellable = domUtilities.marryEventsToHandlers(playground, instance);
 
-        ok(cancellable, "Didn't get an event cancellation object");
-        ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
+        QUnit.assert.ok(cancellable, "Didn't get an event cancellation object");
+        QUnit.assert.ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
 
         // Make sure calling cancel in this state
         cancellable.cancel();
     });
 
-    test("cancellingEventsActuallyDetatchesHandlers", function () {
+    QUnit.test("cancellingEventsActuallyDetatchesHandlers", function () {
         var playground = getPlayground();
         var newElement = document.createElement("div");
         newElement.setAttribute("data-event", "{ custom: handleCustom }");
@@ -894,8 +894,8 @@
 
         var cancellable = domUtilities.marryEventsToHandlers(playground, instance);
 
-        ok(cancellable, "Didn't get an event cancellation object");
-        ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
+        QUnit.assert.ok(cancellable, "Didn't get an event cancellation object");
+        QUnit.assert.ok(cancellable.cancel, "Cancellation object didn't have a cancel on it");
 
         // Make sure calling cancel in this state
         cancellable.cancel();
@@ -905,12 +905,12 @@
 
         newElement.dispatchEvent(customEvent);
 
-        ok(!customCalled, "Didn't expect custom handler to be called after detaching them");
+        QUnit.assert.ok(!customCalled, "Didn't expect custom handler to be called after detaching them");
     });
 
-    module("DebounceTests");
+    QUnit.module("DebounceTests");
 
-    test("constructingDebounceWithoutOperationOrTimeoutFails", () => {
+    QUnit.test("constructingDebounceWithoutOperationOrTimeoutFails", () => {
         let failed = false;
         try {
             let constructed = new Codevoid.Utilities.Debounce(null, null);
@@ -918,10 +918,10 @@
             failed = true;
         }
 
-        ok(failed, "Didn't get failure constructoring object without parameters");
+        QUnit.assert.ok(failed, "Didn't get failure constructoring object without parameters");
     });
 
-    test("constructingDebounceWithoutOperationButWithTimeoutFails", () => {
+    QUnit.test("constructingDebounceWithoutOperationButWithTimeoutFails", () => {
         let failed = false;
         try {
             let constructed = new Codevoid.Utilities.Debounce(null, 1);
@@ -929,10 +929,10 @@
             failed = true;
         }
 
-        ok(failed, "Didn't get failure constructoring object without operation");
+        QUnit.assert.ok(failed, "Didn't get failure constructoring object without operation");
     });
 
-    test("constructingDebounceWithOperationButWithouyTimeoutFails", () => {
+    QUnit.test("constructingDebounceWithOperationButWithouyTimeoutFails", () => {
         let failed = false;
         try {
             let constructed = new Codevoid.Utilities.Debounce(() => { }, 0);
@@ -940,7 +940,7 @@
             failed = true;
         }
 
-        ok(failed, "Didn't get failure constructoring object without timeout");
+        QUnit.assert.ok(failed, "Didn't get failure constructoring object without timeout");
     });
 
     promiseTest("debouncingDoesNotHappenWithoutBouncing", () => {
@@ -961,7 +961,7 @@
             WinJS.Promise.timeout(10),
             completionPromise
         ]).then((results) => {
-            ok(!wasCalled, "Did not expect completion handler to be called");
+            QUnit.assert.ok(!wasCalled, "Did not expect completion handler to be called");
         });
     });
 
@@ -985,8 +985,8 @@
             WinJS.Promise.timeout(100),
             completionPromise
         ]).then((results) => {
-            ok(wasCalled, "Did not expect completion handler to be called");
-            strictEqual(results.key, "1", "Wrong promise completed");
+            QUnit.assert.ok(wasCalled, "Did not expect completion handler to be called");
+            QUnit.assert.strictEqual(results.key, "1", "Wrong promise completed");
         });
     });
 
@@ -1019,9 +1019,9 @@
             WinJS.Promise.timeout(20),
             completionPromise
         ]).then((results) => {
-            ok(wasCalled, "Did not expect completion handler to be called");
-            ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
-            ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
+            QUnit.assert.ok(wasCalled, "Did not expect completion handler to be called");
+            QUnit.assert.ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
+            QUnit.assert.ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
         });
     });
 
@@ -1049,7 +1049,7 @@
             WinJS.Promise.timeout(30),
             completionPromise
         ]).then((results) => {
-            strictEqual(completionCount, 1, "Bounce Completed more than once");
+            QUnit.assert.strictEqual(completionCount, 1, "Bounce Completed more than once");
         });
     });
 
@@ -1077,7 +1077,7 @@
             WinJS.Promise.timeout(30),
             completionPromise
         ]).then((results) => {
-            strictEqual(completionCount, 2, "Bounce Completed more than once");
+            QUnit.assert.strictEqual(completionCount, 2, "Bounce Completed more than once");
         });
     });
 })();

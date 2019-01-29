@@ -100,7 +100,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return instapaperDB.initialize().then(() => {
             return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
         });
     });
 
@@ -116,14 +116,14 @@ module CodevoidTests.InstapaperArticleSyncTests {
             articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
             return instapaperDB.getBookmarkByBookmarkId(normalArticleId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
             return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
-            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
-            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
-            strictEqual(syncedBookmark.hasImages, false, "Didn't expect images");
-            strictEqual(syncedBookmark.extractedDescription, "Bacon ipsum dolor sit amet tail prosciutto drumstick ea. Fugiat culpa eiusmod qui, enim officia consequat cow t-bone prosciutto beef ribs. Ribeye kielbasa esse capicola excepteur, ham labore pancetta pariatur andouille corned beef cillum tongue. Pork loin flank pork belly, boudin labore hamburger meatball bacon. Meatball id adipisicing corned beef deserunt beef ribs. Bresaola et ut ham hock dolor ", "Wrong number of extracted description letters");
+            QUnit.assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            QUnit.assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            QUnit.assert.strictEqual(syncedBookmark.hasImages, false, "Didn't expect images");
+            QUnit.assert.strictEqual(syncedBookmark.extractedDescription, "Bacon ipsum dolor sit amet tail prosciutto drumstick ea. Fugiat culpa eiusmod qui, enim officia consequat cow t-bone prosciutto beef ribs. Ribeye kielbasa esse capicola excepteur, ham labore pancetta pariatur andouille corned beef cillum tongue. Pork loin flank pork belly, boudin labore hamburger meatball bacon. Meatball id adipisicing corned beef deserunt beef ribs. Bresaola et ut ham hock dolor ", "Wrong number of extracted description letters");
         });
     });
 
@@ -140,23 +140,23 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             return instapaperDB.getBookmarkByBookmarkId(articleWithImageId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
             return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
-            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
-            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
-            strictEqual(syncedBookmark.hasImages, true, "Expected images");
-            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
+            QUnit.assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            QUnit.assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            QUnit.assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            QUnit.assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(articleWithImageId.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
             return imagesSubFolder.getFilesAsync();
         }).then((files) => {
-            strictEqual(files.size, 2, "Unexpected number of files");
+            QUnit.assert.strictEqual(files.size, 2, "Unexpected number of files");
             files.forEach((file, index) => {
                 var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
-                strictEqual(nameAsNumber, index, "Incorrect filename");
+                QUnit.assert.strictEqual(nameAsNumber, index, "Incorrect filename");
             });
 
             return articlesFolder.getFileAsync(articleWithImageId + ".html");
@@ -167,14 +167,14 @@ module CodevoidTests.InstapaperArticleSyncTests {
             var articleDocument = parser.parseFromString(articleContent, "text/html");
             var images = WinJS.Utilities.query("img", articleDocument.body);
 
-            strictEqual(images.length, 2, "Wrong number of images compared to filename");
+            QUnit.assert.strictEqual(images.length, 2, "Wrong number of images compared to filename");
 
             var packageName = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
             var expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/0.png";
-            strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
+            QUnit.assert.strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
             expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/1.jpg";
-            strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
+            QUnit.assert.strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });
 
@@ -191,23 +191,23 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             return instapaperDB.getBookmarkByBookmarkId(youTubeArticleId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
             return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
-            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
-            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
-            strictEqual(syncedBookmark.hasImages, true, "Expected images");
-            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
+            QUnit.assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            QUnit.assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            QUnit.assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            QUnit.assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
             return imagesSubFolder.getFilesAsync();
         }).then((files) => {
-            strictEqual(files.size, 1, "Unexpected number of files");
+            QUnit.assert.strictEqual(files.size, 1, "Unexpected number of files");
             files.forEach((file, index) => {
                 var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
-                strictEqual(nameAsNumber, index, "Incorrect filename");
+                QUnit.assert.strictEqual(nameAsNumber, index, "Incorrect filename");
             });
         });
     });
@@ -225,23 +225,23 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             return instapaperDB.getBookmarkByBookmarkId(vimeoArticleId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
             return articleSync.syncSingleArticle(bookmark.bookmark_id, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
-            strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
-            strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
-            strictEqual(syncedBookmark.hasImages, true, "Expected images");
-            strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
+            QUnit.assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
+            QUnit.assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
+            QUnit.assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
+            QUnit.assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
             return imagesSubFolder.getFilesAsync();
         }).then((files) => {
-            strictEqual(files.size, 1, "Unexpected number of files");
+            QUnit.assert.strictEqual(files.size, 1, "Unexpected number of files");
             files.forEach((file, index) => {
                 var nameAsNumber = parseInt(file.name.replace(file.fileType, ""));
-                strictEqual(nameAsNumber, index, "Incorrect filename");
+                QUnit.assert.strictEqual(nameAsNumber, index, "Incorrect filename");
             });
         });
     });
@@ -268,18 +268,18 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             return instapaperDB.getBookmarkByBookmarkId(badBookmarkId);
         }).then((bookmark: av.IBookmark) => {
-            strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
+            QUnit.assert.strictEqual(bookmark.contentAvailableLocally, false, "Didn't expect content to be available locally");
 
             return articleSync.syncSingleArticle(badBookmarkId, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then((syncedBookmark: av.IBookmark) => {
-            ok(!syncedBookmark.contentAvailableLocally, "Expected bookmark to be unavailable locally");
-            strictEqual(syncedBookmark.localFolderRelativePath, undefined, "File path incorrect");
-            ok(!syncedBookmark.hasImages, "Didn't expect images");
-            ok(syncedBookmark.articleUnavailable, "File should indicate error");
+            QUnit.assert.ok(!syncedBookmark.contentAvailableLocally, "Expected bookmark to be unavailable locally");
+            QUnit.assert.strictEqual(syncedBookmark.localFolderRelativePath, undefined, "File path incorrect");
+            QUnit.assert.ok(!syncedBookmark.hasImages, "Didn't expect images");
+            QUnit.assert.ok(syncedBookmark.articleUnavailable, "File should indicate error");
 
             return articlesFolder.tryGetItemAsync(badBookmarkId + ".html");
         }).then((articleFile: st.IStorageItem) => {
-            ok(articleFile == null, "Shouldn't have downloaded article");
+            QUnit.assert.ok(articleFile == null, "Shouldn't have downloaded article");
 
             return bookmarksApi.deleteBookmark(badBookmarkId);
         });
@@ -320,7 +320,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
             var files = result.files;
             var folders = result.folders;
 
-            strictEqual(files.length, 2, "only expected two files");
+            QUnit.assert.strictEqual(files.length, 2, "only expected two files");
             
             // Validate that the two remaining files are the correct ones
             var fileNames = files.map((file: st.StorageFile) => {
@@ -330,11 +330,11 @@ module CodevoidTests.InstapaperArticleSyncTests {
             var imageArticleIndex = fileNames.indexOf(articleWithImageId + ".html");
             var normalArticleIndex = fileNames.indexOf(normalArticleId + ".html");
 
-            notStrictEqual(imageArticleIndex, -1, "Image article file not found");
-            notStrictEqual(normalArticleIndex, -1, "Normal article file not found");
+            QUnit.assert.notStrictEqual(imageArticleIndex, -1, "Image article file not found");
+            QUnit.assert.notStrictEqual(normalArticleIndex, -1, "Normal article file not found");
 
-            strictEqual(folders.length, 1, "Only expected one folder");
-            strictEqual(folders.getAt(0).name, articleWithImageId + "", "Incorrect folder left behind");
+            QUnit.assert.strictEqual(folders.length, 1, "Only expected one folder");
+            QUnit.assert.strictEqual(folders.getAt(0).name, articleWithImageId + "", "Incorrect folder left behind");
         });
     });
 
@@ -393,39 +393,39 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
             return articleSync.syncSingleArticle(articleWithImageId, instapaperDB, new Codevoid.Utilities.CancellationSource());
         }).then(() => {
-            strictEqual(happenings.length, 8, "incorrect number of events");
+            QUnit.assert.strictEqual(happenings.length, 8, "incorrect number of events");
 
             var first = happenings[0];
-            strictEqual(first.event, "syncstart", "incorrect first event");
-            strictEqual(first.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(first.event, "syncstart", "incorrect first event");
+            QUnit.assert.strictEqual(first.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var second = happenings[1];
-            strictEqual(second.event, "imagesstarting", "incorrect second event");
-            strictEqual(second.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(second.event, "imagesstarting", "incorrect second event");
+            QUnit.assert.strictEqual(second.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var third = happenings[2];
-            strictEqual(third.event, "imagestart", "incorrect third event");
-            strictEqual(third.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(third.event, "imagestart", "incorrect third event");
+            QUnit.assert.strictEqual(third.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var fourth = happenings[3];
-            strictEqual(fourth.event, "imagestart", "incorrect fourth event");
-            strictEqual(fourth.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(fourth.event, "imagestart", "incorrect fourth event");
+            QUnit.assert.strictEqual(fourth.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var fifth = happenings[4];
-            strictEqual(fifth.event, "imagestop", "incorrect fifth event");
-            strictEqual(fifth.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(fifth.event, "imagestop", "incorrect fifth event");
+            QUnit.assert.strictEqual(fifth.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var sixth = happenings[5];
-            strictEqual(sixth.event, "imagestop", "incorrect sixth event");
-            strictEqual(sixth.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(sixth.event, "imagestop", "incorrect sixth event");
+            QUnit.assert.strictEqual(sixth.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var seventh = happenings[6];
-            strictEqual(seventh.event, "imagesstop", "incorrect seventh event");
-            strictEqual(seventh.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(seventh.event, "imagesstop", "incorrect seventh event");
+            QUnit.assert.strictEqual(seventh.bookmark_id, articleWithImageId, "Incorrect ID");
 
             var eigth = happenings[7];
-            strictEqual(eigth.event, "syncstop", "incorrect eigth event");
-            strictEqual(eigth.bookmark_id, articleWithImageId, "Incorrect ID");
+            QUnit.assert.strictEqual(eigth.event, "syncstop", "incorrect eigth event");
+            QUnit.assert.strictEqual(eigth.bookmark_id, articleWithImageId, "Incorrect ID");
         });
     });
 
@@ -475,9 +475,9 @@ module CodevoidTests.InstapaperArticleSyncTests {
                 var isInHash = result.fileMap.hasOwnProperty(bookmark.bookmark_id.toString());
 
                 if (bookmark.contentAvailableLocally) {
-                    ok(isInHash, "Didn't find bookmark in filesystem");
+                    QUnit.assert.ok(isInHash, "Didn't find bookmark in filesystem");
                 } else {
-                    ok(!isInHash, "Shouldn't have found bookmark locally");
+                    QUnit.assert.ok(!isInHash, "Shouldn't have found bookmark locally");
                 }
             });
         });

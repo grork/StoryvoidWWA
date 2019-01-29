@@ -56,7 +56,7 @@
         return new Codevoid.Storyvoid.InstapaperSync(clientInformation);
     }
 
-    module("InstapaperSync");
+    QUnit.module("InstapaperSync");
 
     promiseTest("destoryRemoteDataOnStart", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("deleteDbOnStart", deleteDb, defaultTestDelay);
@@ -91,14 +91,14 @@
                 });
             });
         }).then(function () {
-            ok(true, "Folders added");
+            QUnit.assert.ok(true, "Folders added");
         }, (errors) => {
             var foundNonAlreadyThereError = false;
             foundNonAlreadyThereError = errors.some((item) => {
                 return (item.error != undefined) && (item.error === 1251);
             });
 
-            ok(!foundNonAlreadyThereError, "Unexpected error when adding folders");
+            QUnit.assert.ok(!foundNonAlreadyThereError, "Unexpected error when adding folders");
         });
     }
 
@@ -113,9 +113,9 @@
             instapaperDB = idb;
             return idb.listCurrentFolders();
         }).then(function (folders) {
-            ok(folders, "Didn't get folder list");
+            QUnit.assert.ok(folders, "Didn't get folder list");
 
-            strictEqual(folders.length, 7, "Unexpected number of folders");
+            QUnit.assert.strictEqual(folders.length, 7, "Unexpected number of folders");
 
             folders.forEach(function (folder) {
                 switch (folder.folder_id) {
@@ -134,7 +134,7 @@
                     return f.folder_id === folder.folder_id;
                 });
 
-                ok(wasInSyncedSet, "Folder: " + folder.folder_id + ", " + folder.title + " wasn't expected to be found");
+                QUnit.assert.ok(wasInSyncedSet, "Folder: " + folder.folder_id + ", " + folder.title + " wasn't expected to be found");
             });
 
             return expectNoPendingFolderEdits(instapaperDB);
@@ -152,20 +152,20 @@
             instapaperDB = idb;
             return idb.getFolderFromFolderId(targetRemoteFolder.folder_id);
         }).then(function (localFolder) {
-            localFolder.title = Date.now();
+            localFolder.title = Date.now() + "a";
             return WinJS.Promise.join({
                 updatedFolder: instapaperDB.updateFolder(localFolder),
                 timeout: WinJS.Promise.timeout(),
             });
         }).then(function (data) {
-            ok(data.updatedFolder, "Didn't get updated folder");
-            notStrictEqual(data.updatedFolder.title, targetRemoteFolder.title, "Title didn't change");
+            QUnit.assert.ok(data.updatedFolder, "Didn't get updated folder");
+            QUnit.assert.notStrictEqual(data.updatedFolder.title, targetRemoteFolder.title, "Title didn't change");
 
             return sync.sync({ folders: true });
         }).then(function () {
             return instapaperDB.getFolderFromFolderId(targetRemoteFolder.folder_id);
         }).then(function (localFolder) {
-            strictEqual(localFolder.title, targetRemoteFolder.title, "Title did not correctly sync");
+            QUnit.assert.strictEqual(localFolder.title, targetRemoteFolder.title, "Title did not correctly sync");
             return expectNoPendingFolderEdits(instapaperDB);
         });
     }
@@ -188,15 +188,15 @@
             }).then(function () {
                 return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
             }).then(function (addedFolder) {
-                ok(addedFolder, "Didn't get added folder");
-                strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
-                ok(!!addedFolder.id, "Folder didn't have DB id");
+                QUnit.assert.ok(addedFolder, "Didn't get added folder");
+                QUnit.assert.strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
+                QUnit.assert.ok(!!addedFolder.id, "Folder didn't have DB id");
 
                 return WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
             }).then(function () {
                 return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
             }).then(function (addedFolder) {
-                ok(!addedFolder, "Shouldn't have gotten the folder. It should have been removed");
+                QUnit.assert.ok(!addedFolder, "Shouldn't have gotten the folder. It should have been removed");
 
                 return expectNoPendingFolderEdits(instapaperDB);
             });
@@ -214,7 +214,7 @@
         };
 
         var newRemoteFolder = {
-            title: Date.now() + "", // now() is an integer. It comes back as a string, Just make it a damn string
+            title: Date.now() + "a", // now() is an integer. It comes back as a string, Just make it a damn string
         };
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -225,9 +225,9 @@
             }).then(function () {
                 return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
             }).then(function (addedFolder) {
-                ok(addedFolder, "Didn't get added folder");
-                strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
-                ok(!!addedFolder.id, "Folder didn't have DB id");
+                QUnit.assert.ok(addedFolder, "Didn't get added folder");
+                QUnit.assert.strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
+                QUnit.assert.ok(!!addedFolder.id, "Folder didn't have DB id");
 
                 var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
@@ -244,11 +244,11 @@
                     added: instapaperDB.getFolderFromFolderId(newRemoteFolder.folder_id),
                 });
             }).then(function (folders) {
-                ok(!folders.deleted, "Shouldn't have gotten the folder. It should have been removed");
+                QUnit.assert.ok(!folders.deleted, "Shouldn't have gotten the folder. It should have been removed");
 
-                ok(folders.added, "Didn't find added folder");
-                strictEqual(folders.added.folder_id, newRemoteFolder.folder_id, "Not correct folder ID");
-                strictEqual(folders.added.title, newRemoteFolder.title, "Incorrect title");
+                QUnit.assert.ok(folders.added, "Didn't find added folder");
+                QUnit.assert.strictEqual(folders.added.folder_id, newRemoteFolder.folder_id, "Not correct folder ID");
+                QUnit.assert.strictEqual(folders.added.title, newRemoteFolder.title, "Incorrect title");
 
                 return expectNoPendingFolderEdits(instapaperDB);
             });
@@ -261,13 +261,13 @@
         var sync = getNewSyncEngine();
         var instapaperDB;
 
-        var newFolder = { title: Date.now() + "", };
+        var newFolder = { title: Date.now() + "a", };
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
             return idb.addFolder(newFolder);
         }).then(function (addedFolder) {
-            ok(!!addedFolder.id, "need folder id to find it later");
+            QUnit.assert.ok(!!addedFolder.id, "need folder id to find it later");
             newFolder = addedFolder;
 
             return sync.sync({ folders: true });
@@ -278,7 +278,7 @@
                 return item.title === newFolder.title;
             });
 
-            ok(localFolderWasSynced, "Local folder was not found on the server");
+            QUnit.assert.ok(localFolderWasSynced, "Local folder was not found on the server");
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
@@ -288,25 +288,25 @@
         var sync = getNewSyncEngine();
         var instapaperDB;
 
-        var newFolder = { title: Date.now() + "", };
+        var newFolder = { title: Date.now() + "a", };
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
             return idb.addFolder(newFolder);
         }).then(function (addedFolder) {
-            ok(!!addedFolder.id);
-            strictEqual(addedFolder.folder_id, undefined, "Shouldn't have had a folder id yet.");
+            QUnit.assert.ok(!!addedFolder.id);
+            QUnit.assert.strictEqual(addedFolder.folder_id, undefined, "Shouldn't have had a folder id yet.");
             newFolder = addedFolder;
 
             return instapaperDB.getPendingFolderEdits();
         }).then(function (pendingEdits) {
-            strictEqual(pendingEdits.length, 1, "Only expected one pending edit");
+            QUnit.assert.strictEqual(pendingEdits.length, 1, "Only expected one pending edit");
 
             return sync.sync({ folders: true });
         }).then(function () {
             return instapaperDB.getFolderByDbId(newFolder.id);
         }).then(function (syncedFolder) {
-            ok(!!syncedFolder.folder_id, "Didn't find a folder ID");
+            QUnit.assert.ok(!!syncedFolder.folder_id, "Didn't find a folder ID");
             addedRemoteFolders.push(syncedFolder);
             return expectNoPendingFolderEdits(instapaperDB);
         });
@@ -317,7 +317,7 @@
         var instapaperDB;
 
         var local = {
-            title: Date.now() + "",
+            title: Date.now() + "a",
             cookie: true,
         };
 
@@ -338,10 +338,10 @@
             }).then(function () {
                 return instapaperDB.getFolderByDbId(local.id);
             }).then(function (localFolder) {
-                ok(localFolder, "Didn't find the local folder");
-                strictEqual(localFolder.folder_id, remote.folder_id, "Folder ID didn't match the local folder");
-                strictEqual(localFolder.title, remote.title, "Folder title didn't match");
-                ok(localFolder.cookie, "Cookie was not present on the DB folder. Data Squashed?");
+                QUnit.assert.ok(localFolder, "Didn't find the local folder");
+                QUnit.assert.strictEqual(localFolder.folder_id, remote.folder_id, "Folder ID didn't match the local folder");
+                QUnit.assert.strictEqual(localFolder.title, remote.title, "Folder title didn't match");
+                QUnit.assert.ok(localFolder.cookie, "Cookie was not present on the DB folder. Data Squashed?");
             });
         });
     }, defaultTestDelay);
@@ -359,8 +359,8 @@
                 remoteFolders: folders.list(),
             });
         }).then(function (data) {
-            ok(!!data.local.id, "need folder id to delete");
-            ok(data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!!data.local.id, "need folder id to delete");
+            QUnit.assert.ok(data.remoteFolders.some(function (item) {
                 return item.folder_id === data.local.folder_id;
             }), "Folder to delete wasn't present remotely");
 
@@ -373,11 +373,11 @@
                 localFolder: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
             });
         }).then(function (data) {
-            ok(!data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!data.remoteFolders.some(function (item) {
                 return item.folder_id === targetFolder.folder_id;
             }), "Item shouldn't have been found remotely");
 
-            ok(!data.localFolder, "Local folder should be missing");
+            QUnit.assert.ok(!data.localFolder, "Local folder should be missing");
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
@@ -396,8 +396,8 @@
                 remoteFolders: folders.list(),
             });
         }).then(function (data) {
-            ok(!!data.local.id, "need folder id to delete");
-            ok(data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!!data.local.id, "need folder id to delete");
+            QUnit.assert.ok(data.remoteFolders.some(function (item) {
                 return item.folder_id === data.local.folder_id;
             }), "Folder to delete wasn't present remotely");
 
@@ -413,11 +413,11 @@
                 localFolder: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
             });
         }).then(function (data) {
-            ok(!data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!data.remoteFolders.some(function (item) {
                 return item.folder_id === targetFolder.folder_id;
             }), "Item shouldn't have been found remotely");
 
-            ok(!data.localFolder, "Local folder should be missing");
+            QUnit.assert.ok(!data.localFolder, "Local folder should be missing");
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
@@ -428,7 +428,7 @@
         var instapaperDB;
         var targetFolder = addedRemoteFolders.pop();
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-        var newFolder = { title: Date.now() + "" };
+        var newFolder = { title: Date.now() + "a" };
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -438,13 +438,13 @@
                 remoteFolders: folders.list(),
             });
         }).then(function (data) {
-            ok(!!data.toRemove.id, "need folder id to delete");
-            ok(data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!!data.toRemove.id, "need folder id to delete");
+            QUnit.assert.ok(data.remoteFolders.some(function (item) {
                 return item.folder_id === data.toRemove.folder_id;
             }), "Folder to delete wasn't present remotely");
 
-            ok(data.toAdd, "Didn't get added folder");
-            ok(data.toAdd.id, "Didn't have an ID");
+            QUnit.assert.ok(data.toAdd, "Didn't get added folder");
+            QUnit.assert.ok(data.toAdd.id, "Didn't have an ID");
             newFolder = data.toAdd;
 
             return instapaperDB.removeFolder(data.toRemove.id);
@@ -457,20 +457,20 @@
                 added: instapaperDB.getFolderByDbId(newFolder.id),
             });
         }).then(function (data) {
-            ok(!data.remoteFolders.some(function (item) {
+            QUnit.assert.ok(!data.remoteFolders.some(function (item) {
                 return item.folder_id === targetFolder.folder_id;
             }), "Item shouldn't have been found remotely");
 
-            ok(!data.removed, "Local folder should be missing");
+            QUnit.assert.ok(!data.removed, "Local folder should be missing");
 
-            ok(data.added, "Didn't get added folder. It got lost");
+            QUnit.assert.ok(data.added, "Didn't get added folder. It got lost");
             addedRemoteFolders.push(data.added);
 
             return expectNoPendingFolderEdits(instapaperDB);
         });
     }, defaultTestDelay);
 
-    module("InstapaperSyncBookmarks");
+    QUnit.module("InstapaperSyncBookmarks");
     promiseTest("destoryRemoteDataBeforeBookmarks", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("deleteDbBeforeBookmarks", deleteDb, defaultTestDelay);
     promiseTest("addDefaultRemoteFoldersBeforeBookmarks", addDefaultRemoteFolders, defaultTestDelay);
@@ -530,10 +530,10 @@
                 return remoteBookmarks;
             });
         }).then(function (currentRemoteBookmarks) {
-            ok(currentRemoteBookmarks, "Didn't get list of current remote bookmarks");
+            QUnit.assert.ok(currentRemoteBookmarks, "Didn't get list of current remote bookmarks");
             addedRemoteBookmarks = currentRemoteBookmarks;
-            ok(addedRemoteBookmarks, "No remotebookmarks!");
-            ok(addedRemoteBookmarks.length, "No remote bookmarks!");
+            QUnit.assert.ok(addedRemoteBookmarks, "No remotebookmarks!");
+            QUnit.assert.ok(addedRemoteBookmarks.length, "No remote bookmarks!");
 
             return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
         }).then((result) => {
@@ -566,11 +566,11 @@
             var bookmarks = data.local;
             var expectedBookmarks = data.remote.bookmarks;
 
-            ok(bookmarks, "Didn't get any bookmarks");
-            strictEqual(bookmarks.length, addedRemoteBookmarks.length, "Didn't get enough bookmarks");
+            QUnit.assert.ok(bookmarks, "Didn't get any bookmarks");
+            QUnit.assert.strictEqual(bookmarks.length, addedRemoteBookmarks.length, "Didn't get enough bookmarks");
 
             // Check all the bookmarks are correctly present.
-            ok(expectedBookmarks.length, "Should have added some test pages to check");
+            QUnit.assert.ok(expectedBookmarks.length, "Should have added some test pages to check");
 
             var allInUnread = bookmarks.every(function (item) {
                 var expectedBookmarkIndex = -1;
@@ -587,8 +587,8 @@
                 return item.folder_dbid === instapaperDB.commonFolderDbIds.unread;
             });
 
-            ok(allInUnread, "Some of the sync'd bookmarks were not in the unread folder");
-            strictEqual(expectedBookmarks.length, 0, "Some bookmarks were not found");
+            QUnit.assert.ok(allInUnread, "Some of the sync'd bookmarks were not in the unread folder");
+            QUnit.assert.strictEqual(expectedBookmarks.length, 0, "Some bookmarks were not found");
 
             // Verify the other properties
             addedRemoteBookmarks.forEach(function (b) {
@@ -602,11 +602,11 @@
                     }
                 }
 
-                ok(local, "Didn't find the URL locally. Should have done");
+                QUnit.assert.ok(local, "Didn't find the URL locally. Should have done");
 
-                strictEqual(local.bookmark_id, b.bookmark_id, "Bookmark ID's didn't match");
-                strictEqual(local.title, b.title, "Title's didn't match");
-                strictEqual(local.hash, b.hash, "Hash didn't match");
+                QUnit.assert.strictEqual(local.bookmark_id, b.bookmark_id, "Bookmark ID's didn't match");
+                QUnit.assert.strictEqual(local.title, b.title, "Title's didn't match");
+                QUnit.assert.strictEqual(local.hash, b.hash, "Hash didn't match");
             });
 
             return expectNoPendingBookmarkEdits(instapaperDB);
@@ -617,7 +617,7 @@
     promiseTest("syncingOnlyFoldersOnlySyncsFolders", function () {
         var sync = getNewSyncEngine();
         var instapaperDB;
-        var addedFolderName = Date.now() + "";
+        var addedFolderName = Date.now() + "a";
         var addedFolder;
         var currentBookmarkCount;
         var currentFolderCount;
@@ -649,13 +649,13 @@
                 bookmarks: instapaperDB.listCurrentBookmarks(),
             });
         }).then(function (data) {
-            strictEqual(data.folders.length, currentFolderCount + 1, "Incorrect number of folders");
+            QUnit.assert.strictEqual(data.folders.length, currentFolderCount + 1, "Incorrect number of folders");
 
-            ok(data.folders.some(function (folder) {
+            QUnit.assert.ok(data.folders.some(function (folder) {
                 return folder.title === addedFolderName;
             }), "Didn't find the added folder locally");
 
-            strictEqual(data.bookmarks.length, currentBookmarkCount, "Incorrect number of bookmarks");
+            QUnit.assert.strictEqual(data.bookmarks.length, currentBookmarkCount, "Incorrect number of bookmarks");
 
             return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
         }).then(function (folder) {
@@ -668,7 +668,7 @@
         var instapaperDB;
         var currentBookmarkCount;
         var currentFolderCount;
-        var addedFolderName = Date.now() + "";
+        var addedFolderName = Date.now() + "a";
         var addedFolder;
 
         var f = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
@@ -696,10 +696,10 @@
                 bookmarks: instapaperDB.listCurrentBookmarks(),
             });
         }).then(function (data) {
-            strictEqual(data.folders.length, currentFolderCount, "Incorrect number of folders");
-            strictEqual(data.bookmarks.length, currentBookmarkCount + 1, "Incorrect number of bookmarks");
+            QUnit.assert.strictEqual(data.folders.length, currentFolderCount, "Incorrect number of folders");
+            QUnit.assert.strictEqual(data.bookmarks.length, currentBookmarkCount + 1, "Incorrect number of bookmarks");
 
-            ok(data.bookmarks.some(function (bookmark) {
+            QUnit.assert.ok(data.bookmarks.some(function (bookmark) {
                 return bookmark.url === addedRemoteBookmarks[addedRemoteBookmarks.length - 1].url;
             }), "Didn't find the expected bookmark");
 
@@ -714,7 +714,7 @@
     promiseTest("locallyAddedBookmarksGoUpToUnread", function () {
         var instapaperDB;
         var targetUrl = sourceUrls.shift().url;
-        var targetTitle = Date.now() + "";
+        var targetTitle = Date.now() + "a";
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -735,15 +735,15 @@
                 return f.url === targetUrl;
             })[0];
 
-            ok(remoteBookmark, "Didn't find the remote bookmark added");
-            strictEqual(remoteBookmark.title, targetTitle, "Remote title was incorrect");
+            QUnit.assert.ok(remoteBookmark, "Didn't find the remote bookmark added");
+            QUnit.assert.strictEqual(remoteBookmark.title, targetTitle, "Remote title was incorrect");
 
             var addedBookmark = lb.filter(function (f) {
                 return f.url === targetUrl;
             })[0];
 
-            ok(addedBookmark, "Didn't see the added folder locally");
-            strictEqual(addedBookmark.title, targetTitle, "Local title was incorrect");
+            QUnit.assert.ok(addedBookmark, "Didn't see the added folder locally");
+            QUnit.assert.strictEqual(addedBookmark.title, targetTitle, "Local title was incorrect");
 
             addedRemoteBookmarks.push(addedBookmark);
 
@@ -754,7 +754,7 @@
     promiseTest("syncingBookmarkThatIsAlreadyAvailableRemotelyDoesntDuplicate", function () {
         var instapaperDB;
         var targetBookmark;
-        var targetTitle = Date.now() + "";
+        var targetTitle = Date.now() + "a";
         var localBookmarkCountBeforeSync;
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
@@ -774,7 +774,7 @@
         }).then(function () {
             return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread);
         }).then(function (lb) {
-            strictEqual(lb.length, localBookmarkCountBeforeSync, "Didn't expect any change in the bookmark counts");
+            QUnit.assert.strictEqual(lb.length, localBookmarkCountBeforeSync, "Didn't expect any change in the bookmark counts");
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }, defaultTestDelay);
@@ -789,9 +789,9 @@
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
             var bookmark = localBookmarks[0];
-            ok(bookmark, "Need a bookmark to work with");
+            QUnit.assert.ok(bookmark, "Need a bookmark to work with");
 
-            notStrictEqual(bookmark.progress, 0.5, "Progress is already where we're going to set it");
+            QUnit.assert.notStrictEqual(bookmark.progress, 0.5, "Progress is already where we're going to set it");
             return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).updateReadProgress({
                 bookmark_id: bookmark.bookmark_id,
                 progress: 0.5,
@@ -803,9 +803,9 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
-            equal(bookmark.progress, updatedBookmark.progress, "Progress did not match");
-            strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Wrong bookmark timestamp");
-            strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
+            QUnit.assert.equal(bookmark.progress, updatedBookmark.progress, "Progress did not match");
+            QUnit.assert.strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Wrong bookmark timestamp");
+            QUnit.assert.strictEqual(bookmark.hash, updatedBookmark.hash, "hashes were incorrrect");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -821,9 +821,9 @@
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
             var bookmark = localBookmarks[0];
-            ok(bookmark, "Need a bookmark to work with");
+            QUnit.assert.ok(bookmark, "Need a bookmark to work with");
 
-            notStrictEqual(bookmark.starred, 1, "Bookmark was already liked. We need  it to not be");
+            QUnit.assert.notStrictEqual(bookmark.starred, 1, "Bookmark was already liked. We need  it to not be");
 
             return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).star(bookmark.bookmark_id);
         }).then(function (bookmark) {
@@ -833,7 +833,7 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
-            strictEqual(bookmark.starred, 1, "Liked status did not match");
+            QUnit.assert.strictEqual(bookmark.starred, 1, "Liked status did not match");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -851,7 +851,7 @@
             var bookmark = localBookmarks[0];
             var likePromise = WinJS.Promise.as();
 
-            ok(bookmark, "Need a bookmark to work with");
+            QUnit.assert.ok(bookmark, "Need a bookmark to work with");
 
             if (bookmark.starred === 0) {
                 return instapaperDB.likeBookmark(bookmark.bookmark_id, true).then(function () {
@@ -867,7 +867,7 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (bookmark) {
-            strictEqual(bookmark.starred, 0, "Liked status did not match");
+            QUnit.assert.strictEqual(bookmark.starred, 0, "Liked status did not match");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -891,7 +891,7 @@
                 return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
             });
 
-            ok(!likedAlready, "Bookmark was already liked on the service");
+            QUnit.assert.ok(!likedAlready, "Bookmark was already liked on the service");
 
             return getNewSyncEngine().sync({ bookmarks: true, folders: false });
         }).then(function () {
@@ -901,7 +901,7 @@
                 return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
             });
 
-            ok(likedRemotely, "Item was not liked on the server");
+            QUnit.assert.ok(likedRemotely, "Item was not liked on the server");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -935,7 +935,7 @@
                 return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
             });
 
-            ok(likedAlready, "Bookmark wasnt already liked on the service");
+            QUnit.assert.ok(likedAlready, "Bookmark wasnt already liked on the service");
 
             return getNewSyncEngine().sync({ bookmarks: true, folders: false });
         }).then(function () {
@@ -945,7 +945,7 @@
                 return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
             });
 
-            ok(!likedRemotely, "Item was liked on the server");
+            QUnit.assert.ok(!likedRemotely, "Item was liked on the server");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -961,11 +961,11 @@
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (bookmarks) {
             var bookmark = bookmarks[0];
-            ok(bookmark, "Need a bookmark to work with");
+            QUnit.assert.ok(bookmark, "Need a bookmark to work with");
 
             bookmark.title = "updatedTitle" + Date.now();
             bookmark.description = "updatedDescription" + Date.now();
-            ok(true, "Title: " + bookmark.title);
+            QUnit.assert.ok(true, "Title: " + bookmark.title);
 
             return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).add(bookmark);
         }).then(function (remoteBookmark) {
@@ -975,8 +975,8 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id);
         }).then(function (localBookmark) {
-            strictEqual(localBookmark.title, updatedBookmark.title, "Incorrect title");
-            strictEqual(localBookmark.description, updatedBookmark.description);
+            QUnit.assert.strictEqual(localBookmark.title, updatedBookmark.title, "Incorrect title");
+            QUnit.assert.strictEqual(localBookmark.description, updatedBookmark.description);
         });
     }, defaultTestDelay);
 
@@ -991,9 +991,9 @@
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
             var localBookmark = localBookmarks[0];
-            ok(localBookmark, "need a bookmark to work with");
+            QUnit.assert.ok(localBookmark, "need a bookmark to work with");
 
-            notStrictEqual(localBookmark.progress, targetProgress, "Progress is already at the target value");
+            QUnit.assert.notStrictEqual(localBookmark.progress, targetProgress, "Progress is already at the target value");
 
             return instapaperDB.updateReadProgress(localBookmark.bookmark_id, targetProgress);
         }).then(function (progressChanged) {
@@ -1011,11 +1011,11 @@
                 return remote.bookmark_id === updatedBookmark.bookmark_id;
             })[0];
 
-            ok(bookmark, "Didn't find the remote bookmark");
+            QUnit.assert.ok(bookmark, "Didn't find the remote bookmark");
 
-            equal(bookmark.progress, updatedBookmark.progress, "Progress was unchanged");
-            strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Timestamp for last progress changed was incorrect");
-            strictEqual(bookmark.hash, data.localBookmark.hash, "Hash wasn't updated locally");
+            QUnit.assert.equal(bookmark.progress, updatedBookmark.progress, "Progress was unchanged");
+            QUnit.assert.strictEqual(bookmark.progress_timestamp, updatedBookmark.progress_timestamp, "Timestamp for last progress changed was incorrect");
+            QUnit.assert.strictEqual(bookmark.hash, data.localBookmark.hash, "Hash wasn't updated locally");
         });
     }, defaultTestDelay);
 
@@ -1037,7 +1037,7 @@
                 return bookmark.bookmark_id === targetBookmark.bookmark_id;
             })[0];
 
-            ok(remote, "Bookmark wasn't moved to archive remotely");
+            QUnit.assert.ok(remote, "Bookmark wasn't moved to archive remotely");
             addedRemoteBookmarks.push(remote);
 
             return expectNoPendingBookmarkEdits(instapaperDB);
@@ -1052,7 +1052,7 @@
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
 
-            return idb.addFolder({ title: Date.now() });
+            return idb.addFolder({ title: Date.now() + "a" });
         }).then(function (addedFolder) {
             newFolder = addedFolder;
             return instapaperDB.moveBookmark(targetBookmark.bookmark_id, newFolder.id);
@@ -1072,7 +1072,7 @@
 
             addedRemoteBookmarks.push(remote);
 
-            ok(remote, "Bookmark wasn't moved to archive remotely");
+            QUnit.assert.ok(remote, "Bookmark wasn't moved to archive remotely");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1094,14 +1094,14 @@
                 return bookmark.bookmark_id === targetBookmark.bookmark_id;
             });
 
-            ok(!bookmarkFoundRemotely, "Found the bookmark remotely. It should have been deleted");
+            QUnit.assert.ok(!bookmarkFoundRemotely, "Found the bookmark remotely. It should have been deleted");
             sourceUrls.push({ url: targetBookmark.url });
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
     }, defaultTestDelay);
 
-    module("InstapaperSyncLimits");
+    QUnit.module("InstapaperSyncLimits");
 
     promiseTest("deleteLocalDBBeforeSyncingWithLimits", deleteDb, defaultTestDelay);
     promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks);
@@ -1114,7 +1114,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
-            ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
+            QUnit.assert.ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
 
             return sync.sync();
         }).then(function () {
@@ -1122,7 +1122,7 @@
         }).then(function (idb) {
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
-            strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
+            QUnit.assert.strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
         });
     }, defaultTestDelay);
 
@@ -1134,7 +1134,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
-            ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
+            QUnit.assert.ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
 
             var lastBookmark = rb.bookmarks[rb.bookmarks.length - 1];
 
@@ -1146,8 +1146,8 @@
         }).then(function (idb) {
             return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
         }).then(function (localBookmarks) {
-            strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
-            strictEqual(localBookmarks[0].starred, 0, "Didn't expect it to be starred");
+            QUnit.assert.strictEqual(localBookmarks.length, 1, "Only expected on bookmark");
+            QUnit.assert.strictEqual(localBookmarks[0].starred, 0, "Didn't expect it to be starred");
         });
     }, defaultTestDelay);
 
@@ -1172,7 +1172,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
-            ok(rb.bookmarks.length >= 8, "Not enough Bookmarks remotely: " + rb.length);
+            QUnit.assert.ok(rb.bookmarks.length >= 8, "Not enough Bookmarks remotely: " + rb.length);
 
             var itemsInSampleFolder1 = [];
             itemsInSampleFolder1.push(rb.bookmarks[0].bookmark_id);
@@ -1216,13 +1216,13 @@
                 }),
             });
         }).then(function (result) {
-            strictEqual(result.unread.length, 1, "Only expected on bookmark");
-            strictEqual(result.folder1.length, 2, "Only expected two out of three bookmarks synced");
-            strictEqual(result.folder2.length, 2, "Only expected two out of three bookmarks synced");
+            QUnit.assert.strictEqual(result.unread.length, 1, "Only expected on bookmark");
+            QUnit.assert.strictEqual(result.folder1.length, 2, "Only expected two out of three bookmarks synced");
+            QUnit.assert.strictEqual(result.folder2.length, 2, "Only expected two out of three bookmarks synced");
         });
     });
 
-    module("InstapaperSyncBookmarkDeletes");
+    QUnit.module("InstapaperSyncBookmarkDeletes");
 
     promiseTest("resetRemoteDataBeforePerformingDeletes", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks, defaultTestDelay);
@@ -1242,7 +1242,7 @@
 
     promiseTest("syncDefaultState", function () {
         return getNewSyncEngine().sync().then(function () {
-            ok(true, "sync complete");
+            QUnit.assert.ok(true, "sync complete");
         });
     }, defaultTestDelay);
 
@@ -1272,10 +1272,10 @@
             var bookmark1NoLongerInUnread = data.bookmarks.some(function (bookmark) {
                 return bookmark.bookmark_id === fakeAddedBookmark.bookmark_id;
             });
-            ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
+            QUnit.assert.ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
 
-            strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
-            strictEqual(data.bookmark1.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
+            QUnit.assert.strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
+            QUnit.assert.strictEqual(data.bookmark1.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
 
             return WinJS.Promise.join({
                 orphaned: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned),
@@ -1286,7 +1286,7 @@
                 return item.bookmark_id === data.bookmark1.bookmark_id;
             });
 
-            ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
+            QUnit.assert.ok(bookmark1Present, "Bookmark 1 wasn't present in the orphaned folder");
 
             return instapaperDB.removeBookmark(data.bookmark1.bookmark_id, true);
         }).then(function () {
@@ -1318,7 +1318,7 @@
                 return b.bookmark_id !== fakeAddedBookmark.bookmark_id;
             });
 
-            ok(currentBookmarks.length, "not enough bookmarks: " + currentBookmarks.length);
+            QUnit.assert.ok(currentBookmarks.length, "not enough bookmarks: " + currentBookmarks.length);
 
             bookmarkToUpdateProgressFor = currentBookmarks[0];
 
@@ -1338,10 +1338,10 @@
                 return b.bookmark_id === bookmarkToUpdateProgressFor.bookmark_id;
             })[0];
 
-            ok(remoteBookmark, "didn't find bookmark");
-            strictEqual(parseFloat(remoteBookmark.progress), 0.2, "Progress was incorrect");
+            QUnit.assert.ok(remoteBookmark, "didn't find bookmark");
+            QUnit.assert.strictEqual(parseFloat(remoteBookmark.progress), 0.2, "Progress was incorrect");
 
-            ok(!data.removedLocally, "Didn't expect to be able to find the bookmark locally");
+            QUnit.assert.ok(!data.removedLocally, "Didn't expect to be able to find the bookmark locally");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1364,7 +1364,7 @@
 
             return idb.listCurrentBookmarks();
         }).then(function (currentBookmarks) {
-            ok(currentBookmarks.length, "not enough bookmarks");
+            QUnit.assert.ok(currentBookmarks.length, "not enough bookmarks");
 
             updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
@@ -1388,10 +1388,10 @@
                 return b.bookmark_id === updatedBookmarkId;
             })[0];
 
-            ok(remote, "Didn't find remote bookmark");
-            strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
+            QUnit.assert.ok(remote, "Didn't find remote bookmark");
+            QUnit.assert.strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
 
-            ok(!data.local, "Shouldn't have been able to find local fake bookmark");
+            QUnit.assert.ok(!data.local, "Shouldn't have been able to find local fake bookmark");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1414,7 +1414,7 @@
 
             return idb.listCurrentBookmarks();
         }).then(function (currentBookmarks) {
-            ok(currentBookmarks.length, "not enough bookmarks");
+            QUnit.assert.ok(currentBookmarks.length, "not enough bookmarks");
 
             updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
@@ -1438,10 +1438,10 @@
                 return b.bookmark_id === updatedBookmarkId;
             })[0];
 
-            ok(remote, "Didn't find remote bookmark");
-            strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
+            QUnit.assert.ok(remote, "Didn't find remote bookmark");
+            QUnit.assert.strictEqual(parseFloat(remote.progress), progressValue, "Incorrect progress value");
 
-            ok(!data.local, "Shouldn't have been able to find local fake bookmark");
+            QUnit.assert.ok(!data.local, "Shouldn't have been able to find local fake bookmark");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1461,13 +1461,13 @@
 
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
-            return idb.addFolder({ title: Date.now() + "" });
+            return idb.addFolder({ title: Date.now() + "a" });
         }).then(function () {
             return getNewSyncEngine().sync({ folders: true });
         }).then(function() {
             return instapaperDB.listCurrentBookmarks();
         }).then(function (currentBookmarks) {
-            ok(currentBookmarks.length, "Didn't have enough bookmarks");
+            QUnit.assert.ok(currentBookmarks.length, "Didn't have enough bookmarks");
 
             updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
@@ -1495,10 +1495,10 @@
                 return b.bookmark_id === updatedBookmarkId;
             })[0];
 
-            ok(remote, "didn't find updated remote bookmark");
-            strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
+            QUnit.assert.ok(remote, "didn't find updated remote bookmark");
+            QUnit.assert.strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
 
-            ok(!data.local, "Didn't expect to find the bookmark locally");
+            QUnit.assert.ok(!data.local, "Didn't expect to find the bookmark locally");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1520,7 +1520,7 @@
             instapaperDB = idb;
             return idb.listCurrentBookmarks();
         }).then(function (currentBookmarks) {
-            ok(currentBookmarks.length, "Didn't have enough bookmarks");
+            QUnit.assert.ok(currentBookmarks.length, "Didn't have enough bookmarks");
 
             updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
@@ -1544,10 +1544,10 @@
                 return b.bookmark_id === updatedBookmarkId;
             })[0];
 
-            ok(remote, "didn't find updated remote bookmark");
-            strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
+            QUnit.assert.ok(remote, "didn't find updated remote bookmark");
+            QUnit.assert.strictEqual(parseFloat(remote.progress), progressValue, "Progress value was in correct");
 
-            ok(!data.local, "Didn't expect to find the bookmark locally");
+            QUnit.assert.ok(!data.local, "Didn't expect to find the bookmark locally");
 
             return expectNoPendingBookmarkEdits(instapaperDB);
         });
@@ -1569,14 +1569,14 @@
 
             return WinJS.Promise.join({
                 folder: idb.addFolder({
-                    title: Date.now() + "",
+                    title: Date.now() + "a",
                     folder_id: 345234,
                 }, true),
                 bookmarks: idb.listCurrentBookmarks(),
             });
         }).then(function (data) {
             var bookmarks = data.bookmarks;
-            ok(bookmarks.length, "need some bookmarks to work with");
+            QUnit.assert.ok(bookmarks.length, "need some bookmarks to work with");
 
             movedBookmark = bookmarks[0];
             fakeFolder = data.folder;
@@ -1592,11 +1592,11 @@
                 folder: instapaperDB.getFolderByDbId(fakeFolder.id),
             });
         }).then(function (data) {
-            ok(data.bookmark, "Expected to get bookmark");
-            strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
+            QUnit.assert.ok(data.bookmark, "Expected to get bookmark");
+            QUnit.assert.strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
 
-            notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
-            notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
+            QUnit.assert.notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+            QUnit.assert.notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
         });
     }, defaultTestDelay);
 
@@ -1616,14 +1616,14 @@
 
             return WinJS.Promise.join({
                 folder: idb.addFolder({
-                    title: Date.now() + "",
+                    title: Date.now() + "a",
                     folder_id: Date.now() + "",
                 }, true),
                 bookmarks: idb.listCurrentBookmarks(),
             });
         }).then(function (data) {
             var bookmarks = data.bookmarks;
-            ok(bookmarks.length, "need some bookmarks to work with");
+            QUnit.assert.ok(bookmarks.length, "need some bookmarks to work with");
 
             movedBookmark = bookmarks[0];
             fakeFolder = data.folder;
@@ -1637,13 +1637,13 @@
                 folder: instapaperDB.getFolderByDbId(fakeFolder.id),
             });
         }).then(function (data) {
-            ok(data.bookmark, "Expected to get bookmark");
-            strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
+            QUnit.assert.ok(data.bookmark, "Expected to get bookmark");
+            QUnit.assert.strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
 
-            notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
-            notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
+            QUnit.assert.notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+            QUnit.assert.notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
 
-            ok(!data.folder, "Didn't expect to find the folder");
+            QUnit.assert.ok(!data.folder, "Didn't expect to find the folder");
         });
     }, defaultTestDelay);
 
@@ -1665,14 +1665,14 @@
             return WinJS.Promise.join({
                 folder: idb.addFolder({
                     folder_id: 132456,
-                    title: Date.now() + "",
+                    title: Date.now() + "a",
                 }, true),
                 bookmarks: idb.listCurrentBookmarks(),
             });
         }).then(function (data) {
             fakeFolder = data.folder;
 
-            ok(data.bookmarks.length > 1, "not enough bookmarks");
+            QUnit.assert.ok(data.bookmarks.length > 1, "not enough bookmarks");
 
             movedOutOfFakeFolderBookmark = data.bookmarks.pop();
 
@@ -1689,16 +1689,16 @@
                 folder: instapaperDB.getFolderByDbId(fakeFolder.id),
             });
         }).then(function (data) {
-            ok(data.bookmark, "Didn't get bookmark");
-            strictEqual(data.bookmark.bookmark_id, movedOutOfFakeFolderBookmark.bookmark_id, "Wrong bookmark");
+            QUnit.assert.ok(data.bookmark, "Didn't get bookmark");
+            QUnit.assert.strictEqual(data.bookmark.bookmark_id, movedOutOfFakeFolderBookmark.bookmark_id, "Wrong bookmark");
 
-            strictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Should be in unread folder");
+            QUnit.assert.strictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Should be in unread folder");
 
-            ok(!data.folder, "Didn't expect to find the folder");
+            QUnit.assert.ok(!data.folder, "Didn't expect to find the folder");
         });
     }, defaultTestDelay);
 
-    module("InstapaperSyncMultipleBookmarkFolders");
+    QUnit.module("InstapaperSyncMultipleBookmarkFolders");
 
     promiseTest("destroyRemoteData", destroyRemoteAccountData, defaultTestDelay);
     promiseTest("addEnoughRemoteBookmarks", addDefaultBookmarks, defaultTestDelay);
@@ -1715,8 +1715,8 @@
 
         // Add some folders to work with.
         return Codevoid.Utilities.serialize([
-            Date.now() + "",
-            (Date.now() + 10) + "",
+            Date.now() + "a",
+            (Date.now() + 10) + "a",
         ], function (item) {
             return folders.add(item);
         }).then(function () {
@@ -1729,8 +1729,8 @@
             var bookmarkData = data.bookmarks.bookmarks;
             var folders = data.folders;
 
-            ok(bookmarkData.length > 1, "Not enough bookmarks");
-            ok(folders.length > 1, "Not enough folders");
+            QUnit.assert.ok(bookmarkData.length > 1, "Not enough bookmarks");
+            QUnit.assert.ok(folders.length > 1, "Not enough folders");
 
             return Codevoid.Utilities.serialize([
                 { bookmark_id: bookmarkData[0].bookmark_id, destination: folders[0].folder_id },
@@ -1801,15 +1801,15 @@
         });
         
         return syncEngine.sync().then(function () {
-            strictEqual(unknown, 0, "Unexpected Unknown count");
-            strictEqual(startCount, 1, "Unexpected Start count");
-            strictEqual(endCount, 1, "Unexpected End count");
-            strictEqual(startCount, 1, "Unexpected Start count");
-            strictEqual(foldersStarted, 1, "Wrong number of folders started");
-            strictEqual(foldersEnded, 1, "Wrong number of folders ended");
-            strictEqual(foldersSynced, 2, "Wrong number of folders");
-            strictEqual(bookmarksStarted, 1, "Unexpected bookmarks started");
-            strictEqual(bookmarksEnded, 1, "Unexpected bookmarks ended");
+            QUnit.assert.strictEqual(unknown, 0, "Unexpected Unknown count");
+            QUnit.assert.strictEqual(startCount, 1, "Unexpected Start count");
+            QUnit.assert.strictEqual(endCount, 1, "Unexpected End count");
+            QUnit.assert.strictEqual(startCount, 1, "Unexpected Start count");
+            QUnit.assert.strictEqual(foldersStarted, 1, "Wrong number of folders started");
+            QUnit.assert.strictEqual(foldersEnded, 1, "Wrong number of folders ended");
+            QUnit.assert.strictEqual(foldersSynced, 2, "Wrong number of folders");
+            QUnit.assert.strictEqual(bookmarksStarted, 1, "Unexpected bookmarks started");
+            QUnit.assert.strictEqual(bookmarksEnded, 1, "Unexpected bookmarks ended");
 
             return getNewInstapaperDBAndInit();
         }).then(function (idb) {
@@ -1820,7 +1820,7 @@
                 return (defaultFolderIds.indexOf(folder.folder_id) === -1);
             });
 
-            strictEqual(folders.length, 2, "Incorrect folders");
+            QUnit.assert.strictEqual(folders.length, 2, "Incorrect folders");
 
             return Codevoid.Utilities.serialize(folders, function (folder) {
                 return WinJS.Promise.join({
@@ -1847,10 +1847,10 @@
                             localBookmarks.splice(localBookmarkIndex, 1);
                         }
 
-                        ok(isFoundLocally, "Didn't find the bookmark locally");
+                        QUnit.assert.ok(isFoundLocally, "Didn't find the bookmark locally");
                     });
 
-                    strictEqual(localBookmarks.length, 0, "All local bookmarks should have been removed");
+                    QUnit.assert.strictEqual(localBookmarks.length, 0, "All local bookmarks should have been removed");
                 });
             });
         });
@@ -1911,11 +1911,11 @@
             var unreadBookmarks = data[0].bookmarks;
             var folderABookmarks = data[1].bookmarks;
 
-            notStrictEqual(unreadBookmarks.length, 0, "Only expected one bookmark in unread");
-            notStrictEqual(folderABookmarks.length, 0, "Only expected one bookmark in folderA");
+            QUnit.assert.notStrictEqual(unreadBookmarks.length, 0, "Only expected one bookmark in unread");
+            QUnit.assert.notStrictEqual(folderABookmarks.length, 0, "Only expected one bookmark in folderA");
 
-            strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
-            strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
+            QUnit.assert.strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
+            QUnit.assert.strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
         }).then(function (data) {
             return WinJS.Promise.join({
                 unread: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
@@ -1925,15 +1925,15 @@
             var unreadBookmarks = data.unread;
             var folderABookmarks = data.folderA;
 
-            ok(unreadBookmarks, "no unread bookmarks");
-            notStrictEqual(unreadBookmarks.length, 0, "Incorrect number of unread bookmarks");
-            ok(unreadBookmarks.some(function (b) {
+            QUnit.assert.ok(unreadBookmarks, "no unread bookmarks");
+            QUnit.assert.notStrictEqual(unreadBookmarks.length, 0, "Incorrect number of unread bookmarks");
+            QUnit.assert.ok(unreadBookmarks.some(function (b) {
                 return b.bookmark_id === bookmarkToMoveToUnread.bookmark_id;
             }), "Moved Bookmark not found");
             
-            ok(folderABookmarks, "No folderA bookmarks");
-            notStrictEqual(folderABookmarks.length, 0, "Incorrect number of folder A bookmarks");
-            strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Incorrect bookmark");
+            QUnit.assert.ok(folderABookmarks, "No folderA bookmarks");
+            QUnit.assert.notStrictEqual(folderABookmarks.length, 0, "Incorrect number of folder A bookmarks");
+            QUnit.assert.strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Incorrect bookmark");
         });
     }, defaultTestDelay);
 
@@ -1970,8 +1970,8 @@
                 return b.bookmark_id === archivedBookmark.bookmark_id;
             })[0];
 
-            ok(inArchive);
-            strictEqual(parseFloat(inArchive.progress), 0.43, "Progress in correct");
+            QUnit.assert.ok(inArchive);
+            QUnit.assert.strictEqual(parseFloat(inArchive.progress), 0.43, "Progress in correct");
         });
     }, defaultTestDelay);
 
@@ -1996,7 +1996,7 @@
                 return (defaultFolderIds.indexOf(b.folder_id) === -1);
             });
 
-            strictEqual(bookmarksInNonDefaultFolder.length, 1, "Only expected to find one bookmark");
+            QUnit.assert.strictEqual(bookmarksInNonDefaultFolder.length, 1, "Only expected to find one bookmark");
 
             folderDbIdToSync = bookmarksInNonDefaultFolder[0].folder_dbid;
             return instapaperDB.updateReadProgress(bookmarksInNonDefaultFolder[0].bookmark_id, 0.93);
@@ -2011,7 +2011,7 @@
         }).then(function (remoteBookmarks) {
             remoteBookmarks = remoteBookmarks.bookmarks;
 
-            strictEqual(parseFloat(remoteBookmarks[0].progress), 0.43, "Incorrect progress on archive bookmark");
+            QUnit.assert.strictEqual(parseFloat(remoteBookmarks[0].progress), 0.43, "Incorrect progress on archive bookmark");
 
             return instapaperDB.getFolderByDbId(folderDbIdToSync);
         }).then(function (folder) {
@@ -2019,7 +2019,7 @@
         }).then(function (remoteBookmarks) {
             remoteBookmarks = remoteBookmarks.bookmarks;
 
-            strictEqual(parseFloat(remoteBookmarks[0].progress), 0.93, "Incorrect progress on folder bookmark");
+            QUnit.assert.strictEqual(parseFloat(remoteBookmarks[0].progress), 0.93, "Incorrect progress on folder bookmark");
 
             return getNewSyncEngine().sync();
         });
@@ -2051,11 +2051,11 @@
         }).then(function () {
             return instapaperDB.getBookmarkByBookmarkId(removedBookmarkId);
         }).then(function (removedBookmark) {
-            ok(!removedBookmark, "Shouldn't be able to find bookmark");
+            QUnit.assert.ok(!removedBookmark, "Shouldn't be able to find bookmark");
 
             return instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned);
         }).then(function (orphanedBookmarks) {
-            strictEqual(orphanedBookmarks.length, 0, "Didn't expect to find any orphaned bookmarks");
+            QUnit.assert.strictEqual(orphanedBookmarks.length, 0, "Didn't expect to find any orphaned bookmarks");
         });
     }, defaultTestDelay);
 
@@ -2078,7 +2078,7 @@
                 return defaultFolderIds.indexOf(folder.id) === -1;
             });
 
-            notStrictEqual(currentFolders.length, 0, "Expected some folders");
+            QUnit.assert.notStrictEqual(currentFolders.length, 0, "Expected some folders");
 
             expectedFirstSyncedFolder = currentFolders[0];
 
@@ -2090,9 +2090,9 @@
                 },
             });
         }).then(function () {
-            notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
+            QUnit.assert.notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
 
-            strictEqual(folderSyncOrder[0], expectedFirstSyncedFolder.id, "Folder was not sync'd first");
+            QUnit.assert.strictEqual(folderSyncOrder[0], expectedFirstSyncedFolder.id, "Folder was not sync'd first");
         });
     }, defaultTestDelay);
 
@@ -2117,9 +2117,9 @@
                 },
             });
         }).then(function () {
-            notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
+            QUnit.assert.notStrictEqual(folderSyncOrder.length, 0, "Didn't see any folders synced");
 
-            strictEqual(folderSyncOrder[0], instapaperDB.commonFolderDbIds.unread, "Folder was not sync'd first");
+            QUnit.assert.strictEqual(folderSyncOrder[0], instapaperDB.commonFolderDbIds.unread, "Folder was not sync'd first");
         });
     }, defaultTestDelay);
 
@@ -2133,7 +2133,7 @@
         var instapaperDB;
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-        var newFolderTitle = Date.now() + "";
+        var newFolderTitle = Date.now() + "a";
         var addedFolderDbId;
         var movedBookmark;
 
@@ -2165,14 +2165,14 @@
                 return f.title === newFolderTitle;
             })[0];
 
-            ok(addedFolder, "Didn't find the added folder remotely");
+            QUnit.assert.ok(addedFolder, "Didn't find the added folder remotely");
 
             return bookmarks.list({ folder_id: addedFolder.folder_id });
         }).then(function (folderBookmarks) {
             folderBookmarks = folderBookmarks.bookmarks;
 
-            strictEqual(folderBookmarks.length, 1, "Expected only one bookmark");
-            strictEqual(folderBookmarks[0].bookmark_id, movedBookmark.bookmark_id, "Incorrect bookmark");
+            QUnit.assert.strictEqual(folderBookmarks.length, 1, "Expected only one bookmark");
+            QUnit.assert.strictEqual(folderBookmarks[0].bookmark_id, movedBookmark.bookmark_id, "Incorrect bookmark");
         });
     }, defaultTestDelay);
 

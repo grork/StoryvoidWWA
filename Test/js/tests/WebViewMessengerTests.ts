@@ -10,7 +10,7 @@ module Codevoid.WebViewMessengerTests {
     import Signal = Codevoid.Utilities.Signal;
     import WebViewMessenger = Codevoid.Utilities.WebViewMessenger;
 
-    module("WebViewMessenger");
+    QUnit.module("WebViewMessenger");
 
     promiseTest("webViewGetsStartMessage", () => {
         var s = new Signal();
@@ -24,7 +24,7 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        ok(!!messenger, "Didn't construct messenger");
+        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise;
     });
@@ -41,12 +41,12 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        ok(!!messenger, "Didn't construct messenger");
+        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise.then(() => {
             return messenger.invokeForResult("ping");
         }).then((message) => {
-            strictEqual(message, "pong", "Incorrect message");
+            QUnit.assert.strictEqual(message, "pong", "Incorrect message");
         });
     });
 
@@ -62,14 +62,14 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        ok(!!messenger, "Didn't construct messenger");
+        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise.then(() => {
             return messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/tests/WebViewTestScript.js");
         }).then(() => {
             return messenger.invokeForResult("gettest");
         }).then((testCookie: number) => {
-            strictEqual(testCookie, 42, "Got incorrect test cookie");
+            QUnit.assert.strictEqual(testCookie, 42, "Got incorrect test cookie");
         });
     });
 }

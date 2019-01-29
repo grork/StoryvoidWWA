@@ -8,7 +8,7 @@
         var result = encoder.getEncodedStringForData(input);
 
         
-        strictEqual(result, "a=b", "result was not correctly encoded");
+        QUnit.assert.strictEqual(result, "a=b", "result was not correctly encoded");
     }
 
     function twoParametersEncodeInCorrectOrder() {
@@ -18,7 +18,7 @@
         var encoder = new Codevoid.OAuth.ParameterEncoder();
 
         var result = encoder.getEncodedStringForData(input);
-        strictEqual(result, "a=b&b=c%25jkt", "result was not correctly encoded");
+        QUnit.assert.strictEqual(result, "a=b&b=c%25jkt", "result was not correctly encoded");
     }
 
     function customDelimeterRespected() {
@@ -28,7 +28,7 @@
         var encoder = new Codevoid.OAuth.ParameterEncoder({ delimeter: "," });
 
         var result = encoder.getEncodedStringForData(input);
-        strictEqual(result, "a=b,b=c", "result was not correctly encoded");
+        QUnit.assert.strictEqual(result, "a=b,b=c", "result was not correctly encoded");
     }
 
     function valuesAreQuotedWhenOptionSet() {
@@ -38,7 +38,7 @@
         var encoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true });
 
         var result = encoder.getEncodedStringForData(input);
-        strictEqual(result, "a=\"b\"&b=\"c\"", "result was not correctly encoded");
+        QUnit.assert.strictEqual(result, "a=\"b\"&b=\"c\"", "result was not correctly encoded");
     }
 
     function rfcEncodesAreCorrectlyEncoded() {
@@ -47,12 +47,12 @@
         var encoder = new Codevoid.OAuth.ParameterEncoder();
 
         var result = encoder.getEncodedStringForData(input);
-        strictEqual(result, "%21%27%28%29%2A=%2A%29%28%27%21", "result was not correctly encoded");
+        QUnit.assert.strictEqual(result, "%21%27%28%29%2A=%2A%29%28%27%21", "result was not correctly encoded");
     }
-    module("parameterEncoder");
-    test("oneParamEncodes", oneParamEncodes);
-    test("twoParametersEncodeInCorrectOrder", twoParametersEncodeInCorrectOrder);
-    test("customDelimeterRespected", customDelimeterRespected);
-    test("valuesAreQuotedWhenOptionSet", valuesAreQuotedWhenOptionSet);
-    test("rfcEncodesAreCorrectlyEncoded", rfcEncodesAreCorrectlyEncoded);
+    QUnit.module("parameterEncoder");
+    QUnit.test("oneParamEncodes", oneParamEncodes);
+    QUnit.test("twoParametersEncodeInCorrectOrder", twoParametersEncodeInCorrectOrder);
+    QUnit.test("customDelimeterRespected", customDelimeterRespected);
+    QUnit.test("valuesAreQuotedWhenOptionSet", valuesAreQuotedWhenOptionSet);
+    QUnit.test("rfcEncodesAreCorrectlyEncoded", rfcEncodesAreCorrectlyEncoded);
 })();
