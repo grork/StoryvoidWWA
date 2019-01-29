@@ -66,7 +66,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
             }
         });
 
-        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
         return signal.promise;
     });
@@ -86,16 +86,16 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
 
         // Start the timer
-        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
         // Reset the timer
         WinJS.Promise.timeout(75).then(() => {
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
             return WinJS.Promise.timeout(75);
         }).then(() => {
             // Reset the timer again
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
             secondEventDispatched = true;
         });
 
@@ -117,18 +117,18 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
 
         // Start the timer
-        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
         w.watcher.pauseWatching();
 
         // Reset the timer
         WinJS.Promise.timeout(75).then(() => {
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
             return WinJS.Promise.timeout(75);
         }).then(() => {
             // Reset the timer again
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
             secondEventDispatched = true;
         });
 
@@ -155,13 +155,13 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
 
         // Start the timer
-        w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+        w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
         w.watcher.pauseWatching();
 
         // Reset the timer
         WinJS.Promise.timeout(25).then(() => {
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
 
             w.watcher.resumeWatching();
 
@@ -170,7 +170,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         }).done(() => {
 
             // Dispatch the event to start the timer
-            w.dbEventSource.dispatchEvent("bookmarkschanged", null);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD });
         });
 
         return signal.promise;
