@@ -86,8 +86,8 @@ module CodevoidTests.WhatToReadTests {
 
     QUnit.module("WhatToRead");
 
-    test("constructingWithoutDBInstanceThrows", () => {
-        raises(() => {
+    QUnit.test("constructingWithoutDBInstanceThrows", () => {
+        QUnit.assert.raises(() => {
             const instance = new Codevoid.Storyvoid.WhatToRead(null);
         });
     });
@@ -95,8 +95,8 @@ module CodevoidTests.WhatToReadTests {
     dbTest("emptyDbReturnsNoGroups", (db) => {
         const toRead = new Codevoid.Storyvoid.WhatToRead(db);
         return toRead.getStuffToRead().then((result) => {
-            ok(!!result, "Didn't get a result set");
-            strictEqual(result.length, 0, "Wrong number of groups");
+            QUnit.assert.ok(!!result, "Didn't get a result set");
+            QUnit.assert.strictEqual(result.length, 0, "Wrong number of groups");
         });
     });
 
@@ -106,20 +106,20 @@ module CodevoidTests.WhatToReadTests {
         return addBookmarksToDb(originalBookmarks, db).then(() => {
             return toRead.getStuffToRead();
         }).then((result) => {
-            ok(!!result, "Didn't get a result set");
-            strictEqual(result.length, 2, "Wrong number of groups");
+            QUnit.assert.ok(!!result, "Didn't get a result set");
+            QUnit.assert.strictEqual(result.length, 2, "Wrong number of groups");
 
             const firstGroup = result[0];
             const secondGroup = result[1];
 
             // Basic info
-            strictEqual(firstGroup.name, "Recently Read", "First group had the wrong title");
-            ok(Array.isArray(firstGroup.bookmarks), "First group bookmarks didn't have an array");
-            strictEqual(firstGroup.bookmarks.length, 3, "Wrong number of bookmarks in first group");
+            QUnit.assert.strictEqual(firstGroup.name, "Recently Read", "First group had the wrong title");
+            QUnit.assert.ok(Array.isArray(firstGroup.bookmarks), "First group bookmarks didn't have an array");
+            QUnit.assert.strictEqual(firstGroup.bookmarks.length, 3, "Wrong number of bookmarks in first group");
 
-            strictEqual(secondGroup.name, "Recently Added", "Second group had the wrong title");
-            ok(Array.isArray(secondGroup.bookmarks), "Second group bookmarks didn't have an array");
-            strictEqual(secondGroup.bookmarks.length, 5, "Wrong number of bookmarks in Second group");
+            QUnit.assert.strictEqual(secondGroup.name, "Recently Added", "Second group had the wrong title");
+            QUnit.assert.ok(Array.isArray(secondGroup.bookmarks), "Second group bookmarks didn't have an array");
+            QUnit.assert.strictEqual(secondGroup.bookmarks.length, 5, "Wrong number of bookmarks in Second group");
 
             // Check that stuff from 'read' isn't also in 'added'
             const readIds: { [id: number]: boolean } = [];
@@ -131,7 +131,7 @@ module CodevoidTests.WhatToReadTests {
                 return readIds[item.bookmark_id];
             });
 
-            strictEqual(bookmarksInBothReadAndAdded.length, 0, "There were bookmarks found in both read & added; should be no overlap");
+            QUnit.assert.strictEqual(bookmarksInBothReadAndAdded.length, 0, "There were bookmarks found in both read & added; should be no overlap");
         });
     });
 
@@ -145,17 +145,17 @@ module CodevoidTests.WhatToReadTests {
         return addBookmarksToDb(originalBookmarks, db).then(() => {
             return toRead.getStuffToRead();
         }).then((result) => {
-            ok(!!result, "Didn't get a result set");
-            strictEqual(result.length, 1, "Wrong number of groups");
+            QUnit.assert.ok(!!result, "Didn't get a result set");
+            QUnit.assert.strictEqual(result.length, 1, "Wrong number of groups");
 
             const firstGroup = result[0];
 
-            strictEqual(firstGroup.name, "Recently Added", "Group had the wrong title");
-            ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
-            strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in group");
+            QUnit.assert.strictEqual(firstGroup.name, "Recently Added", "Group had the wrong title");
+            QUnit.assert.ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
+            QUnit.assert.strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in group");
 
             // Check that items don't have progress
-            ok(firstGroup.bookmarks.every((item) => (item.progress_timestamp === 0)), "Despite no progress group, items have progress");
+            QUnit.assert.ok(firstGroup.bookmarks.every((item) => (item.progress_timestamp === 0)), "Despite no progress group, items have progress");
         });
     });
 
@@ -172,15 +172,15 @@ module CodevoidTests.WhatToReadTests {
         return addBookmarksToDb(originalBookmarks, db).then(() => {
             return toRead.getStuffToRead();
         }).then((result) => {
-            ok(!!result, "Didn't get a result set");
-            strictEqual(result.length, 1, "Wrong number of groups");
+            QUnit.assert.ok(!!result, "Didn't get a result set");
+            QUnit.assert.strictEqual(result.length, 1, "Wrong number of groups");
 
             const firstGroup = result[0];
 
             // Basic info
-            strictEqual(firstGroup.name, "Recently Read", "Group had the wrong title");
-            ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
-            strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in the group");
+            QUnit.assert.strictEqual(firstGroup.name, "Recently Read", "Group had the wrong title");
+            QUnit.assert.ok(Array.isArray(firstGroup.bookmarks), "Group bookmarks didn't have an array");
+            QUnit.assert.strictEqual(firstGroup.bookmarks.length, 5, "Wrong number of bookmarks in the group");
         });
     });
 
@@ -194,17 +194,17 @@ module CodevoidTests.WhatToReadTests {
         return addBookmarksToDb(originalBookmarks, db).then(() => {
             return toRead.getStuffToRead();
         }).then((result) => {
-            ok(!!result, "Didn't get a result set");
-            strictEqual(result.length, 2, "Wrong number of groups");
+            QUnit.assert.ok(!!result, "Didn't get a result set");
+            QUnit.assert.strictEqual(result.length, 2, "Wrong number of groups");
 
             const firstGroup = result[0];
             const secondGroup = result[1];
 
-            strictEqual(firstGroup.bookmarks.length, 2, "Wrong number of bookmarks in the group");
-            ok(firstGroup.bookmarks.every(b => b.bookmark_id !== firstBookmarkWithProgress.bookmark_id), "Found the bookmark that was unpinned");
+            QUnit.assert.strictEqual(firstGroup.bookmarks.length, 2, "Wrong number of bookmarks in the group");
+            QUnit.assert.ok(firstGroup.bookmarks.every(b => b.bookmark_id !== firstBookmarkWithProgress.bookmark_id), "Found the bookmark that was unpinned");
 
-            strictEqual(secondGroup.bookmarks.length, 5, "Wrong number of bookmarks in second group");
-            ok(secondGroup.bookmarks.every(b => b.bookmark_id !== firstBookmarkWithProgress.bookmark_id), "Found book mark that was unpinned in second group");
+            QUnit.assert.strictEqual(secondGroup.bookmarks.length, 5, "Wrong number of bookmarks in second group");
+            QUnit.assert.ok(secondGroup.bookmarks.every(b => b.bookmark_id !== firstBookmarkWithProgress.bookmark_id), "Found book mark that was unpinned in second group");
         });
     });
 
@@ -255,17 +255,17 @@ module CodevoidTests.WhatToReadTests {
             });
         }).then((result: { items: Codevoid.Storyvoid.IJumpListItem[], itemsToRead: Codevoid.Storyvoid.IReadGroup[] }) => {
             // Total jump list items
-            strictEqual(result.items.length, 7, "Only expected 7 items");
+            QUnit.assert.strictEqual(result.items.length, 7, "Only expected 7 items");
 
-            strictEqual(result.itemsToRead.length, 2, "Expected two groups");
-            strictEqual(result.itemsToRead[0].bookmarks.length, 2, "Recently read count wrong");
-            strictEqual(result.itemsToRead[1].bookmarks.length, 5, "Recently added count wrong");
+            QUnit.assert.strictEqual(result.itemsToRead.length, 2, "Expected two groups");
+            QUnit.assert.strictEqual(result.itemsToRead[0].bookmarks.length, 2, "Recently read count wrong");
+            QUnit.assert.strictEqual(result.itemsToRead[1].bookmarks.length, 5, "Recently added count wrong");
 
             const firstItemFound = result.itemsToRead[0].bookmarks.some(item => item.bookmark_id !== itemFromFirstGroup.bookmark_id);
-            ok(firstItemFound, "Bookmark that was removed found in recently read");
+            QUnit.assert.ok(firstItemFound, "Bookmark that was removed found in recently read");
 
             const secondItemFound = result.itemsToRead[1].bookmarks.some(item => item.bookmark_id !== itemFromSecondGroup.bookmark_id);
-            ok(secondItemFound, "Bookmark that was removed found in recently added");
+            QUnit.assert.ok(secondItemFound, "Bookmark that was removed found in recently added");
         });
     });
 }

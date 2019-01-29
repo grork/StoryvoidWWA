@@ -22,18 +22,18 @@
 
     function startOnSuccessOfPromise() {
         cleanUpOpenDbs();
-        start();
+        QUnit.start();
     }
 
     function startOnFailureOfPromise(error) {
         debugger;
-        ok(false, "Failed: " + error.toString() + "\n" + error.stack);
+        QUnit.assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
         cleanUpOpenDbs();
-        start();
+        QUnit.start();
     }
 
     function promiseTest(name, func, delay) {
-        asyncTest(name, function () {
+        QUnit.asyncTest(name, function () {
             var promise = WinJS.Promise.as(func());
 
             if(delay) {
@@ -48,15 +48,15 @@
 
     function expectNoPendingFolderEdits(idb) {
         return idb.getPendingFolderEdits().then(function (pendingEdits) {
-            ok(pendingEdits, "Expected valid pending edits structure");
-            strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            QUnit.assert.ok(pendingEdits, "Expected valid pending edits structure");
+            QUnit.assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
     function expectNoPendingBookmarkEdits(idb) {
         return colludePendingBookmarkEdits(idb.getPendingBookmarkEdits()).then(function (pendingEdits) {
-            ok(pendingEdits, "Expected valid pending edits structure");
-            strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            QUnit.assert.ok(pendingEdits, "Expected valid pending edits structure");
+            QUnit.assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
@@ -70,7 +70,7 @@
         return WinJS.Promise.timeout().then(function () {
             return db.deleteDb(name || InstapaperDB.DBName);
         }).then(function () {
-            ok(true);
+            QUnit.assert.ok(true);
         });
     }
     
@@ -199,7 +199,7 @@
 
             return WinJS.Promise.join([removals, progressReset]);
         }).then(function () {
-            ok(true, "It went very very wrong");
+            QUnit.assert.ok(true, "It went very very wrong");
         });
     }
 

@@ -586,7 +586,8 @@ config = {
 // Export global variables, unless an 'exports' object exists,
 // in that case we assume we're in CommonJS (dealt with on the bottom of the script)
 if ( typeof exports === "undefined" ) {
-	extend( window, QUnit );
+    // Remove qunit methods exposed on window object
+    // extend(window, QUnit);
 
 	// Expose QUnit object
 	window.QUnit = QUnit;
@@ -1817,7 +1818,8 @@ QUnit.diff = (function() {
 
 // for CommonJS enviroments, export everything
 if ( typeof exports !== "undefined" ) {
-	extend(exports, QUnit);
+    // Don't set global objects for QUnit
+    // extend(exports, QUnit);
 }
 
 // get at whatever the global object is, like window in browsers
