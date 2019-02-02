@@ -9,15 +9,15 @@ interface QUnitAssert {
     strictEqual(actual: any, expected: any, message: string);
     notStrictEqual(actual: any, expected: any, message: string);
     raises(block: () => void, expected?: any, message?: string);
+    async(): () => void;
 }
 
 interface QUnit {
     assert: QUnitAssert;
 
-    test(testName: string, testFunction: () => void);
-    asyncTest(testName: string, testFunction: () => void);
+    test(testName: string, testFunction: (assert?: QUnitAssert) => void);
     module(moduleName: string);
     start();
     stop();
-    expect(numberOfAssertsions: number);
+    expect(numberOfAssertions: number);
 }

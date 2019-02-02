@@ -6,8 +6,6 @@ module CodevoidTests.InstapaperArticleSyncTests {
     import av = Codevoid.Storyvoid;
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
-    var startOnSuccessOfPromise = InstapaperTestUtilities.startOnSuccessOfPromise;
-    var startOnFailureOfPromise = InstapaperTestUtilities.startOnFailureOfPromise;
 
     var clientID = "PLACEHOLDER";
     var clientSecret = "PLACEHOLDER";

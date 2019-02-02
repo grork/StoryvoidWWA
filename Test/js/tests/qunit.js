@@ -2203,33 +2203,33 @@ QUnit.jsDump = QUnit.dump;
 // For browser, export only select globals
 if ( defined.document ) {
 
-	( function() {
-		var i, l,
-			keys = [
-				"test",
-				"module",
-				"expect",
-				"asyncTest",
-				"start",
-				"stop",
-				"ok",
-				"notOk",
-				"equal",
-				"notEqual",
-				"propEqual",
-				"notPropEqual",
-				"deepEqual",
-				"notDeepEqual",
-				"strictEqual",
-				"notStrictEqual",
-				"throws",
-				"raises"
-			];
+	//( function() {
+	//	var i, l,
+	//		keys = [
+	//			"test",
+	//			"module",
+	//			"expect",
+	//			"asyncTest",
+	//			"start",
+	//			"stop",
+	//			"ok",
+	//			"notOk",
+	//			"equal",
+	//			"notEqual",
+	//			"propEqual",
+	//			"notPropEqual",
+	//			"deepEqual",
+	//			"notDeepEqual",
+	//			"strictEqual",
+	//			"notStrictEqual",
+	//			"throws",
+	//			"raises"
+	//		];
 
-		for ( i = 0, l = keys.length; i < l; i++ ) {
-			window[ keys[ i ] ] = QUnit[ keys[ i ] ];
-		}
-	}() );
+	//	for ( i = 0, l = keys.length; i < l; i++ ) {
+	//		window[ keys[ i ] ] = QUnit[ keys[ i ] ];
+	//	}
+	//}() );
 
 	window.QUnit = QUnit;
 }

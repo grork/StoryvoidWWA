@@ -20,21 +20,10 @@
         });
     }
 
-    function startOnSuccessOfPromise() {
-        cleanUpOpenDbs();
-        QUnit.start();
-    }
-
-    function startOnFailureOfPromise(error) {
-        debugger;
-        QUnit.assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
-        cleanUpOpenDbs();
-        QUnit.start();
-    }
-
     function promiseTest(name, func, delay) {
-        QUnit.asyncTest(name, function () {
-            var promise = WinJS.Promise.as(func());
+        QUnit.test(name, function (assert) {
+            var complete = assert.async();
+            var promise = WinJS.Promise.as(func(assert));
 
             if(delay) {
                 promise = promise.then(function() {
@@ -42,7 +31,13 @@
                 });
             }
 
-            promise.done(startOnSuccessOfPromise, startOnFailureOfPromise);
+            promise.then(null, (error) => {
+                debugger;
+                QUnit.assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
+            }).done(() => {
+                cleanUpOpenDbs();
+                complete();
+            });
         });
     }
 
@@ -205,8 +200,6 @@
 
     WinJS.Namespace.define("InstapaperTestUtilities", {
         getNewInstapaperDBAndInit: getNewInstapaperDBAndInit,
-        startOnSuccessOfPromise: startOnSuccessOfPromise,
-        startOnFailureOfPromise: startOnFailureOfPromise,
         promiseTest: promiseTest,
         expectNoPendingFolderEdits: expectNoPendingFolderEdits,
         expectNoPendingBookmarkEdits: expectNoPendingBookmarkEdits,
