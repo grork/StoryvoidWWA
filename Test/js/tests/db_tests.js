@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    function waitFor(clause, timeout, existingSignal, dontThrowOnTimeout) {
+    function waitFor(testAssert, clause, timeout, existingSignal, dontThrowOnTimeout) {
         if (timeout === undefined) {
             timeout = 1000;
         }
@@ -13,7 +13,7 @@
 
         if (timeout < 1) {
             if (!dontThrowOnTimeout) {
-                QUnit.assert.ok(false, "timed out waiting");
+                testAssert.ok(false, "timed out waiting");
             }
             signal.complete();
             return;
@@ -22,91 +22,101 @@
         if (clause()) {
             signal.complete();
         } else {
-            setTimeout(waitFor.bind(this, clause, timeout - 5, signal, dontThrowOnTimeout), 5);
+            setTimeout(waitFor.bind(this, testAssert,clause, timeout - 5, signal, dontThrowOnTimeout), 5);
         }
 
         return signal._promise;
     }
 
-    function runTestWithCleanup(before, test, after) {
-        QUnit.stop();
+    function runTestWithCleanup(assert, before, test, after) {
+        const complete = assert.async();
 
         if (before) {
-            before = WinJS.Promise.as(before());
+            before = WinJS.Promise.as(before(assert));
         } else {
             before = WinJS.Promise.as();
         }
 
-        before.then(test).then(after, after).done(QUnit.start, QUnit.start);
-    }
-
-    var isDone = false;
-    function waitForTest() {
-        QUnit.stop();
-        setTimeout(function () { isDone = true; }, 100);
-        waitFor(function () { return isDone; }).done(function () {
-            QUnit.assert.ok(isDone, "Didn't actually set isDone");
-            QUnit.start();
-        });
-    }
-
-    var isDoneTimeout = false;
-    function waitForTestWithTimeout() {
-        QUnit.stop();
-        setTimeout(function () { isDoneTimeout = true; }, 5000);
-        waitFor(function () { return isDoneTimeout; }, 100, null, true).done(function () {
-            QUnit.assert.ok(!isDoneTimeout, "Test didn't timeout.");
-            QUnit.start();
-        });
-    }
-
-    var wasRunBefore = false;
-    var wasRunTest = false;
-    var wasRunAfter = false;
-    function runBeforeAndAfterTest() {
-        QUnit.stop();
-        var b = function before() {
-            QUnit.assert.ok(!wasRunBefore, "Was Run before already set");
-            QUnit.assert.ok(!wasRunTest, "Test was run before");
-            QUnit.assert.ok(!wasRunAfter, "Was Run After already set");
-            wasRunBefore = true;
-        }
-
-        var t = function theTest() {
-            QUnit.assert.ok(wasRunBefore, "Was Run before not set");
-            QUnit.assert.ok(!wasRunTest, "Test was run before");
-            QUnit.assert.ok(!wasRunAfter, "Was Run After already set");
-            wasRunTest = true;
-        }
-
-        var a = function after() {
-            QUnit.assert.ok(wasRunBefore, "Was Run before already set");
-            QUnit.assert.ok(wasRunTest, "Test wasn't run");
-            QUnit.assert.ok(!wasRunAfter, "Was Run After already set");
-            wasRunAfter = true;
-        }
-
-        runTestWithCleanup(b, t, a);
-
-        waitFor(function () {
-            return wasRunBefore && wasRunTest && wasRunAfter;
-        }).done(function () {
-            QUnit.assert.ok(wasRunBefore && wasRunTest && wasRunAfter, "not all parts were run");
-            QUnit.start();
-        });
+        const boundAfter = after.bind(this, assert);
+        before.then(test.bind(this, assert)).then(boundAfter, boundAfter).done(complete, complete);
     }
 
     QUnit.module("testHelpers");
-    QUnit.test("waitForTest", waitForTest);
-    QUnit.test("waitForTestWithTimeout", waitForTestWithTimeout);
-    QUnit.test("runBeforeAndAfterTest", runBeforeAndAfterTest);
+
+    QUnit.test("waitForTest", function waitForTest(assert) {
+        var isDone = false;
+        const complete = assert.async();
+        setTimeout(function () { isDone = true; }, 100);
+        waitFor(assert, function () { return isDone; }).done(function () {
+            assert.ok(isDone, "Didn't actually set isDone");
+            complete();
+        });
+    });
+
+    QUnit.test("waitForTestWithTimeout", function waitForTestWithTimeout(assert) {
+        var isDoneTimeout = false;
+        const complete = assert.async();
+        setTimeout(function () { isDoneTimeout = true; }, 5000);
+        waitFor(assert, function () { return isDoneTimeout; }, 100, null, true).done(function () {
+            assert.ok(!isDoneTimeout, "Test didn't timeout.");
+            complete();
+        });
+    });
+
+    QUnit.test("runBeforeAndAfterTest", function runBeforeAndAfterTest(originalAssert) {
+        var wasRunBefore = false;
+        var wasRunTest = false;
+        var wasRunAfter = false;
+
+        var b = function before(beforeAssert) {
+            beforeAssert.ok(!wasRunBefore, "Was Run before already set");
+            beforeAssert.ok(!wasRunTest, "Test was run before");
+            beforeAssert.ok(!wasRunAfter, "Was Run After already set");
+
+            WinJS.Promise.timeout(100).then(() => {
+                wasRunBefore = true;
+            });
+
+            return waitFor(assert, () => wasRunBefore);
+        }
+
+        var t = function theTest(testAssert) {
+            testAssert.ok(wasRunBefore, "Was Run before not set");
+            testAssert.ok(!wasRunTest, "Test was run before");
+            testAssert.ok(!wasRunAfter, "Was Run After already set");
+
+            WinJS.Promise.timeout(100).then(() => {
+                wasRunTest = true;
+            });
+
+            return waitFor(assert, () => wasRunTest);
+        }
+
+        var a = function after(afterAssert) {
+            afterAssert.ok(wasRunBefore, "Was Run before already set");
+            afterAssert.ok(wasRunTest, "Test wasn't run");
+            afterAssert.ok(!wasRunAfter, "Was Run After already set");
+
+            WinJS.Promise.timeout(100).then(() => {
+                wasRunAfter = true;
+            });
+
+            return waitFor(assert, () => wasRunAfter).then(() => {
+                // Full validation
+                afterAssert.ok(wasRunBefore && wasRunTest && wasRunAfter, "not all parts were run");
+            });
+        }
+
+        runTestWithCleanup(originalAssert, b, t, a);
+    });
 
     QUnit.module("dbase");
-    var dbName = "testDb";
-    var indexedDB = window.indexedDB;
+
+    const dbName = "testDb";
+    const indexedDB = window.indexedDB;
     var currentServer;
 
-    function before() {
+    function before(beforeAssert) {
         var done = false;
 
         var req = indexedDB.deleteDatabase(dbName);
@@ -123,13 +133,11 @@
             console.log('db blocked on delete', arguments);
         };
 
-        return waitFor(function () {
-            return done;
-        })
+        return waitFor(beforeAssert, () => done);
     }
 
     var dbId = 0;
-    function after() {
+    function after(afterAssert) {
         var done = false;
         if (currentServer) {
             try {
@@ -154,18 +162,16 @@
             console.log("db blocked: " + reqId + " ", arguments);
         };
 
-        return waitFor(function () {
-            return done;
-        })
+        return waitFor(afterAssert, () => done);
     }
 
     function dbTestWrapper(testFn) {
-        return function () {
-            runTestWithCleanup(before, testFn, after);
+        return function (testAssert) {
+            runTestWithCleanup(testAssert, before, testFn, after);
         }
     }
 
-    function openDbSuccessfully() {
+    function openDbSuccessfully(assert) {
         db.open({
             server: dbName,
             version: 1
@@ -173,14 +179,12 @@
             currentServer = s;
         });
 
-        return waitFor(function () {
-            return currentServer;
-        }).then(function () {
-            QUnit.assert.ok(currentServer, "Current server was never set");
+        return waitFor(assert, () => currentServer).then(function () {
+            assert.ok(currentServer, "Current server was never set");
         });
     }
 
-    function closeClearsCache() {
+    function closeClearsCache(assert) {
         return db.open({
             server: dbName,
             version: 1
@@ -189,11 +193,11 @@
             currentServer.close();
         }).then(function () {
             var cache = db._getCache();
-            QUnit.assert.strictEqual(cache[dbName], undefined, "DB Was still in the cache");
+            assert.strictEqual(cache[dbName], undefined, "DB Was still in the cache");
         });
     }
 
-    function usesProvidedSchema() {
+    function usesProvidedSchema(assert) {
         var server;
 
         db.open({
@@ -211,10 +215,8 @@
             server = s;
         });
 
-        return waitFor(function () {
-            return server;
-        }).then(function () {
-            QUnit.assert.ok(server, "no database returned");
+        return waitFor(assert, () => server).then(function () {
+            assert.ok(server, "no database returned");
             server.close();
             var done =  false;
 
@@ -222,20 +224,18 @@
             req.onsuccess = function ( e ) {
                 var db = e.target.result;
                     
-                QUnit.assert.strictEqual(db.objectStoreNames.length, 1, "Didn't find expected store names");
-                QUnit.assert.strictEqual(db.objectStoreNames[0], "test", "Expected store name to match");
+                assert.strictEqual(db.objectStoreNames.length, 1, "Didn't find expected store names");
+                assert.strictEqual(db.objectStoreNames[0], "test", "Expected store name to match");
                     
                 db.close();
                 done = true;
             };
 
-            return waitFor(function () {
-                return done;
-            });
+            return waitFor(assert, () => done);
         });
     }
 
-    function objectStoreNamesPropertyContainsTableNames() {
+    function objectStoreNamesPropertyContainsTableNames(assert) {
         var server;
 
         db.open({
@@ -253,19 +253,17 @@
             server = s;
         });
 
-        return waitFor(function () {
-            return server;
-        }).then(function () {
-            QUnit.assert.ok(server, "no database returned");
+        return waitFor(assert, () => server).then(function () {
+            assert.ok(server, "no database returned");
 
-            QUnit.assert.ok(server.objectStoreNames, "expected list of object stores");
-            QUnit.assert.strictEqual(server.objectStoreNames.length, 1, "only expected on object store");
-            QUnit.assert.strictEqual(server.objectStoreNames[0], "test", "wrong store name returned");
+            assert.ok(server.objectStoreNames, "expected list of object stores");
+            assert.strictEqual(server.objectStoreNames.length, 1, "only expected on object store");
+            assert.strictEqual(server.objectStoreNames[0], "test", "wrong store name returned");
             server.close();
         });
     }
 
-    function failsWhenMissingKeyPathOnSchema() {
+    function failsWhenMissingKeyPathOnSchema(assert) {
         var server;
 
         return db.open({
@@ -277,14 +275,14 @@
                 }
             }
         }).then(function (s) {
-            QUnit.assert.ok(false, "should have failed");
+            assert.ok(false, "should have failed");
             server = s;
         }, function (e) {
-            QUnit.assert.ok(true, "Failed badly");
+            assert.ok(true, "Failed badly");
         });
     }
 
-    function callsUpgradeOnCreate() {
+    function callsUpgradeOnCreate(assert) {
         var server;
         var upgradeWasCalled = false;
         var upgradeHadServerObject = false;
@@ -309,12 +307,10 @@
             server = s;
         });
 
-        return waitFor(function () {
-            return server;
-        }).then(function () {
-            QUnit.assert.ok(upgradeWasCalled, "Upgrade wasn't called");
-            QUnit.assert.ok(upgradeHadServerObject, "Upgrade wasn't passed a server object");
-            QUnit.assert.ok(server, "no database returned");
+        return waitFor(assert, () => server).then(function () {
+            assert.ok(upgradeWasCalled, "Upgrade wasn't called");
+            assert.ok(upgradeHadServerObject, "Upgrade wasn't passed a server object");
+            assert.ok(server, "no database returned");
             server.close();
             var done = false;
 
@@ -322,20 +318,18 @@
             req.onsuccess = function (e) {
                 var db = e.target.result;
 
-                QUnit.assert.strictEqual(db.objectStoreNames.length, 1, "Didn't find expected store names");
-                QUnit.assert.strictEqual(db.objectStoreNames[0], "test", "Expected store name to match");
+                assert.strictEqual(db.objectStoreNames.length, 1, "Didn't find expected store names");
+                assert.strictEqual(db.objectStoreNames[0], "test", "Expected store name to match");
 
                 db.close();
                 done = true;
             };
 
-            return waitFor(function () {
-                return done;
-            });
+            return waitFor(assert, () => done);
         });
     }
 
-    function canUseExistingTransactionForOperations() {
+    function canUseExistingTransactionForOperations(assert) {
         var server;
         var upgradeDone;
 
@@ -360,20 +354,18 @@
             server = s;
         });
 
-        return waitFor(function () {
-            return server;
-        }).then(function() {
+        return waitFor(assert, () => server).then(function() {
             return server.query("test").execute();
         }).then(function(results) {
-            QUnit.assert.ok(true, "expected results");
-            QUnit.assert.strictEqual(results.length, 1, "Didn't find right number of results");
-            QUnit.assert.strictEqual(results[0].name, "bob", "data wasn't correct");
+            assert.ok(true, "expected results");
+            assert.strictEqual(results.length, 1, "Didn't find right number of results");
+            assert.strictEqual(results[0].name, "bob", "data wasn't correct");
             server.close();
             return true;
         });
     }
 
-    function canDeleteDb() {
+    function canDeleteDb(assert) {
         return db.open({
             server: dbName,
             version: 1
@@ -382,13 +374,13 @@
             currentServer.close();
         }).then(function () {
             var cache = db._getCache();
-            QUnit.assert.strictEqual(cache[dbName], undefined, "DB Was still in the cache");
+            assert.strictEqual(cache[dbName], undefined, "DB Was still in the cache");
 
             return db.deleteDb(dbName);
         }).then(function deleted(e) {
-            QUnit.assert.ok(true, "DB wasn't deleted");
+            assert.ok(true, "DB wasn't deleted");
         }, function errored(e) {
-            QUnit.assert.ok(false, "DB failed to be deleted");
+            assert.ok(false, "DB failed to be deleted");
         });
     }
 
@@ -404,9 +396,9 @@
     QUnit.module("dbaseAddData");
 
     function dbTestWrapperCreateDb(testFn) {
-        return function () {
-            runTestWithCleanup(function () {
-                return before().then(function () {
+        return function (originalAssert) {
+            runTestWithCleanup(originalAssert, function wrapper_Before() {
+                return before(originalAssert).then(function () {
                     db.open({
                         server: dbName,
                         version: 1,
@@ -422,33 +414,29 @@
                         currentServer = s;
                     });
 
-                    return waitFor(function () {
-                        return currentServer;
-                    });
+                    return waitFor(originalAssert, () => currentServer);
                 });
-            }, testFn, after);
+            }, testFn.bind(this, originalAssert), after.bind(this, originalAssert));
         }
     }
 
-    function canInsertItemIntoStore() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canInsertItemIntoStore(assert) {
+        assert.ok(currentServer, "need current server");
         var item = { firstName: "Aaron", lastName: "Powell" };
 
         currentServer.add("test", item).done(function (records) {
-            QUnit.assert.ok(records, "Didn't get any records back");
-            QUnit.assert.strictEqual(records.length, 1, "Got more than one record back");
+            assert.ok(records, "Didn't get any records back");
+            assert.strictEqual(records.length, 1, "Got more than one record back");
             item = records[0];
         });
 
-        return waitFor(function () {
-            return item.id;
-        }).then(function () {
-            QUnit.assert.strictEqual(item.id, 1, "Item wasn't the first ID, or didn't have one");
+        return waitFor(assert, () => item.id).then(function () {
+            assert.strictEqual(item.id, 1, "Item wasn't the first ID, or didn't have one");
         });
     }
 
-    function canInsertMultipleItemsIntoStore() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canInsertMultipleItemsIntoStore(assert) {
+        assert.ok(currentServer, "need current server");
         var item1 = {
             firstName: "Aaron",
             lastName: "Powell"
@@ -459,40 +447,36 @@
         };
 
         currentServer.add("test", [item1, item2]).done(function (items) {
-            QUnit.assert.ok(items, "no items returned");
-            QUnit.assert.strictEqual(items.length, 2, "incorrect number of items returned");
+            assert.ok(items, "no items returned");
+            assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
             item1.id = items[0].id;
             item2.id = items[1].id;
         });
 
-        return waitFor(function () {
-            return item1.id;
-        }).then(function () {
-            QUnit.assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
-            QUnit.assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
+        return waitFor(assert, () => item1.id).then(function () {
+            assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
+            assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
         });
     }
 
-    function canInsertItemWithPutIntoStore() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canInsertItemWithPutIntoStore(assert) {
+        assert.ok(currentServer, "need current server");
         var item = { firstName: "Aaron", lastName: "Powell" };
 
         currentServer.put("test", item).done(function (records) {
-            QUnit.assert.ok(records, "Didn't get any records back");
-            QUnit.assert.strictEqual(records.length, 1, "Got more than one record back");
+            assert.ok(records, "Didn't get any records back");
+            assert.strictEqual(records.length, 1, "Got more than one record back");
             item = records[0];
         });
 
-        return waitFor(function () {
-            return item.id;
-        }).then(function () {
-            QUnit.assert.strictEqual(item.id, 1, "Item wasn't the first ID, or didn't have one");
+        return waitFor(assert, () => item.id).then(function () {
+            assert.strictEqual(item.id, 1, "Item wasn't the first ID, or didn't have one");
         });
     }
 
-    function canInsertMultipleItemsWithPutIntoStore() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canInsertMultipleItemsWithPutIntoStore(assert) {
+        assert.ok(currentServer, "need current server");
         var item1 = {
             firstName: "Aaron",
             lastName: "Powell"
@@ -503,23 +487,21 @@
         };
 
         currentServer.put("test", [item1, item2]).done(function (items) {
-            QUnit.assert.ok(items, "no items returned");
-            QUnit.assert.strictEqual(items.length, 2, "incorrect number of items returned");
+            assert.ok(items, "no items returned");
+            assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
             item1.id = items[0].id;
             item2.id = items[1].id;
         });
 
-        return waitFor(function () {
-            return item1.id;
-        }).then(function () {
-            QUnit.assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
-            QUnit.assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
+        return waitFor(assert, () => item1.id).then(function () {
+            assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
+            assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
         });
     }
 
-    function canUpdateMultipleItemsWithPutIntoStore() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canUpdateMultipleItemsWithPutIntoStore(assert) {
+        assert.ok(currentServer, "need current server");
         var item1 = {
             firstName: "Aaron",
             lastName: "Powell"
@@ -530,18 +512,16 @@
         };
 
         currentServer.put("test", [item1, item2]).done(function (items) {
-            QUnit.assert.ok(items, "no items returned");
-            QUnit.assert.strictEqual(items.length, 2, "incorrect number of items returned");
+            assert.ok(items, "no items returned");
+            assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
             item1.id = items[0].id;
             item2.id = items[1].id;
         });
 
-        return waitFor(function () {
-            return item1.id;
-        }).then(function () {
-            QUnit.assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
-            QUnit.assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
+        return waitFor(assert, () => item1.id).then(function () {
+            assert.strictEqual(item1.id, 1, "item 1 had incorrect id");
+            assert.strictEqual(item2.id, 2, "item 2 had incorrect id");
         }).then(function () {
             item1.firstName = "Erin";
             item2.firstName = "Jon";
@@ -549,11 +529,11 @@
         }).then(function () {
             return currentServer.query("test").execute();
         }).then(function (results) {
-            QUnit.assert.ok(results, "Didn't get any query results");
-            QUnit.assert.strictEqual(results.length, 2, "Got unexpected number of results");
+            assert.ok(results, "Didn't get any query results");
+            assert.strictEqual(results.length, 2, "Got unexpected number of results");
 
-            QUnit.assert.strictEqual(results[0].firstName, "Erin", "Name didn't match the updated value");
-            QUnit.assert.strictEqual(results[1].firstName, "Jon", "Name didn't match updated value");
+            assert.strictEqual(results[0].firstName, "Erin", "Name didn't match the updated value");
+            assert.strictEqual(results[1].firstName, "Jon", "Name didn't match updated value");
         });
     }
 
@@ -565,49 +545,43 @@
 
     QUnit.module("dbaseRemove");
 
-    function canRemoveAddedItem() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canRemoveAddedItem(assert) {
+        assert.ok(currentServer, "need current server");
         var item = { firstName: "Aaron", lastName: "Powell" };
 
         currentServer.add("test", item).done(function (records) {
-            QUnit.assert.ok(records, "Didn't get any records back");
-            QUnit.assert.strictEqual(records.length, 1, "Got more than one record back");
+            assert.ok(records, "Didn't get any records back");
+            assert.strictEqual(records.length, 1, "Got more than one record back");
             item = records[0];
         });
 
-        return waitFor(function () {
-            return item.id;
-        }).then(function () {
+        return waitFor(assert, () => item.id).then(function () {
             return currentServer.remove("test", item.id);
         }).then(function () {
             var done = false;
             currentServer.get("test", item.id).done(function (removed) {
-                QUnit.assert.strictEqual(removed, undefined, "Expected item to be removed");
+                assert.strictEqual(removed, undefined, "Expected item to be removed");
                 done = true;
             });
 
-            return waitFor(function () {
-                return done;
-            });
+            return waitFor(assert, () => done);
         });
     }
 
-    function removingNonExistantItemDoesntError() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function removingNonExistantItemDoesntError(assert) {
+        assert.ok(currentServer, "need current server");
         var item = { firstName: "Aaron", lastName: "Powell" };
 
         currentServer.add("test", item).done(function (records) {
-            QUnit.assert.ok(records, "Didn't get any records back");
-            QUnit.assert.strictEqual(records.length, 1, "Got more than one record back");
+            assert.ok(records, "Didn't get any records back");
+            assert.strictEqual(records.length, 1, "Got more than one record back");
             item = records[0];
         });
 
-        return waitFor(function () {
-            return item.id;
-        }).then(function () {
+        return waitFor(assert, () => item.id).then(function () {
             return currentServer.remove("test", "xxx");
         }).then(function (data) {
-            QUnit.assert.ok(!data, "Expected no data");
+            assert.ok(!data, "Expected no data");
         });
     }
 
@@ -616,8 +590,8 @@
 
     QUnit.module("dbaseQuery");
 
-    function canGetById() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canGetById(assert) {
+        assert.ok(currentServer, "need current server");
 
         var item = {
             firstName: "Aaron",
@@ -625,45 +599,39 @@
         };
 
         currentServer.add("test", item).done(function (data) {
-            QUnit.assert.ok(data, "Didn't get data");
-            QUnit.assert.strictEqual(data.length, 1, "Inserted more data than expected");
+            assert.ok(data, "Didn't get data");
+            assert.strictEqual(data.length, 1, "Inserted more data than expected");
             item = data[0]
         });
 
-        return waitFor(function () {
-            return item.id;
-        }).then(function () {
+        return waitFor(assert, () => item.id).then(function () {
             var done = false;
             currentServer.get("test", item.id).done(function (data) {
-                QUnit.assert.ok(data, "didn't get data back");
-                QUnit.assert.strictEqual(data.id, item.id, "ID's didn't match");
-                QUnit.assert.strictEqual(data.firstName, item.firstName, "First names didn't match");
-                QUnit.assert.strictEqual(data.lastName, item.lastName, "Last names didn't match");
+                assert.ok(data, "didn't get data back");
+                assert.strictEqual(data.id, item.id, "ID's didn't match");
+                assert.strictEqual(data.firstName, item.firstName, "First names didn't match");
+                assert.strictEqual(data.lastName, item.lastName, "Last names didn't match");
                 done = true;
             });
 
-            return waitFor(function () {
-                return done;
-            });
+            return waitFor(assert, () => done);
         });
     }
 
-    function gettingInvalidIdReturnsNull() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function gettingInvalidIdReturnsNull(assert) {
+        assert.ok(currentServer, "need current server");
 
         var done = false;
         currentServer.get("test", 7).done(function (data) {
-            QUnit.assert.ok(data === undefined, "Didn't expect to get any data");
+            assert.ok(data === undefined, "Didn't expect to get any data");
             done = true;
         });
 
-        return waitFor(function () {
-            return done;
-        });
+        return waitFor(assert, () => done);
     };
 
-    function canGetAll() {
-        QUnit.assert.ok(currentServer, "need current server");
+    function canGetAll(assert) {
+        assert.ok(currentServer, "need current server");
 
         var item1 = {
             firstName: "Aaron",
@@ -679,26 +647,24 @@
             done = true;
         });
 
-        return waitFor(function () {
-            return done;
-        }).then(function () {
+        return waitFor(assert, () => done).then(function () {
             done = false;
 
             currentServer.query("test").execute().done(function (results) {
-                QUnit.assert.ok(results, "no results");
-                QUnit.assert.strictEqual(results.length, 2, "Incorrect number of results");
-                QUnit.assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
-                QUnit.assert.strictEqual(results[1].firstName, item2.firstName, "item 2 First names don't match");
+                assert.ok(results, "no results");
+                assert.strictEqual(results.length, 2, "Incorrect number of results");
+                assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
+                assert.strictEqual(results[1].firstName, item2.firstName, "item 2 First names don't match");
 
                 done = true;
             });
 
-            return waitFor(function() { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
-    function canQueryASingleProperty() {
-        QUnit.assert.ok(currentServer, "need a server");
+    function canQueryASingleProperty(assert) {
+        assert.ok(currentServer, "need a server");
 
         var item1 = {
             firstName: "Aaron",
@@ -718,26 +684,24 @@
             done = true;
         });
 
-        return waitFor(function () {
-            return done;
-        }).then(function () {
+        return waitFor(assert, () => done).then(function () {
             done = false;
 
             currentServer.query("test").filter("firstName", "Aaron").execute().done(function (results) {
-                QUnit.assert.ok(results, "no results");
-                QUnit.assert.strictEqual(results.length, 2, "Incorrect number of results");
-                QUnit.assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
-                QUnit.assert.strictEqual(results[1].firstName, item3.firstName, "item 2 First names don't match");
+                assert.ok(results, "no results");
+                assert.strictEqual(results.length, 2, "Incorrect number of results");
+                assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
+                assert.strictEqual(results[1].firstName, item3.firstName, "item 2 First names don't match");
 
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
-    function canQueryUsingFilterFunction() {
-        QUnit.assert.ok(currentServer, "need a server");
+    function canQueryUsingFilterFunction(assert) {
+        assert.ok(currentServer, "need a server");
 
         var item1 = {
             firstName: "Aaron",
@@ -757,23 +721,21 @@
             done = true;
         });
 
-        return waitFor(function () {
-            return done;
-        }).then(function () {
+        return waitFor(assert, () => done).then(function () {
             done = false;
 
             currentServer.query("test").filter(function (data) {
                 return data.firstName === "Aaron" && data.lastName === "Powell";
             }).execute().done(function (results) {
-                QUnit.assert.ok(results, "no results");
-                QUnit.assert.strictEqual(results.length, 2, "Incorrect number of results");
-                QUnit.assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
-                QUnit.assert.strictEqual(results[1].firstName, item3.firstName, "item 2 First names don't match");
+                assert.ok(results, "no results");
+                assert.strictEqual(results.length, 2, "Incorrect number of results");
+                assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
+                assert.strictEqual(results[1].firstName, item3.firstName, "item 2 First names don't match");
 
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
@@ -785,7 +747,7 @@
 
     QUnit.module("dbaseIndexes");
 
-    function canCreateDbWithIndexes() {
+    function canCreateDbWithIndexes(assert) {
         db.open({
             server: dbName,
             version: 1,
@@ -801,11 +763,11 @@
                 }
             }
         }).done(function (s) {
-            QUnit.assert.ok(s, "Expected a completed DB");
+            assert.ok(s, "Expected a completed DB");
             currentServer = s;
         });
 
-        return waitFor(function () { return currentServer; }).then(function () {
+        return waitFor(assert, () => currentServer).then(function () {
             var done;
             currentServer.close();
 
@@ -816,18 +778,18 @@
                 var transaction = res.transaction('test');
                 var store = transaction.objectStore('test');
 
-                QUnit.assert.strictEqual(store.indexNames.length, 1, "Didn't find correct number of indexes");
-                QUnit.assert.strictEqual(store.indexNames[0], "firstName", "Index names didn't match");
+                assert.strictEqual(store.indexNames.length, 1, "Didn't find correct number of indexes");
+                assert.strictEqual(store.indexNames[0], "firstName", "Index names didn't match");
 
                 e.target.result.close();
                 done = true;
             };
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
-    function canQueryDbUsingIndexes() {
+    function canQueryDbUsingIndexes(assert) {
         var item1 = {
             firstName: "Aaron",
             lastName: "Powell"
@@ -856,32 +818,32 @@
                 }
             }
         }).done(function (s) {
-            QUnit.assert.ok(s, "Expected a completed DB");
+            assert.ok(s, "Expected a completed DB");
             currentServer = s;
         });
         var done;
 
-        return waitFor(function () { return currentServer; }).then(function () {
+        return waitFor(assert, () => currentServer).then(function () {
 
             currentServer.add("test", [item1, item2, item3]).done(function () {
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         }).then(function () {
-            QUnit.assert.ok(done, "Previous data wasn't complete")
+            assert.ok(done, "Previous data wasn't complete")
             done = false;
             currentServer.index("test", "firstName").only("Aaron").done(function (results) {
-                QUnit.assert.ok(results, "Expected a result set");
-                QUnit.assert.strictEqual(results.length, 2, "didn't get back expected record counts");
+                assert.ok(results, "Expected a result set");
+                assert.strictEqual(results.length, 2, "didn't get back expected record counts");
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
-    function canQueryDbIndexForNonExistantItem() {
+    function canQueryDbIndexForNonExistantItem(assert) {
         var item1 = {
             firstName: "Aaron",
             lastName: "Powell"
@@ -903,28 +865,28 @@
                 }
             }
         }).done(function (s) {
-            QUnit.assert.ok(s, "Expected a completed DB");
+            assert.ok(s, "Expected a completed DB");
             currentServer = s;
         });
         var done;
 
-        return waitFor(function () { return currentServer; }).then(function () {
+        return waitFor(assert, () => currentServer).then(function () {
 
             currentServer.add("test", [item1]).done(function () {
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         }).then(function () {
-            QUnit.assert.ok(done, "Previous data wasn't complete")
+            assert.ok(done, "Previous data wasn't complete")
             done = false;
             currentServer.index("test", "firstName").only("Bob").done(function (results) {
-                QUnit.assert.ok(results, "Expected a result set");
-                QUnit.assert.strictEqual(results.length, 0, "didn't get back expected record counts");
+                assert.ok(results, "Expected a result set");
+                assert.strictEqual(results.length, 0, "didn't get back expected record counts");
                 done = true;
             });
 
-            return waitFor(function () { return done; });
+            return waitFor(assert, () => done);
         });
     }
 
