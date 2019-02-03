@@ -8,32 +8,32 @@
 
     QUnit.module("UICoreControls");
 
-    QUnit.test("canInstantiateControl", function () {
+    QUnit.test("canInstantiateControl", function (assert) {
         var control = new Codevoid.UICore.Control(document.createElement("div"));
-        QUnit.assert.ok(control, "Control couldn't be created");
+        assert.ok(control, "Control couldn't be created");
     });
 
-    QUnit.test("optionsPassedToControlAreSetOnObject", function () {
+    QUnit.test("optionsPassedToControlAreSetOnObject", function (assert) {
         var control = new Codevoid.UICore.Control(document.createElement("div"), {
             value: "a",
             anotherValue: "b",
         });
 
-        QUnit.assert.ok(control, "Control wasn't created");
-        QUnit.assert.strictEqual(control.value, "a", "Value wasn't set on instance");
-        QUnit.assert.strictEqual(control.anotherValue, "b", "AnotherValue wasn't set on instance");
+        assert.ok(control, "Control wasn't created");
+        assert.strictEqual(control.value, "a", "Value wasn't set on instance");
+        assert.strictEqual(control.anotherValue, "b", "AnotherValue wasn't set on instance");
     });
 
-    QUnit.test("elementPassedToControlIsSet", function () {
+    QUnit.test("elementPassedToControlIsSet", function (assert) {
         var playground = getPlayground();
         var control = new Codevoid.UICore.Control(playground);
 
-        QUnit.assert.ok(control, "Control wasn't created");
-        QUnit.assert.strictEqual(control.element, playground, "Controls element was incorrect");
+        assert.ok(control, "Control wasn't created");
+        assert.strictEqual(control.element, playground, "Controls element was incorrect");
     });
 
 
-    QUnit.test("errorOnGettingViewForModelWithoutView", function () {
+    QUnit.test("errorOnGettingViewForModelWithoutView", function (assert) {
         var model = {};
 
         var exceptionCaught = false;
@@ -44,10 +44,10 @@
             exceptionCaught = true;
         }
 
-        QUnit.assert.ok(exceptionCaught, "No exception caught");
+        assert.ok(exceptionCaught, "No exception caught");
     });
 
-    QUnit.test("errorOnGettingViewForNotDefinedViewType", function () {
+    QUnit.test("errorOnGettingViewForNotDefinedViewType", function (assert) {
         var model = {
             experience: {
                 unittest: "CodevoidTests.TestControl",
@@ -61,10 +61,10 @@
             exceptionCaught = true;
         }
 
-        QUnit.assert.ok(exceptionCaught, "No exception caught");
+        assert.ok(exceptionCaught, "No exception caught");
     });
 
-    QUnit.test("canGetViewForSimpleModel", function () {
+    QUnit.test("canGetViewForSimpleModel", function (assert) {
         var model = {
             experience: {
                 unittest: "CodevoidTests.UnitTestView",
@@ -72,9 +72,9 @@
         };
 
         var view = uicore.Experiences.getExperienceForModel(model, "unittest");
-        QUnit.assert.ok(view, "Expected to get a view");
-        QUnit.assert.ok(view.identifier, "Expected identifier");
-        QUnit.assert.ok(view.ctor, "Expected constructor");
-        QUnit.assert.strictEqual(typeof view.ctor, "function", "Expected a function");
+        assert.ok(view, "Expected to get a view");
+        assert.ok(view.identifier, "Expected identifier");
+        assert.ok(view.ctor, "Expected constructor");
+        assert.strictEqual(typeof view.ctor, "function", "Expected a function");
     });
 })();

@@ -38,7 +38,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         };
     }
 
-    promiseTest("timerDoesNotRaiseWithoutEvent", () => {
+    promiseTest("timerDoesNotRaiseWithoutEvent", (assert) => {
         var signal = new util.Signal();
 
         var syncWatcher = getWatcher().watcher;
@@ -49,7 +49,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
 
         return WinJS.Promise.any([signal.promise, WinJS.Promise.timeout(200)]).then(() => {
-            QUnit.assert.ok(true, "Completed");
+            assert.ok(true, "Completed");
         });
     });
 
@@ -71,7 +71,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("timerDoesGetCancelledIfSecondEventHappensInTimeWindow", () => {
+    promiseTest("timerDoesGetCancelledIfSecondEventHappensInTimeWindow", (assert) => {
         var secondEventDispatched = false;
         var signal = new util.Signal();
 
@@ -80,7 +80,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                QUnit.assert.ok(secondEventDispatched, "Second event was not dispatched");
+                assert.ok(secondEventDispatched, "Second event was not dispatched");
                 signal.complete();
             }
         });
@@ -102,7 +102,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("timerNotRaisedWhenWatchingPaused", () => {
+    promiseTest("timerNotRaisedWhenWatchingPaused", (assert) => {
         var syncEventSeen = false;
         var secondEventDispatched = false;
         var signal = new util.Signal();
@@ -133,12 +133,12 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
 
         return WinJS.Promise.timeout(500).then(() => {
-            QUnit.assert.ok(secondEventDispatched, "second timer wasn't dispatched");
-            QUnit.assert.ok(!syncEventSeen, "Didn't expect to see sync needed");
+            assert.ok(secondEventDispatched, "second timer wasn't dispatched");
+            assert.ok(!syncEventSeen, "Didn't expect to see sync needed");
         });
     });
 
-    promiseTest("timerRaisedAfterAnEventAfterWatchingResumed", () => {
+    promiseTest("timerRaisedAfterAnEventAfterWatchingResumed", (assert) => {
         var syncEventSeen = false;
         var signal = new util.Signal();
 
@@ -147,7 +147,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                QUnit.assert.ok(!syncEventSeen, "Sync event already seen");
+                assert.ok(!syncEventSeen, "Sync event already seen");
                 syncEventSeen = true;
 
                 signal.complete();
@@ -176,7 +176,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return signal.promise;
     });
 
-    promiseTest("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", () => {
+    promiseTest("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", (assert) => {
         var syncEventSeen = false;
         var syncSeenSignal = new util.Signal();
         var enteredBackgroundCompleteSignal = new util.Signal();
@@ -189,7 +189,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         WinJS.Promise.timeout(50).done(() => {
             util.addEventListeners(w.watcher.eventSource, {
                 syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                    QUnit.assert.ok(!syncEventSeen, "Sync event already seen");
+                    assert.ok(!syncEventSeen, "Sync event already seen");
                     syncEventSeen = true;
 
                     syncSeenSignal.complete();
@@ -202,7 +202,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return syncSeenSignal.promise;
     });
 
-    QUnit.test("syncNotRequiredWhenTransitioningToOfflineState", () => {
+    QUnit.test("syncNotRequiredWhenTransitioningToOfflineState", (assert) => {
         var syncEventSeen = false;
 
         var w = getWatcher();
@@ -217,10 +217,10 @@ module CodevoidTests.InstapaperArticleSyncTests {
         // Simulate going offline
         w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-        QUnit.assert.ok(!syncEventSeen, "Didn't expect to see sync event");
+        assert.ok(!syncEventSeen, "Didn't expect to see sync event");
     });
 
-    QUnit.test("syncRequiredWhenTransitioningFromOfflineToOnlineState", () => {
+    QUnit.test("syncRequiredWhenTransitioningFromOfflineToOnlineState", (assert) => {
         var syncEventSeen = false;
 
         var w = getWatcher();
@@ -239,10 +239,10 @@ module CodevoidTests.InstapaperArticleSyncTests {
         // Go online to trigger the event
         w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
 
-        QUnit.assert.ok(syncEventSeen, "Expected to see sync event");
+        assert.ok(syncEventSeen, "Expected to see sync event");
     });
 
-    QUnit.test("syncNotWhenTransitioningFromToOnlineStateToOnline", () => {
+    QUnit.test("syncNotWhenTransitioningFromToOnlineStateToOnline", (assert) => {
         var syncEventSeen = false;
 
         var w = getWatcher();
@@ -261,10 +261,10 @@ module CodevoidTests.InstapaperArticleSyncTests {
         // Go online to trigger the event
         w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
 
-        QUnit.assert.ok(!syncEventSeen, "Didn't expect to see sync event");
+        assert.ok(!syncEventSeen, "Didn't expect to see sync event");
     });
 
-    QUnit.test("syncNotRequiredWhenTransitioningOfflineToOfflineState", () => {
+    QUnit.test("syncNotRequiredWhenTransitioningOfflineToOfflineState", (assert) => {
         var syncEventSeen = false;
 
         var w = getWatcher();
@@ -283,7 +283,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         // Simulate going offline
         w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-        QUnit.assert.ok(!syncEventSeen, "Didn't expect to see sync event");
+        assert.ok(!syncEventSeen, "Didn't expect to see sync event");
     });
 
     promiseTest("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", (assert) => {

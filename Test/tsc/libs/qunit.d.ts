@@ -16,7 +16,7 @@ interface QUnitAssert {
 interface QUnit {
     assert: QUnitAssert;
 
-    test(testName: string, testFunction: (assert?: QUnitAssert) => void);
+    test(testName: string, testFunction: (assert: QUnitAssert) => void);
     module(moduleName: string);
     start();
     stop();

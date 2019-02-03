@@ -77,7 +77,7 @@
                 wasRunBefore = true;
             });
 
-            return waitFor(assert, () => wasRunBefore);
+            return waitFor(beforeAssert, () => wasRunBefore);
         }
 
         var t = function theTest(testAssert) {
@@ -89,7 +89,7 @@
                 wasRunTest = true;
             });
 
-            return waitFor(assert, () => wasRunTest);
+            return waitFor(testAssert, () => wasRunTest);
         }
 
         var a = function after(afterAssert) {
@@ -101,7 +101,7 @@
                 wasRunAfter = true;
             });
 
-            return waitFor(assert, () => wasRunAfter).then(() => {
+            return waitFor(afterAssert, () => wasRunAfter).then(() => {
                 // Full validation
                 afterAssert.ok(wasRunBefore && wasRunTest && wasRunAfter, "not all parts were run");
             });

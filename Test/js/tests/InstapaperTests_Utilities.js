@@ -33,7 +33,7 @@
 
             promise.then(null, (error) => {
                 debugger;
-                QUnit.assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
+                assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
             }).done(() => {
                 cleanUpOpenDbs();
                 complete();
@@ -41,21 +41,21 @@
         });
     }
 
-    function expectNoPendingFolderEdits(idb) {
+    function expectNoPendingFolderEdits(testAssert, idb) {
         return idb.getPendingFolderEdits().then(function (pendingEdits) {
-            QUnit.assert.ok(pendingEdits, "Expected valid pending edits structure");
-            QUnit.assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            testAssert.ok(pendingEdits, "Expected valid pending edits structure");
+            testAssert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    function expectNoPendingBookmarkEdits(idb) {
+    function expectNoPendingBookmarkEdits(testAssert, idb) {
         return colludePendingBookmarkEdits(idb.getPendingBookmarkEdits()).then(function (pendingEdits) {
-            QUnit.assert.ok(pendingEdits, "Expected valid pending edits structure");
-            QUnit.assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            testAssert.ok(pendingEdits, "Expected valid pending edits structure");
+            testAssert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    function deleteDb(name) {
+    function deleteDb(testAssert, name) {
         pendingDbs.forEach(function (idb) {
             idb.dispose();
         });
@@ -65,7 +65,7 @@
         return WinJS.Promise.timeout().then(function () {
             return db.deleteDb(name || InstapaperDB.DBName);
         }).then(function () {
-            QUnit.assert.ok(true);
+            testAssert && testAssert.ok(true);
         });
     }
     
@@ -112,7 +112,7 @@
 
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
 
-    function destroyRemoteAccountData(clientInformation) {
+    function destroyRemoteAccountData(testAssert, clientInformation) {
         /// <summary>
         /// Adds "cost" -- there is a limit of 120 per day -- so rather than
         /// Always nuking them remotely and re-adding them, lets try and keep
@@ -194,7 +194,7 @@
 
             return WinJS.Promise.join([removals, progressReset]);
         }).then(function () {
-            QUnit.assert.ok(true, "It went very very wrong");
+            testAssert.ok(true, "It went very very wrong");
         });
     }
 
