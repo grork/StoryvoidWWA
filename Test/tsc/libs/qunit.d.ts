@@ -10,6 +10,7 @@ interface QUnitAssert {
     notStrictEqual(actual: any, expected: any, message: string);
     raises(block: () => void, expected?: any, message?: string);
     async(): () => void;
+    expect(numberOfAssertions: number);
 }
 
 interface QUnit {
@@ -19,5 +20,4 @@ interface QUnit {
     module(moduleName: string);
     start();
     stop();
-    expect(numberOfAssertions: number);
 }
