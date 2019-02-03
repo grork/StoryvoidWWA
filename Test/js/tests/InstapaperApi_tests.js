@@ -140,7 +140,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
-        InstapaperTestUtilities.destroyRemoteData(clientInformation).then(function () {
+        InstapaperTestUtilities.destroyRemoteData(assert, clientInformation).then(function () {
             return bookmarks.list();
         }).then(function (rb) {
             return Codevoid.Utilities.serialize(rb.bookmarks, function (item) {

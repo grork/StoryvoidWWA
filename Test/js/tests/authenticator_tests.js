@@ -59,7 +59,7 @@
 
     QUnit.module("Authenticator");
 
-    QUnit.test("settingsReturnedFromStorage", function () {
+    QUnit.test("settingsReturnedFromStorage", function (assert) {
         var fakeToken = "fakeToken";
         var fakeSecret = "fakeSecret";
 
@@ -70,13 +70,13 @@
         Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
 
         var clientInformation = authenticator.getStoredCredentials();
-        QUnit.assert.ok(clientInformation, "Didn't get client information");
+        assert.ok(clientInformation, "Didn't get client information");
 
-        QUnit.assert.strictEqual(clientInformation.clientToken, fakeToken, "Incorrect token");
-        QUnit.assert.strictEqual(clientInformation.clientTokenSecret, fakeSecret, "Incorrect secret");
+        assert.strictEqual(clientInformation.clientToken, fakeToken, "Incorrect token");
+        assert.strictEqual(clientInformation.clientTokenSecret, fakeSecret, "Incorrect secret");
     });
 
-    QUnit.test("settingsCanBeCleared", function () {
+    QUnit.test("settingsCanBeCleared", function (assert) {
         var fakeToken = "fakeToken";
         var fakeSecret = "fakeSecret";
 
@@ -88,17 +88,17 @@
 
         authenticator.clearClientInformation();
 
-        QUnit.assert.ok(!Windows.Storage.ApplicationData.current.localSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
+        assert.ok(!Windows.Storage.ApplicationData.current.localSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
     });
 
     QUnit.module("AuthenticatorViewModel");
 
-    QUnit.test("canInstantiateViewModel", function () {
+    QUnit.test("canInstantiateViewModel", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(vm, "No view model created");
+        assert.ok(vm, "No view model created");
     });
 
-    QUnit.test("changingPasswordRaisesEvent", function () {
+    QUnit.test("changingPasswordRaisesEvent", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var eventRaised = false;
 
@@ -108,10 +108,10 @@
 
         vm.password = "test";
 
-        QUnit.assert.ok(eventRaised, "No password changed");
+        assert.ok(eventRaised, "No password changed");
     });
 
-    QUnit.test("changingUsernameRaisesEvent", function () {
+    QUnit.test("changingUsernameRaisesEvent", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var eventRaised = false;
 
@@ -121,32 +121,32 @@
 
         vm.username = "test";
 
-        QUnit.assert.ok(eventRaised, "No password changed");
+        assert.ok(eventRaised, "No password changed");
     });
 
-    QUnit.test("canAuthenticateInitiallyFalse", function () {
+    QUnit.test("canAuthenticateInitiallyFalse", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate with no user/pass");
+        assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate with no user/pass");
     });
 
-    QUnit.test("settingUsernameEnablesCanAuthenticate", function () {
+    QUnit.test("settingUsernameEnablesCanAuthenticate", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+        assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
 
         vm.username = "test";
 
-        QUnit.assert.ok(vm.canAuthenticate, "Authentication should be possible with a valid username");
+        assert.ok(vm.canAuthenticate, "Authentication should be possible with a valid username");
     });
 
-    QUnit.test("allowUsernameIsInitiallyTrue", function () {
+    QUnit.test("allowUsernameIsInitiallyTrue", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
+        assert.ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
     });
 
-    QUnit.test("allowUsernameRaisesChangeEvent", function () {
+    QUnit.test("allowUsernameRaisesChangeEvent", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
+        assert.ok(vm.allowUsernameEntry, "Expceted to be able to enter the username");
         var allowUsernameEntryChangedEventRaised = false;
 
         vm.addEventListener("allowUsernameEntryChanged", function () {
@@ -155,68 +155,68 @@
 
         vm.allowUsernameEntry = false;
 
-        QUnit.assert.ok(allowUsernameEntryChangedEventRaised, "Didn't get change event for username entry");
+        assert.ok(allowUsernameEntryChangedEventRaised, "Didn't get change event for username entry");
     });
 
-    QUnit.test("settingPasswordOnlyShouldn'tEnableAuthentication", function () {
+    QUnit.test("settingPasswordOnlyShouldn'tEnableAuthentication", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+        assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
 
         vm.password = "test";
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Authentication shouldn't be possible with only a password");
+        assert.ok(!vm.canAuthenticate, "Authentication shouldn't be possible with only a password");
     });
 
-    QUnit.test("settingUsernameAndPasswordShouldEnableAuthentication", function () {
+    QUnit.test("settingUsernameAndPasswordShouldEnableAuthentication", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+        assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
 
         vm.username = "test";
         vm.password = "test";
 
-        QUnit.assert.ok(vm.canAuthenticate, "Authentication should be enabled");
+        assert.ok(vm.canAuthenticate, "Authentication should be enabled");
     });
 
-    QUnit.test("settingNonStringUsernameDoesn'tEnableAuthentication", function () {
+    QUnit.test("settingNonStringUsernameDoesn'tEnableAuthentication", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
+        assert.ok(!vm.canAuthenticate, "Shouldn't be able to authenticate before we set a username");
 
         vm.username = 1;
 
-        QUnit.assert.ok(!vm.canAuthenticate, "Authentication should be possible with an invalid");
+        assert.ok(!vm.canAuthenticate, "Authentication should be possible with an invalid");
     });
 
-    QUnit.test("passwordEntryDisabledOnCreation", function () {
+    QUnit.test("passwordEntryDisabledOnCreation", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
+        assert.ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
     });
 
-    QUnit.test("passwordEntryEnabledWhenUserSet", function () {
+    QUnit.test("passwordEntryEnabledWhenUserSet", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
-        QUnit.assert.ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
+        assert.ok(!vm.allowPasswordEntry, "Shouldn't be able to enter password with no user");
 
         vm.username = "test";
 
-        QUnit.assert.ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
+        assert.ok(vm.allowPasswordEntry, "Should be able to enter password with a username");
     });
 
-    promiseTest("canSuccessfullyAuthenticate", function () {
+    promiseTest("canSuccessfullyAuthenticate", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
         vm.username = testCredentials.user;
         vm.password = testCredentials.password;
 
         return vm.authenticate().then(function () {
-            QUnit.assert.ok(true, "Expected to complete authentication");
+            assert.ok(true, "Expected to complete authentication");
         }, function () {
-            QUnit.assert.ok(false, "Didn't expect to fail authentication");
+            assert.ok(false, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
     });
 
-    promiseTest("canSaveCredentials", function () {
+    promiseTest("canSaveCredentials", function (assert) {
         authenticator.clearClientInformation();
 
         var vm = new authenticator.AuthenticatorViewModel();
@@ -227,18 +227,18 @@
             var clientInformation = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenResult);
 
             var tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
-            QUnit.assert.ok(clientInformation, "No client information");
-            QUnit.assert.ok(clientInformation.clientToken, "No token information");
-            QUnit.assert.ok(clientInformation.clientTokenSecret, "No secret information");
+            assert.ok(clientInformation, "No client information");
+            assert.ok(clientInformation.clientToken, "No token information");
+            assert.ok(clientInformation.clientTokenSecret, "No secret information");
 
-            QUnit.assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
-            QUnit.assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
 
             authenticator.clearClientInformation();
         });
     });
 
-    promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", function () {
+    promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var isWorkingBecameTrue = false;
         var canAuthenticateIsFalse = false;
@@ -267,20 +267,20 @@
         vm.password = testCredentials.password;
 
         return vm.authenticate().then(function () {
-            QUnit.assert.ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
-            QUnit.assert.ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
-            QUnit.assert.ok(allowPasswordEntryIsFalse, "Expected allowPasswordEntry to become false during authentication");
-            QUnit.assert.ok(allowUsernameEntryIsFalse, "Expected allowUsernameEntry to become false during authentication");
-            QUnit.assert.ok(!vm.isWorking, "Should have completed authentication");
-            QUnit.assert.ok(vm.canAuthenticate, "Should be able to authenticate again");
-            QUnit.assert.ok(vm.allowPasswordEntry, "Should be able to enter password again");
-            QUnit.assert.ok(vm.allowUsernameEntry, "Should be able to enter username again");
+            assert.ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
+            assert.ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
+            assert.ok(allowPasswordEntryIsFalse, "Expected allowPasswordEntry to become false during authentication");
+            assert.ok(allowUsernameEntryIsFalse, "Expected allowUsernameEntry to become false during authentication");
+            assert.ok(!vm.isWorking, "Should have completed authentication");
+            assert.ok(vm.canAuthenticate, "Should be able to authenticate again");
+            assert.ok(vm.allowPasswordEntry, "Should be able to enter password again");
+            assert.ok(vm.allowUsernameEntry, "Should be able to enter username again");
         }, function () {
-            QUnit.assert.ok(false, "Didn't expect to fail authentication");
+            assert.ok(false, "Didn't expect to fail authentication");
         }).then(cleanupExperienceHost);
     });
 
-    promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", function () {
+    promiseTest("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var isWorkingBecameTrue = false;
 
@@ -291,29 +291,29 @@
         });
 
         return vm.authenticate().then(function () {
-            QUnit.assert.ok(false, "Expected to fail authentication");
+            assert.ok(false, "Expected to fail authentication");
         }, function () {
-            QUnit.assert.ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
-            QUnit.assert.ok(!vm.isWorking, "Should have completed authentication");
+            assert.ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
+            assert.ok(!vm.isWorking, "Should have completed authentication");
         });
     });
 
-    promiseTest("canFailureToAuthenticateIsCorrectlyPropogated", function () {
+    promiseTest("canFailureToAuthenticateIsCorrectlyPropogated", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
 
         vm.username = testCredentials.user;
         vm.password = "foo";
 
         return vm.authenticate().then(function () {
-            QUnit.assert.ok(false, "Expected to complete authentication");
+            assert.ok(false, "Expected to complete authentication");
         }, function () {
-            QUnit.assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
-            QUnit.assert.strictEqual(vm.authenticationErrorMessage, Codevoid.Storyvoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
-            QUnit.assert.ok(true, "Didn't expect to fail authentication");
+            assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
+            assert.strictEqual(vm.authenticationErrorMessage, Codevoid.Storyvoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
+            assert.ok(true, "Didn't expect to fail authentication");
         });
     });
 
-    QUnit.test("authenticationErrorPropertyRaisesEvent", function () {
+    QUnit.test("authenticationErrorPropertyRaisesEvent", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var authenticationErrorChanged = false;
         vm.addEventListener("authenticationErrorChanged", function () {
@@ -321,10 +321,10 @@
         });
 
         vm.authenticationError = 1;
-        QUnit.assert.ok(authenticationErrorChanged, "Authentication error didn't change");
+        assert.ok(authenticationErrorChanged, "Authentication error didn't change");
     });
 
-    QUnit.test("authenticationErrorMessagePropertyRaisesEvent", function () {
+    QUnit.test("authenticationErrorMessagePropertyRaisesEvent", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var authenticationErrorMessageChanged = false;
         vm.addEventListener("authenticationErrorMessageChanged", function () {
@@ -332,10 +332,10 @@
         });
 
         vm.authenticationError = 401;
-        QUnit.assert.ok(authenticationErrorMessageChanged, "Authentication error didn't change");
+        assert.ok(authenticationErrorMessageChanged, "Authentication error didn't change");
     });
 
-    promiseTest("authenticationErrorIsResetWhenReauthenticating", function () {
+    promiseTest("authenticationErrorIsResetWhenReauthenticating", function (assert) {
         var vm = new authenticator.AuthenticatorViewModel();
         var authenticationErrorWasReset = false;
         var authenticationErrorMessageWasReset = false;
@@ -344,9 +344,9 @@
         vm.password = "foo";
 
         return vm.authenticate().then(function () {
-            QUnit.assert.ok(false, "Expected to fails authentication");
+            assert.ok(false, "Expected to fails authentication");
         }, function () {
-            QUnit.assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
+            assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
 
             vm.addEventListener("authenticationErrorChanged", function () {
                 if (vm.authenticationError === 0) {
@@ -359,11 +359,11 @@
 
             return vm.authenticate();
         }).then(function () {
-            QUnit.assert.ok(false, "shouldn't have succeeded");
+            assert.ok(false, "shouldn't have succeeded");
         }, function () {
-            QUnit.assert.ok(authenticationErrorWasReset, "Should have been reset");
-            QUnit.assert.ok(authenticationErrorMessageWasReset, "message wasn't reset");
-            QUnit.assert.strictEqual(vm.authenticationError, 401, "Incorrect error code");
+            assert.ok(authenticationErrorWasReset, "Should have been reset");
+            assert.ok(authenticationErrorMessageWasReset, "message wasn't reset");
+            assert.strictEqual(vm.authenticationError, 401, "Incorrect error code");
         });
     });
 })();

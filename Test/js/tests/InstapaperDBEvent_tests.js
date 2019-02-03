@@ -10,18 +10,18 @@
 
     QUnit.module("InstapaperStoreEventingFolders");
     promiseTest("deleteDb", deleteDb);
-    promiseTest("hasEventContract", function () {
+    promiseTest("hasEventContract", function (assert) {
         return getNewInstapaperDBAndInit().then(function (idb) {
-            QUnit.assert.ok(idb.addEventListener, "Doesn't have the event listener contract");
+            assert.ok(idb.addEventListener, "Doesn't have the event listener contract");
         });
     });
 
-    promiseTest("addingFolderRaisesAnEvent", function () {
+    promiseTest("addingFolderRaisesAnEvent", function (assert) {
         return getNewInstapaperDBAndInit().then(function (idb) {
             var signal = new Signal();
 
             idb.addEventListener("folderschanged", function () {
-                QUnit.assert.ok("folder event was raised");
+                assert.ok("folder event was raised");
                 signal.complete();
             });
 
@@ -31,7 +31,7 @@
         });
     });
 
-    promiseTest("addingFolderRaisesEventWithCorrectData", function () {
+    promiseTest("addingFolderRaisesEventWithCorrectData", function (assert) {
         return getNewInstapaperDBAndInit().then(function (idb) {
             var signal = new Signal();
             var title = Date.now() + "";
@@ -39,13 +39,13 @@
             idb.addEventListener("folderschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.strictEqual(e.target, idb, "Instances of DB don't match");
+                assert.strictEqual(e.target, idb, "Instances of DB don't match");
                 
-                QUnit.assert.ok(detail, "didn't get parameter information");
+                assert.ok(detail, "didn't get parameter information");
 
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.ADD, "Incorrect edit type");
-                QUnit.assert.ok(detail.folder_dbid, "Didn't get a folder DB ID");
-                QUnit.assert.strictEqual(detail.title, title, "Incorrect title");
+                assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.ADD, "Incorrect edit type");
+                assert.ok(detail.folder_dbid, "Didn't get a folder DB ID");
+                assert.strictEqual(detail.title, title, "Incorrect title");
 
                 signal.complete();
             });
@@ -56,7 +56,7 @@
         });
     });
 
-    promiseTest("updatingFolderRaisesEventWithCorrectData", function () {
+    promiseTest("updatingFolderRaisesEventWithCorrectData", function (assert) {
         var newTitle = Date.now() + "";
         var instapaperDB;
 
@@ -74,10 +74,10 @@
             instapaperDB.addEventListener("folderschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.ok(detail.folder, "No folder object on detail object");
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.UPDATE, "Incorrect operation type");
-                QUnit.assert.strictEqual(detail.folder_dbid, folder.id, "Incorrect folder ID");
-                QUnit.assert.strictEqual(detail.folder.id, folder.id, "Incorrect folder on detail object");
+                assert.ok(detail.folder, "No folder object on detail object");
+                assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.UPDATE, "Incorrect operation type");
+                assert.strictEqual(detail.folder_dbid, folder.id, "Incorrect folder ID");
+                assert.strictEqual(detail.folder.id, folder.id, "Incorrect folder on detail object");
 
                 signal.complete();
             });
@@ -88,7 +88,7 @@
         });
     });
 
-    promiseTest("removingFolderRaisesEventWithCorrectData", function () {
+    promiseTest("removingFolderRaisesEventWithCorrectData", function (assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -100,8 +100,8 @@
             instapaperDB.addEventListener("folderschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.DELETE, "Incorrect operation type");
-                QUnit.assert.strictEqual(detail.folder_dbid, folder.id);
+                assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.DELETE, "Incorrect operation type");
+                assert.strictEqual(detail.folder_dbid, folder.id);
 
                 signal.complete();
             });
@@ -114,7 +114,7 @@
 
     QUnit.module("InstapaperStoreEventingBookmarks");
 
-    promiseTest("addingBookmarkRaisesEvent", function () {
+    promiseTest("addingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -129,13 +129,13 @@
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
                 
-                QUnit.assert.strictEqual(e.target, instapaperDB, "Event raised on wrong instance");
+                assert.strictEqual(e.target, instapaperDB, "Event raised on wrong instance");
 
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.ADD, "Incorrect bookmark edit type");
-                QUnit.assert.ok(detail.bookmark, "Should have been supplied with a bookmark");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.ADD, "Incorrect bookmark edit type");
+                assert.ok(detail.bookmark, "Should have been supplied with a bookmark");
                 
-                QUnit.assert.strictEqual(detail.bookmark_id, createdBookmark.bookmark_id, "Incorrect bookmark ID");
-                QUnit.assert.strictEqual(detail.bookmark_id, detail.bookmark.bookmark_id, "Bookmark on the event didn't match the bookmark in the detail");
+                assert.strictEqual(detail.bookmark_id, createdBookmark.bookmark_id, "Incorrect bookmark ID");
+                assert.strictEqual(detail.bookmark_id, detail.bookmark.bookmark_id, "Bookmark on the event didn't match the bookmark in the detail");
 
                 signal.complete();
             });
@@ -146,7 +146,7 @@
         });
     });
 
-    promiseTest("removingBookmarkRaisesEvent", function () {
+    promiseTest("removingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
         var removedBookmark;
 
@@ -156,19 +156,19 @@
         }).then(function (bookmarks) {
             var signal = new Signal();
 
-            QUnit.assert.ok(bookmarks, "No bookmarks to work with");
-            QUnit.assert.ok(bookmarks.length, "No bookmarks to work with");
+            assert.ok(bookmarks, "No bookmarks to work with");
+            assert.ok(bookmarks.length, "No bookmarks to work with");
 
             removedBookmark = bookmarks.pop();
 
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.ok(detail, "No detail object provided");
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.DELETE, "Incorrect operation");
-                QUnit.assert.strictEqual(detail.bookmark_id, removedBookmark.bookmark_id, "Incorrect bookmark ID was removed");
+                assert.ok(detail, "No detail object provided");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.DELETE, "Incorrect operation");
+                assert.strictEqual(detail.bookmark_id, removedBookmark.bookmark_id, "Incorrect bookmark ID was removed");
 
-                QUnit.assert.strictEqual(e.target, instapaperDB, "raised on wrong object");
+                assert.strictEqual(e.target, instapaperDB, "raised on wrong object");
 
                 signal.complete();
             });
@@ -179,7 +179,7 @@
         });
     });
 
-    promiseTest("updatingBookmarkRaisesEvent", function () {
+    promiseTest("updatingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
         var bookmarkBeingUpdated;
 
@@ -202,12 +202,12 @@
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.ok(detail, "no detail on event");
-                QUnit.assert.ok(detail.bookmark, "no bookmark details on details");
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UPDATE, "Incorrect update type");
-                QUnit.assert.strictEqual(detail.bookmark_id, bookmarkBeingUpdated.bookmark_id, "Incorrect bookmark changed");
-                QUnit.assert.strictEqual(detail.bookmark_id, detail.bookmark.bookmark_id, "Bookmark ID on bookmark data doesn't match the bookmark the even is being raised for");
-                QUnit.assert.strictEqual(detail.bookmark.title, bookmarkBeingUpdated.title, "Bookmark wasn't updated with the new title");
+                assert.ok(detail, "no detail on event");
+                assert.ok(detail.bookmark, "no bookmark details on details");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UPDATE, "Incorrect update type");
+                assert.strictEqual(detail.bookmark_id, bookmarkBeingUpdated.bookmark_id, "Incorrect bookmark changed");
+                assert.strictEqual(detail.bookmark_id, detail.bookmark.bookmark_id, "Bookmark ID on bookmark data doesn't match the bookmark the even is being raised for");
+                assert.strictEqual(detail.bookmark.title, bookmarkBeingUpdated.title, "Bookmark wasn't updated with the new title");
 
                 signal.complete();
             });
@@ -218,7 +218,7 @@
         });
     });
 
-    promiseTest("likingBookmarkRaisesEvent", function () {
+    promiseTest("likingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -234,10 +234,10 @@
 
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
-                QUnit.assert.ok(detail, "didn't get any detail for the event");
+                assert.ok(detail, "didn't get any detail for the event");
 
-                QUnit.assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.LIKE, "Incorrect operation type");
+                assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.LIKE, "Incorrect operation type");
 
                 signal.complete();
             });
@@ -248,7 +248,7 @@
         });
     });
 
-    promiseTest("unlikingBookmarkRaisesEvent", function () {
+    promiseTest("unlikingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -266,10 +266,10 @@
 
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
-                QUnit.assert.ok(detail, "didn't get any detail for the event");
+                assert.ok(detail, "didn't get any detail for the event");
 
-                QUnit.assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Incorrect operation type");
+                assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Incorrect operation type");
 
                 signal.complete();
             });
@@ -280,7 +280,7 @@
         });
     });
 
-    promiseTest("movingBookmarkRaisesEvent", function () {
+    promiseTest("movingBookmarkRaisesEvent", function (assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -302,17 +302,17 @@
             instapaperDB.addEventListener("bookmarkschanged", function (e) {
                 var detail = e.detail;
 
-                QUnit.assert.ok(detail, "no detail on the event");
-                QUnit.assert.strictEqual(e.target, instapaperDB, "Event raised on incorrect instance");
+                assert.ok(detail, "no detail on the event");
+                assert.strictEqual(e.target, instapaperDB, "Event raised on incorrect instance");
 
-                QUnit.assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect operation type");
-                QUnit.assert.strictEqual(detail.bookmark_id, bookmark.bookmark_id, "event raised for wrong bookmark");
-                QUnit.assert.strictEqual(detail.sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "source folder was in correct");
-                QUnit.assert.strictEqual(detail.destinationfolder_dbid, folder.id, "Incorrect destination folder");
+                assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect operation type");
+                assert.strictEqual(detail.bookmark_id, bookmark.bookmark_id, "event raised for wrong bookmark");
+                assert.strictEqual(detail.sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "source folder was in correct");
+                assert.strictEqual(detail.destinationfolder_dbid, folder.id, "Incorrect destination folder");
                 
-                QUnit.assert.ok(detail.bookmark, "no bookmark data");
-                QUnit.assert.strictEqual(detail.bookmark.bookmark_id, detail.bookmark_id, "Bookmark on detail was the wrong bookmark");
-                QUnit.assert.strictEqual(detail.bookmark.folder_dbid, folder.id, "Folder data was incorrect");
+                assert.ok(detail.bookmark, "no bookmark data");
+                assert.strictEqual(detail.bookmark.bookmark_id, detail.bookmark_id, "Bookmark on detail was the wrong bookmark");
+                assert.strictEqual(detail.bookmark.folder_dbid, folder.id, "Folder data was incorrect");
 
                 signal.complete();
             });

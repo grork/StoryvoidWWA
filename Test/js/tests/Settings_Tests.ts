@@ -41,13 +41,13 @@ module CodevoidTests {
         return new SettingsTest(containerName);
     }
 
-    function settingsTest(name: string, testBody: (settings: SettingsTest) => void): void {
-        QUnit.test(name, () => {
+    function settingsTest(name: string, testBody: (assert: QUnitAssert, settings: SettingsTest) => void): void {
+        QUnit.test(name, (testAssert) => {
             var containerName = Date.now() + "";
             var settings = new SettingsTest(containerName);
 
             try {
-                testBody(settings);
+                testBody(testAssert, settings);
             } finally {
                 settings.removeAllSettings();
             }
@@ -56,80 +56,80 @@ module CodevoidTests {
 
     QUnit.module("SettingsCore");
 
-    QUnit.test("CanInstantiateWithoutCreatingContainer", () => {
+    QUnit.test("CanInstantiateWithoutCreatingContainer", (assert) => {
         var containerName = Date.now() + "";
         var settings = new SettingsTest(containerName);
-        QUnit.assert.notStrictEqual(settings, null, "Expected to create instance");
+        assert.notStrictEqual(settings, null, "Expected to create instance");
 
         var hasContainer = st.ApplicationData.current.localSettings.containers.hasKey(containerName);
 
-        QUnit.assert.ok(!hasContainer, "Didn't expect container to be created");
+        assert.ok(!hasContainer, "Didn't expect container to be created");
     });
 
-    settingsTest("ContainerNotCreatedOnPropertyRead", (settings) => {
+    settingsTest("ContainerNotCreatedOnPropertyRead", (assert, settings) => {
         var value = settings.hasCreated;
-        QUnit.assert.ok(value, "Setting returned incorrectly");
+        assert.ok(value, "Setting returned incorrectly");
 
         var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
-        QUnit.assert.ok(!containerExists, "Container should have been created");
+        assert.ok(!containerExists, "Container should have been created");
     });
 
-    settingsTest("ContainerNotCreatedOnWritingValueSameAsDefault", (settings) => {
+    settingsTest("ContainerNotCreatedOnWritingValueSameAsDefault", (assert, settings) => {
         var value = settings.hasCreated;
-        QUnit.assert.ok(value, "Setting returned incorrectly");
+        assert.ok(value, "Setting returned incorrectly");
 
         settings.hasCreated = true;
 
         var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
-        QUnit.assert.ok(!containerExists, "Container should have been created");
+        assert.ok(!containerExists, "Container should have been created");
     });
 
-    settingsTest("DefaultValueReturnedWhenValueNotSet", (settings) => {
-        QUnit.assert.ok(settings.hasCreated, "Expected default value");
+    settingsTest("DefaultValueReturnedWhenValueNotSet", (assert, settings) => {
+        assert.ok(settings.hasCreated, "Expected default value");
     });
 
-    settingsTest("StoredValueReturnedFromSettings", (settings) => {
+    settingsTest("StoredValueReturnedFromSettings", (assert, settings) => {
         var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
         container.values["hasCreated"] = false;
 
-        QUnit.assert.ok(!settings.hasCreated, "Expected value to be false");
+        assert.ok(!settings.hasCreated, "Expected value to be false");
     });
 
-    settingsTest("ValueCanBeStoredAndRetrieved", (settings) => {
+    settingsTest("ValueCanBeStoredAndRetrieved", (assert, settings) => {
         var now = Date.now() + "";
 
         settings.otherProperty = now;
 
         var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        QUnit.assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        QUnit.assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
     });
 
-    settingsTest("ValueCanBeStoredSecondTime", (settings) => {
+    settingsTest("ValueCanBeStoredSecondTime", (assert, settings) => {
         var now = Date.now() + "";
 
         settings.otherProperty = now;
 
         var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        QUnit.assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        QUnit.assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
 
         now = (Date.now() + 10) + "";
         settings.otherProperty = now;
-        QUnit.assert.strictEqual(settings.otherProperty, now, "Second written value incorrect");
+        assert.strictEqual(settings.otherProperty, now, "Second written value incorrect");
     });
 
-    settingsTest("ValueCanBeClearedAndReturnsToDefault", (settings) => {
+    settingsTest("ValueCanBeClearedAndReturnsToDefault", (assert, settings) => {
         var now = Date.now() + "";
 
         settings.otherProperty = now;
 
         var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        QUnit.assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        QUnit.assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
 
         settings.clearOtherProperty();
 
-        QUnit.assert.strictEqual(settings.otherProperty, null, "Didn't reset value");
+        assert.strictEqual(settings.otherProperty, null, "Didn't reset value");
     });
 }

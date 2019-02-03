@@ -12,7 +12,7 @@ module Codevoid.WebViewMessengerTests {
 
     QUnit.module("WebViewMessenger");
 
-    promiseTest("webViewGetsStartMessage", () => {
+    promiseTest("webViewGetsStartMessage", (assert) => {
         var s = new Signal();
 
         var div = getPlayground();
@@ -24,12 +24,12 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
+        assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise;
     });
 
-    promiseTest("webViewCanInvokeMessageRemotely", () => {
+    promiseTest("webViewCanInvokeMessageRemotely", (assert) => {
         var s = new Signal();
 
         var div = getPlayground();
@@ -41,16 +41,16 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
+        assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise.then(() => {
             return messenger.invokeForResult("ping");
         }).then((message) => {
-            QUnit.assert.strictEqual(message, "pong", "Incorrect message");
+            assert.strictEqual(message, "pong", "Incorrect message");
         });
     });
 
-    promiseTest("webViewCanInjectAdditionalScript", () => {
+    promiseTest("webViewCanInjectAdditionalScript", (assert) => {
         var s = new Signal();
 
         var div = getPlayground();
@@ -62,14 +62,14 @@ module Codevoid.WebViewMessengerTests {
 
         webView.navigate("ms-appx-web:///TestWebViewTarget.html");
 
-        QUnit.assert.ok(!!messenger, "Didn't construct messenger");
+        assert.ok(!!messenger, "Didn't construct messenger");
 
         return s.promise.then(() => {
             return messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/tests/WebViewTestScript.js");
         }).then(() => {
             return messenger.invokeForResult("gettest");
         }).then((testCookie: number) => {
-            QUnit.assert.strictEqual(testCookie, 42, "Got incorrect test cookie");
+            assert.strictEqual(testCookie, 42, "Got incorrect test cookie");
         });
     });
 }
