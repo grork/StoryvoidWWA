@@ -53,7 +53,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         });
     });
 
-    promiseTest("timerDoesRaiseAfterEvent", () => {
+    promiseTest("timerDoesRaiseAfterEvent", (assert) => {
         var signal = new util.Signal();
 
         var w = getWatcher();
@@ -61,7 +61,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                QUnit.expect(0);
+                assert.expect(0);
                 signal.complete();
             }
         });
@@ -286,7 +286,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         QUnit.assert.ok(!syncEventSeen, "Didn't expect to see sync event");
     });
 
-    promiseTest("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", () => {
+    promiseTest("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", (assert) => {
         var syncEventSeenSignal = new util.Signal();
 
         var w = getWatcher();
@@ -295,7 +295,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                QUnit.expect(0);
+                assert.expect(0);
                 syncEventSeenSignal.complete();
             }
         });
@@ -311,7 +311,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
         return syncEventSeenSignal.promise;
     });
 
-    promiseTest("syncRequiredAndIndicatesArticleSyncWhenOfflineForMoreThanMinimumOfflineTimeForFullSync", () => {
+    promiseTest("syncRequiredAndIndicatesArticleSyncWhenOfflineForMoreThanMinimumOfflineTimeForFullSync", (assert) => {
         var syncEventSeenSignal = new util.Signal();
 
         var w = getWatcher();
@@ -320,7 +320,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         util.addEventListeners(w.watcher.eventSource, {
             syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                QUnit.expect(0);
+                assert.expect(0);
                 syncEventSeenSignal.complete();
             }
         });
