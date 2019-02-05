@@ -538,10 +538,24 @@
                     WinJS.Utilities.removeClass(this._contentContainer, "notification-animation");
                     WinJS.Utilities.removeClass(this._notificationContainer, "notification-animation");
                     WinJS.Utilities.removeClass(this._contentContainer, "notification-visible");
-                    this._contentContainer.style.transform = "";
-                    this._notificationContainer.style.transform = "";
 
-                    this._notificationContainer.removeChild(element);
+                    // Why? Great question! Seeing some real exceptions from the 
+                    // real world (type_error_8000FFFF), but no other information
+                    if (this._contentContainer && this._contentContainer.style) {
+                        this._contentContainer.style.transform = "";
+                    }
+
+                    if (this._notificationContainer && this._notificationContainer.style) {
+                        this._notificationContainer.style.transform = "";
+
+                        if (element) {
+                            try {
+                                this._notificationContainer.removeChild(element);
+                            } catch (e) {
+                                Telemetry.instance.track("RemoveNotificationFailed", null);
+                            }
+                        }
+                    }
 
                     signal.complete();
                 }
