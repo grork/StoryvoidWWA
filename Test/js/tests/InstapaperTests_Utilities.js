@@ -215,5 +215,9 @@
 
             return playground.appendChild(document.createElement("div"));
         },
+        clearPlayground: function clearPlayground() {
+            const playground = document.getElementById("qunit-fixture");
+            playground.innerHTML = "";
+        }
     });
 })();
