@@ -115,9 +115,6 @@
     <Content Include="js\tests\testdefault.js" />
     <Content Include="js\tests\TestTemplate.html" />
     <Content Include="js\tests\Utilities_tests.js" />
-    <Content Include="js\tests\experiencemanager_tests.js">
-      <DependentUpon>experiencemanager_tests.ts</DependentUpon>
-    </Content>
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
     <TypeScriptCompile Include="js\tests\InstapaperArticleSync_tests.ts" />
     <TypeScriptCompile Include="js\tests\Settings_Tests.ts" />

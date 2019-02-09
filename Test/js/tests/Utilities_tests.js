@@ -53,13 +53,13 @@
 
     QUnit.module("utilitiesSignal");
 
-    function canConstructSignal(assert) {
+    QUnit.test("canConstructSignal", function canConstructSignal(assert) {
         var signal = new Signal();
         assert.ok(signal, "Didn't get a valid signal");
         assert.ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
-    }
+    });
 
-    function signalCanBeCancelled(assert) {
+    QUnit.test("signalCanBeCancelled", function signalCanBeCancelled(assert) {
         var signal = new Signal();
         var wasCancelled = false;
         signal.addEventListener("cancelled", function () {
@@ -69,9 +69,9 @@
         signal.promise.cancel();
 
         assert.ok(wasCancelled, "Promise wasn't cancelled");
-    }
+    });
 
-    function cancelledSignalHasOriginalSignalInEvent(assert) {
+    QUnit.test("cancelledSignalHasOriginalSignalInEvent", function cancelledSignalHasOriginalSignalInEvent(assert) {
         var signal = new Signal();
         var wasCancelled = false;
         signal.addEventListener("cancelled", function (e) {
@@ -79,9 +79,9 @@
         });
 
         signal.promise.cancel();
-    }
+    });
 
-    function signalCanComplete(assert) {
+    QUnit.test("signalCanComplete", function signalCanComplete(assert) {
         var signal = new Signal();
         var completed = false;
         signal.promise.done(function () {
@@ -91,9 +91,9 @@
         signal.complete();
 
         assert.ok(completed, "Signal didn't complete");
-    }
+    });
 
-    function signalCompletesWithValue(assert) {
+    QUnit.test("signalCompletesWithValue", function signalCompletesWithValue(assert) {
         var signal = new Signal();
         var completed = false;
         signal.promise.done(function (data) {
@@ -102,9 +102,9 @@
         });
 
         signal.complete({ isComplete: true });
-    }
+    });
 
-    function signalCantCompleteMoreThanOnce(assert) {
+    QUnit.test("signalCantCompleteMoreThanOnce", function signalCantCompleteMoreThanOnce(assert) {
         var signal = new Signal();
         var completed = 0;
         signal.promise.done(function () {
@@ -120,9 +120,9 @@
 
         assert.strictEqual(completed, 1, "Shouldn't complete more than once");
 
-    }
+    });
 
-    function signalThrowsWhenCompletingTwice(assert) {
+    QUnit.test("signalThrowsWhenCompletingTwice", function signalThrowsWhenCompletingTwice(assert) {
         var signal = new Signal();
 
         signal.complete();
@@ -132,9 +132,9 @@
         } catch(e) {
             assert.ok(true, "Got exception!");
         }
-    }
+    });
 
-    function errorRaisedOnPromise(assert) {
+    QUnit.test("errorRaisedOnPromise", function errorRaisedOnPromise(assert) {
         var signal = new Signal();
         var errorCalled = false;
         signal.promise.done(function () {
@@ -146,9 +146,9 @@
         signal.error();
 
         assert.ok(errorCalled, "Error wasn't called");
-    }
+    });
 
-    function errorRaisedOnPromiseWithErrorInfo(assert) {
+    QUnit.test("errorRaisedOnPromiseWithErrorInfo", function errorRaisedOnPromiseWithErrorInfo(assert) {
         var signal = new Signal();
         var errorCalled = false;
         signal.promise.done(function () {
@@ -162,9 +162,9 @@
         signal.error({ errorDetail: "detail" });
 
         assert.ok(errorCalled, "Error wasn't called");
-    }
+    });
 
-    function progressReported(assert) {
+    QUnit.test("progressReported", function progressReported(assert) {
         var signal = new Signal();
         var progress = 0;
         signal.promise.done(function () {
@@ -179,9 +179,9 @@
         signal.progress();
 
         assert.strictEqual(progress, 2, "expected progress to be called twice");
-    }
+    });
 
-    function progressReportedWithData(assert) {
+    QUnit.test("progressReportedWithData", function progressReportedWithData(assert) {
         var item1 = { data: "item1" };
         var item2 = { data: "item2" };
 
@@ -201,19 +201,7 @@
         assert.strictEqual(progress.length, 2, "expected progress to be called twice");
         assert.strictEqual(progress[0], item1, "First item wasn't correct");
         assert.strictEqual(progress[1], item2, "second item wasn't correct");
-    }
-
-    QUnit.test("canConstructSignal", canConstructSignal);
-    QUnit.test("signalCanBeCancelled", signalCanBeCancelled);
-    QUnit.test("cancelledSignalHasOriginalSignalInEvent", cancelledSignalHasOriginalSignalInEvent);
-    QUnit.test("signalCanComplete", signalCanComplete);
-    QUnit.test("signalCompletesWithValue", signalCompletesWithValue);
-    QUnit.test("signalCantCompleteMoreThanOnce", signalCantCompleteMoreThanOnce);
-    QUnit.test("signalThrowsWhenCompletingTwice", signalThrowsWhenCompletingTwice);
-    QUnit.test("errorRaisedOnPromise", errorRaisedOnPromise);
-    QUnit.test("errorRaisedOnPromiseWithErrorInfo", errorRaisedOnPromiseWithErrorInfo);
-    QUnit.test("progressReported", progressReported);
-    QUnit.test("progressReportedWithData", progressReportedWithData);
+    });
 
     QUnit.module("UtilitiesPromiseSerializer");
 

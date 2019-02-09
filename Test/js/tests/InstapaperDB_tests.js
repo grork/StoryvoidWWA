@@ -10,880 +10,9 @@
     var deleteDb = InstapaperTestUtilities.deleteDb;
     var colludePendingBookmarkEdits = InstapaperTestUtilities.colludePendingBookmarkEdits;
 
-    QUnit.module("InstapaperDBFolders");
-
-    function hasDefaultFolders(assert) {
-        var idb = new InstapaperDB();
-        return idb.initialize().then(function (openedDb) {
-            idb.dispose();
-        }).then(function () {
-            return db.open({
-                server: InstapaperDB.DBName,
-                version: InstapaperDB.DBVersion,
-            });
-        }).then(function (rawServer) {
-            return rawServer.query(InstapaperDB.DBFoldersTable).execute();
-        }).then(function (queryResult) {
-            assert.ok(queryResult, "Didn't get any results");
-            assert.strictEqual(queryResult.length, 4, "Didn't get the folders expected");
-
-            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[0].folder_id), -1, "Didn't find folder: " + queryResult[0].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[1].folder_id), -1, "Didn't find folder: " + queryResult[1].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[2].folder_id), -1, "Didn't find folder: " + queryResult[2].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[3].folder_id), -1, "Didn't find folder: " + queryResult[3].folder_id);
-        });
-    }
-
-    function canEnumerateDefaultFolders(assert) {
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.listCurrentFolders();
-        }).then(function (folders) {
-            assert.ok(folders, "Didn't get any folders");
-            assert.strictEqual(folders.length, 4, "Got unexpected number of folders");
-
-            assert.notStrictEqual(defaultFolderIds.indexOf(folders[0].folder_id), -1, "Didn't find folder: " + folders[0].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(folders[1].folder_id), -1, "Didn't find folder: " + folders[1].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(folders[2].folder_id), -1, "Didn't find folder: " + folders[2].folder_id);
-            assert.notStrictEqual(defaultFolderIds.indexOf(folders[3].folder_id), -1, "Didn't find folder: " + folders[3].folder_id);
-        });
-    }
-
-    var addedFolderDbId;
-
-    function canAddFolderNoPendingEdit(assert) {
-        var instapaperDB;
-        var folderName = "LocalFolder"
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.addFolder({ title: folderName }, true);
-        }).then(function (createdFolder) {
-            addedFolderDbId = createdFolder.id;
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return instapaperDB.listCurrentFolders();
-        }).then(function (folders) {
-            var folderFound;
-            assert.ok(folders, "no folders returned");
-            folders.forEach(function (folder) {
-                if (folder.title === folderName) {
-                    folderFound = true;
-                }
-            });
-
-            assert.ok(folderFound, "Didn't find the folder we just made");
-
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        });
-    }
-
-    function canGetAddedFolderByDbId(assert) {
-        var folderName = "LocalFolder"
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.getFolderByDbId(addedFolderDbId);
-        }).then(function (retrievedFolder) {
-            assert.ok(retrievedFolder, "No folder found");
-            assert.strictEqual(retrievedFolder.title, folderName);
-            assert.strictEqual(retrievedFolder.id, addedFolderDbId);
-        });
-    }
-
-    function canUpdateFolder(assert) {
-        var instapaperDB;
-        var folderName = "LocalFolder"
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.getFolderByDbId(addedFolderDbId);
-        }).then(function (retrievedFolder) {
-            assert.ok(retrievedFolder, "No folder found");
-            assert.strictEqual(retrievedFolder.title, folderName);
-            assert.strictEqual(retrievedFolder.id, addedFolderDbId);
-
-            retrievedFolder.folder_id = "xxx";
-
-            return instapaperDB.updateFolder(retrievedFolder);
-        }).then(function () {
-            return instapaperDB.getFolderByDbId(addedFolderDbId);
-        }).then(function (updatedFolderInformation) {
-            assert.ok(updatedFolderInformation, "No updated folder information");
-            assert.strictEqual(updatedFolderInformation.folder_id, "xxx", "Folder ID didn't match");
-        });
-    }
-
-    function canGetFolderFromFolderId(assert) {
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.getFolderFromFolderId("xxx");
-        }).then(function (folder) {
-            assert.strictEqual(folder.id, addedFolderDbId, "incorrect folder DB ID");
-        });
-    }
-
-    function cantGetFolderDbIdFromInvalidFolderId(assert) {
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.getFolderFromFolderId("yyy");
-        }).then(function (folder) {
-            assert.strictEqual(folder, undefined, "should get 'undefined' for folder db id if it's not in the DB");
-        });
-    }
-
-    function addExistingFolderNameFailsAndLeavesNoPendingEdit(assert) {
-        var instapaperDB;
-        var folderName = "LocalFolder"
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.addFolder({ title: folderName }, true);
-        }).then(function () {
-            assert.ok(false, "Should have failed");
-        }, function (error) {
-            assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
-            assert.ok(true, "Should fail here");
-        }).then(function (folders) {
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        });
-    }
-
-    function canRemoveFolderNoPendingEdit(assert) {
-        var instapaperDB;
-        var folderId;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.listCurrentFolders();
-        }).then(function (folders) {
-            assert.ok(folders, "didn't find any folders in db");
-            folders.forEach(function (folder) {
-                if (defaultFolderIds.indexOf(folder.folder_id) === -1) {
-                    folderId = folder.id;
-                }
-            });
-
-            return instapaperDB.removeFolder(folderId, true);
-        }).then(function () {
-            return instapaperDB.listCurrentFolders();
-        }).then(function (folders) {
-            var folderFound;
-            folders.forEach(function (folder) {
-                if (folder.id === folderId) {
-                    folderFound = true;
-                }
-            });
-
-            assert.ok(!folderFound, "Found folder, expected it to be gone");
-
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        });
-    }
-
-    function canAddFolderWithPendingEdit(assert) {
-        var instapaperDB;
-        var folderName = "LocalFolder";
-        var addFolderResult;
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.addFolder({ title: folderName });
-        }).then(function (createdFolder) {
-            addFolderResult = createdFolder;
-        }).then(function () {
-            return instapaperDB.listCurrentFolders();
-        }).then(function (folders) {
-            var folderFound;
-            assert.ok(folders, "no folders returned");
-            folders.forEach(function (folder) {
-                if (folder.title === folderName) {
-                    folderFound = folder;
-                }
-            });
-
-            assert.ok(folderFound, "Didn't find the folder we just made");
-            assert.strictEqual(folderFound.title, folderName, "Folder name didn't match");
-            assert.strictEqual(folderFound.id, addFolderResult.id, "Folder ID didn't match");
-            assert.ok(!folderFound.folder_id, "Shouldn't have had folder. Nothing sync'd");
-
-            return instapaperDB.getPendingFolderEdits();
-        }).then(function (pendingEdits) {
-            assert.ok(pendingEdits, "Expected some pending edits");
-            assert.strictEqual(pendingEdits.length, 1, "Expected single pending edit");
-            if (pendingEdits.length !== 1) {
-                return;
-            }
-
-            var pendingEdit = pendingEdits[0];
-            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.ADD, "Expected to be ADD edit type");
-            assert.strictEqual(pendingEdit.folder_dbid, addFolderResult.id, "Pending edit wasn't for the folder we added");
-
-            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
-        });
-    }
-
-    function canRemoveFolderWithPendingEdit(assert) {
-        var instapaperDB;
-        var folderToRemove;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.listCurrentFolders();
-        }).then(function (folders) {
-            assert.ok(folders, "didn't find any folders in db");
-            folders.forEach(function (folder) {
-                if (defaultFolderIds.indexOf(folder.folder_id) === -1) {
-                    folderToRemove = folder;
-                }
-            });
-
-            return instapaperDB.removeFolder(folderToRemove.id);
-        }).then(function () {
-            return instapaperDB.listCurrentFolders();
-        }).then(function (folders) {
-            var folderFound;
-            folders.forEach(function (folder) {
-                if (folder.id === folderToRemove.id) {
-                    folderFound = true;
-                }
-            });
-
-            assert.ok(!folderFound, "Found folder, expected it to be gone");
-
-            return instapaperDB.getPendingFolderEdits();
-        }).then(function (pendingEdits) {
-            assert.ok(pendingEdits, "Expected some pending edits");
-            assert.strictEqual(pendingEdits.length, 1, "Expected single pending edit");
-            if (pendingEdits.length !== 1) {
-                return;
-            }
-
-            var pendingEdit = pendingEdits[0];
-            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.DELETE, "Expected to be DELETE edit type");
-            assert.strictEqual(pendingEdit.removedFolderId, folderToRemove.folder_id, "Pending edit wasn't for the folder we added");
-            assert.strictEqual(pendingEdit.title, folderToRemove.title, "Didn't didn't match");
-
-            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
-        });
-    }
-
-    function deletingUnsyncedAddededFolderNoOps(assert) {
-        var instapaperDB = new InstapaperDB();
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return instapaperDB.addFolder({ title: "shouldntBeSyncd" });
-        }).then(function (addedFolder) {
-            return WinJS.Promise.join({
-                timeout: WinJS.Promise.timeout(),
-                folder: WinJS.Promise.as(addedFolder),
-            });
-        }).then(function (data) {
-            return WinJS.Promise.join([instapaperDB.removeFolder(data.folder.id), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        });
-    }
-
-    function addingDeletedFolderWithoutSyncBringsBackFolderId(assert) {
-        var instapaperDB = new InstapaperDB();
-        var folderTitle = "shouldntBeSyncd";
-        var addedFolder;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return instapaperDB.addFolder({ title: folderTitle }, true);
-        }).then(function (folder) {
-            addedFolder = folder;
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            // Need to give the folder a fake ID to make sure we can resurect it
-            // We don't want to sync things in these simple tests
-            addedFolder.folder_id = Date.now();
-            return WinJS.Promise.join([instapaperDB.updateFolder(addedFolder), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.removeFolder(addedFolder.id), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getFolderByDbId(addedFolder.id);
-        }).then(function (data) {
-            assert.ok(!data, "Didn't expect any data");
-
-            return WinJS.Promise.join({
-                folder: instapaperDB.addFolder({ title: folderTitle }),
-                timeout: WinJS.Promise.timeout(),
-            });
-        }).then(function (data) {
-            assert.strictEqual(data.folder.folder_id, addedFolder.folder_id, "Added Folder ID wasn't the same");
-
-            return expectNoPendingFolderEdits(assert, instapaperDB);
-        });
-    }
-
-    promiseTest("deleteDb", deleteDb);
-    promiseTest("hasDefaultFolders", hasDefaultFolders);
-    promiseTest("canEnumerateDefaultFolders", canEnumerateDefaultFolders);
-    promiseTest("canAddFolderNoPendingEdit", canAddFolderNoPendingEdit);
-    promiseTest("canGetAddedFolderByDbId", canGetAddedFolderByDbId);
-    promiseTest("canUpdateFolder", canUpdateFolder);
-    promiseTest("canGetFolderFromFolderId", canGetFolderFromFolderId);
-    promiseTest("cantGetFolderDbIdFromInvalidFolderId", cantGetFolderDbIdFromInvalidFolderId);
-    promiseTest("addExistingFolderNameFailsAndLeavesNoPendingEdit", addExistingFolderNameFailsAndLeavesNoPendingEdit);
-    promiseTest("canRemoveFolderNoPendingEdit", canRemoveFolderNoPendingEdit);
-    promiseTest("canAddFolderWithPendingEdit", canAddFolderWithPendingEdit);
-    promiseTest("canRemoveFolderWithPendingEdit", canRemoveFolderWithPendingEdit);
-    promiseTest("deletingUnsyncedAddededFolderNoOps", deletingUnsyncedAddededFolderNoOps);
-    promiseTest("addingDeletedFolderWithoutSyncBringsBackFolderId", addingDeletedFolderWithoutSyncBringsBackFolderId);
-
-    QUnit.module("InstapaperDBBookmarks");
-
-    function emptyUnreadBookmarksTableReturnsEmptyData(assert) {
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
-        }).then(function (results) {
-            assert.ok(results, "expected result array"),
-            assert.strictEqual(results.length, 0, "Didn't expect to get any results");
-        });
-    }
-
-    function canAddBookmarkNoPendingEdit(assert) {
-        var instapaperDB;
-        var bookmark = {
-            title: "LocalBookmark",
-            bookmark_id: "local_id",
-        };
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            bookmark.folder_dbid = idb.commonFolderDbIds.unread;
-            return idb.addBookmark(bookmark);
-        }).then(function (addedBookmark) {
-            assert.ok(addedBookmark, "Didn't get bookmark back");
-            assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            assert.ok(currentBookmarks, "no folders returned");
-            assert.strictEqual(currentBookmarks.length, 1, "Only expected 1 bookmark");
-
-            assert.strictEqual(currentBookmarks[0].bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
-            assert.strictEqual(currentBookmarks[0].folder_id, bookmark.folder_id, "Folder ID didn't match");
-            assert.strictEqual(currentBookmarks[0].title, bookmark.title, "Folder ID didn't match");
-        });
-    }
-
-    function canUpdateBookmarkInformationNoPendingEdits(assert) {
-        var instapaperDB;
-        var bookmark_id = "local_id";
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.getBookmarkByBookmarkId(bookmark_id);
-        }).then(function (bookmark) {
-            assert.notStrictEqual(bookmark.url, "http://www.bing.com", "URL shouldn't have been that which we're about to set it to");
-            bookmark.url = "http://www.bing.com";
-            return WinJS.Promise.join([instapaperDB.updateBookmark(bookmark), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId(bookmark_id);
-        }).then(function (updatedBookmark) {
-            assert.ok(updatedBookmark, "no bookmark returned");
-            assert.strictEqual(updatedBookmark.url, "http://www.bing.com", "Incorrect Url");
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    function addingNewUrlDoesntShowUpInBookmarks(assert) {
-        var instapaperDB;
-        var pendingId;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return WinJS.Promise.join([idb.addUrl({
-                url: "http://www.microsoft.com",
-                title: "Microsoft",
-            }), WinJS.Promise.timeout()]);
-        }).then(function (result) {
-            pendingId = result[0].id;
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (pendingEdits) {
-            assert.ok(pendingEdits, "Expected some pending edits");
-            assert.ok(pendingEdits.length, 1, "Expected only 1 pending edit");
-
-            var pendingEdit = pendingEdits[0];
-            assert.strictEqual(pendingEdit.url, "http://www.microsoft.com", "Incorrect pended URL");
-            assert.strictEqual(pendingEdit.title, "Microsoft", "incorrect pended title");
-            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD, "Wrong pended edit type");
-
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            assert.ok(currentBookmarks, "Expected bookmarks result set");
-            assert.strictEqual(currentBookmarks.length, 0, "Expected no bookmarks");
-
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return instapaperDB.deletePendingBookmarkEdit(pendingId);
-        });
-    }
-
-    function canLikeBookmarkNoPendingEdit(assert) {
-        var instapaperDB;
-        var bookmark = {
-            title: "LocalBookmark",
-            bookmark_id: "local_id",
-            starred: 0,
-        };
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            bookmark.folder_dbid = idb.commonFolderDbIds.unread;
-            return idb.addBookmark(bookmark, true);
-        }).then(function (addedBookmark) {
-            assert.ok(addedBookmark, "Didn't get bookmark back");
-            assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.likeBookmark(bookmark.bookmark_id, true), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(bookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.folder_id, bookmark.folder_id, "Folder ID didn't match");
-            assert.strictEqual(newBookmark.folder_dbid, instapaperDB.commonFolderDbIds.unread, "Folder DB ID's didn't match");
-            assert.strictEqual(newBookmark.title, bookmark.title, "Folder ID didn't match");
-            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    function likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull(assert) {
-        var instapaperDB;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return idb.likeBookmark(Date.now(), true, true);
-        }).then(function (bookmark) {
-            assert.strictEqual(bookmark, null, "Shouldn't have gotten a bookmark");
-        });
-    }
-
-    function likeingNonExistantBookmarkErrors(assert) {
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            return idb.likeBookmark(Date.now());
-        }).then(function () {
-            assert.ok(false, "shouldn't have succeeded");
-        }, function (error) {
-            assert.ok(error, "didn't get error object");
-            assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
-        });
-    }
-
-    function canUnlikeBookmarkNoPendingEdit(assert) {
-        var instapaperDB;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.getBookmarkByBookmarkId("local_id");
-        }).then(function (bookmark) {
-            assert.ok(bookmark, "Didn't get bookmark");
-            assert.ok(bookmark.starred, 1, "Bookmark needs to be liked to unlike it");
-
-            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id", true), WinJS.Promise.timeout()]);
-        }).then(function (unlikedBookmark) {
-            unlikedBookmark = unlikedBookmark[0];
-            assert.ok(unlikedBookmark, "no bookmark returned");
-            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id", "Wrong bookmark ID");
-            assert.strictEqual(unlikedBookmark.starred, 0, "Bookmark shouldn't have been liked");
-
-            return instapaperDB.getBookmarkByBookmarkId("local_id")
-        }).then(function (unlikedBookmark) {
-            assert.ok(unlikedBookmark, "no bookmark found");
-
-            assert.strictEqual(unlikedBookmark.starred, 0, "Bookmark was still liked");
-        });
-    }
-
-    function updatingReadProgressLeavesNoPendingEdit(assert) {
-        var instapaperDB;
-        var targetProgress = 0.452;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return idb.getBookmarkByBookmarkId("local_id");
-        }).then(function (bookmark) {
-            assert.notStrictEqual(bookmark.progress, targetProgress, "Bookmark already had the target progress");
-            return WinJS.Promise.join({
-                bookmark: instapaperDB.updateReadProgress(bookmark.bookmark_id, targetProgress),
-                timeout: WinJS.Promise.timeout(),
-            });
-        }).then(function (updatedBookmark) {
-            assert.strictEqual(updatedBookmark.bookmark.progress, targetProgress, "progress wasn't updated");
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    function canRemoveBookmarkNoPendingEdit(assert) {
-        var instapaperDB;
-        var bookmark_id = "local_id";
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.removeBookmark(bookmark_id, true);
-        }).then(function (addedBookmark) {
-            return WinJS.Promise.timeout();
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            assert.ok(currentBookmarks, "no bookmarks returned");
-            assert.strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
-        });
-    }
-
-    promiseTest("emptyUnreadBookmarksTableReturnsEmptyData", emptyUnreadBookmarksTableReturnsEmptyData);
-    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
-    promiseTest("canUpdateBookmarkInformationNoPendingEdits", canUpdateBookmarkInformationNoPendingEdits);
-    promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
-    promiseTest("addingNewUrlDoesntShowUpInBookmarks", addingNewUrlDoesntShowUpInBookmarks);
-    promiseTest("likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull", likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull);
-    promiseTest("canLikeBookmarkNoPendingEdit", canLikeBookmarkNoPendingEdit);
-    promiseTest("likeingNonExistantBookmarkErrors", likeingNonExistantBookmarkErrors);
-    promiseTest("canUnlikeBookmarkNoPendingEdit", canUnlikeBookmarkNoPendingEdit);
-    promiseTest("updatingReadProgressLeavesNoPendingEdit", updatingReadProgressLeavesNoPendingEdit);
-
-    // Remove the just futzed with bookmark
-    promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
-
-    // Re-add a bookmark to work with
-    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
-
-    function removingBookmarkLeavesPendingEdit(assert) {
-        var instapaperDB;
-        var pendingEditId;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return idb.getBookmarkByBookmarkId("local_id");
-        }).then(function (bookmark) {
-            folder_dbid = bookmark.folder_dbid;
-            return WinJS.Promise.join([instapaperDB.removeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.listCurrentBookmarks();
-        }).then(function (currentBookmarks) {
-            assert.ok(currentBookmarks, "Didn't get any pending bookmarks");
-
-            assert.strictEqual(currentBookmarks.length, 0, "Only expected to find one DB");
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.DELETE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    promiseTest("removingBookmarkLeavesPendingEdit", removingBookmarkLeavesPendingEdit);
-    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
-
-    function likingBookmarkAddsPendingEdit(assert) {
-        var instapaperDB;
-        var pendingEditId;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
-            assert.ok(newBookmark.folder_dbid, "Doesn't have a folder DB ID");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked for the correct folder");
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    promiseTest("likingBookmarkAddsPendingEdit", likingBookmarkAddsPendingEdit);
-
-    promiseTest("likingBookmarkWithPendingLikeEditLeavesSinglePendingEdit", function (assert) {
-        var instapaperDB;
-        var pendingEditId;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
-            assert.ok(newBookmark.folder_dbid, "No folder db id");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
-
-            return instapaperDB.likeBookmark("local_id");
-        }).then(function () {
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
-
-            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    });
-
-    function unlikingBookmarkLeavesPendingEdit(assert) {
-        var instapaperDB;
-        var pendingEditId;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id", true), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked with correct source folder");
-
-            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    promiseTest("unlikingBookmarkLeavesPendingEdit", unlikingBookmarkLeavesPendingEdit);
-
-    promiseTest("unlikingBookmarkWithPendingUnlikeEditLeavesSinglePendingEdit", function (assert) {
-        var instapaperDB;
-        var pendingEditId;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id", true), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
-
-            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-            pendingEditId = edit.id;
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
-
-            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    });
-
-    function unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit(assert) {
-        var instapaperDB;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "not marked with the correct source folder");
-
-        }).then(function () {
-            return instapaperDB.unlikeBookmark("local_id");
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (unlikedBookmark) {
-            assert.ok(unlikedBookmark, "Expected a bookmark");
-            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id");
-            assert.strictEqual(unlikedBookmark.starred, 0, "Shouldn't have been liked");
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        });
-    }
-
-    promiseTest("unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit", unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit);
-
-    function likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit(assert) {
-        var instapaperDB;
-        var folder_dbid;
-
-        return getNewInstapaperDBAndInit().then(function (idb) {
-            instapaperDB = idb;
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (newBookmark) {
-            assert.ok(newBookmark, "no bookmark returned");
-
-            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
-            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
-            folder_dbid = newBookmark.folder_dbid;
-
-            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
-        }).then(function (currentPendingEdits) {
-            assert.ok(currentPendingEdits, "Didn't find any pending edits");
-            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
-
-            var edit = currentPendingEdits[0];
-
-            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
-            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
-            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
-        }).then(function () {
-            return instapaperDB.likeBookmark("local_id");
-        }).then(function () {
-            return instapaperDB.getBookmarkByBookmarkId("local_id");
-        }).then(function (unlikedBookmark) {
-            assert.ok(unlikedBookmark, "Expected a bookmark");
-            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id");
-            assert.strictEqual(unlikedBookmark.starred, 1, "Shouldn't have been unliked");
-
-            return expectNoPendingBookmarkEdits(assert, instapaperDB);
-        }).then(function () {
-            instapaperDB.dispose();
-        });
-    }
-
-    promiseTest("likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit", likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit);
-
-    // We're about to do the folder test, so we want to make sure we've got
-    // a clean slate.
-    promiseTest("deleteDb", deleteDb);
-
-
     var sampleFolders;
     var sampleBookmarks;
+    var addedFolderDbId;
 
     function setSampleData() {
         sampleFolders = [{
@@ -947,6 +76,95 @@
         }];
     }
 
+    /// <summary>
+    /// this expects the "this" pointer to be bound to the
+    /// instapaper db wrapper
+    /// </summary>
+    function moveAndValidate(testAssert, bookmark, destinationFolder, fromServer) {
+        return this.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (originalBookmark) {
+            testAssert.ok(originalBookmark, "Didn't find original bookmark");
+            testAssert.notStrictEqual(originalBookmark.folder_dbid, destinationFolder.id, "Bookmark is already in destination folder");
+            return this.moveBookmark(bookmark.bookmark_id, destinationFolder.id, fromServer);
+        }.bind(this)).then(function (movedBookmark) {
+            testAssert.ok(movedBookmark, "no moved bookmark");
+            testAssert.strictEqual(movedBookmark.folder_dbid, destinationFolder.id, "Not in destination folder");
+            testAssert.strictEqual(movedBookmark.folder_id, destinationFolder.folder_id, "Not in destination folder");
+
+            bookmark.folder_id = destinationFolder.folder_id;
+            bookmark.folder_dbid = destinationFolder.id;
+        });
+    }
+
+    function validatePendingEdits(testAssert, edits, bookmark_id, folder, sourcefolder_dbid) {
+        testAssert.ok(edits, "Expected pending edits");
+        testAssert.strictEqual(edits.length, 1, "Expected single pending edit");
+
+        var pendingEdit = edits[0];
+        testAssert.strictEqual(pendingEdit.type, InstapaperDB.BookmarkChangeTypes.MOVE, "Not a move edit");
+        testAssert.strictEqual(pendingEdit.bookmark_id, bookmark_id, "not correct bookmark");
+        testAssert.strictEqual(pendingEdit.destinationfolder_dbid, folder.id, "Incorrect folder DB id");
+        testAssert.strictEqual(pendingEdit.sourcefolder_dbid, sourcefolder_dbid, "Not marked with the correct ID");
+    }
+
+    function cleanupPendingEdits() {
+        return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then(function (edits) {
+            var deletes = [];
+            edits.forEach(function (edit) {
+                deletes.push(this.deletePendingBookmarkEdit(edit.id));
+            }.bind(this));
+
+            return WinJS.Promise.join(deletes);
+        }.bind(this));
+    }
+
+    function canRemoveBookmarkNoPendingEdit(assert) {
+        var instapaperDB;
+        var bookmark_id = "local_id";
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.removeBookmark(bookmark_id, true);
+        }).then(function (addedBookmark) {
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            assert.ok(currentBookmarks, "no bookmarks returned");
+            assert.strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
+        });
+    }
+
+    function canAddBookmarkNoPendingEdit(assert) {
+        var instapaperDB;
+        var bookmark = {
+            title: "LocalBookmark",
+            bookmark_id: "local_id",
+        };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            bookmark.folder_dbid = idb.commonFolderDbIds.unread;
+            return idb.addBookmark(bookmark);
+        }).then(function (addedBookmark) {
+            assert.ok(addedBookmark, "Didn't get bookmark back");
+            assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            assert.ok(currentBookmarks, "no folders returned");
+            assert.strictEqual(currentBookmarks.length, 1, "Only expected 1 bookmark");
+
+            assert.strictEqual(currentBookmarks[0].bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
+            assert.strictEqual(currentBookmarks[0].folder_id, bookmark.folder_id, "Folder ID didn't match");
+            assert.strictEqual(currentBookmarks[0].title, bookmark.title, "Folder ID didn't match");
+        });
+    }
+
     function addSampleData(assert) {
         setSampleData();
         var instapaperDB;
@@ -1007,50 +225,808 @@
         });
     }
 
+    function deleteCoreInfraDbs(assert) {
+        return WinJS.Promise.join([
+            deleteDb(assert, "One"),
+            deleteDb(assert, "Two"),
+        ]);
+    }
+
+    QUnit.module("InstapaperDBFolders");
+
+    promiseTest("deleteDb", deleteDb);
+
+    promiseTest("hasDefaultFolders", function hasDefaultFolders(assert) {
+        var idb = new InstapaperDB();
+        return idb.initialize().then(function (openedDb) {
+            idb.dispose();
+        }).then(function () {
+            return db.open({
+                server: InstapaperDB.DBName,
+                version: InstapaperDB.DBVersion,
+            });
+        }).then(function (rawServer) {
+            return rawServer.query(InstapaperDB.DBFoldersTable).execute();
+        }).then(function (queryResult) {
+            assert.ok(queryResult, "Didn't get any results");
+            assert.strictEqual(queryResult.length, 4, "Didn't get the folders expected");
+
+            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[0].folder_id), -1, "Didn't find folder: " + queryResult[0].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[1].folder_id), -1, "Didn't find folder: " + queryResult[1].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[2].folder_id), -1, "Didn't find folder: " + queryResult[2].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(queryResult[3].folder_id), -1, "Didn't find folder: " + queryResult[3].folder_id);
+        });
+    });
+
+    promiseTest("canEnumerateDefaultFolders", function canEnumerateDefaultFolders(assert) {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            assert.ok(folders, "Didn't get any folders");
+            assert.strictEqual(folders.length, 4, "Got unexpected number of folders");
+
+            assert.notStrictEqual(defaultFolderIds.indexOf(folders[0].folder_id), -1, "Didn't find folder: " + folders[0].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(folders[1].folder_id), -1, "Didn't find folder: " + folders[1].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(folders[2].folder_id), -1, "Didn't find folder: " + folders[2].folder_id);
+            assert.notStrictEqual(defaultFolderIds.indexOf(folders[3].folder_id), -1, "Didn't find folder: " + folders[3].folder_id);
+        });
+    });
+
+    promiseTest("canAddFolderNoPendingEdit", function canAddFolderNoPendingEdit(assert) {
+        var instapaperDB;
+        var folderName = "LocalFolder"
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder({ title: folderName }, true);
+        }).then(function (createdFolder) {
+            addedFolderDbId = createdFolder.id;
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return instapaperDB.listCurrentFolders();
+        }).then(function (folders) {
+            var folderFound;
+            assert.ok(folders, "no folders returned");
+            folders.forEach(function (folder) {
+                if (folder.title === folderName) {
+                    folderFound = true;
+                }
+            });
+
+            assert.ok(folderFound, "Didn't find the folder we just made");
+
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("canGetAddedFolderByDbId", function canGetAddedFolderByDbId(assert) {
+        var folderName = "LocalFolder"
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getFolderByDbId(addedFolderDbId);
+        }).then(function (retrievedFolder) {
+            assert.ok(retrievedFolder, "No folder found");
+            assert.strictEqual(retrievedFolder.title, folderName);
+            assert.strictEqual(retrievedFolder.id, addedFolderDbId);
+        });
+    });
+
+    promiseTest("canUpdateFolder", function canUpdateFolder(assert) {
+        var instapaperDB;
+        var folderName = "LocalFolder"
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getFolderByDbId(addedFolderDbId);
+        }).then(function (retrievedFolder) {
+            assert.ok(retrievedFolder, "No folder found");
+            assert.strictEqual(retrievedFolder.title, folderName);
+            assert.strictEqual(retrievedFolder.id, addedFolderDbId);
+
+            retrievedFolder.folder_id = "xxx";
+
+            return instapaperDB.updateFolder(retrievedFolder);
+        }).then(function () {
+            return instapaperDB.getFolderByDbId(addedFolderDbId);
+        }).then(function (updatedFolderInformation) {
+            assert.ok(updatedFolderInformation, "No updated folder information");
+            assert.strictEqual(updatedFolderInformation.folder_id, "xxx", "Folder ID didn't match");
+        });
+    });
+
+    promiseTest("canGetFolderFromFolderId", function canGetFolderFromFolderId(assert) {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getFolderFromFolderId("xxx");
+        }).then(function (folder) {
+            assert.strictEqual(folder.id, addedFolderDbId, "incorrect folder DB ID");
+        });
+    });
+
+    promiseTest("cantGetFolderDbIdFromInvalidFolderId", function cantGetFolderDbIdFromInvalidFolderId(assert) {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.getFolderFromFolderId("yyy");
+        }).then(function (folder) {
+            assert.strictEqual(folder, undefined, "should get 'undefined' for folder db id if it's not in the DB");
+        });
+    });
+
+    promiseTest("addExistingFolderNameFailsAndLeavesNoPendingEdit", function addExistingFolderNameFailsAndLeavesNoPendingEdit(assert) {
+        var instapaperDB;
+        var folderName = "LocalFolder"
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder({ title: folderName }, true);
+        }).then(function () {
+            assert.ok(false, "Should have failed");
+        }, function (error) {
+            assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
+            assert.ok(true, "Should fail here");
+        }).then(function (folders) {
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("canRemoveFolderNoPendingEdit", function canRemoveFolderNoPendingEdit(assert) {
+        var instapaperDB;
+        var folderId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            assert.ok(folders, "didn't find any folders in db");
+            folders.forEach(function (folder) {
+                if (defaultFolderIds.indexOf(folder.folder_id) === -1) {
+                    folderId = folder.id;
+                }
+            });
+
+            return instapaperDB.removeFolder(folderId, true);
+        }).then(function () {
+            return instapaperDB.listCurrentFolders();
+        }).then(function (folders) {
+            var folderFound;
+            folders.forEach(function (folder) {
+                if (folder.id === folderId) {
+                    folderFound = true;
+                }
+            });
+
+            assert.ok(!folderFound, "Found folder, expected it to be gone");
+
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("canAddFolderWithPendingEdit", function canAddFolderWithPendingEdit(assert) {
+        var instapaperDB;
+        var folderName = "LocalFolder";
+        var addFolderResult;
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.addFolder({ title: folderName });
+        }).then(function (createdFolder) {
+            addFolderResult = createdFolder;
+        }).then(function () {
+            return instapaperDB.listCurrentFolders();
+        }).then(function (folders) {
+            var folderFound;
+            assert.ok(folders, "no folders returned");
+            folders.forEach(function (folder) {
+                if (folder.title === folderName) {
+                    folderFound = folder;
+                }
+            });
+
+            assert.ok(folderFound, "Didn't find the folder we just made");
+            assert.strictEqual(folderFound.title, folderName, "Folder name didn't match");
+            assert.strictEqual(folderFound.id, addFolderResult.id, "Folder ID didn't match");
+            assert.ok(!folderFound.folder_id, "Shouldn't have had folder. Nothing sync'd");
+
+            return instapaperDB.getPendingFolderEdits();
+        }).then(function (pendingEdits) {
+            assert.ok(pendingEdits, "Expected some pending edits");
+            assert.strictEqual(pendingEdits.length, 1, "Expected single pending edit");
+            if (pendingEdits.length !== 1) {
+                return;
+            }
+
+            var pendingEdit = pendingEdits[0];
+            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.ADD, "Expected to be ADD edit type");
+            assert.strictEqual(pendingEdit.folder_dbid, addFolderResult.id, "Pending edit wasn't for the folder we added");
+
+            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
+        });
+    });
+
+    promiseTest("canRemoveFolderWithPendingEdit", function canRemoveFolderWithPendingEdit(assert) {
+        var instapaperDB;
+        var folderToRemove;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.listCurrentFolders();
+        }).then(function (folders) {
+            assert.ok(folders, "didn't find any folders in db");
+            folders.forEach(function (folder) {
+                if (defaultFolderIds.indexOf(folder.folder_id) === -1) {
+                    folderToRemove = folder;
+                }
+            });
+
+            return instapaperDB.removeFolder(folderToRemove.id);
+        }).then(function () {
+            return instapaperDB.listCurrentFolders();
+        }).then(function (folders) {
+            var folderFound;
+            folders.forEach(function (folder) {
+                if (folder.id === folderToRemove.id) {
+                    folderFound = true;
+                }
+            });
+
+            assert.ok(!folderFound, "Found folder, expected it to be gone");
+
+            return instapaperDB.getPendingFolderEdits();
+        }).then(function (pendingEdits) {
+            assert.ok(pendingEdits, "Expected some pending edits");
+            assert.strictEqual(pendingEdits.length, 1, "Expected single pending edit");
+            if (pendingEdits.length !== 1) {
+                return;
+            }
+
+            var pendingEdit = pendingEdits[0];
+            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.DELETE, "Expected to be DELETE edit type");
+            assert.strictEqual(pendingEdit.removedFolderId, folderToRemove.folder_id, "Pending edit wasn't for the folder we added");
+            assert.strictEqual(pendingEdit.title, folderToRemove.title, "Didn't didn't match");
+
+            return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
+        });
+    });
+
+    promiseTest("deletingUnsyncedAddededFolderNoOps", function deletingUnsyncedAddededFolderNoOps(assert) {
+        var instapaperDB = new InstapaperDB();
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return instapaperDB.addFolder({ title: "shouldntBeSyncd" });
+        }).then(function (addedFolder) {
+            return WinJS.Promise.join({
+                timeout: WinJS.Promise.timeout(),
+                folder: WinJS.Promise.as(addedFolder),
+            });
+        }).then(function (data) {
+            return WinJS.Promise.join([instapaperDB.removeFolder(data.folder.id), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("addingDeletedFolderWithoutSyncBringsBackFolderId", function addingDeletedFolderWithoutSyncBringsBackFolderId(assert) {
+        var instapaperDB = new InstapaperDB();
+        var folderTitle = "shouldntBeSyncd";
+        var addedFolder;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return instapaperDB.addFolder({ title: folderTitle }, true);
+        }).then(function (folder) {
+            addedFolder = folder;
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            // Need to give the folder a fake ID to make sure we can resurect it
+            // We don't want to sync things in these simple tests
+            addedFolder.folder_id = Date.now();
+            return WinJS.Promise.join([instapaperDB.updateFolder(addedFolder), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.removeFolder(addedFolder.id), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getFolderByDbId(addedFolder.id);
+        }).then(function (data) {
+            assert.ok(!data, "Didn't expect any data");
+
+            return WinJS.Promise.join({
+                folder: instapaperDB.addFolder({ title: folderTitle }),
+                timeout: WinJS.Promise.timeout(),
+            });
+        }).then(function (data) {
+            assert.strictEqual(data.folder.folder_id, addedFolder.folder_id, "Added Folder ID wasn't the same");
+
+            return expectNoPendingFolderEdits(assert, instapaperDB);
+        });
+    });
+
+    QUnit.module("InstapaperDBBookmarks");
+
+    promiseTest("emptyUnreadBookmarksTableReturnsEmptyData", function emptyUnreadBookmarksTableReturnsEmptyData(assert) {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+        }).then(function (results) {
+            assert.ok(results, "expected result array"),
+                assert.strictEqual(results.length, 0, "Didn't expect to get any results");
+        });
+    });
+
+    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
+
+    promiseTest("canUpdateBookmarkInformationNoPendingEdits", function canUpdateBookmarkInformationNoPendingEdits(assert) {
+        var instapaperDB;
+        var bookmark_id = "local_id";
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getBookmarkByBookmarkId(bookmark_id);
+        }).then(function (bookmark) {
+            assert.notStrictEqual(bookmark.url, "http://www.bing.com", "URL shouldn't have been that which we're about to set it to");
+            bookmark.url = "http://www.bing.com";
+            return WinJS.Promise.join([instapaperDB.updateBookmark(bookmark), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId(bookmark_id);
+        }).then(function (updatedBookmark) {
+            assert.ok(updatedBookmark, "no bookmark returned");
+            assert.strictEqual(updatedBookmark.url, "http://www.bing.com", "Incorrect Url");
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
+
+    promiseTest("addingNewUrlDoesntShowUpInBookmarks", function addingNewUrlDoesntShowUpInBookmarks(assert) {
+        var instapaperDB;
+        var pendingId;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([idb.addUrl({
+                url: "http://www.microsoft.com",
+                title: "Microsoft",
+            }), WinJS.Promise.timeout()]);
+        }).then(function (result) {
+            pendingId = result[0].id;
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (pendingEdits) {
+            assert.ok(pendingEdits, "Expected some pending edits");
+            assert.ok(pendingEdits.length, 1, "Expected only 1 pending edit");
+
+            var pendingEdit = pendingEdits[0];
+            assert.strictEqual(pendingEdit.url, "http://www.microsoft.com", "Incorrect pended URL");
+            assert.strictEqual(pendingEdit.title, "Microsoft", "incorrect pended title");
+            assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD, "Wrong pended edit type");
+
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            assert.ok(currentBookmarks, "Expected bookmarks result set");
+            assert.strictEqual(currentBookmarks.length, 0, "Expected no bookmarks");
+
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return instapaperDB.deletePendingBookmarkEdit(pendingId);
+        });
+    });
+
+    promiseTest("likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull", function likingNonExistantBookmarkWithIgnoreMissingFlagSetReturnsNull(assert) {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.likeBookmark(Date.now(), true, true);
+        }).then(function (bookmark) {
+            assert.strictEqual(bookmark, null, "Shouldn't have gotten a bookmark");
+        });
+    });
+
+    promiseTest("canLikeBookmarkNoPendingEdit", function canLikeBookmarkNoPendingEdit(assert) {
+        var instapaperDB;
+        var bookmark = {
+            title: "LocalBookmark",
+            bookmark_id: "local_id",
+            starred: 0,
+        };
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            bookmark.folder_dbid = idb.commonFolderDbIds.unread;
+            return idb.addBookmark(bookmark, true);
+        }).then(function (addedBookmark) {
+            assert.ok(addedBookmark, "Didn't get bookmark back");
+            assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
+            return WinJS.Promise.timeout();
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark(bookmark.bookmark_id, true), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(bookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.folder_id, bookmark.folder_id, "Folder ID didn't match");
+            assert.strictEqual(newBookmark.folder_dbid, instapaperDB.commonFolderDbIds.unread, "Folder DB ID's didn't match");
+            assert.strictEqual(newBookmark.title, bookmark.title, "Folder ID didn't match");
+            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("likeingNonExistantBookmarkErrors", function likeingNonExistantBookmarkErrors(assert) {
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            return idb.likeBookmark(Date.now());
+        }).then(function () {
+            assert.ok(false, "shouldn't have succeeded");
+        }, function (error) {
+            assert.ok(error, "didn't get error object");
+            assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
+        });
+    });
+
+    promiseTest("canUnlikeBookmarkNoPendingEdit", function canUnlikeBookmarkNoPendingEdit(assert) {
+        var instapaperDB;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getBookmarkByBookmarkId("local_id");
+        }).then(function (bookmark) {
+            assert.ok(bookmark, "Didn't get bookmark");
+            assert.ok(bookmark.starred, 1, "Bookmark needs to be liked to unlike it");
+
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id", true), WinJS.Promise.timeout()]);
+        }).then(function (unlikedBookmark) {
+            unlikedBookmark = unlikedBookmark[0];
+            assert.ok(unlikedBookmark, "no bookmark returned");
+            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id", "Wrong bookmark ID");
+            assert.strictEqual(unlikedBookmark.starred, 0, "Bookmark shouldn't have been liked");
+
+            return instapaperDB.getBookmarkByBookmarkId("local_id")
+        }).then(function (unlikedBookmark) {
+            assert.ok(unlikedBookmark, "no bookmark found");
+
+            assert.strictEqual(unlikedBookmark.starred, 0, "Bookmark was still liked");
+        });
+    });
+
+    promiseTest("updatingReadProgressLeavesNoPendingEdit", function updatingReadProgressLeavesNoPendingEdit(assert) {
+        var instapaperDB;
+        var targetProgress = 0.452;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return idb.getBookmarkByBookmarkId("local_id");
+        }).then(function (bookmark) {
+            assert.notStrictEqual(bookmark.progress, targetProgress, "Bookmark already had the target progress");
+            return WinJS.Promise.join({
+                bookmark: instapaperDB.updateReadProgress(bookmark.bookmark_id, targetProgress),
+                timeout: WinJS.Promise.timeout(),
+            });
+        }).then(function (updatedBookmark) {
+            assert.strictEqual(updatedBookmark.bookmark.progress, targetProgress, "progress wasn't updated");
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    // Remove the just futzed with bookmark
+    promiseTest("canRemoveBookmarkNoPendingEdit", canRemoveBookmarkNoPendingEdit);
+
+    // Re-add a bookmark to work with
+    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
+
+    promiseTest("removingBookmarkLeavesPendingEdit", function removingBookmarkLeavesPendingEdit(assert) {
+        var instapaperDB;
+        var pendingEditId;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return idb.getBookmarkByBookmarkId("local_id");
+        }).then(function (bookmark) {
+            folder_dbid = bookmark.folder_dbid;
+            return WinJS.Promise.join([instapaperDB.removeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.listCurrentBookmarks();
+        }).then(function (currentBookmarks) {
+            assert.ok(currentBookmarks, "Didn't get any pending bookmarks");
+
+            assert.strictEqual(currentBookmarks.length, 0, "Only expected to find one DB");
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.DELETE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("canAddBookmarkNoPendingEdit", canAddBookmarkNoPendingEdit);
+
+    promiseTest("likingBookmarkAddsPendingEdit", function likingBookmarkAddsPendingEdit(assert) {
+        var instapaperDB;
+        var pendingEditId;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
+            assert.ok(newBookmark.folder_dbid, "Doesn't have a folder DB ID");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked for the correct folder");
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("likingBookmarkWithPendingLikeEditLeavesSinglePendingEdit", function (assert) {
+        var instapaperDB;
+        var pendingEditId;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
+            assert.ok(newBookmark.folder_dbid, "No folder db id");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
+
+            return instapaperDB.likeBookmark("local_id");
+        }).then(function () {
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
+
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("unlikingBookmarkLeavesPendingEdit", function unlikingBookmarkLeavesPendingEdit(assert) {
+        var instapaperDB;
+        var pendingEditId;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id", true), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked with correct source folder");
+
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("unlikingBookmarkWithPendingUnlikeEditLeavesSinglePendingEdit", function (assert) {
+        var instapaperDB;
+        var pendingEditId;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id", true), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
+
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.strictEqual(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+            pendingEditId = edit.id;
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
+
+            return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit", function unlikingBookmarkWithPendingLikeEditLeavesNoPendingEdit(assert) {
+        var instapaperDB;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.likeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 1, "Didn't get starred");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "not marked with the correct source folder");
+
+        }).then(function () {
+            return instapaperDB.unlikeBookmark("local_id");
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (unlikedBookmark) {
+            assert.ok(unlikedBookmark, "Expected a bookmark");
+            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id");
+            assert.strictEqual(unlikedBookmark.starred, 0, "Shouldn't have been liked");
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        });
+    });
+
+    promiseTest("likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit", function likingBookmarkWithPendingUnlikeEditLeavesNoPendingEdit(assert) {
+        var instapaperDB;
+        var folder_dbid;
+
+        return getNewInstapaperDBAndInit().then(function (idb) {
+            instapaperDB = idb;
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            return WinJS.Promise.join([instapaperDB.unlikeBookmark("local_id"), WinJS.Promise.timeout()]);
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (newBookmark) {
+            assert.ok(newBookmark, "no bookmark returned");
+
+            assert.strictEqual(newBookmark.bookmark_id, "local_id", "Bookmark ID didn't match");
+            assert.strictEqual(newBookmark.starred, 0, "Didn't get unstarred");
+            folder_dbid = newBookmark.folder_dbid;
+
+            return colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits());
+        }).then(function (currentPendingEdits) {
+            assert.ok(currentPendingEdits, "Didn't find any pending edits");
+            assert.ok(currentPendingEdits.length, 1, "Only expected to find one pending edit");
+
+            var edit = currentPendingEdits[0];
+
+            assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+            assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
+            assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
+        }).then(function () {
+            return instapaperDB.likeBookmark("local_id");
+        }).then(function () {
+            return instapaperDB.getBookmarkByBookmarkId("local_id");
+        }).then(function (unlikedBookmark) {
+            assert.ok(unlikedBookmark, "Expected a bookmark");
+            assert.strictEqual(unlikedBookmark.bookmark_id, "local_id");
+            assert.strictEqual(unlikedBookmark.starred, 1, "Shouldn't have been unliked");
+
+            return expectNoPendingBookmarkEdits(assert, instapaperDB);
+        }).then(function () {
+            instapaperDB.dispose();
+        });
+    });
+
+    // We're about to do the folder test, so we want to make sure we've got
+    // a clean slate.
+    promiseTest("deleteDb", deleteDb);
+
     promiseTest("addSampleData", addSampleData);
 
-    /// <summary>
-    /// this expects the "this" pointer to be bound to the
-    /// instapaper db wrapper
-    /// </summary>
-    function moveAndValidate(testAssert, bookmark, destinationFolder, fromServer) {
-        return this.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (originalBookmark) {
-            testAssert.ok(originalBookmark, "Didn't find original bookmark");
-            testAssert.notStrictEqual(originalBookmark.folder_dbid, destinationFolder.id, "Bookmark is already in destination folder");
-            return this.moveBookmark(bookmark.bookmark_id, destinationFolder.id, fromServer);
-        }.bind(this)).then(function (movedBookmark) {
-            testAssert.ok(movedBookmark, "no moved bookmark");
-            testAssert.strictEqual(movedBookmark.folder_dbid, destinationFolder.id, "Not in destination folder");
-            testAssert.strictEqual(movedBookmark.folder_id, destinationFolder.folder_id, "Not in destination folder");
-
-            bookmark.folder_id = destinationFolder.folder_id;
-            bookmark.folder_dbid = destinationFolder.id;
-        });
-    }
-
-    function validatePendingEdits(testAssert, edits, bookmark_id, folder, sourcefolder_dbid) {
-        testAssert.ok(edits, "Expected pending edits");
-        testAssert.strictEqual(edits.length, 1, "Expected single pending edit");
-
-        var pendingEdit = edits[0];
-        testAssert.strictEqual(pendingEdit.type, InstapaperDB.BookmarkChangeTypes.MOVE, "Not a move edit");
-        testAssert.strictEqual(pendingEdit.bookmark_id, bookmark_id, "not correct bookmark");
-        testAssert.strictEqual(pendingEdit.destinationfolder_dbid, folder.id, "Incorrect folder DB id");
-        testAssert.strictEqual(pendingEdit.sourcefolder_dbid, sourcefolder_dbid, "Not marked with the correct ID");
-    }
-
-    function cleanupPendingEdits() {
-        return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then(function (edits) {
-            var deletes = [];
-            edits.forEach(function (edit) {
-                deletes.push(this.deletePendingBookmarkEdit(edit.id));
-            }.bind(this));
-
-            return WinJS.Promise.join(deletes);
-        }.bind(this));
-    }
-
-    function movingToLikedErrors(assert) {
+    promiseTest("movingToLikedErrors", function movingToLikedErrors(assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1063,11 +1039,9 @@
         }, function (error) {
             assert.strictEqual(error.code, InstapaperDB.ErrorCodes.INVALID_DESTINATION_FOLDER, "incorrect error code");
         });
-    }
+    });
 
-    promiseTest("movingToLikedErrors", movingToLikedErrors);
-
-    function movingBookmarkLeavesNoPendingEdit(assert) {
+    promiseTest("movingBookmarkLeavesNoPendingEdit", function movingBookmarkLeavesNoPendingEdit(assert) {
         var instapaperDB;
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -1075,11 +1049,9 @@
         }).then(function () {
             return expectNoPendingBookmarkEdits(assert, instapaperDB);
         });
-    }
+    });
 
-    promiseTest("movingBookmarkLeavesNoPendingEdit", movingBookmarkLeavesNoPendingEdit);
-
-    function movingBookmarkLeavesPendingEdit(assert) {
+    promiseTest("movingBookmarkLeavesPendingEdit", function movingBookmarkLeavesPendingEdit(assert) {
         var targetBookmark = sampleBookmarks[1];
         var sourcefolder_dbid = targetBookmark.folder_dbid;
         var instapaperDB;
@@ -1093,11 +1065,9 @@
             validatePendingEdits(assert, pendingEdits, targetBookmark.bookmark_id, sampleFolders[1], sourcefolder_dbid);
             return instapaperDB.deletePendingBookmarkEdit(pendingEdits[0].id);
         });
-    }
+    });
 
-    promiseTest("movingBookmarkLeavesPendingEdit", movingBookmarkLeavesPendingEdit);
-
-    function multipleMovesLeavesOnlyOnePendingEdit(assert) {
+    promiseTest("multipleMovesLeavesOnlyOnePendingEdit", function multipleMovesLeavesOnlyOnePendingEdit(assert) {
         var targetBookmark = sampleBookmarks[2];
         var sourcefolder_dbid = targetBookmark.folder_dbid;
         var instapaperDB;
@@ -1117,11 +1087,9 @@
             validatePendingEdits(assert, pendingEdits, targetBookmark.bookmark_id, sampleFolders[0], sampleFolders[1].id);
             return cleanupPendingEdits.bind(instapaperDB)();
         });
-    }
+    });
 
-    promiseTest("multipleMovesLeavesOnlyOnePendingEdit", multipleMovesLeavesOnlyOnePendingEdit);
-
-    function likingThenMovingLeavesCorrectPendingEdits(assert) {
+    promiseTest("likingThenMovingLeavesCorrectPendingEdits", function likingThenMovingLeavesCorrectPendingEdits(assert) {
         var instapaperDB;
         var sourcefolder_dbid;
 
@@ -1164,9 +1132,9 @@
         }).then(function () {
             return cleanupPendingEdits.bind(instapaperDB)();
         });
-    }
+    });
 
-    function likingThenMovingThenDeletingLeavesCorrectPendingEdits(assert) {
+    promiseTest("likingThenMovingThenDeletingLeavesCorrectPendingEdits", function likingThenMovingThenDeletingLeavesCorrectPendingEdits(assert) {
         var instapaperDB;
         var destinationFolder = sampleFolders[1];
         var targetBookmark = sampleBookmarks[2];
@@ -1244,10 +1212,7 @@
         }).then(function () {
             return cleanupPendingEdits.bind(instapaperDB)();
         });
-    }
-
-    promiseTest("likingThenMovingLeavesCorrectPendingEdits", likingThenMovingLeavesCorrectPendingEdits);
-    promiseTest("likingThenMovingThenDeletingLeavesCorrectPendingEdits", likingThenMovingThenDeletingLeavesCorrectPendingEdits);
+    });
 
     promiseTest("updateSampleBookmarks", function (assert) {
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1269,7 +1234,7 @@
     promiseTest("deleteDb", deleteDb);
     promiseTest("addSampleData", addSampleData);
 
-    function queryingForUnreadFolderReturnsOnlyUnreadItems(assert) {
+    promiseTest("queryingForUnreadFolderReturnsOnlyUnreadItems", function queryingForUnreadFolderReturnsOnlyUnreadItems(assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1305,9 +1270,9 @@
             assert.strictEqual(unreadBookmarks[3].bookmark_id, sampleBookmarks[9].bookmark_id, "Bookmark 4 not found");
             assert.strictEqual(unreadBookmarks[3].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 4 not found in unread folder");
         });
-    }
+    });
 
-    function queryingForFolderContentsReturnsOnlyFolderItems(assert) {
+    promiseTest("queryingForFolderContentsReturnsOnlyFolderItems", function queryingForFolderContentsReturnsOnlyFolderItems(assert) {
         var instapaperDB;
 
         return getNewInstapaperDBAndInit().then(function (idb) {
@@ -1337,12 +1302,9 @@
             assert.strictEqual(folderBookmarks[1].bookmark_id, sampleBookmarks[6].bookmark_id, "Bookmark 2 not found");
             assert.strictEqual(folderBookmarks[1].folder_id, sampleFolders[0].folder_id, "Bookmark 2 not found in unread folder");
         });
-    }
+    });
 
-    promiseTest("queryingForUnreadFolderReturnsOnlyUnreadItems", queryingForUnreadFolderReturnsOnlyUnreadItems);
-    promiseTest("queryingForFolderContentsReturnsOnlyFolderItems", queryingForFolderContentsReturnsOnlyFolderItems);
-
-    function queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders(assert) {
+    promiseTest("queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders", function queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders(assert) {
         var instapaperDB;
         return getNewInstapaperDBAndInit().then(function (idb) {
             instapaperDB = idb;
@@ -1369,9 +1331,7 @@
             var folders = Object.keys(folderHash);
             assert.strictEqual(folders.length, 2, "Expected different fodlers for each bookmark");
         });
-    }
-
-    promiseTest("queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders", queryingForLikedFolderReturnsBookmarksAcrossMulipleFolders);
+    });
 
     promiseTest("gettingPendingEditsWithFolderReturnsOnlyChangesForThatFolder", function (assert) {
         var instapaperDB;
@@ -1570,16 +1530,10 @@
     });
 
     QUnit.module("InstapaperDBCore");
-    function deleteCoreInfraDbs(assert) {
-        return WinJS.Promise.join([
-            deleteDb(assert, "One"),
-            deleteDb(assert, "Two"),
-        ]);
-    }
 
     promiseTest("deleteCoreDbs", deleteCoreInfraDbs);
 
-    function canCreateTwoDataBasesAndTheyreIsolated(assert) {
+    promiseTest("canCreateTwoDataBasesAndTheyreIsolated", function canCreateTwoDataBasesAndTheyreIsolated(assert) {
         const dbNameOne = "One";
         const dbNameTwo = "Two";
         let dbOne;
@@ -1646,8 +1600,7 @@
             assert.strictEqual(result[0].length, 0, "Wrong number of bookmarks in DB 1");
             assert.strictEqual(result[1].length, 0, "Wrong number of bookmarks in DB 2");
         });
-    }
+    });
 
-    promiseTest("canCreateTwoDataBasesAndTheyreIsolated", canCreateTwoDataBasesAndTheyreIsolated);
     promiseTest("deleteCoreDbsPostTest", deleteCoreInfraDbs);
 })();

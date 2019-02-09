@@ -10,6 +10,13 @@
     var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperApi Tests";
 
+    var justAddedId;
+    var justAddedBookmark;
+    var updatedProgressHash;
+    var addedFolderId;
+    var bookmarkAddedToFolderId;
+    var bookmarkAddedToFolderId2;
+
     var promiseTest = InstapaperTestUtilities.promiseTest;
 
     function getFailedPromiseHandler(failureAssert, complete) {
@@ -28,11 +35,33 @@
         }
     }
 
+    function listInStarredFolderExpectingNoStarredItems(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+        const complete = assert.async();
+
+        bookmarks.list({ folder_id: "starred" }).done(function (data) {
+            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    }
+
+    function listInArchiveFolderExpectingNoArchivedItems(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+        const complete = assert.async();
+
+        bookmarks.list({ folder_id: "archive" }).done(function (data) {
+            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    }
+
     QUnit.module("instapaperApi");
 
     QUnit.module("instapaperApiAccounts");
 
-    function canGetAccessToken(assert) {
+    QUnit.test("canGetAccessToken", function canGetAccessToken(assert) {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
         var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
@@ -45,21 +74,7 @@
             assert.strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
-
-    function canVerifyCredentials(assert) {
-        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
-
-        const complete = assert.async();
-        accounts.verifyCredentials().done(function (verifiedCreds) {
-            assert.strictEqual(verifiedCreds.type, "user");
-            assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
-            assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
-
-    QUnit.test("canGetAccessToken", canGetAccessToken);
+    });
 
     promiseTest("can'tGetAccessTokenWhenUsingBadCredentials", function (assert) {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
@@ -73,7 +88,17 @@
         });
     });
 
-    QUnit.test("canVerifyCredentials", canVerifyCredentials);
+    QUnit.test("canVerifyCredentials", function canVerifyCredentials(assert) {
+        var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
+
+        const complete = assert.async();
+        accounts.verifyCredentials().done(function (verifiedCreds) {
+            assert.strictEqual(verifiedCreds.type, "user");
+            assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
+            assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    });
 
     promiseTest("verifyingBadCredentialsFails", function (assert) {
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token + "3", secret + "a");
@@ -89,37 +114,34 @@
 
     QUnit.module("instapaperApiBookmarksHaveConversion");
 
-    function numberHaveReturnsString(assert) {
+    QUnit.test("numberHaveReturnsString", function numberHaveReturnsString(assert) {
         var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(12345);
 
         assert.strictEqual(result, "12345", "Expected string back from function. Got something else");
-    }
+    });
 
-    function haveWithHashReturnsCorrectString(assert) {
+    QUnit.test("haveWithHashReturnsCorrectString", function haveWithHashReturnsCorrectString(assert) {
         var have = { id: 12345, hash: "OjMuzFp6" };
         var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         assert.strictEqual(result, "12345:OjMuzFp6", "Incorrect stringification of have value");
-    }
+    });
 
-    function haveWithProgressReturnsCorrectString(assert) {
+    QUnit.test("haveWithProgressReturnsCorrectString", function haveWithProgressReturnsCorrectString(assert) {
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5, progressLastChanged: 1288584076 };
         var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
 
         assert.strictEqual(result, "12345:OjMuzFp6:0.5:1288584076", "Incorrect stringification of have value");
-    }
+    });
 
-    function haveWithProgressButNoProgressTimestampThrows(assert) {
+    QUnit.test("haveWithProgressButNoProgressTimestampThrows", function haveWithProgressButNoProgressTimestampThrows(assert) {
         var have = { id: 12345, hash: "OjMuzFp6", progress: 0.5 };
 
         assert.raises(function () {
             Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
         }, null, "no exception was thrown");
-    }
-    QUnit.test("numberHaveReturnsString", numberHaveReturnsString);
-    QUnit.test("haveWithHashReturnsCorrectString", haveWithHashReturnsCorrectString);
-    QUnit.test("haveWithProgressReturnsCorrectString", haveWithProgressReturnsCorrectString);
-    QUnit.test("haveWithProgressButNoProgressTimestampThrows", haveWithProgressButNoProgressTimestampThrows);
+    });
+
     QUnit.test("haveWithZeroProgressAndValidTimestampReturnsString", function (assert) {
         var have = { id: 1234, hash: "ABCDEF", progress: 0, progressLastChanged: 12344565 };
         var result = Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have);
@@ -152,17 +174,7 @@
         }, getFailedPromiseHandler(assert, complete));
     });
 
-    function addThrowsWhenNoUrl(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-
-        assert.raises(function () {
-            bookmarks.add({});
-        }, function (ex) {
-            return ex.message === "Requires URL";
-        }, "Should throw if the URL isn't included");
-    }
-
-    function listIsEmpty(assert) {
+    QUnit.test("listIsEmpty", function listIsEmpty(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -174,12 +186,19 @@
             assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    var justAddedId;
-    var justAddedBookmark;
+    QUnit.test("addThrowsWhenNoUrl", function addThrowsWhenNoUrl(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-    function addAddsUrlReturnsCorrectObject(assert) {
+        assert.raises(function () {
+            bookmarks.add({});
+        }, function (ex) {
+            return ex.message === "Requires URL";
+        }, "Should throw if the URL isn't included");
+    });
+
+    QUnit.test("addAddsUrlReturnsCorrectObject", function addAddsUrlReturnsCorrectObject(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
         const complete = assert.async();
@@ -195,29 +214,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function addWithAdditionalParameters(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-        var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage2.html";
-        var bookmarkToCleanup;
-
-        const complete = assert.async();
-        bookmarks.add({ url: urlToAdd, title: "Custom Title", description: "Custom Description" }).then(function (data) {
-            assert.strictEqual(data.type, "bookmark");
-            assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
-            assert.strictEqual(data.title, "Custom Title", "title wasn't expected");
-            assert.strictEqual(data.description, "Custom Description");
-
-            bookmarkToCleanup = data.bookmark_id;
-        }).then(function cleanUp() {
-            return bookmarks.deleteBookmark(bookmarkToCleanup);
-        }).done(function () {
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
-
-    function listShowsAddedBookmark(assert) {
+    QUnit.test("listShowsAddedBookmark", function listShowsAddedBookmark(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -238,9 +237,9 @@
             justAddedBookmark = bookmarkData;
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listShowsNoDataWithUptodateHaveData(assert) {
+    QUnit.test("listShowsNoDataWithUptodateHaveData", function listShowsNoDataWithUptodateHaveData(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -255,10 +254,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    var updatedProgressHash;
-    function updateProgress(assert) {
+    QUnit.test("updateProgress", function updateProgress(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -269,9 +267,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listWithHaveProgressInfoUpdatesProgress(assert) {
+    QUnit.test("listWithHaveProgressInfoUpdatesProgress", function listWithHaveProgressInfoUpdatesProgress(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -282,8 +280,8 @@
                 id: justAddedBookmark.bookmark_id,
                 progress: newProgress,
                 hash: "X", // Set hash to something random that causes the service to give us back the new hash.
-                           // If we don't do this and hand up the "current" hash that we currently have, it updates
-                           // the current state, but doesn't tell us that it recomputed the hash.
+                // If we don't do this and hand up the "current" hash that we currently have, it updates
+                // the current state, but doesn't tell us that it recomputed the hash.
                 progressLastChanged: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
             }]
         }).done(function (data) {
@@ -301,9 +299,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function updateProgressMoreThan1(assert) {
+    QUnit.test("updateProgressMoreThan1", function updateProgressMoreThan1(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         assert.raises(function () {
@@ -311,9 +309,9 @@
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
-    }
+    });
 
-    function updateProgressLessThan0(assert) {
+    QUnit.test("updateProgressLessThan0", function updateProgressLessThan0(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         assert.raises(function () {
@@ -321,20 +319,11 @@
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
-    }
+    });
 
-    function listInStarredFolderExpectingNoStarredItems(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-        const complete = assert.async();
+    QUnit.test("listInStarredFolderExpectingNoStarredItems", listInStarredFolderExpectingNoStarredItems);
 
-        bookmarks.list({ folder_id: "starred" }).done(function (data) {
-            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
-
-    function star(assert) {
+    QUnit.test("star", function star(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -342,9 +331,9 @@
             assert.equal(data.starred, 1, "Item should have been starred");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listInStarredFolderExpectingSingleStarredItem(assert) {
+    QUnit.test("listInStarredFolderExpectingSingleStarredItem", function listInStarredFolderExpectingSingleStarredItem(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -361,9 +350,9 @@
             assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function unstar(assert) {
+    QUnit.test("unstar", function unstar(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -371,20 +360,13 @@
             assert.equal(data.starred, 0, "Item shouldn't have been starred");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listInArchiveFolderExpectingNoArchivedItems(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-        const complete = assert.async();
+    QUnit.test("listInStarredFolderExpectingNoStarredItemsAfterUnStarring", listInStarredFolderExpectingNoStarredItems);
 
-        bookmarks.list({ folder_id: "archive" }).done(function (data) {
-            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
+    QUnit.test("listInArchiveFolderExpectingNoArchivedItems", listInArchiveFolderExpectingNoArchivedItems);
 
-    function archive(assert) {
+    QUnit.test("archive", function archive(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -396,9 +378,9 @@
             assert.strictEqual(data.starred, "0");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listInArchiveFolderExpectingSingleArchivedItem(assert) {
+    QUnit.test("listInArchiveFolderExpectingSingleArchivedItem", function listInArchiveFolderExpectingSingleArchivedItem(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -415,9 +397,9 @@
             assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function unarchive(assert) {
+    QUnit.test("unarchive", function unarchive(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -429,9 +411,11 @@
             assert.strictEqual(data.starred, "0");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function getText(assert) {
+    QUnit.test("listInArchiveFolderExpectingNoArchivedItems2", listInArchiveFolderExpectingNoArchivedItems);
+
+    QUnit.test("getText", function getText(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -439,9 +423,9 @@
             assert.ok(data, "Expected to get actual data back");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function getTextToDirectory(assert) {
+    QUnit.test("getTextToDirectory", function getTextToDirectory(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -456,7 +440,7 @@
             }
 
             return fileToDelete.deleteAsync();
-        }).then(function() {
+        }).then(function () {
             return bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory);
         }).then(function (storageFile) {
             assert.ok(storageFile, "Expected to get actual data back");
@@ -467,12 +451,12 @@
             assert.notStrictEqual(basicProperties.size, 0, "Shouldn't have had file written to disk");
 
             return openedFile.deleteAsync();
-        }).done(function() {
+        }).done(function () {
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function getTextToDirectoryForUnavailableBookmarkDoesntWriteFile(assert) {
+    QUnit.test("getTextToDirectoryForUnavailableBookmarkDoesntWriteFile", function getTextToDirectoryForUnavailableBookmarkDoesntWriteFile(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
         var badBookmarkId;
@@ -480,7 +464,7 @@
 
         const complete = assert.async();
 
-        bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then(function(bookmark) {
+        bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then(function (bookmark) {
             targetFileName = bookmark.bookmark_id + ".html";
             badBookmarkId = bookmark.bookmark_id;
 
@@ -505,9 +489,33 @@
         }).done(function () {
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function getText_nonExistantBookmark(assert) {
+    QUnit.test("deleteAddedUrl", function deletedAddedUrl(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+
+        const complete = assert.async();
+        bookmarks.deleteBookmark(justAddedId).done(function (data) {
+            assert.ok(Array.isArray(data), "no data returned");
+            assert.strictEqual(data.length, 0, "Expected no elements in array");
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    });
+
+    QUnit.test("deleteNonExistantUrl", function deleteNonExistantUrl(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+
+        const complete = assert.async();
+        bookmarks.deleteBookmark(justAddedId).done(function (data) {
+            assert.ok(false, "expected failed eror handler to be called");
+            complete();
+        }, function (e) {
+            assert.strictEqual(e.error, 1241, "Unexpected error code");
+            complete();
+        });
+    });
+
+    QUnit.test("getText_nonExistantBookmark", function getText_nonExistantBookmark(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         const complete = assert.async();
@@ -518,9 +526,9 @@
             assert.strictEqual(e.error, 1241, "Unexpected error code");
             complete();
         });
-    }
+    });
 
-    function getText_unavailableBookmark(assert) {
+    QUnit.test("getText_unavailableBookmark", function getText_unavailableBookmark(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var badBookmarkId;
 
@@ -539,59 +547,27 @@
         }).done(() => {
             complete();
         });
-    }
+    });
 
-    function deletedAddedUrl(assert) {
+    QUnit.test("addWithAdditionalParameters", function addWithAdditionalParameters(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+        var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage2.html";
+        var bookmarkToCleanup;
 
         const complete = assert.async();
-        bookmarks.deleteBookmark(justAddedId).done(function (data) {
-            assert.ok(Array.isArray(data), "no data returned");
-            assert.strictEqual(data.length, 0, "Expected no elements in array");
+        bookmarks.add({ url: urlToAdd, title: "Custom Title", description: "Custom Description" }).then(function (data) {
+            assert.strictEqual(data.type, "bookmark");
+            assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
+            assert.strictEqual(data.title, "Custom Title", "title wasn't expected");
+            assert.strictEqual(data.description, "Custom Description");
+
+            bookmarkToCleanup = data.bookmark_id;
+        }).then(function cleanUp() {
+            return bookmarks.deleteBookmark(bookmarkToCleanup);
+        }).done(function () {
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
-
-    function deleteNonExistantUrl(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-
-        const complete = assert.async();
-        bookmarks.deleteBookmark(justAddedId).done(function (data) {
-            assert.ok(false, "expected failed eror handler to be called");
-            complete();
-        }, function (e) {
-            assert.strictEqual(e.error, 1241, "Unexpected error code");
-            complete();
-        });
-    }
-
-    QUnit.test("listIsEmpty", listIsEmpty);
-    QUnit.test("addThrowsWhenNoUrl", addThrowsWhenNoUrl);
-    QUnit.test("addAddsUrlReturnsCorrectObject", addAddsUrlReturnsCorrectObject);
-    QUnit.test("listShowsAddedBookmark", listShowsAddedBookmark);
-    QUnit.test("listShowsNoDataWithUptodateHaveData", listShowsNoDataWithUptodateHaveData);
-    QUnit.test("updateProgress", updateProgress);
-    QUnit.test("listWithHaveProgressInfoUpdatesProgress", listWithHaveProgressInfoUpdatesProgress);
-    QUnit.test("updateProgressMoreThan1", updateProgressMoreThan1);
-    QUnit.test("updateProgressLessThan0", updateProgressLessThan0);
-    QUnit.test("listInStarredFolderExpectingNoStarredItems", listInStarredFolderExpectingNoStarredItems);
-    QUnit.test("star", star);
-    QUnit.test("listInStarredFolderExpectingSingleStarredItem", listInStarredFolderExpectingSingleStarredItem);
-    QUnit.test("unstar", unstar);
-    QUnit.test("listInStarredFolderExpectingNoStarredItemsAfterUnStarring", listInStarredFolderExpectingNoStarredItems);
-    QUnit.test("listInArchiveFolderExpectingNoArchivedItems", listInArchiveFolderExpectingNoArchivedItems);
-    QUnit.test("archive", archive);
-    QUnit.test("listInArchiveFolderExpectingSingleArchivedItem", listInArchiveFolderExpectingSingleArchivedItem);
-    QUnit.test("unarchive", unarchive);
-    QUnit.test("listInArchiveFolderExpectingNoArchivedItems2", listInArchiveFolderExpectingNoArchivedItems);
-    QUnit.test("getText", getText);
-    QUnit.test("getTextToDirectory", getTextToDirectory);
-    QUnit.test("getTextToDirectoryForUnavailableBookmarkDoesntWriteFile", getTextToDirectoryForUnavailableBookmarkDoesntWriteFile);
-    QUnit.test("deleteAddedUrl", deletedAddedUrl);
-    QUnit.test("deleteNonExistantUrl", deleteNonExistantUrl);
-    QUnit.test("getText_nonExistantBookmark", getText_nonExistantBookmark);
-    QUnit.test("getText_unavailableBookmark", getText_unavailableBookmark);
-    QUnit.test("addWithAdditionalParameters", addWithAdditionalParameters);
+    });
 
     QUnit.module("instapaperApiFolderTests");
     // FOLDERS TESTS
@@ -601,9 +577,8 @@
      Add to a folder #
      move (Between folders) #
     */
-    var addedFolderId;
 
-    function listDefaultShouldBeEmpty(assert) {
+    QUnit.test("listDefaultShouldBeEmpty", function listDefaultShouldBeEmpty(assert) {
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         const complete = assert.async();
@@ -613,22 +588,22 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function addNewFolder(assert) {
+    QUnit.test("addnewFolder", function addNewFolder(assert) {
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         const complete = assert.async();
 
         folders.add("folder").done(function (data) {
             assert.strictEqual(data.title, "folder", "expected title to be that which was passed in");
-            
+
             addedFolderId = data.folder_id;
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
-    
-    function addDuplicateFolderReturnsError(assert) {
+    });
+
+    QUnit.test("addDuplicateFolderReturnsError", function addDuplicateFolderReturnsError(assert) {
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         const complete = assert.async();
@@ -644,9 +619,9 @@
             assert.strictEqual(error.error, 1251, "Incorrect error code");
             complete();
         });
-    }
+    });
 
-    function listWithAddedFolders(assert) {
+    QUnit.test("listWithAddedFolders", function listWithAddedFolders(assert) {
         var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
         const complete = assert.async();
@@ -668,10 +643,9 @@
             assert.ok(foundFolderWithCorrectTitle, "folder title was incorrect");
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    var bookmarkAddedToFolderId;
-    function addToFolder(assert) {
+    QUnit.test("addToFolder", function addToFolder(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage3.html";
         const complete = assert.async();
@@ -687,10 +661,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    var bookmarkAddedToFolderId2;
-    function moveBookmarkIntoFolder(assert) {
+    QUnit.test("moveBookmarkIntoFolder", function moveBookmarkIntoFolder(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
         const complete = assert.async();
@@ -715,9 +688,9 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function listContentsOfAFolder(assert) {
+    QUnit.test("listContentsOfAFolder", function listContentsOfAFolder(assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
@@ -735,7 +708,7 @@
                     bookmarkData2 = bookmark;
                 }
             });
-            
+
             // Validate the only bookmark
             assert.strictEqual(bookmarkData.type, "bookmark");
             assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
@@ -749,57 +722,14 @@
 
             complete();
         }, getFailedPromiseHandler(assert, complete));
-    }
+    });
 
-    function moveBookmarkOutOfArchive(assert) {
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-        const complete = assert.async();
-
-        bookmarks.archive(bookmarkAddedToFolderId2).then(function() {
-            return bookmarks.move({ bookmark_id: bookmarkAddedToFolderId2, destination: addedFolderId }).then(function () {
-                return bookmarks.list({ folder_id: "archive" });
-            });
-        }).done(function (archivedBookmarks) {
-            assert.ok(archivedBookmarks.bookmarks, "Expected archived bookmarks");
-            assert.strictEqual(archivedBookmarks.bookmarks.length, 0, "Didn't expect to find any bookmarks");
-
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
-
-    function deleteFolder(assert) {
-        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-
-        // delete book mark 'cause it ends up in the archieve folder
-        const complete = assert.async();
-        bookmarks.deleteBookmark(bookmarkAddedToFolderId).then(function () {
-            return bookmarks.deleteBookmark(bookmarkAddedToFolderId2);
-        }).then(function() {
-            return folders.deleteFolder(addedFolderId);
-        }).then(function (data) {
-            assert.ok(Array.isArray(data), "no data returned");
-            assert.strictEqual(data.length, 0, "Expected no elements in array");
-
-            addedFolderId = null;
-        }).done(function () {
-            complete();
-        }, getFailedPromiseHandler(assert, complete));
-    }
-
-    QUnit.test("listDefaultShouldBeEmpty", listDefaultShouldBeEmpty);
-    QUnit.test("addnewFolder", addNewFolder);
-    QUnit.test("addDuplicateFolderReturnsError", addDuplicateFolderReturnsError);
-    QUnit.test("listWithAddedFolders", listWithAddedFolders);
-    QUnit.test("addToFolder", addToFolder);
-    QUnit.test("moveBookmarkIntoFolder", moveBookmarkIntoFolder);
-    QUnit.test("listContentsOfAFolder", listContentsOfAFolder);
     QUnit.test("moveBookmarkToUnread", function (assert) {
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         var urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
 
         const complete = assert.async();
-        
+
         bookmarks.archive(bookmarkAddedToFolderId2).then(function () {
             return bookmarks.add({ url: urlToAdd }).then(function () {
                 return bookmarks.list();
@@ -812,6 +742,40 @@
             complete();
         }, getFailedPromiseHandler(assert, complete));
     });
-    QUnit.test("moveBookmarkOutOfArchive", moveBookmarkOutOfArchive);
-    QUnit.test("deleteFolder", deleteFolder);
+
+    QUnit.test("moveBookmarkOutOfArchive", function moveBookmarkOutOfArchive(assert) {
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+        const complete = assert.async();
+
+        bookmarks.archive(bookmarkAddedToFolderId2).then(function () {
+            return bookmarks.move({ bookmark_id: bookmarkAddedToFolderId2, destination: addedFolderId }).then(function () {
+                return bookmarks.list({ folder_id: "archive" });
+            });
+        }).done(function (archivedBookmarks) {
+            assert.ok(archivedBookmarks.bookmarks, "Expected archived bookmarks");
+            assert.strictEqual(archivedBookmarks.bookmarks.length, 0, "Didn't expect to find any bookmarks");
+
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    });
+
+    QUnit.test("deleteFolder", function deleteFolder(assert) {
+        var folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
+        var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
+
+        // delete book mark 'cause it ends up in the archieve folder
+        const complete = assert.async();
+        bookmarks.deleteBookmark(bookmarkAddedToFolderId).then(function () {
+            return bookmarks.deleteBookmark(bookmarkAddedToFolderId2);
+        }).then(function () {
+            return folders.deleteFolder(addedFolderId);
+        }).then(function (data) {
+            assert.ok(Array.isArray(data), "no data returned");
+            assert.strictEqual(data.length, 0, "Expected no elements in array");
+
+            addedFolderId = null;
+        }).done(function () {
+            complete();
+        }, getFailedPromiseHandler(assert, complete));
+    });
 })();

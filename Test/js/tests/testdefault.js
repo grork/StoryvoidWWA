@@ -4,7 +4,6 @@
     if (typeof(mocha) !== 'undefined' && typeof(qunit) === 'undefined') {
         // If mocha is available, but not qunit, lets init a qunit style interface for mocha
         mocha.setup({
-            ui: 'qunit',
             ignoreLeaks: false // Warn about global variable issues
         });
     }
