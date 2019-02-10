@@ -41,21 +41,21 @@
         });
     }
 
-    function expectNoPendingFolderEdits(testAssert, idb) {
+    function expectNoPendingFolderEdits(idb) {
         return idb.getPendingFolderEdits().then(function (pendingEdits) {
-            testAssert.ok(pendingEdits, "Expected valid pending edits structure");
-            testAssert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            assert.ok(pendingEdits, "Expected valid pending edits structure");
+            assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    function expectNoPendingBookmarkEdits(testAssert, idb) {
+    function expectNoPendingBookmarkEdits(idb) {
         return colludePendingBookmarkEdits(idb.getPendingBookmarkEdits()).then(function (pendingEdits) {
-            testAssert.ok(pendingEdits, "Expected valid pending edits structure");
-            testAssert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
+            assert.ok(pendingEdits, "Expected valid pending edits structure");
+            assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    function deleteDb(testAssert, name) {
+    function deleteDb(name) {
         pendingDbs.forEach(function (idb) {
             idb.dispose();
         });
@@ -65,7 +65,7 @@
         return WinJS.Promise.timeout().then(function () {
             return db.deleteDb(name || InstapaperDB.DBName);
         }).then(function () {
-            testAssert && testAssert.ok(true);
+            assert.ok(true);
         });
     }
     
@@ -112,7 +112,7 @@
 
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
 
-    function destroyRemoteAccountData(testAssert, clientInformation) {
+    function destroyRemoteAccountData(clientInformation) {
         /// <summary>
         /// Adds "cost" -- there is a limit of 120 per day -- so rather than
         /// Always nuking them remotely and re-adding them, lets try and keep
@@ -194,7 +194,7 @@
 
             return WinJS.Promise.join([removals, progressReset]);
         }).then(function () {
-            testAssert.ok(true, "It went very very wrong");
+            assert.ok(true, "It went very very wrong");
         });
     }
 
