@@ -13,6 +13,8 @@
   "author": "Dominic Hopton (d.hopton@codevoid.net)",
   "license": "No license. Commercial only.",
   "devDependencies": {
+    "@types/mocha": "5.2.5",
+    "@types/power-assert": "1.5.0",
     "bootstrap": "4.2.1",
     "mocha": "5.2.0",
     "power-assert": "1.6.1"
