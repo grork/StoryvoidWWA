@@ -1,54 +1,55 @@
 ﻿(function () {
     "use strict";
 
-    QUnit.module("parameterEncoder");
+    describe("parameterEncoder", function () {
 
-    QUnit.test("oneParamEncodes", function oneParamEncodes(assert) {
-        var input = [{ key: "a", value: "b" }];
-        var encoder = new Codevoid.OAuth.ParameterEncoder();
+        it("oneParamEncodes", function oneParamEncodes() {
+            var input = [{ key: "a", value: "b" }];
+            var encoder = new Codevoid.OAuth.ParameterEncoder();
 
-        var result = encoder.getEncodedStringForData(input);
+            var result = encoder.getEncodedStringForData(input);
 
 
-        assert.strictEqual(result, "a=b", "result was not correctly encoded");
-    });
+            assert.strictEqual(result, "a=b", "result was not correctly encoded");
+        });
 
-    QUnit.test("twoParametersEncodeInCorrectOrder", function twoParametersEncodeInCorrectOrder(assert) {
-        var input = [{ key: "b", value: "c%jkt" },
-        { key: "a", value: "b" }];
+        it("twoParametersEncodeInCorrectOrder", function twoParametersEncodeInCorrectOrder() {
+            var input = [{ key: "b", value: "c%jkt" },
+            { key: "a", value: "b" }];
 
-        var encoder = new Codevoid.OAuth.ParameterEncoder();
+            var encoder = new Codevoid.OAuth.ParameterEncoder();
 
-        var result = encoder.getEncodedStringForData(input);
-        assert.strictEqual(result, "a=b&b=c%25jkt", "result was not correctly encoded");
-    });
+            var result = encoder.getEncodedStringForData(input);
+            assert.strictEqual(result, "a=b&b=c%25jkt", "result was not correctly encoded");
+        });
 
-    QUnit.test("customDelimeterRespected", function customDelimeterRespected(assert) {
-        var input = [{ key: "b", value: "c" },
-        { key: "a", value: "b" }];
+        it("customDelimeterRespected", function customDelimeterRespected() {
+            var input = [{ key: "b", value: "c" },
+            { key: "a", value: "b" }];
 
-        var encoder = new Codevoid.OAuth.ParameterEncoder({ delimeter: "," });
+            var encoder = new Codevoid.OAuth.ParameterEncoder({ delimeter: "," });
 
-        var result = encoder.getEncodedStringForData(input);
-        assert.strictEqual(result, "a=b,b=c", "result was not correctly encoded");
-    });
+            var result = encoder.getEncodedStringForData(input);
+            assert.strictEqual(result, "a=b,b=c", "result was not correctly encoded");
+        });
 
-    QUnit.test("valuesAreQuotedWhenOptionSet", function valuesAreQuotedWhenOptionSet(assert) {
-        var input = [{ key: "b", value: "c" },
-        { key: "a", value: "b" }];
+        it("valuesAreQuotedWhenOptionSet", function valuesAreQuotedWhenOptionSet() {
+            var input = [{ key: "b", value: "c" },
+            { key: "a", value: "b" }];
 
-        var encoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true });
+            var encoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true });
 
-        var result = encoder.getEncodedStringForData(input);
-        assert.strictEqual(result, "a=\"b\"&b=\"c\"", "result was not correctly encoded");
-    });
+            var result = encoder.getEncodedStringForData(input);
+            assert.strictEqual(result, "a=\"b\"&b=\"c\"", "result was not correctly encoded");
+        });
 
-    QUnit.test("rfcEncodesAreCorrectlyEncoded", function rfcEncodesAreCorrectlyEncoded(assert) {
-        var input = [{ key: "!'()*", value: "*)('!" }];
+        it("rfcEncodesAreCorrectlyEncoded", function rfcEncodesAreCorrectlyEncoded() {
+            var input = [{ key: "!'()*", value: "*)('!" }];
 
-        var encoder = new Codevoid.OAuth.ParameterEncoder();
+            var encoder = new Codevoid.OAuth.ParameterEncoder();
 
-        var result = encoder.getEncodedStringForData(input);
-        assert.strictEqual(result, "%21%27%28%29%2A=%2A%29%28%27%21", "result was not correctly encoded");
+            var result = encoder.getEncodedStringForData(input);
+            assert.strictEqual(result, "%21%27%28%29%2A=%2A%29%28%27%21", "result was not correctly encoded");
+        });
     });
 })();
