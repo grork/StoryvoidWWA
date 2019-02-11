@@ -79,7 +79,6 @@
     <None Include="StoryVoidTest.pfx" />
     <Content Include="StoryVoidTest.pvk" />
     <Content Include="tsconfig.json" />
-    <Content Include="css\tests\qunit.css" />
     <Content Include="RemoteTestContent\SampleImage1.png" />
     <Content Include="RemoteTestContent\SampleImage2.jpg" />
     <Content Include="RemoteTestContent\TestPage1.html" />
@@ -91,7 +90,6 @@
     <Content Include="RemoteTestContent\TestPage6.html" />
     <Content Include="RemoteTestContent\TestPage7.html" />
     <Content Include="RemoteTestContent\TestPage8.html" />
-    <Content Include="tests.html" />
     <Content Include="default.html" />
     <Content Include="images\logo.png" />
     <Content Include="images\smalllogo.png" />
@@ -110,7 +108,6 @@
     <Content Include="js\tests\InstapaperTests_Utilities.js" />
     <Content Include="js\tests\OAuthRequest_tests.js" />
     <Content Include="js\tests\ParameterEncoder_tests.js" />
-    <Content Include="js\tests\qunit.js" />
     <Content Include="js\tests\WebViewTestScript.js" />
     <Content Include="js\tests\testdefault.js" />
     <Content Include="js\tests\TestTemplate.html" />
@@ -121,7 +118,6 @@
     <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
     <TypeScriptCompile Include="js\tests\WhatToRead_tests.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
-    <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
     <TypeScriptCompile Include="js\tests\AutoSyncWatcher_tests.ts" />
     <Content Include="..\App\HtmlTemplates.html">
       <Link>HtmlTemplates.html</Link>

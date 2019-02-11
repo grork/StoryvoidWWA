@@ -189,12 +189,12 @@
             Codevoid.UICore.Experiences.initializeHost(null);
         },
         getPlayground: function getPlayground() {
-            var playground = document.getElementById("qunit-fixture");
+            var playground = document.getElementById("dom-fixture");
 
             return playground.appendChild(document.createElement("div"));
         },
         clearPlayground: function clearPlayground() {
-            const playground = document.getElementById("qunit-fixture");
+            const playground = document.getElementById("dom-fixture");
             playground.innerHTML = "";
         }
     });

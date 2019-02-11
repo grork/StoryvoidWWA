@@ -1,5 +1,4 @@
 ﻿// Originally sourced from https://github.com/aaronpowell/db.js/tree/master/tests/public/specs
-// Ported from node/jasmine to qunit. Mostly becuase thats what I had. Tough. :p
 
 (function () {
     "use strict";

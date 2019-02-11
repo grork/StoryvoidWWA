@@ -1,15 +1,11 @@
 ﻿// "Default" js file for the tests pages.
 // This is needed because Edge does not allow inline script
 (function () {
-    const isMocha = typeof (mocha) !== 'undefined' && typeof (qunit) === 'undefined';
-    if (isMocha) {
-        // If mocha is available, but not qunit, lets init a qunit style interface for mocha
-        mocha.setup({
-            ui: 'bdd',
-            timeout: 20000,
-            slow: 5000,
-        });
-    }
+    mocha.setup({
+        ui: 'bdd',
+        timeout: 20000,
+        slow: 5000,
+    });
 
     document.addEventListener("DOMContentLoaded", function () {
         let backButton = document.getElementById("goBackButton");
@@ -29,8 +25,6 @@
             });
         }
 
-        if (isMocha) {
-            mocha.run();
-        }
+        mocha.run();
     });
 })();
