@@ -1,0 +1,22 @@
+{
+  "name": "storyvoid",
+  "version": "1.2.0",
+  "description": "Storyvoid",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://codevoid.visualstudio.com/DefaultCollection/ArticleVoid/_git/Storyvoid"
+  },
+  "author": "Dominic Hopton (d.hopton@codevoid.net)",
+  "license": "No license. Commercial only.",
+  "devDependencies": {
+    "@types/mocha": "5.2.5",
+    "@types/power-assert": "1.5.0",
+    "bootstrap": "4.2.1",
+    "mocha": "5.2.0",
+    "power-assert": "1.6.1"
+  }
+}

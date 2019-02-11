@@ -1,6 +1,7 @@
 ﻿/// <reference path="..\..\..\app\js\SettingsCore.ts" />
 module CodevoidTests {
     import st = Windows.Storage;
+    const SETTINGS_CONTEXT_KEY = "settings";
 
     class SettingsTest extends Codevoid.Utilities.SettingsCore {
         constructor(name: string) {
@@ -35,101 +36,107 @@ module CodevoidTests {
         }
     }
 
-    function getSettings(name?: string): SettingsTest {
-        var containerName = name || Date.now() + "";
-
-        return new SettingsTest(containerName);
+    function settingsWrapper(testWork: (settings: SettingsTest) => void) : Mocha.Func {
+        return function() {
+            let settings: SettingsTest = this[SETTINGS_CONTEXT_KEY];
+            testWork(settings);
+        };
     }
 
-    function settingsTest(name: string, testBody: (assert: QUnitAssert, settings: SettingsTest) => void): void {
-        QUnit.test(name, (testAssert) => {
+    describe("SettingsCore", function () {
+
+        it("CanInstantiateWithoutCreatingContainer", () => {
             var containerName = Date.now() + "";
             var settings = new SettingsTest(containerName);
+            assert.notStrictEqual(settings, null, "Expected to create instance");
 
-            try {
-                testBody(testAssert, settings);
-            } finally {
-                settings.removeAllSettings();
-            }
+            var hasContainer = st.ApplicationData.current.localSettings.containers.hasKey(containerName);
+
+            assert.ok(!hasContainer, "Didn't expect container to be created");
         });
-    }
 
-    QUnit.module("SettingsCore");
+        describe("Using Settings", function () {
+            beforeEach(function () {
+                var containerName = Date.now() + "";
+                var settings = new SettingsTest(containerName);
 
-    QUnit.test("CanInstantiateWithoutCreatingContainer", (assert) => {
-        var containerName = Date.now() + "";
-        var settings = new SettingsTest(containerName);
-        assert.notStrictEqual(settings, null, "Expected to create instance");
+                this.currentTest.ctx[SETTINGS_CONTEXT_KEY] = settings;
+            });
 
-        var hasContainer = st.ApplicationData.current.localSettings.containers.hasKey(containerName);
+            afterEach(function () {
+                let settings: SettingsTest = this.currentTest.ctx[SETTINGS_CONTEXT_KEY];
+                if (settings) {
+                    settings.removeAllSettings();
+                    this.currentTest.ctx[SETTINGS_CONTEXT_KEY] = null;
+                }
+            });
 
-        assert.ok(!hasContainer, "Didn't expect container to be created");
-    });
+            it("ContainerNotCreatedOnPropertyRead", settingsWrapper((settings) => {
+                var value = settings.hasCreated;
+                assert.ok(value, "Setting returned incorrectly");
 
-    settingsTest("ContainerNotCreatedOnPropertyRead", (assert, settings) => {
-        var value = settings.hasCreated;
-        assert.ok(value, "Setting returned incorrectly");
+                var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
+                assert.ok(!containerExists, "Container should have been created");
+            }));
 
-        var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
-        assert.ok(!containerExists, "Container should have been created");
-    });
+            it("ContainerNotCreatedOnWritingValueSameAsDefault", settingsWrapper((settings) => {
+                var value = settings.hasCreated;
+                assert.ok(value, "Setting returned incorrectly");
 
-    settingsTest("ContainerNotCreatedOnWritingValueSameAsDefault", (assert, settings) => {
-        var value = settings.hasCreated;
-        assert.ok(value, "Setting returned incorrectly");
+                settings.hasCreated = true;
 
-        settings.hasCreated = true;
+                var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
+                assert.ok(!containerExists, "Container should have been created");
+            }));
 
-        var containerExists = st.ApplicationData.current.localSettings.containers.hasKey(settings.name);
-        assert.ok(!containerExists, "Container should have been created");
-    });
+            it("DefaultValueReturnedWhenValueNotSet", settingsWrapper((settings) => {
+                assert.ok(settings.hasCreated, "Expected default value");
+            }));
 
-    settingsTest("DefaultValueReturnedWhenValueNotSet", (assert, settings) => {
-        assert.ok(settings.hasCreated, "Expected default value");
-    });
+            it("StoredValueReturnedFromSettings", settingsWrapper((settings) => {
+                var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+                container.values["hasCreated"] = false;
 
-    settingsTest("StoredValueReturnedFromSettings", (assert, settings) => {
-        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        container.values["hasCreated"] = false;
+                assert.ok(!settings.hasCreated, "Expected value to be false");
+            }));
 
-        assert.ok(!settings.hasCreated, "Expected value to be false");
-    });
+            it("ValueCanBeStoredAndRetrieved", settingsWrapper((settings) => {
+                var now = Date.now() + "";
 
-    settingsTest("ValueCanBeStoredAndRetrieved", (assert, settings) => {
-        var now = Date.now() + "";
+                settings.otherProperty = now;
 
-        settings.otherProperty = now;
+                var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+                assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+                assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+            }));
 
-        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
-    });
+            it("ValueCanBeStoredSecondTime", settingsWrapper((settings) => {
+                var now = Date.now() + "";
 
-    settingsTest("ValueCanBeStoredSecondTime", (assert, settings) => {
-        var now = Date.now() + "";
+                settings.otherProperty = now;
 
-        settings.otherProperty = now;
+                var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+                assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+                assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
 
-        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+                now = (Date.now() + 10) + "";
+                settings.otherProperty = now;
+                assert.strictEqual(settings.otherProperty, now, "Second written value incorrect");
+            }));
 
-        now = (Date.now() + 10) + "";
-        settings.otherProperty = now;
-        assert.strictEqual(settings.otherProperty, now, "Second written value incorrect");
-    });
+            it("ValueCanBeClearedAndReturnsToDefault", settingsWrapper((settings) => {
+                var now = Date.now() + "";
 
-    settingsTest("ValueCanBeClearedAndReturnsToDefault", (assert, settings) => {
-        var now = Date.now() + "";
+                settings.otherProperty = now;
 
-        settings.otherProperty = now;
+                var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
+                assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
+                assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
 
-        var container = st.ApplicationData.current.localSettings.createContainer(settings.name, st.ApplicationDataCreateDisposition.always);
-        assert.strictEqual(container.values["otherProperty"], now, "Saved Value differs");
-        assert.strictEqual(settings.otherProperty, now, "Retreived value differs");
+                settings.clearOtherProperty();
 
-        settings.clearOtherProperty();
-
-        assert.strictEqual(settings.otherProperty, null, "Didn't reset value");
+                assert.strictEqual(settings.otherProperty, null, "Didn't reset value");
+            }));
+        });
     });
 }

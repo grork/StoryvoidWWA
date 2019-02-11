@@ -90,3 +90,16 @@ body {
             -ms-grid-column-align: center;
             -ms-grid-row-align: center;
         }
+
+.test-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+    .test-button-container > .btn {
+        margin-left: 12px;
+        margin-right: 12px;
+        min-width: 75px;
+    }

@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Mocha Test Pages</title>
+    <!-- Bootstrap to make things look nice -->
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/bootstrap-reboot.css" />
+
+    <!-- Test Support  -->
+    <link rel="stylesheet" href="/mocha.css" />
+    <link rel="stylesheet" href="/css/default.css" />
+    <script src="/mocha.js"></script>
+    <script src="/power-assert.js"></script>
+    <script src="/js/tests/testdefault.js"></script>
+
+    <!-- Code Under test &amp; dependencies -->
+    <script src="/WinJS/js/base.js"></script>
+    <script src="/js/utilities.js"></script>
+    <script src="/js/db.js"></script>
+    <script src="/js/InstapaperApi.js"></script>
+    <script src="/js/InstapaperDB.js"></script>
+    <script src="/js/InstapaperSync.js"></script>
+    <script src="/core.js"></script>
+    <script src="/js/oauth.js"></script>
+    <script src="/Deeplinking.js"></script>
+    <script src="/WhatToRead.js"></script>
+    <script src="/AutoSyncWatcher.js"></script>
+    <script src="/WebViewMessenger.js"></script>
+    <script src="/SettingsCore.js"></script>
+    <script src="/js/AuthenticatorService.js"></script>
+    <script src="/js/authenticator.js"></script>
+    <script src="/InstapaperArticleSync.js"></script>
+
+    <!-- Test Helper -->
+    <script src="/js/tests/InstapaperTests_Utilities.js"></script>
+
+    <!-- Tests -->
+    <script src="/js/tests/Utilities_tests.js"></script>
+    <script src="/js/tests/core_tests.js"></script>
+    <script src="/js/tests/experiencemanager_tests.js"></script>
+    <script src="/js/tests/ParameterEncoder_tests.js"></script>
+    <script src="/js/tests/OAuthRequest_tests.js"></script>
+    <script src="/js/tests/WhatToRead_tests.js"></script>
+    <script src="/js/tests/AutoSyncWatcher_tests.js"></script>
+    <script src="/js/tests/WebViewMessengerTests.js"></script>
+    <script src="/js/tests/Settings_Tests.js"></script>
+    <script src="/js/tests/InstapaperDB_tests.js"></script>
+    <script src="/js/tests/InstapaperDBEvent_tests.js"></script>
+    <script src="/js/tests/db_tests.js"></script>
+    <script src="/js/Tests/InstapaperApi_Tests.js"></script>
+    <script src="/js/tests/authenticator_tests.js"></script>
+    <script src="/js/tests/InstapaperDBSync_tests.js"></script>
+    <script src="/js/tests/InstapaperArticleSync_tests.js"></script>
+</head>
+<body>
+    <div class="test-button-container">
+        <button class="btn btn-primary" id="runButton">Re-Run</button>
+        <button class="btn btn-secondary" id="closeButton">Close</button>
+        <button class="btn btn-secondary" id="goBackButton">Back</button>
+    </div>
+    
+    <div id="mocha"></div>
+    <div id="dom-fixture"></div>
+</body>
+</html>

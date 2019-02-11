@@ -1,8 +1,8 @@
 ﻿declare module InstapaperTestUtilities {
-    export function promiseTest(name: string, test: (assert: QUnitAssert) => any, delay?: number);
     export function destroyRemoteData(clientInformation: Codevoid.OAuth.ClientInformation): WinJS.Promise<any>;
-    export function deleteDb(assert?: QUnitAssert): WinJS.Promise<any>;
+    export function deleteDb(): WinJS.Promise<any>;
     export function getPlayground(): HTMLElement;
+    export function clearPlayground(): void;
 }
 
 declare module CodevoidTests {
