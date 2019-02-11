@@ -159,7 +159,6 @@
     <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
     <Content Include="js\OAuth.js" />
     <Content Include="js\ui\authenticator.js" />
-    <Content Include="js\Utilities.js" />
     <Content Include="css\colours.css" />
     <Content Include="css\viewer.css" />
     <Content Include="default.html" />
@@ -174,6 +173,8 @@
     <Content Include="WinJS\js\ui.js" />
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
+    
+    <TypeScriptCompile Include="js\Utilities.ts" />
     <TypeScriptCompile Include="js\SettingsCore.ts" />
     <TypeScriptCompile Include="js\Telemetry.ts" />
     <TypeScriptCompile Include="js\TelemetrySettings.ts" />

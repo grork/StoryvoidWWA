@@ -144,9 +144,6 @@
     <Content Include="..\App\js\ui\authenticator.js">
       <Link>js\authenticator.js</Link>
     </Content>
-    <Content Include="..\App\js\Utilities.js">
-      <Link>js\Utilities.js</Link>
-    </Content>
     <Content Include="..\App\WinJS\css\ui-light-intrinsics.css">
       <Link>WinJS\css\ui-light-intrinsics.css</Link>
     </Content>
@@ -162,6 +159,9 @@
     <Content Include="..\App\WinJS\js\intrinsics.js">
       <Link>WinJS\js\intrinsics.js</Link>
     </Content>
+    <TypeScriptCompile Include="..\App\js\Utilities.ts">
+      <Link>js\Utilities.ts</Link>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\InstapaperArticleSync.ts">
       <Link>js\InstapaperArticleSync.ts</Link>
     </TypeScriptCompile>
