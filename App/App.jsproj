@@ -45,7 +45,7 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
-    <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
     <WinRt2TsOutputDir>$(BaseIntermediateOutputPath)winrtrefs</WinRt2TsOutputDir>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -167,7 +167,9 @@
     <None Include="Package.StoreAssociation.xml" />
     <Content Include="OverlayScrollbars\OverlayScrollbars.css" />
     <Content Include="OverlayScrollbars\OverlayScrollbars.js" />
-    <Content Include="packages.config" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="shareTarget.html" />
     <Content Include="WinJS\js\ui.js" />
     <Content Include="WinJS\js\base.js" />
