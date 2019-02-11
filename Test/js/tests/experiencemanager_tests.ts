@@ -78,7 +78,6 @@ module CodevoidTests.ExperienceManagerTests {
         beforeEach(InstapaperTestUtilities.clearPlayground);
         afterEach(InstapaperTestUtilities.clearPlayground);
 
-        var promiseTest = InstapaperTestUtilities.promiseTest;
         var getPlayground = InstapaperTestUtilities.getPlayground;
 
         it("canInstantiateWwaExperienceManager", function () {

@@ -6,7 +6,6 @@
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
     var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
     var deleteDb = InstapaperTestUtilities.deleteDb;
-    var promiseTest = InstapaperTestUtilities.promiseTest;
 
     describe("InstapaperStoreEventingFolders", function () {
         it("deleteDb", deleteDb.bind(null, null));

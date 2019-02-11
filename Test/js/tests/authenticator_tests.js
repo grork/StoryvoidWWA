@@ -2,7 +2,6 @@
     "use strict";
 
     var Signal = Codevoid.Utilities.Signal;
-    var promiseTest = InstapaperTestUtilities.promiseTest;
     var getPlayground = InstapaperTestUtilities.getPlayground;
     var cleanupExperienceHost = InstapaperTestUtilities.cleanupExperienceHost;
     var authenticator = Codevoid.Storyvoid.Authenticator;

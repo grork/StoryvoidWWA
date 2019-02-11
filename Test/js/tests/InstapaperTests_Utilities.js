@@ -20,27 +20,6 @@
         });
     }
 
-    function promiseTest(name, func, delay) {
-        QUnit.test(name, function (assert) {
-            var complete = assert.async();
-            var promise = WinJS.Promise.as(func(assert));
-
-            if(delay) {
-                promise = promise.then(function() {
-                    return WinJS.Promise.timeout(delay);
-                });
-            }
-
-            promise.then(null, (error) => {
-                debugger;
-                assert.ok(false, "Failed: " + error.toString() + "\n" + error.stack);
-            }).done(() => {
-                cleanUpOpenDbs();
-                complete();
-            });
-        });
-    }
-
     function expectNoPendingFolderEdits(idb) {
         return idb.getPendingFolderEdits().then(function (pendingEdits) {
             assert.ok(pendingEdits, "Expected valid pending edits structure");
@@ -200,7 +179,6 @@
 
     WinJS.Namespace.define("InstapaperTestUtilities", {
         getNewInstapaperDBAndInit: getNewInstapaperDBAndInit,
-        promiseTest: promiseTest,
         expectNoPendingFolderEdits: expectNoPendingFolderEdits,
         expectNoPendingBookmarkEdits: expectNoPendingBookmarkEdits,
         deleteDb: deleteDb,

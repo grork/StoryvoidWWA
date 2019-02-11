@@ -1,7 +1,6 @@
 ﻿/// <reference path="..\..\..\app\js\WhatToRead.ts" />
 
 module CodevoidTests.WhatToReadTests {
-    const promiseTest = InstapaperTestUtilities.promiseTest;
     const DB_CONTEXT_KEY = "db";
 
     interface IWhatToRead_ForTest {
