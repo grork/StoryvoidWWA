@@ -220,7 +220,7 @@
                     }
                     wasUnsyncedEdit = true;
 
-                    appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
+                    window.appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
                     return this.deletePendingFolderEdit(results[0].id);
                 }.bind(this));
 
@@ -293,7 +293,7 @@
                     pendingEdits.forEach(function (pendingEdit) {
                         switch (pendingEdit.type) {
                             case Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD:
-                                appassert(!folder, "Don't support folder specific adds");
+                                window.appassert(!folder, "Don't support folder specific adds");
                                 adds.push(pendingEdit);
                                 break;
                             case Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.DELETE:
@@ -313,7 +313,7 @@
                                 break;
 
                             default:
-                                appfail("Unsupported edit type");
+                                window.appfail("Unsupported edit type");
                                 break;
                         }
                     });
@@ -359,7 +359,7 @@
                 }
             }),
             addBookmark: checkDb(function addBookmark(bookmark) {
-                appassert(bookmark.folder_dbid, "No Folder DB ID provided");
+                window.appassert(bookmark.folder_dbid, "No Folder DB ID provided");
                 if(!Object.hasOwnProperty(bookmark)) {
                     bookmark.contentAvailableLocally = false;
                 }
@@ -393,7 +393,7 @@
                         return (item.type === type);
                     });
 
-                    appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
+                    window.appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
                     return resultsOfType[0];
                 });
             }),

@@ -2,8 +2,8 @@
     "use strict";
 
     function stringKeySorter(first, second) {
-        appassert(first && first.key, "first param was falsey");
-        appassert(second && second.key, "second param was falsey");
+        window.appassert(first && first.key, "first param was falsey");
+        window.appassert(second && second.key, "second param was falsey");
 
         return first.key.localeCompare(second.key);
     }
@@ -14,10 +14,10 @@
     }
 
     function _encodeKeyValuePairAndInsert(item, destination) {
-        appassert(item, "No item provided");
-        appassert(destination, "no destination provided");
-        appassert(Array.isArray(destination), "destination wasn't an array");
-        appassert(item.key, "Item didn't have key");
+        window.appassert(item, "No item provided");
+        window.appassert(destination, "no destination provided");
+        window.appassert(Array.isArray(destination), "destination wasn't an array");
+        window.appassert(item.key, "Item didn't have key");
 
         destination.push({ key: rfc3986encodeURIComponent(item.key), value: rfc3986encodeURIComponent(item.value) });
     }
@@ -60,8 +60,8 @@
                 return stringifiedItems.join(this._delimeter);
             },
             _mergeAndEncode: function _mergeAndEncode(source, destination) {
-                appassert(source && Array.isArray(source), "Source wasn't an array");
-                appassert(destination && Array.isArray(destination), "destination isn't array");
+                window.appassert(source && Array.isArray(source), "Source wasn't an array");
+                window.appassert(destination && Array.isArray(destination), "destination isn't array");
 
                 for (var i = 0; i < source.length; i++) {
                     _encodeKeyValuePairAndInsert(source[i], destination);
@@ -82,8 +82,8 @@
 
     WinJS.Namespace.define("Codevoid.OAuth", {
         ClientInformation: WinJS.Class.define(function ClientSecretConstructor(id, secret, token, tokenSecret) {
-            appassert(id, "ID Required");
-            appassert(secret, "secret required");
+            window.appassert(id, "ID Required");
+            window.appassert(secret, "secret required");
 
             this._id = id;
             this._secret = secret;
@@ -126,8 +126,8 @@
             },
         }),
         OAuthRequest: WinJS.Class.define(function OAuthRequestConstructor(clientInformation, url, operation) {
-            appassert(clientInformation, "no client information supplied");
-            appassert(url, "No URL Supplied");
+            window.appassert(clientInformation, "no client information supplied");
+            window.appassert(url, "No URL Supplied");
 
             this._clientInformation = clientInformation;
             this._url = url;

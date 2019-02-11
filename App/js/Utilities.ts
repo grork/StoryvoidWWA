@@ -1,50 +1,9 @@
-﻿(function () {
-    "use strict";
+﻿interface Window {
+    appassert(assertion: boolean, message: string): void;
+    appfail(message: string): void;
+}
 
-    class DebounceImpl {
-        constructor(debounceOperation, idleTimeout, completeOnlyOnce) {
-            if (!debounceOperation) {
-                throw new Error("An operation must be supplied at construction time");
-            }
-
-            if (idleTimeout < 1) {
-                throw new Error("Timeout must be greater than 0");
-            }
-
-            this.completed = false;
-            this.completeOnlyOnce = completeOnlyOnce || false;
-            this.idleTimeout = idleTimeout;
-            this.operation = () => {
-                if (this.completeOnlyOnce && this.completed) {
-                    return;
-                }
-
-                this.completed = true;
-                debounceOperation();
-            };
-
-            this.timeoutId = null;
-        }
-
-        cancel() {
-            if (this.timeoutId === null) {
-                return;
-            }
-
-            clearTimeout(this.timeoutId);
-        }
-
-        bounce() {
-            if (this.completeOnlyOnce && this.completed) {
-                return;
-            }
-
-            this.cancel();
-
-            this.timeoutId = setTimeout(this.operation, this.idleTimeout);
-        }
-    }
-
+module Codevoid.Utilities {
     if (!window.alert) {
         (function () {
             var alertsToShow = [];
@@ -87,7 +46,49 @@
             alert(message);
         };
     }
-    
+
+    export class Debounce {
+        private completed: boolean = false;
+        private timeoutId: number = null;
+
+        constructor(private debounceOperation: Function, private idleTimeout: number, private completeOnlyOnce?: boolean) {
+            if (!debounceOperation) {
+                throw new Error("An operation must be supplied at construction time");
+            }
+
+            if (idleTimeout < 1) {
+                throw new Error("Timeout must be greater than 0");
+            }
+        }
+
+        private operation(): void {
+            if (this.completeOnlyOnce && this.completed) {
+                return;
+            }
+
+            this.completed = true;
+            this.debounceOperation();
+        }
+
+        public cancel(): void {
+            if (this.timeoutId === null) {
+                return;
+            }
+
+            clearTimeout(this.timeoutId);
+        }
+
+        public bounce(): void {
+            if (this.completeOnlyOnce && this.completed) {
+                return;
+            }
+
+            this.cancel();
+
+            this.timeoutId = setTimeout(this.operation, this.idleTimeout);
+        }
+    }
+
     WinJS.Namespace.define("Codevoid.Utilities", {
         Signal: WinJS.Class.mix(WinJS.Class.define(function () {
             var that = this;
@@ -128,7 +129,6 @@
                 this._progress(progressInfo);
             },
         }), WinJS.Utilities.eventMixin),
-        Debounce: DebounceImpl,
         /// <summary>
         /// Logging helper class that provides structured & unstructured logging.
         /// Structured in this case means support for saying "this message should be presented without reformatting"
@@ -326,7 +326,7 @@
             try {
                 element.winControl.dispose();
             } catch (e) {
-                appfail("Failed to unload control:\n" + e.toString() + "\nStack:\n" + e.stack);
+                window.appfail("Failed to unload control:\n" + e.toString() + "\nStack:\n" + e.stack);
             }
         },
         disposeOfControlTree: function disposeOfControlTree(root) {
@@ -344,7 +344,7 @@
             return element.removeChild(child);
         },
         empty: function (element) {
-            appassert(element, "no element provided");
+            window.appassert(element, "no element provided");
             if (!element) {
                 return;
             }
@@ -547,4 +547,4 @@
             },
         }),
     });
-})();
+}

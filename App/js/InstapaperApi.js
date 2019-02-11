@@ -35,8 +35,8 @@
 
     function extractDataFromJSON(data, reduceSingleItemToObject) {
         var objectData = (data) ? JSON.parse(data) : "";
-        appassert(objectData, "didn't parse object data");
-        appassert(Array.isArray(objectData), "Wasn't an array");
+        window.appassert(objectData, "didn't parse object data");
+        window.appassert(Array.isArray(objectData), "Wasn't an array");
 
         if (objectData.length === 1) {
             if (objectData[0].type === "error") {
@@ -95,7 +95,7 @@
                 ];
 
                 return request.send().then(function extractTokenInfo(responseData) {
-                    appassert(responseData, "Didn't get response data");
+                    window.appassert(responseData, "Didn't get response data");
                     var nameValuePairs = responseData.split("&");
                     var result = {};
                     for (var i = 0; i < nameValuePairs.length; i++) {
@@ -129,7 +129,7 @@
                 var currentTimeInNyc = new Date(Date.now() + (3 * 60 * 60 * 1000));
                 var previousStoredDateInInNyc = current["date"];
                 if (!previousStoredDateInInNyc) {
-                    appfail("You should stop this run, and wait for the roaming setting to roam");
+                    window.appfail("You should stop this run, and wait for the roaming setting to roam");
                     previousStoredDateInInNyc = Date.now() - (24 * 60 * 60 * 1000);
                 }
 
@@ -149,7 +149,7 @@
                 store.values[this._clientInformation.clientToken] = current;
 
                 console.log("Current daily add count: " + current["count"]);
-                appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
+                window.appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
             },
             list: function list(parameters) {
                 var data = [];
@@ -163,15 +163,15 @@
                     }
 
                     if (parameters.have && parameters.have.length) {
-                        appassert(Array.isArray(parameters.have, "expected 'have' parameter to be an array"));
-                        appassert(parameters.have.length > 0, "didn't actually supply any parameters");
+                        window.appassert(Array.isArray(parameters.have, "expected 'have' parameter to be an array"));
+                        window.appassert(parameters.have.length > 0, "didn't actually supply any parameters");
 
                         var haveStrings = [];
                         parameters.have.forEach(function (have) {
                             haveStrings.push(Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have));
                         });
 
-                        appassert(haveStrings.length > 0, "didn't get any have strings to send");
+                        window.appassert(haveStrings.length > 0, "didn't get any have strings to send");
                         data.push({ key: "have", value: haveStrings.join(",") });
                     }
                 }
@@ -184,8 +184,8 @@
 
                 const startTime = Date.now();
                 return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError).then(function stripMetaAndUserObject(data) {
-                    appassert(Array.isArray(data), "Expected array for data");
-                    appassert(data.length > 1, "expected at least 2 objects");
+                    window.appassert(Array.isArray(data), "Expected array for data");
+                    window.appassert(data.length > 1, "expected at least 2 objects");
 
                     return {
                         meta: data.shift(),
@@ -372,7 +372,7 @@
                     return have.toString();
                 }
 
-                appassert(have.id, "Needs an ID at minimum");
+                window.appassert(have.id, "Needs an ID at minimum");
                 var haveString = have.id.toString();
                 if (have.hash) {
                     haveString += ":" + have.hash;
