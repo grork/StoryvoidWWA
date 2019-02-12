@@ -1,5 +1,6 @@
 ﻿/// <reference path="..\..\tsc\libs\codevoidtest.d.ts" static="true" />
 /// <reference path="..\..\..\App\js\ui\core.ts" />
+/// <reference path="..\..\..\App\js\Utilities.ts" />
 
 module CodevoidTests {
     export interface ExperienceInformation {

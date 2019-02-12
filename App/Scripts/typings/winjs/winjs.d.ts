@@ -9039,6 +9039,7 @@ declare namespace WinJS.UI.Fragments {
      * Removes any cached information about the specified fragment. This method does not unload any scripts or styles that are referenced by the fragment.
      * @param href The URI that contains the fragment to be cleared. If no URI is provided, the entire contents of the cache are cleared.
     **/
+    function clearCache(): void;
     function clearCache(href: string): void;
     function clearCache(href: HTMLElement): void;
 

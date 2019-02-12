@@ -3,6 +3,12 @@
     appfail(message: string): void;
 }
 
+declare module Codevoid.Utilities.DOM {
+    export class LogViewer {
+        constructor(host: HTMLElement);
+    }
+}
+
 module Codevoid.Utilities {
     if (!window.alert) {
         (function () {
@@ -85,7 +91,7 @@ module Codevoid.Utilities {
 
             this.cancel();
 
-            this.timeoutId = setTimeout(this.operation, this.idleTimeout);
+            this.timeoutId = setTimeout(this.operation.bind(this), this.idleTimeout);
         }
     }
 
