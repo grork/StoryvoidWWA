@@ -1,14 +1,4 @@
-﻿declare module Codevoid.Utilities.DOM {
-    export function disposeOfControl(control: any): void;
-    export function disposeOfControlTree(control: any): void;
-    export function removeChild(parent: HTMLElement, child: HTMLElement): HTMLElement;
-    export function loadTemplate(file: string, templateId: string): WinJS.Promise<WinJS.Binding.Template>;
-    export function setControlAttribute(element: HTMLElement, controlClassName: string);
-    export function marryEventsToHandlers(element: HTMLElement, context: any): ICancellable;
-    export function marryPartsToControl(element: HTMLElement, context: any): void; 
-}
-
-declare module Codevoid.Utilities {
+﻿declare module Codevoid.Utilities {
     export interface ICancellable {
         cancel();
     }

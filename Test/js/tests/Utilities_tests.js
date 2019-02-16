@@ -4,6 +4,7 @@
     var getPlayground = InstapaperTestUtilities.getPlayground;
     var domUtilities = Codevoid.Utilities.DOM;
     var customUnloadingControlId = 0;
+    const msfp = WinJS.Utilities.markSupportedForProcessing;
 
     WinJS.Namespace.define("CodevoidTests", {
         TestControl: WinJS.Class.define(function (element) {
@@ -654,17 +655,17 @@
                 var parts = {};
                 var instance = {
                     hasFlag: true,
-                    handleCustom: domUtilities.msfp(function (e) {
+                    handleCustom: msfp(function (e) {
                         if (e && this.hasFlag) {
                             customCalled = true;
                         }
                     }),
-                    handleCustom2: domUtilities.msfp(function (e) {
+                    handleCustom2: msfp(function (e) {
                         if (e && this.hasFlag) {
                             custom2Called = true;
                         }
                     }),
-                    handleCustomRoot: domUtilities.msfp(function (e) {
+                    handleCustomRoot: msfp(function (e) {
                         if (e && this.hasFlag) {
                             customRootCalled = true;
                         }
@@ -715,17 +716,17 @@
 
             var instance = {
                 hasFlag: true,
-                handleCustom: domUtilities.msfp(function (e) {
+                handleCustom: msfp(function (e) {
                     if (e && this.hasFlag) {
                         customCalled = true;
                     }
                 }),
-                handleCustom2: domUtilities.msfp(function (e) {
+                handleCustom2: msfp(function (e) {
                     if (e && this.hasFlag) {
                         custom2Called = true;
                     }
                 }),
-                handleCustomRoot: domUtilities.msfp(function (e) {
+                handleCustomRoot: msfp(function (e) {
                     if (e && this.hasFlag) {
                         customRootCalled = true;
                     }
@@ -801,7 +802,7 @@
             var customCalled = false;
             var instance = {
                 hasFlag: true,
-                handleCustom: domUtilities.msfp(function (e) {
+                handleCustom: msfp(function (e) {
                     if (e && this.hasFlag) {
                         customCalled = true;
                     }

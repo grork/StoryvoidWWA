@@ -1,6 +1,6 @@
 ﻿(function () {
     "use strict";
-    var msfp = Codevoid.Utilities.DOM.msfp;
+    const msfp = WinJS.Utilities.markSupportedForProcessing;
 
     WinJS.Namespace.define("Codevoid.Storyvoid.UI", {
         Authenticator: Codevoid.Utilities.derive(Codevoid.UICore.Control, function (element, options) {

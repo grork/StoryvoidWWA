@@ -3,12 +3,6 @@
     appfail(message: string): void;
 }
 
-declare module Codevoid.Utilities.DOM {
-    export class LogViewer {
-        constructor(host: HTMLElement);
-    }
-}
-
 namespace Codevoid.Utilities {
     WinJS.Namespace.define("Codevoid.Utilities", {
         EventSource: WinJS.Class.mix(WinJS.Class.define(function () {
@@ -328,163 +322,170 @@ namespace Codevoid.Utilities {
 }
 
 namespace Codevoid.Utilities.DOM {
-
-    var fragmentCache = {};
-    var templateCache = {};
+    let fragmentCache: { [path: string]: WinJS.Promise<HTMLElement> } = {};
+    let templateCache: { [templateId: string]: WinJS.Binding.Template } = {};
     const TEMPLATE_ID_ATTRIBUTE_NAME = "data-templateid";
 
-    WinJS.Namespace.define("Codevoid.Utilities.DOM", {
-        msfp: WinJS.Utilities.markSupportedForProcessing,
-        disposeOfControl: function disposeOfControl(element) {
-            if (!element || !element.winControl || !element.winControl.dispose) {
-                return;
-            }
+    export function disposeOfControl(element: Element): void {
+        if (!element || !element.winControl || !element.winControl.dispose) {
+            return;
+        }
 
-            try {
-                element.winControl.dispose();
-            } catch (e) {
-                window.appfail("Failed to unload control:\n" + e.toString() + "\nStack:\n" + e.stack);
-            }
-        },
-        disposeOfControlTree: function disposeOfControlTree(root) {
-            var toUnload = WinJS.Utilities.query("[data-win-control]", root);
-            if (root.hasAttribute("data-win-control")) {
-                toUnload.unshift(root);
-            }
+        try {
+            element.winControl.dispose();
+        } catch (e) {
+            window.appfail(`Failed to unload control:\n${e.toString()}\nStack:\n${e.stack}`);
+        }
+    }
 
-            for (var i = toUnload.length - 1; i > -1; i--) {
-                Codevoid.Utilities.DOM.disposeOfControl(toUnload[i]);
-            }
-        },
-        removeChild: function (element, child) {
-            Codevoid.Utilities.DOM.disposeOfControlTree(child);
-            return element.removeChild(child);
-        },
-        empty: function (element) {
-            window.appassert(element, "no element provided");
-            if (!element) {
-                return;
-            }
+    export function disposeOfControlTree(root: Element): void {
+        var toUnload = WinJS.Utilities.query("[data-win-control]", <HTMLElement>root);
+        if (root.hasAttribute("data-win-control")) {
+            toUnload.unshift(<HTMLElement>root);
+        }
 
-            Codevoid.Utilities.DOM.disposeOfControlTree(element);
-            element.innerHTML = "";
-        },
-        setControlAttribute: function (element, controlClassName) {
-            if (element.hasAttribute("data-win-control")) {
-                return;
-            }
+        for (var i = toUnload.length - 1; i > -1; i--) {
+            Codevoid.Utilities.DOM.disposeOfControl(toUnload[i]);
+        }
+    }
 
-            element.setAttribute("data-win-control", controlClassName);
-        },
-        loadTemplate: function (path, id) {
-            var templateCacheKey = path + "#" + id;
-            var template = templateCache[templateCacheKey];
-            if (template) {
-                return WinJS.Promise.wrap(template);
-            }
+    export function removeChild(parent: HTMLElement, child: HTMLElement): HTMLElement {
+        Codevoid.Utilities.DOM.disposeOfControlTree(child);
+        return parent.removeChild(child);
+    }
 
-            var fragmentPromise = fragmentCache[path];
-            if (!fragmentPromise) {
-                fragmentCache[path] = fragmentPromise = WinJS.UI.Fragments.renderCopy(path);
-            }
+    export function empty(element: HTMLElement): void {
+        window.appassert(!!element, "no element provided");
+        if (!element) {
+            return;
+        }
 
-            return fragmentPromise.then(function (fragment) {
-                var templates = WinJS.Utilities.query("[" + TEMPLATE_ID_ATTRIBUTE_NAME + "]", fragment);
+        Codevoid.Utilities.DOM.disposeOfControlTree(element);
+        element.innerHTML = "";
+    }
 
-                var templatePromises = templates.map(function (el) {
-                    return WinJS.UI.process(el).then(function (control) {
-                        control.disableOptimizedProcessing = true;
-                        return {
-                            template: control,
-                            id: el.getAttribute(TEMPLATE_ID_ATTRIBUTE_NAME),
-                        };
-                    });
-                });
+    export function setControlAttribute(element: HTMLElement, controlClassName: string): void {
+        if (element.hasAttribute("data-win-control")) {
+            return;
+        }
 
-                return WinJS.Promise.join(templatePromises);
-            }).then(function (templateControls) {
-                templateControls.forEach(function (controlInfo) {
-                    templateCache[path + "#" + controlInfo.id] = controlInfo.template;
-                });
+        element.setAttribute("data-win-control", controlClassName);
+    }
 
-                var template = templateCache[templateCacheKey];
+    export function loadTemplate(path: string, id: string): WinJS.Promise<WinJS.Binding.Template> {
+        const templateCacheKey = `${path}#${id}`;
+        const template = templateCache[templateCacheKey];
+        if (template) {
+            return WinJS.Promise.wrap(template);
+        }
 
-                if (!template) {
-                    return WinJS.Promise.wrapError(new Error("No template with name '" + id + "' found"));
-                }
+        let fragmentPromise = fragmentCache[path];
+        if (!fragmentPromise) {
+            fragmentCache[path] = fragmentPromise = WinJS.UI.Fragments.renderCopy(path);
+        }
 
-                return template;
-            });
-        },
-        clearTemplateCaches: function () {
-            WinJS.UI.Fragments.clearCache();
-            templateCache = {};
-            fragmentCache = {};
-        },
-        marryPartsToControl: function (element, control) {
-            var parts = WinJS.Utilities.query("[data-part]", element);
-            parts.forEach(function (part) {
-                var partName = part.getAttribute("data-part");
-                if (!partName) {
-                    return;
-                }
+        return fragmentPromise.then(function (fragment: HTMLElement) {
+            const templates = WinJS.Utilities.query("[" + TEMPLATE_ID_ATTRIBUTE_NAME + "]", fragment);
 
-                control[partName] = part.winControl || part;
-            });
-        },
-        marryEventsToHandlers: function marryEventsToHandlers(element, context) {
-            var eventElements = WinJS.Utilities.query("[data-event]", element);
-            var cancellation = {
-                handlers: [],
-                cancel: function () {
-                    this.handlers.forEach(function (item) {
-                        item.element.removeEventListener(item.event, item.handler);
-                    });
-                }
-            };
-            // Make sure we include the root element. It might not actually have
-            // the attribute we want, but it's easier to include here, since we
-            // check anyway.
-            eventElements.unshift(element);
-
-            eventElements.forEach(function (el) {
-                var eventOptions;
-                var attributeData = el.getAttribute("data-event");
-                if (!attributeData) {
-                    return;
-                }
-
-                eventOptions = WinJS.UI.optionsParser(attributeData, context);
-
-                Object.keys(eventOptions).forEach(function (key) {
-                    if (!eventOptions[key]) {
-                        throw new Error("Missing event handler for '" + key + "' event");
-                    }
-
-                    var wrapper = function () {
-                        eventOptions[key].apply(context, arguments);
+            const templatePromises = templates.map(function (el: HTMLElement) {
+                return WinJS.UI.process(el).then(function (control: WinJS.Binding.Template) {
+                    control.disableOptimizedProcessing = true;
+                    return {
+                        template: control,
+                        id: el.getAttribute(TEMPLATE_ID_ATTRIBUTE_NAME),
                     };
-
-                    cancellation.handlers.push({
-                        element: el,
-                        event: key,
-                        handler: wrapper,
-                    });
-
-                    el.addEventListener(key, wrapper);
                 });
             });
 
-            return cancellation;
-        },
-        /// <summary>
-        /// Class to view the outoput of Codevoid.Utilties.Logging in a nice top level floating "window"
-        /// </summary>
-        LogViewer: WinJS.Class.define(function (element, options) {
-            this._handlersToCancel = [];
+            return WinJS.Promise.join(templatePromises);
+        }).then(function (templateControls: { template: WinJS.Binding.Template; id: string }[]) {
+            templateControls.forEach(function (controlInfo) {
+                templateCache[path + "#" + controlInfo.id] = controlInfo.template;
+            });
 
+            const foundTemplate = templateCache[templateCacheKey];
+
+            if (!foundTemplate) {
+                return <any>WinJS.Promise.wrapError(new Error("No template with name '" + id + "' found"));
+            }
+
+            return foundTemplate;
+        });
+    }
+
+    export function clearTemplateCaches() {
+        WinJS.UI.Fragments.clearCache();
+        templateCache = {};
+        fragmentCache = {};
+    }
+
+    export function marryPartsToControl(element: HTMLElement, control: any) {
+        const parts = WinJS.Utilities.query("[data-part]", element);
+        parts.forEach(function (part) {
+            var partName = part.getAttribute("data-part");
+            if (!partName) {
+                return;
+            }
+
+            control[partName] = part.winControl || part;
+        });
+    }
+
+    export function marryEventsToHandlers(element: HTMLElement, context: any): ICancellable {
+        const eventElements = WinJS.Utilities.query("[data-event]", element);
+        const cancellation = {
+            handlers: [],
+            cancel: function () {
+                this.handlers.forEach(function (item) {
+                    item.element.removeEventListener(item.event, item.handler);
+                });
+            }
+        };
+
+        // Make sure we include the root element. It might not actually have
+        // the attribute we want, but it's easier to include here, since we
+        // check anyway.
+        eventElements.unshift(element);
+
+        eventElements.forEach(function (el) {
+            const attributeData = el.getAttribute("data-event");
+            if (!attributeData) {
+                return;
+            }
+
+            const eventOptions = WinJS.UI.optionsParser(attributeData, context);
+            for(let key in eventOptions) {
+                if (!eventOptions[key]) {
+                    throw new Error("Missing event handler for '" + key + "' event");
+                }
+
+                const wrapper = function () {
+                    eventOptions[key].apply(context, arguments);
+                };
+
+                cancellation.handlers.push({
+                    element: el,
+                    event: key,
+                    handler: wrapper,
+                });
+
+                el.addEventListener(key, wrapper);
+            };
+        });
+
+        return cancellation;
+    }
+
+    /// <summary>
+    /// Class to view the outoput of Codevoid.Utilties.Logging in a nice top level floating "window"
+    /// </summary>
+    export class LogViewer {
+        private _handlersToCancel: ICancellable[] = [];
+        private _logger: Logging = null;
+        private _messageContainer: HTMLElement;
+
+        constructor(private element: HTMLElement, options?: any) {
             // Set up our own element
-            this.element = element;
             Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.Utilities.DOM.LogViewer");
             WinJS.Utilities.addClass(element, "codevoid-logviewer");
             WinJS.UI.setOptions(this, options);
@@ -495,13 +496,13 @@ namespace Codevoid.Utilities.DOM {
             this.element.appendChild(this._messageContainer);
 
             // Create the dismiss button to hide this thing
-            var dismissElement = document.createElement("div");
+            const dismissElement = document.createElement("div");
             WinJS.Utilities.addClass(dismissElement, "codevoid-logviewer-dismiss");
 
             this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(dismissElement, {
-                click: function () {
+                click: () => {
                     this._dismiss();
-                }.bind(this)
+                }
             }));
 
             this.element.appendChild(dismissElement);
@@ -509,59 +510,47 @@ namespace Codevoid.Utilities.DOM {
             // Capture the logger & listen for events
             this._logger = Codevoid.Utilities.Logging.instance;
             this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(this._logger, {
-                newlogmessage: function (e) {
-                    var message = e.detail;
-
-                    this._appendMessage(message);
-                }.bind(this),
-                logcleared: function () {
-                    this._messageContainer.innerHTML = "";
-                }.bind(this),
+                newlogmessage: (e: EventObject<ILogMessage>) => this._appendMessage(e.detail),
+                logcleared: () => this._messageContainer.innerHTML = "",
             }));
 
-            var clearLogElement = document.createElement("div");
+            const clearLogElement = document.createElement("div");
             WinJS.Utilities.addClass(clearLogElement, "codevoid-logviewer-clearlog");
             clearLogElement.textContent = "Clear Log";
 
             this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(clearLogElement, {
-                click: function () {
-                    this._logger.clear();
-                }.bind(this),
+                click: () => this._logger.clear(),
             }));
 
             this.element.appendChild(clearLogElement);
 
-            this._logger.messages.forEach(function (message) {
+            for (let message of this._logger.messages) {
                 this._appendMessage(message);
-            }.bind(this));
-        }, {
-                _handlersToCancel: null,
-                element: null,
-                _logger: null,
-                _messageContainer: null,
-                _appendMessage: function (message) {
-                    var messageElement;
-                    if (message.useFixedLayout) {
-                        // If it's using fixed layout, then we want to render it
-                        // in a 'pre' element to ensure forrect formatting
-                        messageElement = document.createElement("pre");
-                    } else {
-                        messageElement = document.createElement("div");
-                    }
+            }
+        }
 
-                    messageElement.textContent = message.message;
+        private _appendMessage(message: ILogMessage) {
+            var messageElement;
+            if (message.useFixedLayout) {
+                // If it's using fixed layout, then we want to render it
+                // in a 'pre' element to ensure forrect formatting
+                messageElement = document.createElement("pre");
+            } else {
+                messageElement = document.createElement("div");
+            }
 
-                    this._messageContainer.appendChild(messageElement);
-                },
-                _dismiss: function () {
-                    this._handlersToCancel.forEach(function (toCancel) {
-                        toCancel.cancel();
-                    });
+            messageElement.textContent = message.message;
 
-                    this._handlersToCancel = null;
+            this._messageContainer.appendChild(messageElement);
+        }
 
-                    this.element.parentElement.removeChild(this.element);
-                },
-            }),
-    });
+        private _dismiss() {
+            this._handlersToCancel.forEach(function (toCancel) {
+                toCancel.cancel();
+            });
+
+            this._handlersToCancel = null;
+            this.element.parentElement.removeChild(this.element);
+        }
+    }
 }
