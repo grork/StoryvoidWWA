@@ -10,6 +10,11 @@ declare module Codevoid.Utilities.DOM {
 }
 
 module Codevoid.Utilities {
+    WinJS.Namespace.define("Codevoid.Utilities", {
+        EventSource: WinJS.Class.mix(WinJS.Class.define(function () {
+        }), WinJS.Utilities.eventMixin),
+    })
+
     if (!window.alert) {
         (function () {
             var alertsToShow = [];
@@ -95,8 +100,16 @@ module Codevoid.Utilities {
         }
     }
 
-    WinJS.Namespace.define("Codevoid.Utilities", {
-        Signal: WinJS.Class.mix(WinJS.Class.define(function () {
+    export class Signal extends EventSource {
+        private _wrappedPromise: WinJS.Promise<any>;
+        private _complete: (value: any) => void;
+        private _completed: boolean = false;
+        private _error: (errorInfo: any) => void;
+        private _progress: (progress: any) => void;
+
+        constructor() {
+            super();
+
             var that = this;
             // This uses the "that" pattern 'c ause it's called from a constructor, and
             // I don't want to mess with anything weird to upset the promise gods.
@@ -105,36 +118,35 @@ module Codevoid.Utilities {
                 that._error = e;
                 that._progress = p;
             }, this._handleCancelled.bind(this));
-        },
-        {
-            _wrappedPromise: null,
-            _complete: null,
-            _completed: false,
-            _error: null,
-            _progress: null,
-            _handleCancelled: function _handleCancelled(e) {
-                this.dispatchEvent("cancelled", { signal: this });
-            },
-            promise: {
-                get: function () {
-                    return this._wrappedPromise;
-                }
-            },
-            complete: function signal_complete(value) {
-                if (this._completed) {
-                    throw new Error("Cannot complete an already completed promise");
-                }
+        }
 
-                this._complete(value);
-                this._completed = true;
-            },
-            error: function signal_error(errorInfo) {
-                this._error(errorInfo);
-            },
-            progress: function signal_progress(progressInfo) {
-                this._progress(progressInfo);
-            },
-        }), WinJS.Utilities.eventMixin),
+        private _handleCancelled(): void {
+            this.dispatchEvent("cancelled", { signal: this });
+        }
+
+        public get promise(): WinJS.Promise<any> {
+            return this._wrappedPromise;
+        }
+
+        public complete(result?: any): void {
+            if (this._completed) {
+                throw new Error("Cannot complete an already completed promise");
+            }
+
+            this._complete(result);
+            this._completed = true;
+        }
+
+        public error(errorInfo: any): void {
+            this._error(errorInfo);
+        }
+
+        public progress(progressInfo: any): void {
+            this._progress(progressInfo);
+        }
+    }
+
+    WinJS.Namespace.define("Codevoid.Utilities", {
         /// <summary>
         /// Logging helper class that provides structured & unstructured logging.
         /// Structured in this case means support for saying "this message should be presented without reformatting"
@@ -185,8 +197,6 @@ module Codevoid.Utilities {
                     return Codevoid.Utilities.Logging._instance;
                 }
             }
-        }), WinJS.Utilities.eventMixin),
-        EventSource: WinJS.Class.mix(WinJS.Class.define(function() {
         }), WinJS.Utilities.eventMixin),
         CancellationSource: WinJS.Class.define(function() {
         }, {

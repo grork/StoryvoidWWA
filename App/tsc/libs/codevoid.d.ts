@@ -38,13 +38,6 @@ declare module Codevoid.Utilities {
         static _instance: Logging;
     }
 
-    export class Signal extends EventSource {
-        promise: WinJS.Promise<any>;
-        complete(result?: any);
-        error(errorInfo: any);
-        progress(progressInfo: any);
-    }
-
     export class CancellationSource {
         cancel();
         cancelled: boolean;
