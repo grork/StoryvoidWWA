@@ -1,4 +1,5 @@
 ﻿/// <reference path="..\..\..\App\js\InstapaperArticleSync.ts" />
+/// <reference path="..\..\..\App\js\OAuth.ts" />
 
 module CodevoidTests.InstapaperArticleSyncTests {
     import st = Windows.Storage;
