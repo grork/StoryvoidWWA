@@ -13,6 +13,32 @@ module Codevoid.Utilities {
     WinJS.Namespace.define("Codevoid.Utilities", {
         EventSource: WinJS.Class.mix(WinJS.Class.define(function () {
         }), WinJS.Utilities.eventMixin),
+        derive: function derive(baseClass, constructor, instanceMembers, staticMembers) {
+            /// <summary>
+            /// Enables javascript 'classes' to be derived, and have simple access to the
+            /// 'base' classes constructor.
+            ///
+            /// This allows for a more fluid hiearchy of classes without having explicit,
+            /// coded in type names which can be a challenge as time passes and things move
+            /// around.
+            ///
+            /// When using this method, the derived class can gain access to the base class
+            /// constructor through 'this.base()'. It can supply arguments as it sees fit,
+            /// and these will be passed down from class to class
+            /// </summary>
+            instanceMembers = instanceMembers || {};
+            if (baseClass instanceof Function) {
+                instanceMembers.base = function () {
+                    // Patching stuff up. Comment
+                    var original = this.base;
+                    this.base = baseClass.prototype.base;
+                    baseClass.apply(this, arguments);
+                    this.base = original;
+                };
+            }
+
+            return WinJS.Class.derive(baseClass, constructor, instanceMembers, staticMembers);
+        },
     })
 
     if (!window.alert) {
@@ -146,187 +172,170 @@ module Codevoid.Utilities {
         }
     }
 
-    WinJS.Namespace.define("Codevoid.Utilities", {
-        /// <summary>
-        /// Logging helper class that provides structured & unstructured logging.
-        /// Structured in this case means support for saying "this message should be presented without reformatting"
-        ///
-        /// Additionally, this provides an in memory store of the messages so they can be seen later if the
-        /// viewer was not open at the time they were originally logged.
-        /// </summary>
-        Logging: WinJS.Class.mix(WinJS.Class.define(function () {
+
+    /*
+     export class Logging {
+        log(message: string, fixedLayout?: boolean);
+        showViewer();
+        clear();
+        static instance: Logging;
+        static _instance: Logging;
+    }*/
+
+    /// <summary>
+    /// Logging helper class that provides structured & unstructured logging.
+    /// Structured in this case means support for saying "this message should be presented without reformatting"
+    ///
+    /// Additionally, this provides an in memory store of the messages so they can be seen later if the
+    /// viewer was not open at the time they were originally logged.
+    /// </summary>
+
+    export interface ILogMessage {
+        message: string;
+        useFixedLayout: boolean;
+    }
+
+    export class Logging extends EventSource {
+        private _logMessages: ILogMessage[];
+
+        public logToConsole: boolean = false;
+
+        constructor() {
+            super();
             this.clear();
-        }, {
-            _logMessages: null,
-            logToConsole: false,
-            log: function _log(message, fixedLayout) {
-                var messageDetail = { message: message, useFixedLayout: fixedLayout };
-                this._logMessages.push(messageDetail);
+        }
 
-                if (this.logToConsole) {
-                    console.log(message);
-                }
+        public log(message: string, fixedLayout?: boolean): void {
+            const messageDetail = { message: message, useFixedLayout: fixedLayout };
+            this._logMessages.push(messageDetail);
 
-                this.dispatchEvent("newlogmessage", messageDetail);
-            },
-            messages: {
-                get: function logging_getMessages() {
-                    // Clone the messages list to stop consumers manipultating the list itself
-                    // Doesn't protect against manipulating each individual message itself.
-                    return [].concat(this._logMessages);
-                },
-            },
-            clear: function () {
-                this._logMessages = [];
-                this.dispatchEvent("logcleared");
-            },
-            showViewer: function () {
-                var viewerElement = document.createElement("div");
-                document.body.appendChild(viewerElement);
-
-                viewerElement.winControl = new Codevoid.Utilities.DOM.LogViewer(viewerElement);
+            if (this.logToConsole) {
+                console.log(message);
             }
-        }, {
-            _instance: null,
-            instance: {
-                get: function loggin_getInstance() {
-                    if (!Codevoid.Utilities.Logging._instance) {
-                        Codevoid.Utilities.Logging._instance = new Codevoid.Utilities.Logging();
-                    }
 
-                    return Codevoid.Utilities.Logging._instance;
-                }
-            }
-        }), WinJS.Utilities.eventMixin),
-        CancellationSource: WinJS.Class.define(function() {
-        }, {
-            _cancelled: false,
-            cancel: function() {
-                this._cancelled = true;
-            },
-            cancelled: {
-                get: function cancelled_get() {
-                    return this._cancelled;
-                }
-            }
-        }),
-        serialize: function serialize(items, work, concurrentWorkLimit, cancellable) {
-            concurrentWorkLimit = (!concurrentWorkLimit) ? 1 : concurrentWorkLimit;
-            var results = [];
-            var signals = [];
-            var numberInFlight = 0;
+            this.dispatchEvent("newlogmessage", messageDetail);
+        }
 
-            function doWork() {
-                // Start the "cascade"
-                if(!signals.length) {
+        public get messages(): ILogMessage[] {
+            return [].concat(this._logMessages);
+        }
+
+        public showViewer(): void {
+            let viewerElement = document.createElement("div");
+            document.body.appendChild(viewerElement);
+
+            viewerElement.winControl = new Codevoid.Utilities.DOM.LogViewer(viewerElement);
+        }
+
+        public clear(): void {
+            this._logMessages = [];
+            this.dispatchEvent("logcleared");
+        }
+
+        private static _instance: Logging;
+        static get instance(): Logging {
+            if (!Logging._instance) {
+                Logging._instance = new Logging();
+            }
+
+            return Logging._instance;
+        }
+    }
+
+    export class CancellationSource {
+        private _cancelled: boolean = false;
+
+        public cancel(): void {
+            this._cancelled = true;
+        }
+
+        public get cancelled(): boolean {
+            return this._cancelled;
+        }
+    }
+
+    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): WinJS.Promise<any> {
+        concurrentWorkLimit = (!concurrentWorkLimit) ? 1 : concurrentWorkLimit;
+        const results: any[] = [];
+        const signals: Signal[] = [];
+        let numberInFlight = 0;
+
+        function doWork() {
+            // Start the "cascade"
+            if (!signals.length) {
+                return;
+            }
+
+            while ((numberInFlight < concurrentWorkLimit) && signals.length) {
+                var signal = signals.shift();
+
+                if (cancellationSource && cancellationSource.cancelled) {
+                    signal.promise.cancel();
                     return;
                 }
 
-                while ((numberInFlight < concurrentWorkLimit) && signals.length) {
-                    var signal = signals.shift();
-
-                    if (cancellable && cancellable.cancelled) {
-                        signal.promise.cancel();
-                        return;
-                    }
-
-                    signal.complete();
-                }
+                signal.complete();
             }
+        }
 
-            // Set up all the signals so that as each one
-            // is signalled, the work it needs to do gets
-            // done.
-            items.forEach(function (item, index) {
-                var signal = new Codevoid.Utilities.Signal();
-                signals.push(signal);
+        // Set up all the signals so that as each one
+        // is signalled, the work it needs to do gets
+        // done.
+        items.forEach(function (item, index) {
+            const signal = new Codevoid.Utilities.Signal();
+            signals.push(signal);
 
-                results.push(signal.promise.then(function () {
-                    numberInFlight++;
-                    return WinJS.Promise.as(work(item, index));
-                }).then(function (value) {
-                    numberInFlight--;
-                    doWork();
-                    return value;
-                }, function (error) {
-                    numberInFlight--;
-                    doWork();
-                    return WinJS.Promise.wrapError(error);
-                }));
-            });
+            results.push(signal.promise.then(function () {
+                numberInFlight++;
+                return WinJS.Promise.as(work(item, index));
+            }).then(function (value) {
+                numberInFlight--;
+                doWork();
+                return value;
+            }, function (error) {
+                numberInFlight--;
+                doWork();
+                return WinJS.Promise.wrapError(error);
+            }));
+        });
 
-            doWork();
+        doWork();
 
-            return WinJS.Promise.join(results);
-        },
-        derive: function derive(baseClass, constructor, instanceMembers, staticMembers) {
-            /// <summary>
-            /// Enables javascript 'classes' to be derived, and have simple access to the
-            /// 'base' classes constructor.
-            ///
-            /// This allows for a more fluid hiearchy of classes without having explicit,
-            /// coded in type names which can be a challenge as time passes and things move
-            /// around.
-            ///
-            /// When using this method, the derived class can gain access to the base class
-            /// constructor through 'this.base()'. It can supply arguments as it sees fit,
-            /// and these will be passed down from class to class
-            /// </summary>
-            instanceMembers = instanceMembers || {};
-            if (baseClass instanceof Function) {
-                instanceMembers.base = function () {
-                    // Patching stuff up. Comment
-                    var original = this.base;
-                    this.base = baseClass.prototype.base;
-                    baseClass.apply(this, arguments);
-                    this.base = original;
-                };
+        return WinJS.Promise.join(results);
+    }
+
+    interface EventHandlerEntry {
+        event: string;
+        handler: Function;
+    }
+
+    export interface IEventSource {
+        addEventListener: any;
+        removeEventListener: any
+    }
+
+    class CancellableImpl implements ICancellable {
+        public handlers: EventHandlerEntry[] = [];
+
+        constructor(private eventSource: IEventSource) { }
+
+        cancel(): void {
+            for (let handler of this.handlers) {
+                this.eventSource.removeEventListener(handler.event, handler.handler);
             }
+        }
+    }
 
-            return WinJS.Class.derive(baseClass, constructor, instanceMembers, staticMembers);
-        },
-        property: function property(name, defaultValue) {
-            var propertyName = "_" + name + "Storage";
-            return {
-                get: function property_getter() {
-                    if (!(propertyName in this)) {
-                        return defaultValue;
-                    }
+    export function addEventListeners(eventSource: IEventSource, handlerMap: { [eventName: string]: Function }): ICancellable {
+        const cancellation = new CancellableImpl(eventSource);
 
-                    return this[propertyName];
-                },
-                set: function property_setter(newValue) {
-                    var oldValue = this[name];
-                    if (oldValue === newValue) {
-                        return;
-                    }
+        for (let key in handlerMap) {
+            eventSource.addEventListener(key, handlerMap[key]);
+            cancellation.handlers.push({ event: key, handler: handlerMap[key] });
+        }
 
-                    this[propertyName] = newValue;
-                    this.dispatchEvent(name + "Changed", {
-                        previous: oldValue,
-                        current: newValue,
-                    });
-                },
-            };
-        },
-        addEventListeners: function (eventSource, handlerMap) {
-            var cancellation = {
-                handlers: [],
-                cancel: function () {
-                    this.handlers.forEach(function (l) {
-                        eventSource.removeEventListener(l.event, l.handler);
-                    });
-                }
-            };
-
-            Object.keys(handlerMap).forEach(function (key) {
-                eventSource.addEventListener(key, handlerMap[key]);
-                cancellation.handlers.push({ event: key, handler: handlerMap[key] });
-            });
-
-            return cancellation;
-        },
-    });
+        return cancellation;
+    }
 
     var fragmentCache = {};
     var templateCache = {};

@@ -57,7 +57,7 @@
             assert.ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
         });
 
-        it("can be canceled", function signalCanBeCancelled() {
+        it("can be exlicitly cancelled", function signalCanBeCancelled() {
             var signal = new Signal();
             var wasCancelled = false;
             signal.addEventListener("cancelled", function () {
@@ -382,86 +382,7 @@
         });
     });
 
-    describe("Utilities Control Eventing & Property helpers", function () {
-
-        it("Can create property", function () {
-            var object = WinJS.Class.mix(WinJS.Class.define(function () {
-            }, {
-                    sample: Codevoid.Utilities.property("sample", null),
-                }), WinJS.Utilities.eventMixin);
-            assert.ok(object, "type wasn't created");
-
-            var instance = new object();
-            assert.ok(instance, "Instance wasn't created");
-            assert.ok("sample" in instance, "Property not found on instance");
-            assert.strictEqual(instance.sample, null, "Value wasn't set correctly");
-        });
-
-        it("Event is raised when property value changes", function () {
-            var object = WinJS.Class.mix(WinJS.Class.define(function () {
-            }, {
-                    sample: Codevoid.Utilities.property("sample", null),
-                }), WinJS.Utilities.eventMixin);
-            assert.ok(object, "type wasn't created");
-
-            var instance = new object();
-            assert.ok(instance, "Instance wasn't created");
-
-            var valueChanged = false;
-            instance.addEventListener("sampleChanged", function () {
-                valueChanged = true;
-            });
-
-            instance.sample = Date.now();
-
-            assert.ok(valueChanged, "Value Didn't change");
-        });
-
-        it("Data provided with property change event is correct", function () {
-            var object = WinJS.Class.mix(WinJS.Class.define(function () {
-            }, {
-                    sample: Codevoid.Utilities.property("sample", null),
-                }), WinJS.Utilities.eventMixin);
-            assert.ok(object, "type wasn't created");
-
-            var instance = new object();
-            assert.ok(instance, "Instance wasn't created");
-
-            var valueChanged = false;
-            var newValue = Date.now();
-            instance.addEventListener("sampleChanged", function (e) {
-                valueChanged = true;
-                assert.strictEqual(e.detail.previous, null, "Previous value incorrect");
-                assert.strictEqual(e.detail.current, newValue, "New value incorrect");
-            });
-
-            instance.sample = newValue;
-
-            assert.ok(valueChanged, "Value Didn't change");
-        });
-
-        it("property is not raised when value doesn't change", function () {
-            var o = WinJS.Class.mix(WinJS.Class.define(function () {
-            }, {
-                    sample: Codevoid.Utilities.property("sample", null),
-                }), WinJS.Utilities.eventMixin);
-            assert.ok(o, "type wasn't created");
-
-            var instance = new o();
-            assert.ok(instance, "Instance wasn't created");
-
-            var valueChanged = false;
-            var newValue = Date.now();
-            instance.sample = newValue;
-            instance.addEventListener("sampleChanged", function () {
-                valueChanged = true;
-            });
-
-            instance.sample = newValue;
-
-            assert.ok(!valueChanged, "Value changed, shouldn't have");
-        });
-
+    describe("Utilities Control Eventing & Property", function () {
         it("Event listener lists can be attached", function () {
             var source = new CodevoidTests.EventSource();
             var eventWasRaised = false;

@@ -13,9 +13,6 @@ declare module Codevoid.Utilities {
         cancel();
     }
 
-    export function addEventListeners(source: { addEventListener: any, removeEventListener: any }, handlers: any): ICancellable;
-    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): WinJS.Promise<any>;
-
     export interface IIndexedDatabase {
         objectStoreNames: string[];
         query(tableName: string): { execute(): WinJS.Promise<any[]> };
@@ -28,19 +25,6 @@ declare module Codevoid.Utilities {
     }
     export interface IIndexedDB {
         open(options: IIndexedDBOpenOptions): WinJS.Promise<IIndexedDatabase>;
-    }
-
-    export class Logging {
-        log(message: string, fixedLayout?: boolean);
-        showViewer();
-        clear();
-        static instance: Logging;
-        static _instance: Logging;
-    }
-
-    export class CancellationSource {
-        cancel();
-        cancelled: boolean;
     }
 
     export interface EventObject<T> {
@@ -64,7 +48,7 @@ declare module Codevoid.Utilities {
          * @param eventProperties The set of additional properties to be attached to the event object when the event is raised.
          * @returns true if preventDefault was called on the event.
         **/
-        dispatchEvent(type: string, eventProperties: any): boolean;
+        dispatchEvent(type: string, eventProperties?: any): boolean;
 
         /**
          * Removes an event listener from the control.

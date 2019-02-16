@@ -1,6 +1,30 @@
 ﻿(function () {
     "use strict";
-    var property = Codevoid.Utilities.property;
+
+    function property(name, defaultValue) {
+        var propertyName = "_" + name + "Storage";
+        return {
+            get: function property_getter() {
+                if (!(propertyName in this)) {
+                    return defaultValue;
+                }
+
+                return this[propertyName];
+            },
+            set: function property_setter(newValue) {
+                var oldValue = this[name];
+                if (oldValue === newValue) {
+                    return;
+                }
+
+                this[propertyName] = newValue;
+                this.dispatchEvent(name + "Changed", {
+                    previous: oldValue,
+                    current: newValue,
+                });
+            },
+        };
+    }
 
     var clientID = "PLACEHOLDER";
     var clientSecret = "PLACEHOLDER";
