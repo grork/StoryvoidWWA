@@ -413,13 +413,13 @@ namespace Codevoid.Utilities.DOM {
         });
     }
 
-    export function clearTemplateCaches() {
+    export function clearTemplateCaches(): void {
         WinJS.UI.Fragments.clearCache();
         templateCache = {};
         fragmentCache = {};
     }
 
-    export function marryPartsToControl(element: HTMLElement, control: any) {
+    export function marryPartsToControl(element: HTMLElement, control: any): void {
         const parts = WinJS.Utilities.query("[data-part]", element);
         parts.forEach(function (part) {
             var partName = part.getAttribute("data-part");
@@ -529,7 +529,7 @@ namespace Codevoid.Utilities.DOM {
             }
         }
 
-        private _appendMessage(message: ILogMessage) {
+        private _appendMessage(message: ILogMessage): void {
             var messageElement;
             if (message.useFixedLayout) {
                 // If it's using fixed layout, then we want to render it
@@ -544,7 +544,7 @@ namespace Codevoid.Utilities.DOM {
             this._messageContainer.appendChild(messageElement);
         }
 
-        private _dismiss() {
+        private _dismiss(): void {
             this._handlersToCancel.forEach(function (toCancel) {
                 toCancel.cancel();
             });
