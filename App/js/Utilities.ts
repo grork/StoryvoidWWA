@@ -9,7 +9,7 @@ declare module Codevoid.Utilities.DOM {
     }
 }
 
-module Codevoid.Utilities {
+namespace Codevoid.Utilities {
     WinJS.Namespace.define("Codevoid.Utilities", {
         EventSource: WinJS.Class.mix(WinJS.Class.define(function () {
         }), WinJS.Utilities.eventMixin),
@@ -172,15 +172,10 @@ module Codevoid.Utilities {
         }
     }
 
-
-    /*
-     export class Logging {
-        log(message: string, fixedLayout?: boolean);
-        showViewer();
-        clear();
-        static instance: Logging;
-        static _instance: Logging;
-    }*/
+    export interface ILogMessage {
+        message: string;
+        useFixedLayout: boolean;
+    }
 
     /// <summary>
     /// Logging helper class that provides structured & unstructured logging.
@@ -189,12 +184,6 @@ module Codevoid.Utilities {
     /// Additionally, this provides an in memory store of the messages so they can be seen later if the
     /// viewer was not open at the time they were originally logged.
     /// </summary>
-
-    export interface ILogMessage {
-        message: string;
-        useFixedLayout: boolean;
-    }
-
     export class Logging extends EventSource {
         private _logMessages: ILogMessage[];
 
@@ -336,10 +325,13 @@ module Codevoid.Utilities {
 
         return cancellation;
     }
+}
+
+namespace Codevoid.Utilities.DOM {
 
     var fragmentCache = {};
     var templateCache = {};
-    var templateIdAttributeName =  "data-templateid";
+    const TEMPLATE_ID_ATTRIBUTE_NAME = "data-templateid";
 
     WinJS.Namespace.define("Codevoid.Utilities.DOM", {
         msfp: WinJS.Utilities.markSupportedForProcessing,
@@ -377,7 +369,7 @@ module Codevoid.Utilities {
             Codevoid.Utilities.DOM.disposeOfControlTree(element);
             element.innerHTML = "";
         },
-        setControlAttribute: function(element, controlClassName) {
+        setControlAttribute: function (element, controlClassName) {
             if (element.hasAttribute("data-win-control")) {
                 return;
             }
@@ -390,33 +382,33 @@ module Codevoid.Utilities {
             if (template) {
                 return WinJS.Promise.wrap(template);
             }
-            
+
             var fragmentPromise = fragmentCache[path];
             if (!fragmentPromise) {
                 fragmentCache[path] = fragmentPromise = WinJS.UI.Fragments.renderCopy(path);
             }
 
             return fragmentPromise.then(function (fragment) {
-                var templates = WinJS.Utilities.query("[" + templateIdAttributeName + "]", fragment);
+                var templates = WinJS.Utilities.query("[" + TEMPLATE_ID_ATTRIBUTE_NAME + "]", fragment);
 
                 var templatePromises = templates.map(function (el) {
                     return WinJS.UI.process(el).then(function (control) {
                         control.disableOptimizedProcessing = true;
                         return {
                             template: control,
-                            id: el.getAttribute(templateIdAttributeName),
+                            id: el.getAttribute(TEMPLATE_ID_ATTRIBUTE_NAME),
                         };
                     });
                 });
 
                 return WinJS.Promise.join(templatePromises);
             }).then(function (templateControls) {
-                templateControls.forEach(function(controlInfo) {
+                templateControls.forEach(function (controlInfo) {
                     templateCache[path + "#" + controlInfo.id] = controlInfo.template;
                 });
 
                 var template = templateCache[templateCacheKey];
-                
+
                 if (!template) {
                     return WinJS.Promise.wrapError(new Error("No template with name '" + id + "' found"));
                 }
@@ -424,7 +416,7 @@ module Codevoid.Utilities {
                 return template;
             });
         },
-        clearTemplateCaches: function() {
+        clearTemplateCaches: function () {
             WinJS.UI.Fragments.clearCache();
             templateCache = {};
             fragmentCache = {};
@@ -501,7 +493,7 @@ module Codevoid.Utilities {
             this._messageContainer = document.createElement("div");
             WinJS.Utilities.addClass(this._messageContainer, "codevoid-logviewer-messages");
             this.element.appendChild(this._messageContainer);
-            
+
             // Create the dismiss button to hide this thing
             var dismissElement = document.createElement("div");
             WinJS.Utilities.addClass(dismissElement, "codevoid-logviewer-dismiss");
@@ -519,7 +511,7 @@ module Codevoid.Utilities {
             this._handlersToCancel.push(Codevoid.Utilities.addEventListeners(this._logger, {
                 newlogmessage: function (e) {
                     var message = e.detail;
-                    
+
                     this._appendMessage(message);
                 }.bind(this),
                 logcleared: function () {
@@ -543,33 +535,33 @@ module Codevoid.Utilities {
                 this._appendMessage(message);
             }.bind(this));
         }, {
-            _handlersToCancel: null,
-            element: null,
-            _logger: null,
-            _messageContainer: null,
-            _appendMessage: function(message) {
-                var messageElement;
-                if (message.useFixedLayout) {
-                    // If it's using fixed layout, then we want to render it
-                    // in a 'pre' element to ensure forrect formatting
-                    messageElement = document.createElement("pre");
-                } else {
-                    messageElement = document.createElement("div");
-                }
+                _handlersToCancel: null,
+                element: null,
+                _logger: null,
+                _messageContainer: null,
+                _appendMessage: function (message) {
+                    var messageElement;
+                    if (message.useFixedLayout) {
+                        // If it's using fixed layout, then we want to render it
+                        // in a 'pre' element to ensure forrect formatting
+                        messageElement = document.createElement("pre");
+                    } else {
+                        messageElement = document.createElement("div");
+                    }
 
-                messageElement.textContent = message.message;
+                    messageElement.textContent = message.message;
 
-                this._messageContainer.appendChild(messageElement);
-            },
-            _dismiss: function () {
-                this._handlersToCancel.forEach(function (toCancel) {
-                    toCancel.cancel();
-                });
+                    this._messageContainer.appendChild(messageElement);
+                },
+                _dismiss: function () {
+                    this._handlersToCancel.forEach(function (toCancel) {
+                        toCancel.cancel();
+                    });
 
-                this._handlersToCancel = null;
+                    this._handlersToCancel = null;
 
-                this.element.parentElement.removeChild(this.element);
-            },
-        }),
+                    this.element.parentElement.removeChild(this.element);
+                },
+            }),
     });
 }
