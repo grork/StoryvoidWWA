@@ -1,89 +1,98 @@
-﻿declare module Codevoid.OAuth {
+﻿namespace Codevoid.OAuth {
+    interface NameValuePair {
+        key: string;
+        value: string;
+    }
+
     export var OAuthRequest: any;
-    export var ParameterEncoder: any;
-}
 
-(function () {
-    "use strict";
-
-    function stringKeySorter(first, second) {
-        window.appassert(first && first.key, "first param was falsey");
-        window.appassert(second && second.key, "second param was falsey");
+    function stringKeySorter(first: NameValuePair, second: NameValuePair): number {
+        window.appassert(!!(first && first.key), "first param was falsey");
+        window.appassert(!!(second && second.key), "second param was falsey");
 
         return first.key.localeCompare(second.key);
     }
 
-    function rfc3986encodeURIComponent(unencoded) {
+    function rfc3986encodeURIComponent(unencoded: string): string {
         /* replace ! */      /* replace ' */    /* replace ( */  /* repalce ) */     /* replace * */
         return encodeURIComponent(unencoded).replace(/!/g, '%21').replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/\*/g, '%2A');
     }
 
-    function _encodeKeyValuePairAndInsert(item, destination) {
-        window.appassert(item, "No item provided");
-        window.appassert(destination, "no destination provided");
+    function _encodeKeyValuePairAndInsert(item: NameValuePair, destination: NameValuePair[]): void {
+        window.appassert(!!item, "No item provided");
+        window.appassert(!!destination, "no destination provided");
         window.appassert(Array.isArray(destination), "destination wasn't an array");
-        window.appassert(item.key, "Item didn't have key");
+        window.appassert(!!item.key, "Item didn't have key");
 
         destination.push({ key: rfc3986encodeURIComponent(item.key), value: rfc3986encodeURIComponent(item.value) });
     }
 
-    WinJS.Namespace.define("Codevoid.OAuth", {
-        ParameterEncoder: WinJS.Class.define(function ParameterEncoderConstructor(options) {
+    export interface IParameterEncoderOptions {
+        readonly delimeter: string;
+        readonly shouldQuoteValues: boolean;
+    }
+
+    export class ParameterEncoder {
+        private _delimeter: string = "&";
+        private _shouldQuoteValues: boolean = false;
+
+        constructor(options?: IParameterEncoderOptions) {
             if (options) {
                 this._delimeter = options.delimeter || this._delimeter;
                 this._shouldQuoteValues = options.shouldQuoteValues || this._shouldQuoteValues;
             }
-        }, {
-            _delimeter: "&",
-            _shouldQuoteValues: false,
-            getEncodedStringForData: function () {
-                // We need to build a new array straight off, and then sort that
-                // theres no point in merging then iterating again.
+        }
 
-                var mergedAndEncodedItems = [];
-                for (var i = 0; i < arguments.length; i++) {
-                    var argument = arguments[i];
-                    if (!argument) {
-                        continue
-                    } else if (Array.isArray(argument)) {
-                        // Dig one level in
-                        this._mergeAndEncode(argument, mergedAndEncodedItems);
-                    } else {
-                        // Else, just encode and put the item in
-                        _encodeKeyValuePairAndInsert(argument, mergedAndEncodedItems);
-                    }
-                }
+        public getEncodedStringForData(...args: any[]): string {
+            // We need to build a new array straight off, and then sort that
+            // theres no point in merging then iterating again.
 
-                // Sort the newly encoded items inplace
-                mergedAndEncodedItems.sort(stringKeySorter);
-
-                var stringifiedItems = [];
-                for (i = 0; i < mergedAndEncodedItems.length; i++) {
-                    stringifiedItems.push(this._keyValuePairToString(mergedAndEncodedItems[i]));
-                }
-
-                return stringifiedItems.join(this._delimeter);
-            },
-            _mergeAndEncode: function _mergeAndEncode(source, destination) {
-                window.appassert(source && Array.isArray(source), "Source wasn't an array");
-                window.appassert(destination && Array.isArray(destination), "destination isn't array");
-
-                for (var i = 0; i < source.length; i++) {
-                    _encodeKeyValuePairAndInsert(source[i], destination);
-                }
-            },
-            _keyValuePairToString: function _keyValuePairToString(keyValuePair) {
-                var result = keyValuePair.key + "=";
-                if (!this._shouldQuoteValues) {
-                    result += keyValuePair.value;
+            const mergedAndEncodedItems: NameValuePair[] = [];
+            for (let i = 0; i < args.length; i++) {
+                let argument = args[i];
+                if (!argument) {
+                    continue;
+                } else if (Array.isArray(argument)) {
+                    // Dig one level in
+                    this._mergeAndEncode(argument, mergedAndEncodedItems);
                 } else {
-                    result += "\"" + keyValuePair.value + "\"";
+                    // Else, just encode and put the item in
+                    _encodeKeyValuePairAndInsert(argument, mergedAndEncodedItems);
                 }
-
-                return result;
             }
-        }),
-    });
+
+            // Sort the newly encoded items inplace
+            mergedAndEncodedItems.sort(stringKeySorter);
+
+            const stringifiedItems = [];
+            for (let item of mergedAndEncodedItems) {
+                stringifiedItems.push(this._keyValuePairToString(item));
+            }
+
+            return stringifiedItems.join(this._delimeter);
+        }
+
+        private _mergeAndEncode(source: NameValuePair[], destination: NameValuePair[]): void {
+            window.appassert(source && Array.isArray(source), "Source wasn't an array");
+            window.appassert(destination && Array.isArray(destination), "destination isn't array");
+
+            for (let item of source) {
+                _encodeKeyValuePairAndInsert(item, destination);
+            }
+        }
+
+        private _keyValuePairToString(keyValuePair): string {
+            let result = `${keyValuePair.key}=`;
+
+            if (!this._shouldQuoteValues) {
+                result += keyValuePair.value;
+            } else {
+                result += `\"${keyValuePair.value}\"`;
+            }
+
+            return result;
+        }
+    }
 
     WinJS.Namespace.define("Codevoid.OAuth", {
         ClientInformation: WinJS.Class.define(function ClientSecretConstructor(id, secret, token, tokenSecret) {
@@ -289,4 +298,4 @@
             },
         })
     });
-})();
+}
