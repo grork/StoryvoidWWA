@@ -52,15 +52,6 @@
     }
 }
 
-declare module Codevoid.OAuth {
-    export class ClientInformation {
-        constructor(id: string, secret: string, token?: string, tokenSecret?: string);
-        productName: string;
-        productVersion: string;
-        getUserAgentHeader(): Windows.Web.Http.Headers.HttpProductInfoHeaderValue;
-    }
-}
-
 declare module Codevoid.Storyvoid {
     export class SyncOperation {
         start: string;
