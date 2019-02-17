@@ -216,6 +216,7 @@ declare module Codevoid.Storyvoid.InstapaperApi {
         list({ folder_id: string }): WinJS.Promise<{ bookmarks: IBookmark[], duration: number }>;
         updateReadProgress(paramters: { bookmark_id: number, progress: number, progress_timestamp: number }): WinJS.Promise<IBookmark>;
         getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
+        static haveToString(have: any): string;
     }
 
     export interface IAccessTokenInformation {

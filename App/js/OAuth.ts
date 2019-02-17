@@ -153,7 +153,7 @@
         public _nonce: number;
         public _timestamp: number;
 
-        constructor(private _clientInformation: ClientInformation, private _url: string, operation: Operations) {
+        constructor(private _clientInformation: ClientInformation, private _url: string, operation?: Operations) {
             window.appassert(!!clientInformation, "no client information supplied");
             window.appassert(!!_url, "No URL Supplied");
 
