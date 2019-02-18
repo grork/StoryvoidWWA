@@ -5,6 +5,7 @@
         folder_id: string;
         id: number;
         position: number;
+        folder_dbid?: number;
     }
 
     export interface IBookmark {
@@ -26,6 +27,7 @@
         articleUnavailable: boolean;
         starred: number;
         doNotAddToJumpList?: boolean;
+        hash?: string;
     }
 }
 
@@ -109,11 +111,11 @@ namespace Codevoid.Storyvoid.InstapaperApi {
         readonly username: string;
     }
 
-    interface IHaveStatus {
+    export interface IHaveStatus {
         readonly id: number;
         readonly hash?: string;
         readonly progress?: number;
-        readonly progressLastChanged: number;
+        readonly progressLastChanged?: number;
     }
 
     export interface IBookmarkListParameters {
@@ -124,7 +126,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
 
     export interface IBookmarkListResult {
         readonly bookmarks: IBookmark[];
-        readonly meta: any;
+        readonly meta: { delete_ids: string };
         readonly user: IUserInformation;
         readonly duration: number;
     }

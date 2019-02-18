@@ -84,36 +84,63 @@ declare module Codevoid.Storyvoid {
         sourcefolder_dbid: number;
     }
 
+    export interface IFolderPendingEdit {
+        readonly type: string;
+        readonly folder_dbid: number;
+        readonly title: string;
+        readonly removedFolderId: string;
+    }
+
+    export interface IBookmarkPendingEdit {
+        readonly id: number;
+        readonly url: string;
+        readonly title: string;
+        readonly type: string;
+        readonly bookmark_id: number;
+        readonly sourcefolder_dbid: number;
+        readonly destinationfolder_dbid: number;
+    }
+
+    export interface IBookmarkPendingEdits {
+        readonly adds: IBookmarkPendingEdit[];
+        readonly deletes: IBookmarkPendingEdit[];
+        readonly moves: IBookmarkPendingEdit[];
+        readonly likes: IBookmarkPendingEdit[];
+        readonly unlikes: IBookmarkPendingEdit[];
+    }
+
     export class InstapaperDB {
         constructor();
         initialize(name?: string, version?: string): WinJS.Promise<InstapaperDB>;
         deleteAllData(): WinJS.Promise<any>;
         dispose(): void;
 
+        deletePendingFolderEdit(pendingFolderEditId: number): WinJS.Promise<void>;
+
         // Folder Interface
+        addFolder(folder: IFolder, dontAddPendingEdit: boolean): WinJS.Promise<IFolder>;
+        removeFolder(folderDbId: number, dontAddPendingEdit: boolean): WinJS.Promise<void>;
         listCurrentFolders(): WinJS.Promise<IFolder[]>;
         listCurrentBookmarks(folder_id?: number): WinJS.Promise<IBookmark[]>;
-        getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
+        getFolderByDbId(folderDbId: number): WinJS.Promise<IFolder>;
+        getFolderFromFolderId(folderId: string): WinJS.Promise<IFolder>;
         updateFolder(data: any): WinJS.Promise<any>
 
         // Bookmark interface
         addBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;
-        moveBookmark(bookmark_id: number, destinationfolder_dbid: number): WinJS.Promise<IBookmark>;
-        removeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
-        likeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
-        unlikeBookmark(bookmark_id: number): WinJS.Promise<IBookmark>;
+        moveBookmark(bookmark_id: number, destinationfolder_dbid: number, dontAddPendingEdit?: boolean): WinJS.Promise<IBookmark>;
+        removeBookmark(bookmark_id: number, dontAddPendingEdit?: boolean): WinJS.Promise<IBookmark>;
+        likeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean, ignoreMissingBookmark?: boolean): WinJS.Promise<IBookmark>;
+        unlikeBookmark(bookmark_id: number, dontAddPendingEdit?: boolean): WinJS.Promise<IBookmark>;
         updateBookmark(bookmark: IBookmark, dontRaiseChangeNotification?: boolean): WinJS.Promise<IBookmark>;
         updateReadProgress(bookmark_id: number, progress: number): WinJS.Promise<IBookmark>;
         getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark>;
+        getPendingBookmarkAdds(): WinJS.Promise<IBookmarkPendingEdit[]>;
 
-        getPendingFolderEdits(): WinJS.Promise<any>;
-        getPendingBookmarkEdits(): WinJS.Promise<{
-            adds: any[],
-            deletes: any[],
-            moves: any[],
-            likes: any[],
-            unlikes: any[],
-        }>;
+        getPendingFolderEdits(): WinJS.Promise<IFolderPendingEdit[]>;
+        getPendingBookmarkEdits(folderDbId?: number): WinJS.Promise<IBookmarkPendingEdits>;
+
+        deletePendingBookmarkEdit(pendingBookmarkDbId: number): WinJS.Promise<void>;
 
         commonFolderDbIds: {
             archive: number;
