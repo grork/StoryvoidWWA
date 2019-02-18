@@ -209,20 +209,7 @@ declare module Codevoid.Storyvoid {
 }
 
 declare module Codevoid.Storyvoid.InstapaperApi {
-    export class Bookmarks {
-        constructor(clientInformation: Codevoid.OAuth.ClientInformation);
-        add(parameters: { url: string, title?: string, description?: string, folder_id?: string }): WinJS.Promise<IBookmark>;
-        deleteBookmark(bookmark_id: number): WinJS.Promise<any>;
-        list({ folder_id: string }): WinJS.Promise<{ bookmarks: IBookmark[], duration: number }>;
-        updateReadProgress(paramters: { bookmark_id: number, progress: number, progress_timestamp: number }): WinJS.Promise<IBookmark>;
-        getTextAndSaveToFileInDirectory(bookmark_id: number, desinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile>;
-        static haveToString(have: any): string;
-    }
 
-    export interface IAccessTokenInformation {
-        oauth_token: string;
-        oauth_token_secret: string;
-    }
 }
 
 declare module Codevoid.Storyvoid.Authenticator {

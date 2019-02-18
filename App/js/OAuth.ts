@@ -1,9 +1,4 @@
 ﻿namespace Codevoid.OAuth {
-    interface NameValuePair {
-        key: string;
-        value: string;
-    }
-
     function stringKeySorter(first: NameValuePair, second: NameValuePair): number {
         window.appassert(!!(first && first.key), "first param was falsey");
         window.appassert(!!(second && second.key), "second param was falsey");
@@ -22,7 +17,7 @@
         window.appassert(Array.isArray(destination), "destination wasn't an array");
         window.appassert(!!item.key, "Item didn't have key");
 
-        destination.push({ key: rfc3986encodeURIComponent(item.key), value: rfc3986encodeURIComponent(item.value) });
+        destination.push({ key: rfc3986encodeURIComponent(item.key), value: rfc3986encodeURIComponent(<string>item.value) });
     }
 
     export enum Operations {
@@ -30,9 +25,19 @@
         POST = "POST"
     }
 
+    export interface IRequestError {
+        status: Windows.Web.Http.HttpStatusCode;
+        response: string;
+    }
+
     export interface IParameterEncoderOptions {
         readonly delimeter: string;
         readonly shouldQuoteValues: boolean;
+    }
+
+    export interface NameValuePair {
+        key: string;
+        value: string | number;
     }
 
     export class ParameterEncoder {
@@ -174,9 +179,9 @@
             // Build OAuth Items
             const oAuthHeaders: NameValuePair[] = [
                 { key: "oauth_consumer_key", value: this._clientInformation.clientId },
-                { key: "oauth_nonce", value: nonce.toString() },
+                { key: "oauth_nonce", value: nonce },
                 { key: "oauth_signature_method", value: "HMAC-SHA1" },
-                { key: "oauth_timestamp", value: timestamp.toString() },
+                { key: "oauth_timestamp", value: timestamp },
                 { key: "oauth_version", value: "1.0" }
             ];
 
@@ -193,7 +198,7 @@
             const signature = this._getSignatureForString(encodedParams);
 
             // Build items for parameter encoding for header
-            const authOAuthHeaders: NameValuePair[] = [{ key: "oauth_signature", value: signature }].concat(oAuthHeaders);
+            const authOAuthHeaders: NameValuePair[] = [{ key: "oauth_signature", value: <string | number>signature }].concat(oAuthHeaders);
             const headerEncoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true, delimeter: ", " });
 
             // Get header string
