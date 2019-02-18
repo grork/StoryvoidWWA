@@ -396,7 +396,7 @@
             var syncEvents = Utilities.addEventListeners(sync, {
                 syncstatusupdate: (eventData: Utilities.EventObject<ISyncStatusUpdate>) => {
                     switch (eventData.detail.operation) {
-                        case Codevoid.Storyvoid.InstapaperSync.Operation.end:
+                        case Codevoid.Storyvoid.InstapaperSyncStatus.end:
                             syncEvents.cancel();
                             dbEvents.cancel();
 
@@ -817,7 +817,7 @@
 
             sync.addEventListener("syncstatusupdate", (eventData) => {
                 switch (eventData.detail.operation) {
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.start:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.start:
                         this._startTrackingSyncForTelemetry(sync, reason);
                         if (!parameters.noEvents) {
                             this.events.dispatchEvent("syncstarting", {
@@ -829,31 +829,31 @@
                         Utilities.Logging.instance.log("Started");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.end:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.end:
                         Utilities.Logging.instance.log("Ended");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart:
                         Utilities.Logging.instance.log("Folders Started");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersEnd:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd:
                         Utilities.Logging.instance.log("Folders Ended");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksStart:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart:
                         Utilities.Logging.instance.log("Bookmarks Start");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksEnd:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd:
                         Utilities.Logging.instance.log("Bookmarks End");
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarkFolder:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.bookmarkFolder:
                         Utilities.Logging.instance.log("Syncing Folder: " + eventData.detail.title);
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.folder:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.folder:
                         Utilities.Logging.instance.log("Folder Synced: " + eventData.detail.title);
                         break;
 

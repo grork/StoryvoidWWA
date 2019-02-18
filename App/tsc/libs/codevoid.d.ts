@@ -53,39 +53,20 @@
 }
 
 declare module Codevoid.Storyvoid {
-    export class SyncOperation {
-        start: string;
-        end: string;
-        foldersStart: string;
-        foldersEnd: string;
-        bookmarksStart: string;
-        bookmarksEnd: string;
-        bookmarkFolder: string;
-        folder: string;
-        bookmark: string;
-    }
-
     export interface ISyncStatusUpdate {
         operation: string;
-        title: string;
+        title?: string;
     }
 
     export interface ISyncOptions {
-        dbInstance: InstapaperDB;
+        dbInstance?: InstapaperDB;
         folders: boolean,
         bookmarks: boolean,
         singleFolder?: boolean,
         folder?: number,
         cancellationSource?: Codevoid.Utilities.CancellationSource;
-    }
-
-    export class InstapaperSync extends Utilities.EventSource {
-        constructor(clientInformation: Codevoid.OAuth.ClientInformation);
-        addEventListener(name: "syncstatusupdate", handler: (eventData: Utilities.EventObject<ISyncStatusUpdate>) => any, useCapture?: boolean) : void;
-        sync(syncOptions?: ISyncOptions): WinJS.Promise<void>;
-        perFolderBookmarkLimits: { [id: string]: number };
-        defaultBookmarkLimit: number;
-        static Operation: SyncOperation;
+        skipOrphanCleanup?: boolean;
+        _testPerFolderCallback?: any;
     }
 
     export interface IFoldersChangedEvent {
@@ -113,6 +94,7 @@ declare module Codevoid.Storyvoid {
         listCurrentFolders(): WinJS.Promise<IFolder[]>;
         listCurrentBookmarks(folder_id?: number): WinJS.Promise<IBookmark[]>;
         getFolderByDbId(folderId: number): WinJS.Promise<IFolder>;
+        updateFolder(data: any): WinJS.Promise<any>
 
         // Bookmark interface
         addBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark>;

@@ -1772,33 +1772,33 @@
             syncEngine.addEventListener("syncstatusupdate", function (e) {
                 var detail = e.detail;
                 switch (detail.operation) {
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.start:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.start:
                         startCount++;
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.end:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.end:
                         endCount++;
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersStart:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart:
                         foldersStarted++;
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.foldersEnd:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd:
                         foldersEnded++;
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.folder:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.folder:
                         if (detail.title) {
                             foldersSynced++;
                         }
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksStart:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart:
                         bookmarksStarted++;
                         break;
 
-                    case Codevoid.Storyvoid.InstapaperSync.Operation.bookmarksEnd:
+                    case Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd:
                         bookmarksEnded++;
                         break;
 
