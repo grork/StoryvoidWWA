@@ -141,9 +141,6 @@
     <TypeScriptCompile Include="..\App\js\OAuth.ts">
       <Link>js\OAuth.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\ui\authenticator.js">
-      <Link>js\authenticator.js</Link>
-    </Content>
     <Content Include="..\App\WinJS\css\ui-light-intrinsics.css">
       <Link>WinJS\css\ui-light-intrinsics.css</Link>
     </Content>

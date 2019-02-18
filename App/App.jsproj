@@ -158,7 +158,7 @@
     <TypeScriptCompile Include="js\Deeplinking.ts" />
     <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
     <TypeScriptCompile Include="js\OAuth.ts" />
-    <Content Include="js\ui\authenticator.js" />
+    <TypeScriptCompile Include="js\ui\authenticator.ts" />
     <Content Include="css\colours.css" />
     <Content Include="css\viewer.css" />
     <Content Include="default.html" />
