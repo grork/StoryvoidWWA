@@ -179,20 +179,7 @@ declare module Codevoid.Storyvoid {
     }
 }
 
-declare module Codevoid.Storyvoid.Authenticator {
-    export class AuthenticatorViewModelX {
-        constructor();
-
-        authenticate(minimumDuration?: number): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
-        holdWorkingStateOnSuccess: boolean;
-    }
-}
-
 declare module Codevoid.Storyvoid.UI {
-    export class Authenticator extends Codevoid.UICore.Control {
-        constructor(element: HTMLElement, options: any);
-    }
-
     export class SplitViewCommandWithData extends WinJS.UI.SplitViewCommand {
         dataContext: any;
     }
