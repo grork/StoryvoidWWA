@@ -1,4 +1,35 @@
-﻿namespace Codevoid.Storyvoid.InstapaperApi {
+﻿namespace Codevoid.Storyvoid {
+    export interface IFolder {
+        title: string;
+        localOnly: boolean;
+        folder_id: string;
+        id: number;
+        position: number;
+    }
+
+    export interface IBookmark {
+        title: string;
+        url: string;
+        bookmark_id: number;
+        progress: number;
+        progress_timestamp: number;
+        folder_id: string;
+        folder_dbid: number;
+        time: number;
+        contentAvailableLocally: boolean;
+        hasImages: boolean;
+        firstImagePath: string;
+        firstImageOriginalUrl: string;
+        localFolderRelativePath: string;
+        description: string;
+        extractedDescription: string;
+        articleUnavailable: boolean;
+        starred: number;
+        doNotAddToJumpList?: boolean;
+    }
+}
+
+namespace Codevoid.Storyvoid.InstapaperApi {
 
     //#region Endpoint URLs
     const INSTAPAPER_API_URL = "https://www.instapaper.com/api/1/";
