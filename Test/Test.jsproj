@@ -132,9 +132,9 @@
     <TypeScriptCompile Include="..\App\js\InstapaperApi.ts">
       <Link>js\InstapaperApi.ts</Link>
     </TypeScriptCompile>
-    <Content Include="..\App\js\InstapaperDB.js">
-      <Link>js\InstapaperDB.js</Link>
-    </Content>
+    <TypeScriptCompile Include="..\App\js\InstapaperDB.ts">
+      <Link>js\InstapaperDB.ts</Link>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\InstapaperSync.ts">
       <Link>js\InstapaperSync.ts</Link>
     </TypeScriptCompile>

@@ -3,6 +3,7 @@
 /// <reference path="..\..\..\App\js\InstapaperApi.ts" />
 /// <reference path="..\..\..\App\js\AuthenticatorService.ts" />
 /// <reference path="..\..\..\App\js\InstapaperSync.ts" />
+/// <reference path="..\..\..\App\js\InstapaperDB.ts" />
 
 module CodevoidTests.InstapaperArticleSyncTests {
     import st = Windows.Storage;
