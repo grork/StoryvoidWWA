@@ -123,9 +123,9 @@
     <Content Include="..\App\HtmlTemplates.html">
       <Link>HtmlTemplates.html</Link>
     </Content>
-    <Content Include="..\App\js\AuthenticatorService.js">
-      <Link>js\AuthenticatorService.js</Link>
-    </Content>
+    <TypeScriptCompile Include="..\App\js\AuthenticatorService.ts">
+      <Link>js\AuthenticatorService.ts</Link>
+    </TypeScriptCompile>
     <Content Include="..\App\js\db.js">
       <Link>js\db.js</Link>
     </Content>

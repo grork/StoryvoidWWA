@@ -150,7 +150,7 @@
     <Content Include="images\Wide310x150Logo.scale-150.png" />
     <Content Include="images\Wide310x150Logo.scale-200.png" />
     <Content Include="images\Wide310x150Logo.scale-400.png" />
-    <Content Include="js\AuthenticatorService.js" />
+    <TypeScriptCompile Include="js\AuthenticatorService.ts" />
     <Content Include="js\db.js" />
     <TypeScriptCompile Include="js\InstapaperApi.ts" />
     <Content Include="js\InstapaperDB.js" />
