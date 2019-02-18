@@ -154,7 +154,7 @@
     <Content Include="js\db.js" />
     <TypeScriptCompile Include="js\InstapaperApi.ts" />
     <Content Include="js\InstapaperDB.js" />
-    <Content Include="js\InstapaperSync.js" />
+    <TypeScriptCompile Include="js\InstapaperSync.ts" />
     <TypeScriptCompile Include="js\Deeplinking.ts" />
     <TypeScriptCompile Include="js\InstapaperArticleSync.ts" />
     <TypeScriptCompile Include="js\OAuth.ts" />

@@ -135,9 +135,9 @@
     <Content Include="..\App\js\InstapaperDB.js">
       <Link>js\InstapaperDB.js</Link>
     </Content>
-    <Content Include="..\App\js\InstapaperSync.js">
-      <Link>js\InstapaperSync.js</Link>
-    </Content>
+    <TypeScriptCompile Include="..\App\js\InstapaperSync.ts">
+      <Link>js\InstapaperSync.ts</Link>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\OAuth.ts">
       <Link>js\OAuth.ts</Link>
     </TypeScriptCompile>
