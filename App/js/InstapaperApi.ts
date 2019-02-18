@@ -451,39 +451,38 @@
         }
     }
 
-    WinJS.Namespace.define("Codevoid.Storyvoid.InstapaperApi", {
-        Folders: WinJS.Class.define(function Folders_Constructor(clientInformation) {
-            this._clientInformation = clientInformation;
-        }, {
-                _clientInformation: null,
-                list: function list() {
-                    var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.list);
-                    return request.send().then(extractArrayFromResponse, handleSingleItemJSONError);
-                },
-                add: function add(title) {
-                    if (!title) {
-                        throw new Error("Title is required to create a folder");
-                    }
+    export class Folders {
+        constructor(private _clientInformation: Codevoid.OAuth.ClientInformation) { }
 
-                    var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.add);
-                    request.data = [{ key: "title", value: title }];
-                    return request.send().then(extractSingleItemFromJSONArray).then(function (data) {
-                        if (!data.folder_id) {
-                            return WinJS.Promise.wrapError(new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
-                        }
+        public list(): WinJS.Promise<IFolder[]> {
+            const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.list);
+            return request.send().then(extractArrayFromResponse, handleSingleItemJSONError);
+        }
 
-                        return data;
-                    }, handleSingleItemJSONError);
-                },
-                deleteFolder: function deleteFolder(folder_id) {
-                    if (!folder_id) {
-                        throw new Error("Folder ID is required to delete a folder");
-                    }
+        public add(title: string): WinJS.Promise<IFolder> {
+            if (!title) {
+                throw new Error("Title is required to create a folder");
+            }
 
-                    var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.deleteFolder);
-                    request.data = [{ key: "folder_id", value: folder_id }];
-                    return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.add);
+            request.data = [{ key: "title", value: title }];
+            return request.send().then(extractSingleItemFromJSONArray).then(function (data) {
+                if (!data.folder_id) {
+                    return WinJS.Promise.wrapError(new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
                 }
-            }),
-    });
+
+                return data;
+            }, handleSingleItemJSONError);
+        }
+
+        public deleteFolder(folder_id: string): WinJS.Promise<any> {
+            if (!folder_id) {
+                throw new Error("Folder ID is required to delete a folder");
+            }
+
+            const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.deleteFolder);
+            request.data = [{ key: "folder_id", value: folder_id }];
+            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+        }
+    }
 }
