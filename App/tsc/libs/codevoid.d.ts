@@ -180,13 +180,7 @@ declare module Codevoid.Storyvoid {
 }
 
 declare module Codevoid.Storyvoid.Authenticator {
-    export function getStoredCredentials(): Codevoid.OAuth.ClientInformation;
-    export function applyUserAgentSettings(clientInformation: Codevoid.OAuth.ClientInformation);
-    export function friendlyMessageForError(code: number): string;
-
-    export function clearClientInformation(): void;
-    export function saveAccessToken(accessToken: InstapaperApi.IAccessTokenInformation): Codevoid.OAuth.ClientInformation;
-    export class AuthenticatorViewModel {
+    export class AuthenticatorViewModelX {
         constructor();
 
         authenticate(minimumDuration?: number): WinJS.Promise<InstapaperApi.IAccessTokenInformation>;
