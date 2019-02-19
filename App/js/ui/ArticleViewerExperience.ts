@@ -18,7 +18,7 @@
     function getLikeAndArchiveForBookmark(bookmark: IBookmark): { liked: boolean; archive: boolean } {
         return {
             liked: (bookmark.starred === 1),
-            archive: bookmark.folder_id === Codevoid.Storyvoid.InstapaperDB.CommonFolderIds.Archive
+            archive: bookmark.folder_id === Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive
         };
     }
 

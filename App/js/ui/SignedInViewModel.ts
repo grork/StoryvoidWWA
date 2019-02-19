@@ -117,11 +117,11 @@
             }
 
             switch (detail.operation) {
-                case InstapaperDB.FolderChangeTypes.UPDATE:
+                case InstapaperDBFolderChangeTypes.UPDATE:
                     this._handleFoldersUpdated(detail);
                     break;
 
-                case InstapaperDB.FolderChangeTypes.DELETE:
+                case InstapaperDBFolderChangeTypes.DELETE:
                     this._handleFolderDeleted(detail);
                     break;
             }
@@ -129,7 +129,7 @@
 
         private _handleFoldersUpdated(detail: IFoldersChangedEvent): void {
             // We only care about updates
-            if (detail.operation !== InstapaperDB.FolderChangeTypes.UPDATE) {
+            if (detail.operation !== InstapaperDBFolderChangeTypes.UPDATE) {
                 return;
             }
 
@@ -143,7 +143,7 @@
 
         private _handleFolderDeleted(detail: IFoldersChangedEvent): void {
             // Don't care about not-deletes
-            if (detail.operation !== InstapaperDB.FolderChangeTypes.DELETE) {
+            if (detail.operation !== InstapaperDBFolderChangeTypes.DELETE) {
                 return;
             }
 
@@ -153,7 +153,7 @@
         }
 
         private _handleBookmarksChanged(detail: IBookmarksChangedEvent): void {
-            if (detail.operation === InstapaperDB.BookmarkChangeTypes.MOVE) {
+            if (detail.operation === InstapaperDBBookmarkChangeTypes.MOVE) {
                 // Moves are handled specially because we need to look at both destination
                 // and source information.
                 this._handleBookmarkMoved(detail);
@@ -166,15 +166,15 @@
             // doesn't have things added/removed from it -- just like/unlike
             if (this._currentFolderDbId === this._instapaperDB.commonFolderDbIds.liked) {
                 switch (detail.operation) {
-                    case InstapaperDB.BookmarkChangeTypes.UPDATE:
+                    case InstapaperDBBookmarkChangeTypes.UPDATE:
                         this._handleBookmarkUpdated(detail);
                         break;
 
-                    case InstapaperDB.BookmarkChangeTypes.LIKE:
+                    case InstapaperDBBookmarkChangeTypes.LIKE:
                         this._handleBookmarkAdded(detail);
                         break;
 
-                    case InstapaperDB.BookmarkChangeTypes.UNLIKE:
+                    case InstapaperDBBookmarkChangeTypes.UNLIKE:
                         this._handleBookmarkDeleted(detail);
                         break;
                 }
@@ -189,17 +189,17 @@
             }
 
             switch (detail.operation) {
-                case InstapaperDB.BookmarkChangeTypes.LIKE:
-                case InstapaperDB.BookmarkChangeTypes.UNLIKE:
-                case InstapaperDB.BookmarkChangeTypes.UPDATE:
+                case InstapaperDBBookmarkChangeTypes.LIKE:
+                case InstapaperDBBookmarkChangeTypes.UNLIKE:
+                case InstapaperDBBookmarkChangeTypes.UPDATE:
                     this._handleBookmarkUpdated(detail);
                     break;
 
-                case InstapaperDB.BookmarkChangeTypes.ADD:
+                case InstapaperDBBookmarkChangeTypes.ADD:
                     this._handleBookmarkAdded(detail);
                     break;
 
-                case InstapaperDB.BookmarkChangeTypes.DELETE:
+                case InstapaperDBBookmarkChangeTypes.DELETE:
                     this._handleBookmarkDeleted(detail);
                     break;
             }
@@ -208,7 +208,7 @@
         private _handleBookmarkMoved(detail: IBookmarksChangedEvent) {
             if (detail.sourcefolder_dbid === this._currentFolderDbId) {
                 // since it's *from* this folder, and it's a move, this should be remapped to an delete:
-                detail.operation = InstapaperDB.BookmarkChangeTypes.DELETE;
+                detail.operation = InstapaperDBBookmarkChangeTypes.DELETE;
                 this._handleBookmarkDeleted(detail);
                 return;
             }
@@ -216,7 +216,7 @@
             if (detail.destinationfolder_dbid === this._currentFolderDbId) {
                 // If the destination maps to the folder we're looking at,
                 // then we can map to an add
-                detail.operation = InstapaperDB.BookmarkChangeTypes.ADD;
+                detail.operation = InstapaperDBBookmarkChangeTypes.ADD;
                 this._handleBookmarkAdded(detail);
                 return;
             }
@@ -229,9 +229,9 @@
 
             // Don't care about non-update-like events
             switch (detail.operation) {
-                case InstapaperDB.BookmarkChangeTypes.UPDATE:
-                case InstapaperDB.BookmarkChangeTypes.LIKE:
-                case InstapaperDB.BookmarkChangeTypes.UNLIKE:
+                case InstapaperDBBookmarkChangeTypes.UPDATE:
+                case InstapaperDBBookmarkChangeTypes.LIKE:
+                case InstapaperDBBookmarkChangeTypes.UNLIKE:
                     break;
 
                 default:
@@ -257,8 +257,8 @@
 
         private _handleBookmarkAdded(detail: IBookmarksChangedEvent): void {
             // Only adds of intrest to us here.
-            if ((detail.operation !== InstapaperDB.BookmarkChangeTypes.ADD)
-                && (detail.operation !== InstapaperDB.BookmarkChangeTypes.LIKE)) {
+            if ((detail.operation !== InstapaperDBBookmarkChangeTypes.ADD)
+                && (detail.operation !== InstapaperDBBookmarkChangeTypes.LIKE)) {
                 return;
             }
 
@@ -267,8 +267,8 @@
 
         private _handleBookmarkDeleted(detail: IBookmarksChangedEvent): void {
             // Don't care about non-deletes
-            if ((detail.operation !== InstapaperDB.BookmarkChangeTypes.DELETE)
-                && (detail.operation !== InstapaperDB.BookmarkChangeTypes.UNLIKE)) {
+            if ((detail.operation !== InstapaperDBBookmarkChangeTypes.DELETE)
+                && (detail.operation !== InstapaperDBBookmarkChangeTypes.UNLIKE)) {
                 return;
             }
 
@@ -354,7 +354,7 @@
             var dbEvents = Utilities.addEventListeners(this._instapaperDB, {
                 bookmarkschanged: (eventData: Utilities.EventObject<IBookmarksChangedEvent>) => {
                     switch (eventData.detail.operation) {
-                        case InstapaperDB.BookmarkChangeTypes.ADD:
+                        case InstapaperDBBookmarkChangeTypes.ADD:
                             bookmarksAdded++;
 
                             try {
@@ -371,7 +371,7 @@
                             }
                             break;
 
-                        case InstapaperDB.BookmarkChangeTypes.DELETE:
+                        case InstapaperDBBookmarkChangeTypes.DELETE:
                             bookmarksRemoved++;
                             break;
                     }
@@ -380,11 +380,11 @@
                 },
                 folderschanged: (eventData: Utilities.EventObject<IFoldersChangedEvent>) => {
                     switch (eventData.detail.operation) {
-                        case InstapaperDB.FolderChangeTypes.ADD:
+                        case InstapaperDBFolderChangeTypes.ADD:
                             foldersAdded++;
                             break;
 
-                        case InstapaperDB.FolderChangeTypes.DELETE:
+                        case InstapaperDBFolderChangeTypes.DELETE:
                             foldersRemoved++;
                             break;
                     }
@@ -808,9 +808,9 @@
 
             let cancellationSource = this._currentSync.cancellationSource;
 
-            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Unread] = syncSettings.homeArticleLimit;
-            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
-            sync.perFolderBookmarkLimits[InstapaperDB.CommonFolderIds.Liked] = syncSettings.likedArticleLimit;
+            sync.perFolderBookmarkLimits[InstapaperDBCommonFolderIds.Unread] = syncSettings.homeArticleLimit;
+            sync.perFolderBookmarkLimits[InstapaperDBCommonFolderIds.Archive] = syncSettings.archiveArticleLimit;
+            sync.perFolderBookmarkLimits[InstapaperDBCommonFolderIds.Liked] = syncSettings.likedArticleLimit;
             sync.defaultBookmarkLimit = syncSettings.otherFoldersLimit;
 
             Utilities.Logging.instance.log("Starting Sync");

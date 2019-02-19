@@ -2,7 +2,7 @@
 module Codevoid.Storyvoid {
     import StartScreen = Windows.UI.StartScreen;
 
-    const unreadFolderId = InstapaperDB.CommonFolderIds.Unread;
+    const unreadFolderId = InstapaperDBCommonFolderIds.Unread;
 
     // Sorts things so that newest items (e.g. higher time value implies
     // most recent) are at lower indexes

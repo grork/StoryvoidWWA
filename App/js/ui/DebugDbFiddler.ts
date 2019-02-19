@@ -44,7 +44,7 @@
                     label: "Add",
                     handler: () => {
                         this._db.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDB.BookmarkChangeTypes.ADD,
+                            operation: InstapaperDBBookmarkChangeTypes.ADD,
                             bookmark_id: 235423452,
                             bookmark: {
                                 bookmark_id: 235423452,
@@ -62,7 +62,7 @@
                         this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
                             var firstBookmark = bookmarks[0];
                             this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDB.BookmarkChangeTypes.DELETE,
+                                operation: InstapaperDBBookmarkChangeTypes.DELETE,
                                 bookmark: firstBookmark,
                                 bookmark_id: firstBookmark.bookmark_id,
                             });
@@ -77,7 +77,7 @@
                             firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
 
                             this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
+                                operation: InstapaperDBBookmarkChangeTypes.UPDATE,
                                 bookmark_id: firstBookmark.bookmark_id,
                                 bookmark: firstBookmark,
                             });
@@ -93,7 +93,7 @@
                             firstBookmark.progress = Math.random();
 
                             this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDB.BookmarkChangeTypes.UPDATE,
+                                operation: InstapaperDBBookmarkChangeTypes.UPDATE,
                                 bookmark_id: firstBookmark.bookmark_id,
                                 bookmark: firstBookmark,
                             });
@@ -104,7 +104,7 @@
                     label: "Change Home Folder title",
                     handler: () => {
                         this._db.dispatchEvent("folderschanged", {
-                            operation: InstapaperDB.FolderChangeTypes.UPDATE,
+                            operation: InstapaperDBFolderChangeTypes.UPDATE,
                             folder_dbid: this._db.commonFolderDbIds.unread,
                             folder: {
                                 id: this._db.commonFolderDbIds.unread,
@@ -134,7 +134,7 @@
                             });
 
                             this._db.dispatchEvent("folderschanged", {
-                                operation: InstapaperDB.FolderChangeTypes.DELETE,
+                                operation: InstapaperDBFolderChangeTypes.DELETE,
                                 folder_dbid: nonDefaultFolders[0].id,
                             });
                         });

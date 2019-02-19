@@ -2,7 +2,11 @@
     "use strict";
 
     var InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
-    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
+    var defaultFolderIds = [
+        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
+        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked,
+        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive,
+        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned];
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
     var expectNoPendingFolderEdits = InstapaperTestUtilities.expectNoPendingFolderEdits;
     var expectNoPendingBookmarkEdits = InstapaperTestUtilities.expectNoPendingBookmarkEdits;
@@ -25,27 +29,27 @@
         sampleBookmarks = [{ // 0
             title: "Unread1",
             url: "http://unread1.com",
-            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
             bookmark_id: "1"
         }, { // 1
             title: "Unread2",
             url: "http://unread2.com",
-            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
             bookmark_id: "2"
         }, { // 2
             title: "Unread3",
             url: "http://unread3.com",
-            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
             bookmark_id: "3"
         }, { // 3
             title: "Archived1",
             url: "http://archive1.com",
-            folder_id: InstapaperDB.CommonFolderIds.Archive,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive,
             bookmark_id: "4"
         }, { // 4
             title: "Archived2",
             url: "http://archive2.com",
-            folder_id: InstapaperDB.CommonFolderIds.Archive,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive,
             bookmark_id: "5"
         }, { // 5
             title: "InFolder1-1",
@@ -70,7 +74,7 @@
         }, { // 9
             title: "Unread4",
             url: "http://unread4.com",
-            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
             bookmark_id: "10"
         }];
     }
@@ -101,7 +105,7 @@
         assert.strictEqual(edits.length, 1, "Expected single pending edit");
 
         var pendingEdit = edits[0];
-        assert.strictEqual(pendingEdit.type, InstapaperDB.BookmarkChangeTypes.MOVE, "Not a move edit");
+        assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE, "Not a move edit");
         assert.strictEqual(pendingEdit.bookmark_id, bookmark_id, "not correct bookmark");
         assert.strictEqual(pendingEdit.destinationfolder_dbid, folder.id, "Incorrect folder DB id");
         assert.strictEqual(pendingEdit.sourcefolder_dbid, sourcefolder_dbid, "Not marked with the correct ID");
@@ -250,7 +254,7 @@
                     version: InstapaperDB.DBVersion,
                 });
             }).then(function (rawServer) {
-                return rawServer.query(InstapaperDB.DBFoldersTable).execute();
+                return rawServer.query(Codevoid.Storyvoid.InstapaperDBTableNames.Folders).execute();
             }).then(function (queryResult) {
                 assert.ok(queryResult, "Didn't get any results");
                 assert.strictEqual(queryResult.length, 4, "Didn't get the folders expected");
@@ -360,7 +364,7 @@
             }).then(function () {
                 assert.ok(false, "Should have failed");
             }, function (error) {
-                assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
+                assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDBErrorCodes.FOLDER_DUPLICATE_TITLE, "Wrong error code");
                 assert.ok(true, "Should fail here");
             }).then(function (folders) {
                 return expectNoPendingFolderEdits(instapaperDB);
@@ -433,7 +437,7 @@
                 }
 
                 var pendingEdit = pendingEdits[0];
-                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.ADD, "Expected to be ADD edit type");
+                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.ADD, "Expected to be ADD edit type");
                 assert.strictEqual(pendingEdit.folder_dbid, addFolderResult.id, "Pending edit wasn't for the folder we added");
 
                 return instapaperDB.deletePendingFolderEdit(pendingEdit.id);
@@ -477,7 +481,7 @@
                 }
 
                 var pendingEdit = pendingEdits[0];
-                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.FolderChangeTypes.DELETE, "Expected to be DELETE edit type");
+                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE, "Expected to be DELETE edit type");
                 assert.strictEqual(pendingEdit.removedFolderId, folderToRemove.folder_id, "Pending edit wasn't for the folder we added");
                 assert.strictEqual(pendingEdit.title, folderToRemove.title, "Didn't didn't match");
 
@@ -596,7 +600,7 @@
                 var pendingEdit = pendingEdits[0];
                 assert.strictEqual(pendingEdit.url, "http://www.microsoft.com", "Incorrect pended URL");
                 assert.strictEqual(pendingEdit.title, "Microsoft", "incorrect pended title");
-                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDB.BookmarkChangeTypes.ADD, "Wrong pended edit type");
+                assert.strictEqual(pendingEdit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD, "Wrong pended edit type");
 
                 return instapaperDB.listCurrentBookmarks();
             }).then(function (currentBookmarks) {
@@ -662,7 +666,7 @@
                 assert.ok(false, "shouldn't have succeeded");
             }, function (error) {
                 assert.ok(error, "didn't get error object");
-                assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDB.ErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
+                assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND, "Incorrect Error code");
             });
         });
 
@@ -742,7 +746,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.DELETE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
             }).then(function () {
@@ -783,7 +787,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked for the correct folder");
             }).then(function () {
@@ -822,7 +826,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
 
@@ -836,7 +840,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
 
@@ -875,7 +879,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked with correct source folder");
 
@@ -914,7 +918,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
 
@@ -928,7 +932,7 @@
                 var edit = currentPendingEdits[0];
                 pendingEditId = edit.id;
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
 
@@ -964,7 +968,7 @@
 
                 var edit = currentPendingEdits[0];
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "not marked with the correct source folder");
 
@@ -1007,7 +1011,7 @@
 
                 var edit = currentPendingEdits[0];
 
-                assert.strictEqual(edit.type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Expected Delete type");
+                assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, "local_id", "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
             }).then(function () {
@@ -1036,13 +1040,13 @@
 
             return getNewInstapaperDBAndInit().then(function (idb) {
                 instapaperDB = idb;
-                return idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Liked);
+                return idb.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked);
             }).then(function (likeFolder) {
                 return instapaperDB.moveBookmark(sampleBookmarks[0].bookmark_id, likeFolder.id);
             }).then(function () {
                 assert.ok(false, "shouldn't be able to successfully move to liked folder");
             }, function (error) {
-                assert.strictEqual(error.code, InstapaperDB.ErrorCodes.INVALID_DESTINATION_FOLDER, "incorrect error code");
+                assert.strictEqual(error.code, Codevoid.Storyvoid.InstapaperDBErrorCodes.INVALID_DESTINATION_FOLDER, "incorrect error code");
             });
         });
 
@@ -1113,11 +1117,11 @@
 
                 pendingEdits.forEach(function (edit) {
                     switch (edit.type) {
-                        case InstapaperDB.BookmarkChangeTypes.MOVE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE:
                             moveEdit = edit;
                             break;
 
-                        case InstapaperDB.BookmarkChangeTypes.LIKE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE:
                             likeEdit = edit;
                             break;
 
@@ -1160,11 +1164,11 @@
 
                 pendingEdits.forEach(function (edit) {
                     switch (edit.type) {
-                        case InstapaperDB.BookmarkChangeTypes.MOVE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE:
                             moveEdit = edit;
                             break;
 
-                        case InstapaperDB.BookmarkChangeTypes.LIKE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE:
                             likeEdit = edit;
                             break;
 
@@ -1194,11 +1198,11 @@
 
                 pendingEdits.forEach(function (edit) {
                     switch (edit.type) {
-                        case InstapaperDB.BookmarkChangeTypes.LIKE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE:
                             likeEdit = edit;
                             break;
 
-                        case InstapaperDB.BookmarkChangeTypes.DELETE:
+                        case Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE:
                             deleteEdit = edit;
                             break;
 
@@ -1264,16 +1268,16 @@
                 });
 
                 assert.strictEqual(unreadBookmarks[0].bookmark_id, sampleBookmarks[0].bookmark_id, "Bookmark 1 not found");
-                assert.strictEqual(unreadBookmarks[0].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 1 not found in unread folder");
+                assert.strictEqual(unreadBookmarks[0].folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, "Bookmark 1 not found in unread folder");
 
                 assert.strictEqual(unreadBookmarks[1].bookmark_id, sampleBookmarks[1].bookmark_id, "Bookmark 2 not found");
-                assert.strictEqual(unreadBookmarks[1].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 2 not found in unread folder");
+                assert.strictEqual(unreadBookmarks[1].folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, "Bookmark 2 not found in unread folder");
 
                 assert.strictEqual(unreadBookmarks[2].bookmark_id, sampleBookmarks[2].bookmark_id, "Bookmark 3 not found");
-                assert.strictEqual(unreadBookmarks[2].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 3 not found in unread folder");
+                assert.strictEqual(unreadBookmarks[2].folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, "Bookmark 3 not found in unread folder");
 
                 assert.strictEqual(unreadBookmarks[3].bookmark_id, sampleBookmarks[9].bookmark_id, "Bookmark 4 not found");
-                assert.strictEqual(unreadBookmarks[3].folder_id, InstapaperDB.CommonFolderIds.Unread, "Bookmark 4 not found in unread folder");
+                assert.strictEqual(unreadBookmarks[3].folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, "Bookmark 4 not found in unread folder");
             });
         });
 
@@ -1381,12 +1385,12 @@
                 var moveEdit = scopedPendingEdits.moves[0];
                 var likeEdit = scopedPendingEdits.likes[0];
 
-                assert.strictEqual(moveEdit.type, InstapaperDB.BookmarkChangeTypes.MOVE, "incorrect move type");
+                assert.strictEqual(moveEdit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE, "incorrect move type");
                 assert.strictEqual(moveEdit.sourcefolder_dbid, targetFolder.id, "not the correct source folder");
                 assert.strictEqual(moveEdit.destinationfolder_dbid, destinationFolder.id, "Not the correct target folder");
                 assert.strictEqual(moveEdit.bookmark_id, bookmark1.bookmark_id, "Incorrect bookmark ID");
 
-                assert.strictEqual(likeEdit.type, InstapaperDB.BookmarkChangeTypes.LIKE, "incorrect move type");
+                assert.strictEqual(likeEdit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "incorrect move type");
                 assert.strictEqual(likeEdit.sourcefolder_dbid, targetFolder.id, "not the correct source folder");
                 assert.strictEqual(likeEdit.bookmark_id, bookmark2.bookmark_id, "Incorrect bookmark ID");
 
@@ -1471,8 +1475,8 @@
 
                 return WinJS.Promise.join({
                     like: idb.likeBookmark(sampleBookmarks[0].bookmark_id, true),
-                    unreadFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Unread),
-                    archiveFolder: idb.getFolderFromFolderId(InstapaperDB.CommonFolderIds.Archive),
+                    unreadFolder: idb.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread),
+                    archiveFolder: idb.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive),
                     moveBookmarkToSampleFolder: idb.moveBookmark(sampleBookmarks[4].bookmark_id, sampleFolders[0].id, true),
                 });
             }).then(function (data) {
@@ -1504,25 +1508,25 @@
                 assert.ok(data.unread.unlikes, "Didn't get any unlikes");
                 assert.strictEqual(data.unread.unlikes.length, 1, "Only expected one like edit");
                 assert.strictEqual(data.unread.unlikes[0].bookmark_id, sampleBookmarks[0].bookmark_id, "Incorrect bookmark");
-                assert.strictEqual(data.unread.unlikes[0].type, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Not correct edit type");
+                assert.strictEqual(data.unread.unlikes[0].type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Not correct edit type");
 
                 assert.ok(data.unread.likes, "Didn't get any likes");
                 assert.strictEqual(data.unread.likes.length, 1, "Didn't get enough likes");
                 assert.strictEqual(data.unread.likes[0].bookmark_id, sampleBookmarks[1].bookmark_id, "Incorrect bookmark ID");
-                assert.strictEqual(data.unread.likes[0].type, InstapaperDB.BookmarkChangeTypes.LIKE, "Incorrect edit type");
+                assert.strictEqual(data.unread.likes[0].type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Incorrect edit type");
 
                 assert.ok(data.unread.moves, "Didn't get any moves");
 
                 // Check the item being moved OUT of unread
                 assert.strictEqual(data.unread.moves.length, 2, "Didn't get enough moves");
                 assert.strictEqual(data.unread.moves[0].bookmark_id, sampleBookmarks[2].bookmark_id, "Incorrect bookmark ID");
-                assert.strictEqual(data.unread.moves[0].type, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect edit type");
+                assert.strictEqual(data.unread.moves[0].type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE, "Incorrect edit type");
                 assert.strictEqual(data.unread.moves[0].destinationfolder_dbid, sampleFolders[0].id, "Wrong destination folder");
                 assert.strictEqual(data.unread.moves[0].sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "Incorrect source folder");
 
                 // Check the item being moved INTO unread
                 assert.strictEqual(data.unread.moves[1].bookmark_id, sampleBookmarks[4].bookmark_id, "Incorrect bookmark ID");
-                assert.strictEqual(data.unread.moves[1].type, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect edit type");
+                assert.strictEqual(data.unread.moves[1].type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE, "Incorrect edit type");
                 assert.strictEqual(data.unread.moves[1].destinationfolder_dbid, instapaperDB.commonFolderDbIds.unread, "Wrong destination folder");
                 assert.strictEqual(data.unread.moves[1].sourcefolder_dbid, sampleFolders[0].id, "Incorrect source folder");
 
@@ -1530,7 +1534,7 @@
                 assert.ok(data.archive.deletes, "Didn't get any deletes");
                 assert.strictEqual(data.archive.deletes.length, 1, "Didn't get enough deletes");
                 assert.strictEqual(data.archive.deletes[0].bookmark_id, sampleBookmarks[3].bookmark_id, "Incorrect bookmark ID");
-                assert.strictEqual(data.archive.deletes[0].type, InstapaperDB.BookmarkChangeTypes.DELETE, "Incorrect edit type");
+                assert.strictEqual(data.archive.deletes[0].type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE, "Incorrect edit type");
             });
         });
 

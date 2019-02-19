@@ -370,7 +370,7 @@
 
             this._folderNameElement.textContent = folderDetails.folder.title;
 
-            this._headerCommandsContainer.classList.toggle("header-in-home-folder", (folderDetails.folder.folder_id === Codevoid.Storyvoid.InstapaperDB.CommonFolderIds.Unread));
+            this._headerCommandsContainer.classList.toggle("header-in-home-folder", (folderDetails.folder.folder_id === Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread));
 
             this._clearEmptyStateListeners();
 
@@ -760,15 +760,15 @@
         var result = "\uE8B7"; // hollow folder icon
 
         switch (folder) {
-            case InstapaperDB.CommonFolderIds.Archive:
+            case InstapaperDBCommonFolderIds.Archive:
                 result = "\uE7B8";
                 break;
 
-            case InstapaperDB.CommonFolderIds.Liked:
+            case InstapaperDBCommonFolderIds.Liked:
                 result = "\uE006";
                 break;
 
-            case InstapaperDB.CommonFolderIds.Unread:
+            case InstapaperDBCommonFolderIds.Unread:
                 result = "\uE80F";
                 break;
 

@@ -47,7 +47,7 @@
                         return;
                     }
 
-                    this._resetTimer((e.detail.operation === InstapaperDB.BookmarkChangeTypes.DELETE));
+                    this._resetTimer((e.detail.operation === InstapaperDBBookmarkChangeTypes.DELETE));
                 }
             }));
 

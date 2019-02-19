@@ -115,10 +115,10 @@
 
             folders.forEach(function (folder) {
                 switch (folder.folder_id) {
-                    case InstapaperDB.CommonFolderIds.Unread:
-                    case InstapaperDB.CommonFolderIds.Archive:
-                    case InstapaperDB.CommonFolderIds.Liked:
-                    case InstapaperDB.CommonFolderIds.Orphaned:
+                    case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread:
+                    case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive:
+                    case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked:
+                    case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned:
                         return;
                         break;
 
@@ -144,7 +144,7 @@
 
         // Get the remote bookmarks so we can add, update, cache etc as needed
         return bookmarks.list({
-            folder_id: InstapaperDB.CommonFolderIds.Unread,
+            folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
         }).then(function (remoteBookmarks) {
             remoteBookmarks = remoteBookmarks.bookmarks;
             // If we have remote bookmarks, we need to remove the urls
@@ -196,7 +196,7 @@
             assert.ok(addedRemoteBookmarks, "No remotebookmarks!");
             assert.ok(addedRemoteBookmarks.length, "No remote bookmarks!");
 
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked });
         }).then((result) => {
             // Reset all remote likes.
             return Codevoid.Utilities.serialize(result.bookmarks, (item) => {
@@ -561,7 +561,7 @@
 
                 return WinJS.Promise.join({
                     local: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
-                    remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                    remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                 });
             }).then(function (data) {
                 var bookmarks = data.local;
@@ -725,7 +725,7 @@
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(function () {
                 return WinJS.Promise.join({
-                    remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                    remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     localBookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                 });
             }).then(function (data) {
@@ -883,7 +883,7 @@
                 instapaperDB = idb;
                 return WinJS.Promise.join({
                     local: idb.likeBookmark(targetBookmark.bookmark_id),
-                    remoteLikes: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked }),
+                    remoteLikes: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked }),
                 });
             }).then(function (data) {
                 addedRemoteBookmarks.push(data.local);
@@ -896,7 +896,7 @@
 
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(function () {
-                return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+                return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked });
             }).then(function (data) {
                 var likedRemotely = data.bookmarks.some(function (bookmark) {
                     return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
@@ -926,7 +926,7 @@
                 return setupData.then(function () {
                     return WinJS.Promise.join({
                         local: idb.unlikeBookmark(targetBookmark.bookmark_id),
-                        remoteLikes: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked }),
+                        remoteLikes: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked }),
                     });
                 });
             }).then(function (data) {
@@ -940,7 +940,7 @@
 
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(function () {
-                return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+                return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked });
             }).then(function (data) {
                 var likedRemotely = data.bookmarks.some(function (bookmark) {
                     return (bookmark.bookmark_id === targetBookmark.bookmark_id) && (bookmark.starred === "1");
@@ -999,12 +999,12 @@
                 return instapaperDB.updateReadProgress(localBookmark.bookmark_id, targetProgress);
             }).then(function (progressChanged) {
                 updatedBookmark = progressChanged;
-                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread });
             }).then(function () {
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(function () {
                 return WinJS.Promise.join({
-                    remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                    remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     localBookmark: instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id),
                 });
             }).then(function (data) {
@@ -1032,7 +1032,7 @@
             }).then(function () {
                 return getNewSyncEngine().sync();
             }).then(function () {
-                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive });
             }).then(function (remoteBookmarks) {
                 var remote = remoteBookmarks.bookmarks.filter(function (bookmark) {
                     return bookmark.bookmark_id === targetBookmark.bookmark_id;
@@ -1089,7 +1089,7 @@
             }).then(function () {
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(function () {
-                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread });
             }).then(function (data) {
                 var bookmarkFoundRemotely = data.bookmarks.some(function (bookmark) {
                     return bookmark.bookmark_id === targetBookmark.bookmark_id;
@@ -1116,7 +1116,7 @@
 
             var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }).then(function (rb) {
                 assert.ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
 
                 return sync.sync();
@@ -1136,7 +1136,7 @@
 
             var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }).then(function (rb) {
                 assert.ok(rb.bookmarks.length > 1, "Not enough Bookmarks remotely: " + rb.length);
 
                 var lastBookmark = rb.bookmarks[rb.bookmarks.length - 1];
@@ -1166,7 +1166,7 @@
             var remoteFolder2 = addedRemoteFolders[1].folder_id;
 
             var folderSyncLimits = {};
-            folderSyncLimits[InstapaperDB.CommonFolderIds.Liked] = 2;
+            folderSyncLimits[Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked] = 2;
             folderSyncLimits[remoteFolder1] = 2;
             folderSyncLimits[remoteFolder2] = 2;
 
@@ -1174,7 +1174,7 @@
 
             var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }).then(function (rb) {
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }).then(function (rb) {
                 assert.ok(rb.bookmarks.length >= 8, "Not enough Bookmarks remotely: " + rb.length);
 
                 var itemsInSampleFolder1 = [];
@@ -1238,7 +1238,7 @@
                 bookmark_id: Date.now(),
                 url: "http://notreal.com",
                 title: "Test",
-                folder_id: InstapaperDB.CommonFolderIds.Unread,
+                folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
                 folder_dbid: idb.commonFolderDbIds.unread,
             };
 
@@ -1280,7 +1280,7 @@
                 assert.ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
 
                 assert.strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
-                assert.strictEqual(data.bookmark1.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
+                assert.strictEqual(data.bookmark1.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
 
                 return WinJS.Promise.join({
                     orphaned: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned),
@@ -1335,7 +1335,7 @@
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(function () {
                 return WinJS.Promise.join({
-                    remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                    remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     removedLocally: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
             }).then(function (data) {
@@ -1600,7 +1600,7 @@
                 assert.ok(data.bookmark, "Expected to get bookmark");
                 assert.strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
 
-                assert.notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+                assert.notStrictEqual(data.bookmark.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
                 assert.notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
             });
         });
@@ -1645,7 +1645,7 @@
                 assert.ok(data.bookmark, "Expected to get bookmark");
                 assert.strictEqual(data.bookmark.bookmark_id, movedBookmark.bookmark_id, "Didn't get the right bookmark");
 
-                assert.notStrictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
+                assert.notStrictEqual(data.bookmark.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned, "Shouldn't be in orphaned folder");
                 assert.notStrictEqual(data.bookmark.folder_id, fakeFolder.folder_id, "Shouldn't be in the original folder. Should have been moved somewhere else");
 
                 assert.ok(!data.folder, "Didn't expect to find the folder");
@@ -1697,7 +1697,7 @@
                 assert.ok(data.bookmark, "Didn't get bookmark");
                 assert.strictEqual(data.bookmark.bookmark_id, movedOutOfFakeFolderBookmark.bookmark_id, "Wrong bookmark");
 
-                assert.strictEqual(data.bookmark.folder_id, InstapaperDB.CommonFolderIds.Unread, "Should be in unread folder");
+                assert.strictEqual(data.bookmark.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, "Should be in unread folder");
 
                 assert.ok(!data.folder, "Didn't expect to find the folder");
             });
@@ -1731,7 +1731,7 @@
                 // Get the remote data, so we can manipulate it.
                 return WinJS.Promise.join({
                     folders: folders.list(),
-                    bookmarks: bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread }),
+                    bookmarks: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                 });
             }).then(function (data) {
                 var bookmarkData = data.bookmarks.bookmarks;
@@ -1972,7 +1972,7 @@
             }).then(function () {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(function () {
-                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive });
             }).then(function (remoteBookmarks) {
                 var inArchive = remoteBookmarks.bookmarks.filter(function (b) {
                     return b.bookmark_id === archivedBookmark.bookmark_id;
@@ -2015,7 +2015,7 @@
             }).then(function () {
                 return getNewSyncEngine().sync({ bookmarks: true, folder: folderDbIdToSync, singleFolder: true });
             }).then(function () {
-                return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+                return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive });
             }).then(function (remoteBookmarks) {
                 remoteBookmarks = remoteBookmarks.bookmarks;
 

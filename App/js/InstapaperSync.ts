@@ -4,10 +4,10 @@
 
     function isDefaultFolder(id: string): boolean {
         switch (id) {
-            case InstapaperDB.CommonFolderIds.Archive:
-            case InstapaperDB.CommonFolderIds.Liked:
-            case InstapaperDB.CommonFolderIds.Unread:
-            case InstapaperDB.CommonFolderIds.Orphaned:
+            case InstapaperDBCommonFolderIds.Archive:
+            case InstapaperDBCommonFolderIds.Liked:
+            case InstapaperDBCommonFolderIds.Unread:
+            case InstapaperDBCommonFolderIds.Orphaned:
                 return true;
 
             default:
@@ -160,11 +160,11 @@
                 return Codevoid.Utilities.serialize(pendingEdits, (edit) => {
                     let syncPromise;
                     switch (edit.type) {
-                        case InstapaperDB.FolderChangeTypes.ADD:
+                        case InstapaperDBFolderChangeTypes.ADD:
                             syncPromise = this._addFolderPendingEdit(edit, db);
                             break;
 
-                        case InstapaperDB.FolderChangeTypes.DELETE:
+                        case InstapaperDBFolderChangeTypes.DELETE:
                             syncPromise = this._removeFolderPendingEdit(edit);
                             break;
 
@@ -327,8 +327,8 @@
 
                 const currentFolders = data.currentFolders.filter((folder) => {
                     switch (folder.folder_id) {
-                        case InstapaperDB.CommonFolderIds.Liked:
-                        case InstapaperDB.CommonFolderIds.Orphaned:
+                        case InstapaperDBCommonFolderIds.Liked:
+                        case InstapaperDBCommonFolderIds.Orphaned:
                             return false;
 
                         default:
@@ -588,7 +588,7 @@
                     };
                 });
 
-                const folderId = InstapaperDB.CommonFolderIds.Liked;
+                const folderId = InstapaperDBCommonFolderIds.Liked;
                 return b.list({
                     folder_id: folderId,
                     have: haves,

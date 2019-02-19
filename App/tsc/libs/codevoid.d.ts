@@ -164,37 +164,7 @@ declare module Codevoid.Storyvoid {
         static DBVersion: number;
         static DBName: string;
 
-        static DBBookmarksTable: string;
-        static DBBookmarkUpdatesTable: string;
-
-        static DBFoldersTable: string;
-        static DBFolderUpdatesTable: string;
-
-        static ErrorCodes: any;
         static createDefaultData(...args: any[]): any;
-
-
-        static CommonFolderIds: {
-            Archive: string;
-            Liked: string;
-            Unread: string;
-            Orphaned: string;
-        };
-
-        static FolderChangeTypes: {
-            ADD: string;
-            DELETE: string;
-            UPDATE: string,
-        }
-
-        static BookmarkChangeTypes: {
-            ADD: string;
-            DELETE: string;
-            MOVE: string;
-            LIKE: string;
-            UNLIKE: string;
-            UPDATE: string;
-        }
     }
 }
 

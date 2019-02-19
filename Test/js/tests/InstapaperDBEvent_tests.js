@@ -4,7 +4,7 @@
     var InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
     var Signal = Codevoid.Utilities.Signal;
     var getNewInstapaperDBAndInit = InstapaperTestUtilities.getNewInstapaperDBAndInit;
-    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
+    var defaultFolderIds = [Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned];
     var deleteDb = InstapaperTestUtilities.deleteDb;
 
     describe("InstapaperStoreEventingFolders", function () {
@@ -42,7 +42,7 @@
 
                     assert.ok(detail, "didn't get parameter information");
 
-                    assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.ADD, "Incorrect edit type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.ADD, "Incorrect edit type");
                     assert.ok(detail.folder_dbid, "Didn't get a folder DB ID");
                     assert.strictEqual(detail.title, title, "Incorrect title");
 
@@ -74,7 +74,7 @@
                     var detail = e.detail;
 
                     assert.ok(detail.folder, "No folder object on detail object");
-                    assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.UPDATE, "Incorrect operation type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.UPDATE, "Incorrect operation type");
                     assert.strictEqual(detail.folder_dbid, folder.id, "Incorrect folder ID");
                     assert.strictEqual(detail.folder.id, folder.id, "Incorrect folder on detail object");
 
@@ -99,7 +99,7 @@
                 instapaperDB.addEventListener("folderschanged", function (e) {
                     var detail = e.detail;
 
-                    assert.strictEqual(detail.operation, InstapaperDB.FolderChangeTypes.DELETE, "Incorrect operation type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE, "Incorrect operation type");
                     assert.strictEqual(detail.folder_dbid, folder.id);
 
                     signal.complete();
@@ -131,7 +131,7 @@
 
                     assert.strictEqual(e.target, instapaperDB, "Event raised on wrong instance");
 
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.ADD, "Incorrect bookmark edit type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD, "Incorrect bookmark edit type");
                     assert.ok(detail.bookmark, "Should have been supplied with a bookmark");
 
                     assert.strictEqual(detail.bookmark_id, createdBookmark.bookmark_id, "Incorrect bookmark ID");
@@ -165,7 +165,7 @@
                     var detail = e.detail;
 
                     assert.ok(detail, "No detail object provided");
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.DELETE, "Incorrect operation");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE, "Incorrect operation");
                     assert.strictEqual(detail.bookmark_id, removedBookmark.bookmark_id, "Incorrect bookmark ID was removed");
 
                     assert.strictEqual(e.target, instapaperDB, "raised on wrong object");
@@ -204,7 +204,7 @@
 
                     assert.ok(detail, "no detail on event");
                     assert.ok(detail.bookmark, "no bookmark details on details");
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UPDATE, "Incorrect update type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UPDATE, "Incorrect update type");
                     assert.strictEqual(detail.bookmark_id, bookmarkBeingUpdated.bookmark_id, "Incorrect bookmark changed");
                     assert.strictEqual(detail.bookmark_id, detail.bookmark.bookmark_id, "Bookmark ID on bookmark data doesn't match the bookmark the even is being raised for");
                     assert.strictEqual(detail.bookmark.title, bookmarkBeingUpdated.title, "Bookmark wasn't updated with the new title");
@@ -237,7 +237,7 @@
                     assert.ok(detail, "didn't get any detail for the event");
 
                     assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.LIKE, "Incorrect operation type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE, "Incorrect operation type");
 
                     signal.complete();
                 });
@@ -269,7 +269,7 @@
                     assert.ok(detail, "didn't get any detail for the event");
 
                     assert.strictEqual(detail.bookmark_id, added.bookmark_id, "incorrect bookmark");
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.UNLIKE, "Incorrect operation type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE, "Incorrect operation type");
 
                     signal.complete();
                 });
@@ -305,7 +305,7 @@
                     assert.ok(detail, "no detail on the event");
                     assert.strictEqual(e.target, instapaperDB, "Event raised on incorrect instance");
 
-                    assert.strictEqual(detail.operation, InstapaperDB.BookmarkChangeTypes.MOVE, "Incorrect operation type");
+                    assert.strictEqual(detail.operation, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE, "Incorrect operation type");
                     assert.strictEqual(detail.bookmark_id, bookmark.bookmark_id, "event raised for wrong bookmark");
                     assert.strictEqual(detail.sourcefolder_dbid, instapaperDB.commonFolderDbIds.unread, "source folder was in correct");
                     assert.strictEqual(detail.destinationfolder_dbid, folder.id, "Incorrect destination folder");

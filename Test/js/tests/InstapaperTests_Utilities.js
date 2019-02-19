@@ -89,7 +89,7 @@
         });
     }
 
-    var defaultFolderIds = [InstapaperDB.CommonFolderIds.Unread, InstapaperDB.CommonFolderIds.Liked, InstapaperDB.CommonFolderIds.Archive, InstapaperDB.CommonFolderIds.Orphaned];
+    var defaultFolderIds = [Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned];
 
     function destroyRemoteAccountData(clientInformation) {
         /// <summary>
@@ -139,7 +139,7 @@
             });
         }).then(function () {
             // Find all the now-in-archive folders, and...
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Archive });
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive });
         }).then(function (archivedBookmarks) {
             // ... unarchive them. This will put them in "unread"
             return Codevoid.Utilities.serialize(archivedBookmarks.bookmarks, function (bookmark) {
@@ -147,13 +147,13 @@
             });
         }).then(function () {
             // Find anything that has a "like" on it...
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Liked });
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked });
         }).then(function (likes) {
             return Codevoid.Utilities.serialize(likes.bookmarks, function (liked) {
                 return bookmarks.unstar(liked.bookmark_id);
             });
         }).then(function () {
-            return bookmarks.list({ folder_id: InstapaperDB.CommonFolderIds.Unread });
+            return bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread });
         }).then(function (remoteBookmarks) {
             // Delete *some* of the remote URLs, but not all of them.
             var toRemove = remoteBookmarks.bookmarks.slice(4);
