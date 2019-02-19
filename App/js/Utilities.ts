@@ -52,6 +52,14 @@ namespace Codevoid.Utilities {
         };
     }
 
+    export interface ICancellable {
+        cancel();
+    }
+
+    export interface EventObject<T> {
+        detail: T;
+    }
+
     export class Debounce {
         private completed: boolean = false;
         private timeoutId: number = null;

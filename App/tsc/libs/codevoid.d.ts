@@ -1,24 +1,15 @@
 ﻿declare module Codevoid.Utilities {
-    export interface ICancellable {
-        cancel();
-    }
-
     export interface IIndexedDatabase {
         objectStoreNames: string[];
         query(tableName: string): { execute(): WinJS.Promise<any[]> };
         close(): void;
     }
-
     export interface IIndexedDBOpenOptions {
         server: string;
         version: number;
     }
     export interface IIndexedDB {
         open(options: IIndexedDBOpenOptions): WinJS.Promise<IIndexedDatabase>;
-    }
-
-    export interface EventObject<T> {
-        detail: T;
     }
 
     export class EventSource {
@@ -49,24 +40,6 @@
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 
         //#endregion Methods
-    }
-}
-
-declare module Codevoid.Storyvoid {
-    export interface ISyncStatusUpdate {
-        operation: string;
-        title?: string;
-    }
-
-    export interface ISyncOptions {
-        dbInstance?: InstapaperDB;
-        folders: boolean,
-        bookmarks: boolean,
-        singleFolder?: boolean,
-        folder?: number,
-        cancellationSource?: Codevoid.Utilities.CancellationSource;
-        skipOrphanCleanup?: boolean;
-        _testPerFolderCallback?: any;
     }
 }
 

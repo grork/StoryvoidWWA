@@ -32,6 +32,22 @@
         readonly skipOrphanCleanup: boolean;
     }
 
+    export interface ISyncStatusUpdate {
+        operation: string;
+        title?: string;
+    }
+
+    export interface ISyncOptions {
+        dbInstance?: InstapaperDB;
+        folders: boolean,
+        bookmarks: boolean,
+        singleFolder?: boolean,
+        folder?: number,
+        cancellationSource?: Codevoid.Utilities.CancellationSource;
+        skipOrphanCleanup?: boolean;
+        _testPerFolderCallback?: any;
+    }
+
     export enum InstapaperSyncStatus {
         start = "start",
         end = "end",
