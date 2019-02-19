@@ -31,7 +31,7 @@
     }
 
     export interface IParameterEncoderOptions {
-        readonly delimeter: string;
+        readonly delimiter: string;
         readonly shouldQuoteValues: boolean;
     }
 
@@ -41,12 +41,12 @@
     }
 
     export class ParameterEncoder {
-        private _delimeter: string = "&";
+        private _delimiter: string = "&";
         private _shouldQuoteValues: boolean = false;
 
         constructor(options?: IParameterEncoderOptions) {
             if (options) {
-                this._delimeter = options.delimeter || this._delimeter;
+                this._delimiter = options.delimiter || this._delimiter;
                 this._shouldQuoteValues = options.shouldQuoteValues || this._shouldQuoteValues;
             }
         }
@@ -77,7 +77,7 @@
                 stringifiedItems.push(this._keyValuePairToString(item));
             }
 
-            return stringifiedItems.join(this._delimeter);
+            return stringifiedItems.join(this._delimiter);
         }
 
         private _mergeAndEncode(source: NameValuePair[], destination: NameValuePair[]): void {
@@ -199,7 +199,7 @@
 
             // Build items for parameter encoding for header
             const authOAuthHeaders: NameValuePair[] = [{ key: "oauth_signature", value: <string | number>signature }].concat(oAuthHeaders);
-            const headerEncoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true, delimeter: ", " });
+            const headerEncoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true, delimiter: ", " });
 
             // Get header string
             var header = headerEncoder.getEncodedStringForData(authOAuthHeaders);

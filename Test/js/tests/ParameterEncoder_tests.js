@@ -27,7 +27,7 @@
             var input = [{ key: "b", value: "c" },
             { key: "a", value: "b" }];
 
-            var encoder = new Codevoid.OAuth.ParameterEncoder({ delimeter: "," });
+            var encoder = new Codevoid.OAuth.ParameterEncoder({ delimiter: "," });
 
             var result = encoder.getEncodedStringForData(input);
             assert.strictEqual(result, "a=b,b=c", "result was not correctly encoded");
