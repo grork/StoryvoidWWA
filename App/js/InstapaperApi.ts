@@ -1,10 +1,10 @@
 ﻿namespace Codevoid.Storyvoid {
     export interface IFolder {
         title: string;
-        localOnly: boolean;
+        localOnly?: boolean;
         folder_id: string;
-        id: number;
-        position: number;
+        id?: number;
+        position?: number;
         folder_dbid?: number;
     }
 
