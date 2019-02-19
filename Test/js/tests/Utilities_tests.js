@@ -331,58 +331,6 @@
         });
     });
 
-    describe("Utilities Derivation helpers", function () {
-        it("can derive", function () {
-            var control = Codevoid.Utilities.derive(WinJS.Class.define(function () { }, { test: null }), function () { }, { test2: null });
-            assert.ok(control, "No control created");
-        });
-
-        it("can be instantiated after derivation", function () {
-            var baseConstructed = false;
-            var derivedConstructed = false;
-
-            var control = WinJS.Class.define(function () {
-                baseConstructed = true;
-            });
-
-            var derived = Codevoid.Utilities.derive(control, function () {
-                this.base();
-                derivedConstructed = true;
-            });
-
-            var instance = new derived();
-
-            assert.ok(baseConstructed, "Base class constructor wasn't called");
-            assert.ok(derivedConstructed, "Derived class wasn't constructed");
-        });
-
-        it("constructors called in the correct order", function () {
-            var constructorOrder = [];
-            var baseConstructed = false;
-            var derivedConstructed = false;
-
-            var control = WinJS.Class.define(function () {
-                constructorOrder.push(1);
-                baseConstructed = true;
-            });
-
-            var derived = Codevoid.Utilities.derive(control, function () {
-                this.base();
-                constructorOrder.push(2);
-                derivedConstructed = true;
-            });
-
-            var instance = new derived();
-
-            assert.ok(baseConstructed, "Base class constructor wasn't called");
-            assert.ok(derivedConstructed, "Derived class wasn't constructed");
-
-            assert.strictEqual(constructorOrder.length, 2, "Incorrect number of constructors called");
-            assert.strictEqual(constructorOrder[0], 1, "Base class wasn't called first");
-            assert.strictEqual(constructorOrder[1], 2, "Derived class wasn't called second");
-        });
-    });
-
     describe("Utilities Control Eventing & Property", function () {
         it("Event listener lists can be attached", function () {
             var source = new CodevoidTests.EventSource();
