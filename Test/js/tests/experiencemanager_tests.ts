@@ -213,7 +213,7 @@ module CodevoidTests.ExperienceManagerTests {
             host.addExperienceForModel(experience);
             assert.strictEqual(wwaHost.host.children.length, 1, "Only expected on child");
 
-            experienceUIInstance = <CodevoidTests.TestControl>(<Codevoid.UICore.HTMLControlElement>wwaHost.host.children[0]).winControl;
+            experienceUIInstance = <any>(<Codevoid.UICore.HTMLControlElement>wwaHost.host.children[0]).winControl;
 
             host.removeExperienceForModel(experience);
 

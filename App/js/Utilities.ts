@@ -139,11 +139,11 @@ namespace Codevoid.Utilities {
             this._completed = true;
         }
 
-        public error(errorInfo: any): void {
+        public error(errorInfo?: any): void {
             this._error(errorInfo);
         }
 
-        public progress(progressInfo: any): void {
+        public progress(progressInfo?: any): void {
             this._progress(progressInfo);
         }
     }

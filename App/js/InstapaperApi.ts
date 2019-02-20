@@ -121,7 +121,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     export interface IBookmarkListParameters {
         readonly limit?: number;
         readonly folder_id: string;
-        readonly have: IHaveStatus[];
+        readonly have?: IHaveStatus[];
     }
 
     export interface IBookmarkListResult {
