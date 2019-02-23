@@ -23,7 +23,7 @@
         playground.innerHTML = "";
     }
 
-    export function getNewInstapaperDBAndInit(name: string, version: number): WinJS.Promise<InstapaperDB> {
+    export function getNewInstapaperDBAndInit(name?: string, version?: number): WinJS.Promise<InstapaperDB> {
         return new InstapaperDB().initialize(name, version).then((idb) => {
             pendingDbs.push(idb);
 

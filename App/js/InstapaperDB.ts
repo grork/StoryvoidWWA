@@ -940,4 +940,8 @@ namespace Codevoid.Storyvoid {
             }
         }
     }
+
+    export interface InstapaperDB {
+        addEventListener(name: "folderschanged", handler: (eventData: Utilities.EventObject<IFoldersChangedEvent>) => any, useCapture?: boolean): void;
+    }
 }

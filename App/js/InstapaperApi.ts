@@ -2,7 +2,7 @@
     export interface IFolder {
         title: string;
         localOnly?: boolean;
-        folder_id: string;
+        folder_id?: string;
         id?: number;
         position?: number;
         folder_dbid?: number;
@@ -10,22 +10,22 @@
 
     export interface IBookmark {
         title: string;
-        url: string;
+        url?: string;
         bookmark_id: number;
-        progress: number;
-        progress_timestamp: number;
-        folder_id: string;
-        folder_dbid: number;
-        time: number;
-        contentAvailableLocally: boolean;
-        hasImages: boolean;
-        firstImagePath: string;
-        firstImageOriginalUrl: string;
-        localFolderRelativePath: string;
-        description: string;
-        extractedDescription: string;
-        articleUnavailable: boolean;
-        starred: number;
+        progress?: number;
+        progress_timestamp?: number;
+        folder_id?: string;
+        folder_dbid?: number;
+        time?: number;
+        contentAvailableLocally?: boolean;
+        hasImages?: boolean;
+        firstImagePath?: string;
+        firstImageOriginalUrl?: string;
+        localFolderRelativePath?: string;
+        description?: string;
+        extractedDescription?: string;
+        articleUnavailable?: boolean;
+        starred?: number;
         doNotAddToJumpList?: boolean;
         hash?: string;
     }

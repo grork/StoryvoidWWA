@@ -103,7 +103,7 @@
     <TypeScriptCompile Include="js\tests\core_tests.ts" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
-    <Content Include="js\tests\InstapaperDBEvent_tests.js" />
+    <TypeScriptCompile Include="js\tests\InstapaperDBEvent_tests.ts" />
     <Content Include="js\tests\InstapaperDBSync_tests.js" />
     <Content Include="js\tests\InstapaperDB_tests.js" />
     <TypeScriptCompile Include="js\tests\InstapaperTests_Utilities.ts" />
