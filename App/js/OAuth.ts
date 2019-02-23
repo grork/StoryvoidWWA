@@ -35,9 +35,11 @@
         readonly shouldQuoteValues?: boolean;
     }
 
+    type NameValuePairValueType = string | number | boolean;
+
     export interface NameValuePair {
         key: string;
-        value: string | number;
+        value: NameValuePairValueType;
     }
 
     export class ParameterEncoder {
@@ -155,7 +157,7 @@
     export class OAuthRequest {
         private _operation: Windows.Web.Http.HttpMethod = Windows.Web.Http.HttpMethod.post;
         public data: NameValuePair[];
-        public _nonce: number;
+        public _nonce: any;
         public _timestamp: number;
 
         constructor(private _clientInformation: ClientInformation, private _url: string, operation?: Operations) {
@@ -198,7 +200,7 @@
             const signature = this._getSignatureForString(encodedParams);
 
             // Build items for parameter encoding for header
-            const authOAuthHeaders: NameValuePair[] = [{ key: "oauth_signature", value: <string | number>signature }].concat(oAuthHeaders);
+            const authOAuthHeaders: NameValuePair[] = [{ key: "oauth_signature", value: <NameValuePairValueType>signature }].concat(oAuthHeaders);
             const headerEncoder = new Codevoid.OAuth.ParameterEncoder({ shouldQuoteValues: true, delimiter: ", " });
 
             // Get header string

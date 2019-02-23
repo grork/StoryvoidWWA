@@ -107,7 +107,7 @@
     <Content Include="js\tests\InstapaperDBSync_tests.js" />
     <Content Include="js\tests\InstapaperDB_tests.js" />
     <TypeScriptCompile Include="js\tests\InstapaperTests_Utilities.ts" />
-    <Content Include="js\tests\OAuthRequest_tests.js" />
+    <TypeScriptCompile Include="js\tests\OAuthRequest_tests.ts" />
     <TypeScriptCompile Include="js\tests\ParameterEncoder_tests.ts" />
     <TypeScriptCompile Include="js\tests\WebViewTestScript.ts" />
     <TypeScriptCompile Include="js\tests\testdefault.ts" />
