@@ -148,6 +148,10 @@ namespace Codevoid.Utilities {
         }
     }
 
+    export interface Signal {
+        addEventListener(name: "cancelled", handler: (eventData: Utilities.EventObject<{ signal: Signal }>) => any, useCapture?: boolean): void;
+    }
+
     export interface ILogMessage {
         message: string;
         useFixedLayout: boolean;
