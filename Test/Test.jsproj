@@ -99,7 +99,7 @@
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
     <Content Include="TestWebViewTarget.html" />
-    <Content Include="js\tests\authenticator_tests.js" />
+    <TypeScriptCompile Include="js\tests\authenticator_tests.ts" />
     <Content Include="js\tests\core_tests.js" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
