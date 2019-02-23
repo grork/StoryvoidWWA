@@ -250,4 +250,18 @@
             return this.credentialAcquisitionComplete.promise;
         }
     }
+
+    export interface IAuthenticatorPropertyChanged<T> {
+        readonly previous: T;
+        readonly current: T;
+    }
+
+    export interface AuthenticatorViewModel {
+        addEventListener(name: "passwordChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<string>>) => any, useCapture?: boolean): void;
+        addEventListener(name: "usernameChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<string>>) => any, useCapture?: boolean): void;
+        addEventListener(name: "allowUsernameEntryChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<boolean>>) => any, useCapture?: boolean): void;
+        addEventListener(name: "isWorkingChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<boolean>>) => any, useCapture?: boolean): void;
+        addEventListener(name: "authenticationErrorChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<number>>) => any, useCapture?: boolean): void;
+        addEventListener(name: "authenticationErrorMessageChanged", handler: (eventData: Utilities.EventObject<IAuthenticatorPropertyChanged<string>>) => any, useCapture?: boolean): void;
+    }
 }
