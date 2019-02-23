@@ -30,7 +30,7 @@ module Codevoid.UICore {
 
     export class Control {
         element: HTMLControlElement;
-        constructor(element: HTMLControlElement, options: any) {
+        constructor(element: HTMLControlElement, options?: any) {
             this.element = element;
             WinJS.UI.setOptions(this, options);
             element.winControl = this;

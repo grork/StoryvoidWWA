@@ -31,8 +31,8 @@
     }
 
     export interface IParameterEncoderOptions {
-        readonly delimiter: string;
-        readonly shouldQuoteValues: boolean;
+        readonly delimiter?: string;
+        readonly shouldQuoteValues?: boolean;
     }
 
     export interface NameValuePair {

@@ -96,11 +96,11 @@
     <Content Include="images\smalllogo.png" />
     <Content Include="images\splashscreen.png" />
     <Content Include="images\storelogo.png" />
-    <Content Include="js\default.js" />
+    <TypeScriptCompile Include="js\default.ts" />
     <Content Include="css\default.css" />
     <Content Include="TestWebViewTarget.html" />
     <TypeScriptCompile Include="js\tests\authenticator_tests.ts" />
-    <Content Include="js\tests\core_tests.js" />
+    <TypeScriptCompile Include="js\tests\core_tests.ts" />
     <Content Include="js\tests\db_tests.js" />
     <Content Include="js\tests\InstapaperApi_tests.js" />
     <Content Include="js\tests\InstapaperDBEvent_tests.js" />
@@ -108,9 +108,9 @@
     <Content Include="js\tests\InstapaperDB_tests.js" />
     <TypeScriptCompile Include="js\tests\InstapaperTests_Utilities.ts" />
     <Content Include="js\tests\OAuthRequest_tests.js" />
-    <Content Include="js\tests\ParameterEncoder_tests.js" />
+    <TypeScriptCompile Include="js\tests\ParameterEncoder_tests.ts" />
     <Content Include="js\tests\WebViewTestScript.js" />
-    <Content Include="js\tests\testdefault.js" />
+    <TypeScriptCompile Include="js\tests\testdefault.ts" />
     <Content Include="js\tests\TestTemplate.html" />
     <TypeScriptCompile Include="js\tests\Utilities_tests.ts" />
     <TypeScriptCompile Include="js\tests\experiencemanager_tests.ts" />
