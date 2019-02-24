@@ -943,5 +943,6 @@ namespace Codevoid.Storyvoid {
 
     export interface InstapaperDB {
         addEventListener(name: "folderschanged", handler: (eventData: Utilities.EventObject<IFoldersChangedEvent>) => any, useCapture?: boolean): void;
+        addEventListener(name: "bookmarkschanged", handler: (eventData: Utilities.EventObject<IBookmarksChangedEvent>) => any, useCapture?: boolean): void;
     }
 }
