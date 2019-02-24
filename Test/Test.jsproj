@@ -105,7 +105,7 @@
     <TypeScriptCompile Include="js\tests\InstapaperApi_tests.ts" />
     <TypeScriptCompile Include="js\tests\InstapaperDBEvent_tests.ts" />
     <Content Include="js\tests\InstapaperDBSync_tests.js" />
-    <Content Include="js\tests\InstapaperDB_tests.js" />
+    <TypeScriptCompile Include="js\tests\InstapaperDB_tests.ts" />
     <TypeScriptCompile Include="js\tests\InstapaperTests_Utilities.ts" />
     <TypeScriptCompile Include="js\tests\OAuthRequest_tests.ts" />
     <TypeScriptCompile Include="js\tests\ParameterEncoder_tests.ts" />

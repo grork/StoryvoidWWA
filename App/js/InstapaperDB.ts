@@ -11,7 +11,7 @@ interface Query {
 }
 
 declare class db {
-    static open(parameters: { server: string; version: number; schema: any }, upgradeCallback: (server: Server, versionChange: IDBVersionChangeEvent) => void): WinJS.Promise<Server>;
+    static open(parameters: { server: string; version: number; schema?: any }, upgradeCallback?: (server: Server, versionChange: IDBVersionChangeEvent) => void): WinJS.Promise<Server>;
     static deleteDb(name: string): WinJS.Promise<void>; 
 }
 
