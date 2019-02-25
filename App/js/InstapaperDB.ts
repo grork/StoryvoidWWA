@@ -423,7 +423,7 @@ namespace Codevoid.Storyvoid {
                 const likes: IBookmarkPendingEdit[] = [];
                 const unlikes: IBookmarkPendingEdit[] = [];
 
-                pendingEdits.forEach((pendingEdit) => {
+                for(let pendingEdit of pendingEdits) {
                     switch (pendingEdit.type) {
                         case InstapaperDBBookmarkChangeTypes.ADD:
                             window.appassert(!folderDbId, "Don't support folder specific adds");
@@ -449,7 +449,7 @@ namespace Codevoid.Storyvoid {
                             window.appfail("Unsupported edit type");
                             break;
                     }
-                });
+                }
 
                 const result = {
                     adds: null,

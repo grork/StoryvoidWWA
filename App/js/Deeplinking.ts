@@ -17,7 +17,7 @@
             // see if there is a key present, so just loop through
             // them all and pull out the ones we're going to do
             // something with.
-            uri.queryParsed.forEach((entry) => {
+            for(let entry of uri.queryParsed) {
                 switch (entry.name) {
                     case "bookmark_id":
                         rawBookmarkId = entry.value;
@@ -27,7 +27,7 @@
                         rawOriginalUrl = entry.value;
                         break;
                 }
-            });
+            }
 
             const bookmarkId = parseInt(rawBookmarkId, 10);
             if (!isNaN(bookmarkId)) {

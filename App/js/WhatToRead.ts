@@ -88,9 +88,9 @@ module Codevoid.Storyvoid {
 
                 // Build list of id's that are in the top-5
                 const readIds: { [id: number]: boolean } = {};
-                byRecentlyRead.forEach((item: Codevoid.Storyvoid.IBookmark) => {
+                for(let item of byRecentlyRead) {
                     readIds[item.bookmark_id] = true;
-                });
+                }
 
                 // Clamp recently added to 5 that _aren't_ also in the recently read list.
                 byAdded = byAdded.filter((added) => {

@@ -178,9 +178,9 @@
                 return;
             }
 
-            this._handlersToCleanup.forEach((item) => {
+            for (let item of this._handlersToCleanup) {
                 item.cancel();
-            });
+            }
 
             this._handlersToCleanup = [];
         }

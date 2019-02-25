@@ -247,10 +247,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
                     window.appassert(Array.isArray(parameters.have), "expected 'have' parameter to be an array");
                     window.appassert(parameters.have.length > 0, "didn't actually supply any parameters");
 
-                    var haveStrings = [];
-                    parameters.have.forEach(function (have) {
-                        haveStrings.push(Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have));
-                    });
+                    const haveStrings = parameters.have.map((have) => Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have));
 
                     window.appassert(haveStrings.length > 0, "didn't get any have strings to send");
                     data.push({ key: "have", value: haveStrings.join(",") });

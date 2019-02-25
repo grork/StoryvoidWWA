@@ -371,18 +371,18 @@ namespace Codevoid.Utilities {
         // Set up all the signals so that as each one
         // is signalled, the work it needs to do gets
         // done.
-        items.forEach(function (item, index) {
+        items.forEach((item, index) => {
             const signal = new Codevoid.Utilities.Signal();
             signals.push(signal);
 
-            results.push(signal.promise.then(function () {
+            results.push(signal.promise.then(() => {
                 numberInFlight++;
                 return WinJS.Promise.as(work(item, index));
-            }).then(function (value) {
+            }).then((value) => {
                 numberInFlight--;
                 doWork();
                 return value;
-            }, function (error) {
+            }, (error) => {
                 numberInFlight--;
                 doWork();
                 return WinJS.Promise.wrapError(error);
@@ -506,9 +506,9 @@ namespace Codevoid.Utilities.DOM {
 
             return WinJS.Promise.join(templatePromises);
         }).then(function (templateControls: { template: WinJS.Binding.Template; id: string }[]) {
-            templateControls.forEach(function (controlInfo) {
+            for (let controlInfo of templateControls) {
                 templateCache[path + "#" + controlInfo.id] = controlInfo.template;
-            });
+            }
 
             const foundTemplate = templateCache[templateCacheKey];
 
@@ -543,9 +543,9 @@ namespace Codevoid.Utilities.DOM {
         const cancellation = {
             handlers: [],
             cancel: function () {
-                this.handlers.forEach(function (item) {
+                for (let item of this.handlers) {
                     item.element.removeEventListener(item.event, item.handler);
-                });
+                }
             }
         };
 
@@ -652,9 +652,9 @@ namespace Codevoid.Utilities.DOM {
         }
 
         private _dismiss(): void {
-            this._handlersToCancel.forEach(function (toCancel) {
+            for (let toCancel of this._handlersToCancel) {
                 toCancel.cancel();
-            });
+            }
 
             this._handlersToCancel = null;
             this.element.parentElement.removeChild(this.element);

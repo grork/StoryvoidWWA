@@ -2,6 +2,8 @@
     import InstapaperApi = Codevoid.Storyvoid.InstapaperApi;
     import InstapaperDB = Codevoid.Storyvoid.InstapaperDB;
 
+    const SYNC_STATUS_UPDATE_EVENT_NAME = "syncstatusupdate";
+
     function isDefaultFolder(id: string): boolean {
         switch (id) {
             case InstapaperDBCommonFolderIds.Archive:
@@ -91,10 +93,6 @@
             return this._bookmarksStorage;
         }
 
-        private _raiseStatusChanged(payload: ISyncStatusUpdate): void {
-            this.dispatchEvent("syncstatusupdate", payload);
-        }
-
         /// <summary>
         /// Used for pushing up a folder add that is local.
         /// This is needed because of the possibility that
@@ -139,9 +137,9 @@
                     });
                 }),
             }).then((data) => {
-                Object.keys(data.remote).forEach((key) => {
+                for (let key in data.remote) {
                     data.local[key] = data.remote[key];
-                });
+                }
 
                 return db.updateFolder(data.local);
             });
@@ -170,7 +168,7 @@
         }
 
         private _syncFolders(db: InstapaperDB, cancellationSource: Utilities.CancellationSource): WinJS.Promise<void> {
-            this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart });
+            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart });
 
             return db.getPendingFolderEdits().then((pendingEdits) => {
                 return Codevoid.Utilities.serialize(pendingEdits, (edit) => {
@@ -210,7 +208,7 @@
                         let done: WinJS.Promise<IFolder> = WinJS.Promise.as();
 
                         // Notify that the remote folder w/ name had some changes
-                        this._raiseStatusChanged({
+                        this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, {
                             operation: Codevoid.Storyvoid.InstapaperSyncStatus.folder,
                             title: rf.title,
                         });
@@ -257,7 +255,7 @@
                 // sync'd everything.
 
                 return db.getPendingFolderEdits().then((edits) => {
-                    this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd });
+                    this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd });
                     // No edits? NO worries!
                     if (!edits || (edits.length < 1)) {
                         return;
@@ -271,7 +269,7 @@
 
         private _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): WinJS.Promise<void> {
             let promise = WinJS.Promise.as();
-            this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart });
+            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart });
 
             if (!options.singleFolder) {
                 promise = this._syncBookmarkPendingAdds(db).then(() => db.listCurrentFolders()).then((allFolders) => {
@@ -361,7 +359,7 @@
                         return;
                     }
 
-                    this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarkFolder, title: folder.title });
+                    this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarkFolder, title: folder.title });
 
                     // No need to pass the cancellation source here because we're in
                     // a serialized call so will be broken after each foler.
@@ -395,7 +393,7 @@
                     mergedEdits.concat(edits[p]);
                 });
 
-                this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd });
+                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd });
 
                 if (!mergedEdits.length) {
                     return;
@@ -637,7 +635,7 @@
             const db = options.dbInstance || new InstapaperDB();
             const initialize = options.dbInstance ? WinJS.Promise.as(db) : db.initialize();
 
-            this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.start });
+            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.start });
 
             return initialize.then(() => {
                 if (!options.folders || cancellationSource.cancelled) {
@@ -659,7 +657,7 @@
                     cancellationSource: cancellationSource
                 });
             }).then(() => {
-                this._raiseStatusChanged({ operation: Codevoid.Storyvoid.InstapaperSyncStatus.end });
+                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.end });
                 return WinJS.Promise.timeout();
             });
         }

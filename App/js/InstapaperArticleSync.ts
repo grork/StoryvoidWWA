@@ -157,9 +157,9 @@
                 // they're implicitly sorted now
                 var bookmarksAsFlatList = [];
 
-                bookmarksByFolder.forEach((bookmarks: IBookmark[]) => {
+                for(let bookmarks of bookmarksByFolder) {
                     bookmarksAsFlatList = bookmarksAsFlatList.concat(bookmarks);
-                });
+                }
 
                 return bookmarksAsFlatList;
             }).then((articlesByUnreadFirst) => {
@@ -232,9 +232,9 @@
             var currentBookmarkIds = instapaperDB.listCurrentBookmarks().then((bookmarks) => {
                 var bookmark_ids: IBookmarkHash = {};
 
-                bookmarks.forEach((bookmark) => {
+                for(let bookmark of bookmarks) {
                     bookmark_ids[bookmark.bookmark_id] = "";
-                });
+                }
 
                 return bookmark_ids;
             });
@@ -242,9 +242,9 @@
             var folderMap = this._destinationFolder.getFoldersAsync().then((folders: c.IVectorView<st.StorageFolder>) => {
                 var map: IFolderMap = {};
 
-                folders.forEach((folder) => {
+                for(let folder of folders) {
                     map[folder.name] = folder;
-                });
+                }
 
                 return map;
             });
