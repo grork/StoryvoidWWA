@@ -2,29 +2,6 @@
     code?: number;
 }
 
-interface IndexQuery {
-    only<T>(value: any): WinJS.Promise<T[]>;
-}
-
-interface Query {
-    execute<T>(): WinJS.Promise<T[]>;
-}
-
-declare class db {
-    static open(parameters: { server: string; version: number; schema?: any }, upgradeCallback?: (server: Server, versionChange: IDBVersionChangeEvent) => void): WinJS.Promise<Server>;
-    static deleteDb(name: string): WinJS.Promise<void>; 
-}
-
-interface Server {
-    add<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
-    put<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
-    index(table: string, index: string): IndexQuery;
-    query(table: string): Query;
-    remove(table: string, id: any): WinJS.Promise<void>;
-    get<T>(table: string, id: any): WinJS.Promise<T>;
-    close(): void;
-}
-
 namespace Codevoid.Storyvoid {
     function noDbError(): WinJS.Promise<any> {
         var error = new Error("Not connected to the server");

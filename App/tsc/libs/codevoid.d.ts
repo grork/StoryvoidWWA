@@ -1,19 +1,4 @@
-﻿declare module Codevoid.Utilities {
-    export interface IIndexedDatabase {
-        objectStoreNames: string[];
-        query(tableName: string): { execute(): WinJS.Promise<any[]> };
-        close(): void;
-    }
-    export interface IIndexedDBOpenOptions {
-        server: string;
-        version: number;
-    }
-    export interface IIndexedDB {
-        open(options: IIndexedDBOpenOptions): WinJS.Promise<IIndexedDatabase>;
-    }
-}
-
-declare module Codevoid.Storyvoid.UI {
+﻿declare module Codevoid.Storyvoid.UI {
     export class SplitViewCommandWithData extends WinJS.UI.SplitViewCommand {
         dataContext: any;
     }
@@ -123,3 +108,28 @@ declare var MSHTMLWebViewElement: {
     prototype: MSHTMLWebViewElement;
     new(): MSHTMLWebViewElement;
 };
+
+// db.js types
+interface IndexQuery {
+    only<T>(value: any): WinJS.Promise<T[]>;
+}
+
+interface Query {
+    execute<T>(): WinJS.Promise<T[]>;
+}
+
+declare class db {
+    static open(parameters: { server: string; version: number; schema?: any }, upgradeCallback?: (server: Server, versionChange: IDBVersionChangeEvent) => void): WinJS.Promise<Server>;
+    static deleteDb(name: string): WinJS.Promise<void>;
+}
+
+interface Server {
+    add<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
+    put<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
+    index(table: string, index: string): IndexQuery;
+    query(table: string): Query;
+    remove(table: string, id: any): WinJS.Promise<void>;
+    get<T>(table: string, id: any): WinJS.Promise<T>;
+    close(): void;
+    objectStoreNames: DOMStringList;
+}

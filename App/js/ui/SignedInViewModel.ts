@@ -939,9 +939,8 @@
         }
 
         public dumpDb(): WinJS.Promise<any> {
-            var database: Codevoid.Utilities.IIndexedDatabase;
-            var db: Codevoid.Utilities.IIndexedDB = (<any>window).db;
-            var dumpData = {};
+            let database: Server;
+            let dumpData = {};
 
             return db.open({
                 server: Codevoid.Storyvoid.InstapaperDB.DBName,
@@ -949,14 +948,13 @@
             }).then((openedDb) => {
                 database = openedDb;
 
-                var tablePromises = [];
+                const tablePromises: WinJS.Promise<any>[] = [];
 
-                for (var i = 0; i < database.objectStoreNames.length; i++) {
-                    ((tableName: string) => {
-                        tablePromises.push(database.query(tableName).execute().then((results: any[]) => {
-                            dumpData[tableName] = results;
-                        }));
-                    })(database.objectStoreNames[i]);
+                for (let i = 0; i < database.objectStoreNames.length; i++) {
+                    let tableName = database.objectStoreNames[i];
+                    tablePromises.push(
+                        database.query(tableName).execute<any>().then((results) => dumpData[tableName] = results)
+                    );
                 }
 
                 return WinJS.Promise.join(tablePromises);
