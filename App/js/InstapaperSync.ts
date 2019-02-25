@@ -39,13 +39,14 @@
 
     export interface ISyncOptions {
         dbInstance?: InstapaperDB;
-        folders: boolean,
-        bookmarks: boolean,
+        folders?: boolean,
+        bookmarks?: boolean,
         singleFolder?: boolean,
         folder?: number,
         cancellationSource?: Codevoid.Utilities.CancellationSource;
         skipOrphanCleanup?: boolean;
         _testPerFolderCallback?: any;
+        folderToSync?: number;
     }
 
     export enum InstapaperSyncStatus {
@@ -631,7 +632,7 @@
             });
         }
 
-        public sync(options: ISyncOptions): WinJS.Promise<void> {
+        public sync(options?: ISyncOptions): WinJS.Promise<void> {
             options = options || { folders: true, bookmarks: true };
             const cancellationSource = options.cancellationSource || new Codevoid.Utilities.CancellationSource();
             const db = options.dbInstance || new InstapaperDB();
