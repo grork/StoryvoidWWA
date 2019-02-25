@@ -46,7 +46,6 @@
         cancellationSource?: Codevoid.Utilities.CancellationSource;
         skipOrphanCleanup?: boolean;
         _testPerFolderCallback?: any;
-        folderToSync?: number;
     }
 
     export enum InstapaperSyncStatus {

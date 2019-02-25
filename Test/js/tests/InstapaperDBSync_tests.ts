@@ -2073,7 +2073,7 @@
 
                 return getNewSyncEngine().sync({
                     bookmarks: true,
-                    folderToSync: expectedFirstSyncedFolder.folder_dbid,
+                    folder: expectedFirstSyncedFolder.folder_dbid,
                     _testPerFolderCallback: (id) => {
                         folderSyncOrder.push(id);
                     },
