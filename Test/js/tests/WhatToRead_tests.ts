@@ -1,6 +1,6 @@
 ﻿/// <reference path="..\..\..\app\js\WhatToRead.ts" />
 
-module CodevoidTests.WhatToReadTests {
+namespace CodevoidTests.WhatToReadTests {
     const DB_CONTEXT_KEY = "db";
 
     interface IWhatToRead_ForTest {

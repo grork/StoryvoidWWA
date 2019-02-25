@@ -1,5 +1,5 @@
 ﻿/// <reference path="..\..\..\app\js\SettingsCore.ts" />
-module CodevoidTests {
+namespace CodevoidTests {
     import st = Windows.Storage;
     const SETTINGS_CONTEXT_KEY = "settings";
 

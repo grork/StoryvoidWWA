@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid {
+﻿namespace Codevoid.Storyvoid {
     // Temporarily placed here as typescript isn't resolving
     // the type when it's in a separate file
     export enum SyncReason {

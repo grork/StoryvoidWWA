@@ -1,4 +1,4 @@
-﻿module Codevoid.Utilities {
+﻿namespace Codevoid.Utilities {
     import st = Windows.Storage;
 
     export abstract class SettingsCore {

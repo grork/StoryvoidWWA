@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid {
+﻿namespace Codevoid.Storyvoid {
     export class Deeplinking {
         public static extractBookmarkInformationFromUri(uri: Windows.Foundation.Uri): UI.IAppLaunchInformation {
             if (!uri || uri.host !== "openarticle") {

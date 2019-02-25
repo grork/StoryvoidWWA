@@ -2,7 +2,7 @@
 /// <reference path="..\..\..\App\js\ui\core.ts" />
 /// <reference path="..\..\..\App\js\Utilities.ts" />
 
-module CodevoidTests {
+namespace CodevoidTests {
     export interface ExperienceInformation {
         model: Codevoid.UICore.ViewModel;
         view: any;
@@ -72,7 +72,7 @@ module CodevoidTests {
     }
 }
 
-module CodevoidTests.ExperienceManagerTests {
+namespace CodevoidTests.ExperienceManagerTests {
     import HTMLExperienceElement = Codevoid.UICore.HTMLExperienceElement;
 
     describe("ExperienceManagerWwa", function () {

@@ -1,4 +1,4 @@
-﻿module Codevoid.Utilities {
+﻿namespace Codevoid.Utilities {
     interface IMessageDetails {
         message: string;
         responseId: number;

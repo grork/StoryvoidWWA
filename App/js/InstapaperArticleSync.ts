@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid {
+﻿namespace Codevoid.Storyvoid {
     import oauth = Codevoid.OAuth;
     import av = Codevoid.Storyvoid;
     import api = Codevoid.Storyvoid.InstapaperApi;

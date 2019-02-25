@@ -1,4 +1,4 @@
-﻿module Codevoid.Utilities {
+﻿namespace Codevoid.Utilities {
     export class WebViewMessenger {
         private _events: EventSource = new EventSource();
         private _handlers: ICancellable;

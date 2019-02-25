@@ -5,7 +5,7 @@
 // but because if we don't, TypeScript won't actually compile the file, which means the test fails
 // when it loads the iframe for the cross-frame-communication
 
-module Codevoid.WebViewMessengerTests {
+namespace Codevoid.WebViewMessengerTests {
     import getPlayground = InstapaperTestUtilities.getPlayground;
     import Signal = Codevoid.Utilities.Signal;
     import WebViewMessenger = Codevoid.Utilities.WebViewMessenger;

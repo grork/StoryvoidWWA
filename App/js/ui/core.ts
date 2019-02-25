@@ -1,7 +1,7 @@
 ﻿/// <reference path="..\..\scripts\typings\winjs\winjs.d.ts" />
 /// <reference path="..\..\tsc\libs\codevoid.d.ts" />
 
-module Codevoid.UICore {
+namespace Codevoid.UICore {
     export interface ViewModel {
         experience: any;
     }

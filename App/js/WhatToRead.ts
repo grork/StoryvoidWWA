@@ -1,5 +1,5 @@
 ﻿/// <reference path="deeplinking.ts" />
-module Codevoid.Storyvoid {
+namespace Codevoid.Storyvoid {
     import StartScreen = Windows.UI.StartScreen;
 
     const unreadFolderId = InstapaperDBCommonFolderIds.Unread;
