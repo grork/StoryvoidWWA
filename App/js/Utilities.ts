@@ -4,10 +4,131 @@
 }
 
 namespace Codevoid.Utilities {
-    WinJS.Namespace.define("Codevoid.Utilities", {
-        EventSource: WinJS.Class.mix(WinJS.Class.define(function () {
-        }), WinJS.Utilities.eventMixin)
-    })
+    type EventListenerEntry = {
+        useCapture: boolean;
+        listener: Function;
+    }
+
+    class EventMixinEvent {
+        private _preventDefaultCalled: boolean = false;
+        public _stopImmediatePropagationCalled = false;
+        public timeStamp: number;
+
+        constructor(public type: string, public detail: any, public target: any) {
+            this.timeStamp = Date.now();
+        }
+        public get bubbles(): boolean {
+            return false;
+        }
+
+        public get cancelable(): boolean {
+            return false;
+        }
+
+        public get currentTarget() {
+            return this.target;
+        }
+
+        public get defaultPrevented(): boolean {
+            return this._preventDefaultCalled;
+        }
+
+        public get trusted(): boolean {
+            return false;
+        }
+
+        public get eventPhase(): number {
+            return 0;
+        }
+
+        public preventDefault(): void {
+            this._preventDefaultCalled = true;
+        }
+
+        public stopImmediatePropagation(): void {
+            this._stopImmediatePropagationCalled = true;
+        }
+
+        public stopPropagation(): void { }
+
+        static supportedForProcessing: false;
+    }
+
+    export class EventSource {
+        private _listeners: { [type: string]: EventListenerEntry[] } = null;
+
+        /**
+         * Adds an event listener to the control.
+         * @param type The type (name) of the event.
+         * @param listener The listener to invoke when the event gets raised.
+         * @param useCapture If true, initiates capture, otherwise false.
+        **/
+        public addEventListener(type: string, listener: Function, useCapture?: boolean): void {
+            useCapture = useCapture || false;
+            this._listeners = this._listeners || {};
+            const eventListeners = (this._listeners[type] = this._listeners[type] || []);
+
+            for (let i = 0, len = eventListeners.length; i < len; i++) {
+                let l = eventListeners[i];
+                if (l.useCapture === useCapture && l.listener === listener) {
+                    return;
+                }
+            }
+
+            eventListeners.push({ listener: listener, useCapture: useCapture });
+        }
+
+        /**
+         * Raises an event of the specified type and with the specified additional properties.
+         * @param type The type (name) of the event.
+         * @param details The set of additional properties to be attached to the event object when the event is raised.
+         * @returns true if preventDefault was called on the event.
+        **/
+        public dispatchEvent(type: string, details?: any): boolean {
+            let listeners = this._listeners && this._listeners[type];
+
+            if (listeners) {
+                const eventValue = new EventMixinEvent(type, details, this);
+                // Need to copy the array to protect against people unregistering while we are dispatching
+                listeners = listeners.slice(0, listeners.length);
+
+                for (let i = 0, len = listeners.length; i < len && !eventValue._stopImmediatePropagationCalled; i++) {
+                    listeners[i].listener(eventValue);
+                }
+
+                return eventValue.defaultPrevented || false;
+            }
+            return false;
+        }
+
+        /**
+         * Removes an event listener from the control.
+         * @param type The type (name) of the event.
+         * @param listener The listener to remove.
+         * @param useCapture true if capture is to be initiated, otherwise false.
+        **/
+        public removeEventListener(type: string, listener: Function, useCapture?: boolean): void {
+            useCapture = useCapture || false;
+
+            var listeners = this._listeners && this._listeners[type];
+
+            if (listeners) {
+                for (let i = 0, len = listeners.length; i < len; i++) {
+                    const l = listeners[i];
+
+                    if (l.listener === listener && l.useCapture === useCapture) {
+                        listeners.splice(i, 1);
+                        if (listeners.length === 0) {
+                            delete this._listeners[type];
+                        }
+
+                        // Only want to remove one element for each call to removeEventListener
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     if (!window.alert) {
         (function () {
