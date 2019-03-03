@@ -31,7 +31,7 @@
 
         private _eventSource = new Utilities.EventSource();
         private _handlersToCleanup: Utilities.ICancellable[] = [];
-        private _currentTimer: number;
+        private _debouncer: Utilities.Debounce;
         private _watchingPaused = false;
         private _suspendedAt = 0;
         private _wentOfflineAt = 0;
@@ -47,7 +47,7 @@
                         return;
                     }
 
-                    this._resetTimer((e.detail.operation === InstapaperDBBookmarkChangeTypes.DELETE));
+                    this._triggerSyncNeeded((e.detail.operation === InstapaperDBBookmarkChangeTypes.DELETE));
                 }
             }));
 
@@ -62,19 +62,19 @@
             }));
         }
 
-        private _resetTimer(startNow?: boolean): void {
-            if (this._currentTimer) {
-                clearTimeout(this._currentTimer);
+        private _triggerSyncNeeded(immediately?: boolean): void {
+            if (!this._debouncer) {
+                this._debouncer = new Utilities.Debounce(() => {
+                    this._raiseSyncNeeded(SyncReason.Timer, false);
+                }, this.dbIdleInterval);
             }
 
-            var interval = this.dbIdleInterval;
-            if (startNow) {
-                interval = 0;
+            if (immediately) {
+                this._debouncer.triggerNow();
+                return;
             }
 
-            this._currentTimer = setTimeout(() => {
-                this._raiseSyncNeeded(SyncReason.Timer, false);
-            }, interval);
+            this._debouncer.bounce();
         }
 
         private _raiseSyncNeeded(reason: SyncReason, showEvents: boolean = true): PromiseLike<any> {
@@ -88,12 +88,11 @@
         }
 
         private _cancelTimer(): void {
-            if (!this._currentTimer) {
+            if (!this._debouncer) {
                 return;
             }
 
-            clearTimeout(this._currentTimer);
-            this._currentTimer = null;
+            this._debouncer.cancel();
         }
 
         private _handleEnteringBackground(e: any): void {

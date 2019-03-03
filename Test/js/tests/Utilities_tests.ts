@@ -764,7 +764,7 @@
             ]).then((results) => assert.ok(!wasCalled, "Did not expect completion handler to be called"));
         });
 
-        it("bouncing ones executes operation", () => {
+        it("bouncing once executes operation", () => {
             let completeCallback = null;
             let wasCalled = false;
             const completionPromise = new WinJS.Promise((c, e, p) => {
@@ -782,7 +782,7 @@
                 WinJS.Promise.timeout(100),
                 completionPromise
             ]).then((results) => {
-                assert.ok(wasCalled, "Did not expect completion handler to be called");
+                assert.ok(wasCalled, "Expected completion handler to be called");
                 assert.strictEqual(results.key, "1", "Wrong promise completed");
             });
         });
@@ -811,13 +811,13 @@
                 WinJS.Promise.timeout(20),
                 completionPromise
             ]).then((results) => {
-                assert.ok(wasCalled, "Did not expect completion handler to be called");
+                assert.ok(wasCalled, "Expected completion handler to be called");
                 assert.ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
                 assert.ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
             });
         });
 
-        it("bouncing after operation is executed does not execute the bounce a gain", () => {
+        it("bouncing after operation is executed does not execute the bounce again", () => {
             let completionCount = 0;
             let completeCallback = null;
             let wasCalled = false;
@@ -863,5 +863,30 @@
             ]).then((results) => assert.strictEqual(completionCount, 2, "Bounce Completed more than once"));
         });
 
+        it("triggering bounce bounce interval completes operation immediately", () => {
+            let completeCallback = null;
+            let wasCalled = false;
+            const completionPromise = new WinJS.Promise((c, e, p) => {
+                completeCallback = () => {
+                    wasCalled = true;
+                    c();
+                }
+            });
+
+            const bouncer = new Codevoid.Utilities.Debounce(() => completeCallback(), 200);
+            bouncer.bounce();
+
+            setTimeout(() => {
+                bouncer.triggerNow();
+            }, 50);
+
+            return WinJS.Promise.any([
+                WinJS.Promise.timeout(100),
+                completionPromise
+            ]).then((results) => {
+                assert.ok(wasCalled, "Expected completion handler to be called");
+                assert.strictEqual(results.key, "1", "Wrong promise completed");
+            });
+        });
     });
 }

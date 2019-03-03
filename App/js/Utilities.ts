@@ -221,6 +221,11 @@ namespace Codevoid.Utilities {
 
             this.timeoutId = setTimeout(this.operation.bind(this), this.idleTimeout);
         }
+
+        public triggerNow(): void {
+            this.cancel();
+            this.operation();
+        }
     }
 
     export class Signal extends EventSource {
