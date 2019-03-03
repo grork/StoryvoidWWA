@@ -77,12 +77,10 @@
     export class FullscreenSpinnerViewModel implements Codevoid.UICore.ViewModel {
         public experience = { wwa: "Codevoid.Storyvoid.UI.FullscreenSpinnerExperience" };
 
-        private displayDelay: WinJS.Promise<any>;
+        private displayDelay: Utilities.Debounce;
         private completionSignal = new Utilities.Signal();
 
-        public dispose() {
-
-        }
+        public dispose() { }
 
         public dismissCallback: () => WinJS.Promise<any>;
 
@@ -116,15 +114,14 @@
         }
 
         public show(params: { after: number }): void {
-            this.displayDelay = WinJS.Promise.as();
+            this.displayDelay = new Utilities.Debounce(() => this.makeVisible(), (params && params.after) || 1);
 
             if (params && params.after) {
-                this.displayDelay = WinJS.Promise.timeout(params.after);
+                this.displayDelay.bounce();
+                return;
             }
 
-            this.displayDelay.then(() => {
-                this.makeVisible();
-            })
+            this.displayDelay.triggerNow();
         }
 
         public cancel(): void {
