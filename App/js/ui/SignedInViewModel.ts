@@ -658,41 +658,45 @@
             return this._wasSignedInAutomatically;
         }
 
-        private _externallyInitiatedDisplayArticle: WinJS.Promise<any>;
+        private _externallyInitiatedDisplayArticle: Utilities.CancellationSource;
 
         private externallyInintiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
             if (this._externallyInitiatedDisplayArticle) {
                 this._externallyInitiatedDisplayArticle.cancel();
-                this._externallyInitiatedDisplayArticle = null;
             }
+
+            const localCancellationSource = this._externallyInitiatedDisplayArticle = new Utilities.CancellationSource();
 
             let completionHandler: () => void;
 
-            this._externallyInitiatedDisplayArticle = this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
-                if (!bookmark) {
+            return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
+                //if (!bookmark) {
                     // Attempt to download it from the service, but do not
                     // allow the promise chain to wait on it, so if the download
                     // takes a really long time we're not sat at the splasyscreen
-                    const downloadResult = this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl);
+                    const downloadResult = this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl, localCancellationSource);
 
                     isRestoring = false;
                     completionHandler = downloadResult.displayComplete;
 
                     return downloadResult.downloaded;
+                //}
+
+                //return this.refreshBookmarkWithLatestReadProgress(bookmark);
+            }).then((bookmarkToShow) => {
+                if (localCancellationSource.cancelled) {
+                    return null;
                 }
 
-                return this.refreshBookmarkWithLatestReadProgress(bookmark);
-            }).then((bookmarkToShow) => {
                 return this.showArticle(bookmarkToShow, isRestoring);
-            }).then(null, () => { }).then(() => {
+            }).then(null, () => { }).then(() => { // Mask any errors
                 if (completionHandler) {
                     completionHandler();
                 }
-
-                this._externallyInitiatedDisplayArticle = null;
+                if (this._externallyInitiatedDisplayArticle === localCancellationSource) {
+                    this._externallyInitiatedDisplayArticle = null;
+                }
             });
-
-            return this._externallyInitiatedDisplayArticle;
         }
 
         private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): WinJS.Promise<IBookmark> {
@@ -713,9 +717,9 @@
             }, () => bookmark);
         }
 
-        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri): { downloaded: WinJS.Promise<IBookmark>; displayComplete(): void } {
+        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, cancellationSource: Utilities.CancellationSource): { downloaded: WinJS.Promise<IBookmark>; displayComplete(): void } {
             const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
-            let spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
+            const spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
             spinner.show({ after: 2000 });
 
             // If the spinner is dismissed for cancellation reasons,
@@ -727,18 +731,18 @@
                 }
 
                 // If it's not successful, dismiss the spinner
-                downloadAndOpen.cancel();
+                cancellationSource.cancel();
             });
 
             // Get the article state from the service
             let downloadAndOpen = bookmarksApi.updateReadProgress({
-                    bookmark_id: bookmark_id,
-                    progress: 0.0,
-                    progress_timestamp: 1,
+                bookmark_id: bookmark_id,
+                progress: 0.0,
+                progress_timestamp: 1,
             }).then((result: IBookmark) => {
                 // Insert it as an orphan into the DB
                 result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
-                return this._instapaperDB.addBookmark(result);
+                return WinJS.Promise.timeout(8 * 1000).then(() => result); //this._instapaperDB.addBookmark(result);
             }).then((result: IBookmark) => {
                 // Get The content from the service using the orphan bookmark we added
                 return this.syncSingleArticle(result);
@@ -751,6 +755,12 @@
 
                 spinner.complete(false);
                 return null;
+            }).then((r) => {
+                if (cancellationSource.cancelled) {
+                    return null;
+                }
+
+                return r;
             });
 
             return {
