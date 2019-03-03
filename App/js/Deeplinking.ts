@@ -23,7 +23,7 @@
                         rawBookmarkId = entry.value;
                         break;
 
-                    case "original_url":
+                    case "original_uri":
                         rawOriginalUrl = entry.value;
                         break;
                 }
