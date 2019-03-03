@@ -164,7 +164,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
                 // wait to make sure the event isn't some how raised
                 return WinJS.Promise.timeout(100);
-            }).done(() => {
+            }).then(() => {
 
                 // Dispatch the event to start the timer
                 w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
@@ -183,7 +183,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
             w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(enteredBackgroundCompleteSignal));
 
-            WinJS.Promise.timeout(50).done(() => {
+            WinJS.Promise.timeout(50).then(() => {
                 util.addEventListeners(w.watcher.eventSource, {
                     syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                         assert.ok(!syncEventSeen, "Sync event already seen");
@@ -299,7 +299,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             // Go offline to update previous state
             w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-            WinJS.Promise.timeout(50).done(() => {
+            WinJS.Promise.timeout(50).then(() => {
                 // Go online to trigger the event
                 w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
             });
@@ -323,7 +323,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             // Go offline to update previous state
             w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-            WinJS.Promise.timeout(50).done(() => {
+            WinJS.Promise.timeout(50).then(() => {
                 // Go online to trigger the event
                 w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
             });

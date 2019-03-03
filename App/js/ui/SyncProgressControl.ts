@@ -17,7 +17,7 @@
 
             DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SyncProgressControl");
 
-            this.template.render({}, this.element).done(() => {
+            this.template.render({}, this.element).then(() => {
                 DOM.marryPartsToControl(this.element, this);
 
                 this._messageContainer.textContent = this.initialMessage;

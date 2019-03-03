@@ -34,8 +34,8 @@
                 appInititialized = true;
                 app.launchInformation = launchInformation;
                 var deferral = args.activatedOperation.getDeferral();
-                Telemetry.initialize().done(() => {
-                    app.initialize().done(() => {
+                Telemetry.initialize().then(() => {
+                    app.initialize().then(() => {
                         deferral.complete();
                     });
                 });

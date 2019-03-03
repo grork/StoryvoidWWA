@@ -129,7 +129,7 @@
             db.open({
                 server: dbName,
                 version: 1
-            }).done(function (s) {
+            }).then(function (s) {
                 currentServer = s;
             });
 
@@ -165,7 +165,7 @@
                         }
                     }
                 }
-            }).done(function (s) {
+            }).then(function (s) {
                 server = s;
             });
 
@@ -203,7 +203,7 @@
                         }
                     }
                 }
-            }).done(function (s) {
+            }).then(function (s) {
                 server = s;
             });
 
@@ -255,7 +255,7 @@
                         }
                     }
                 }
-            }, upgradeCalled).done(function (s) {
+            }, upgradeCalled).then(function (s) {
                 server = s;
             });
 
@@ -286,7 +286,7 @@
             var upgradeDone;
 
             var upgradeCalled = function (server, e) {
-                server.add("test", { name: "bob" }).done(function () {
+                server.add("test", { name: "bob" }).then(function () {
                     upgradeDone = true;
                 });
             };
@@ -302,7 +302,7 @@
                         }
                     }
                 }
-            }, upgradeCalled).done(function (s) {
+            }, upgradeCalled).then(function (s) {
                 server = s;
             });
 
@@ -340,7 +340,7 @@
             assert.ok(currentServer, "need current server");
             var item = { firstName: "Aaron", lastName: "Powell" };
 
-            currentServer.add("test", item).done(function (records) {
+            currentServer.add("test", item).then(function (records) {
                 assert.ok(records, "Didn't get any records back");
                 assert.strictEqual(records.length, 1, "Got more than one record back");
                 item = records[0];
@@ -362,7 +362,7 @@
                 lastName: "Smith"
             };
 
-            currentServer.add("test", [item1, item2]).done(function (items) {
+            currentServer.add("test", [item1, item2]).then(function (items) {
                 assert.ok(items, "no items returned");
                 assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
@@ -380,7 +380,7 @@
             assert.ok(currentServer, "need current server");
             var item = { firstName: "Aaron", lastName: "Powell" };
 
-            currentServer.put("test", item).done(function (records) {
+            currentServer.put("test", item).then(function (records) {
                 assert.ok(records, "Didn't get any records back");
                 assert.strictEqual(records.length, 1, "Got more than one record back");
                 item = records[0];
@@ -402,7 +402,7 @@
                 lastName: "Smith"
             };
 
-            currentServer.put("test", [item1, item2]).done(function (items) {
+            currentServer.put("test", [item1, item2]).then(function (items) {
                 assert.ok(items, "no items returned");
                 assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
@@ -427,7 +427,7 @@
                 lastName: "Smith"
             };
 
-            currentServer.put("test", [item1, item2]).done(function (items) {
+            currentServer.put("test", [item1, item2]).then(function (items) {
                 assert.ok(items, "no items returned");
                 assert.strictEqual(items.length, 2, "incorrect number of items returned");
 
@@ -462,7 +462,7 @@
             assert.ok(currentServer, "need current server");
             var item = { firstName: "Aaron", lastName: "Powell" };
 
-            currentServer.add("test", item).done(function (records) {
+            currentServer.add("test", item).then(function (records) {
                 assert.ok(records, "Didn't get any records back");
                 assert.strictEqual(records.length, 1, "Got more than one record back");
                 item = records[0];
@@ -472,7 +472,7 @@
                 return currentServer.remove("test", item.id);
             }).then(function () {
                 var done = false;
-                currentServer.get("test", item.id).done(function (removed) {
+                currentServer.get("test", item.id).then(function (removed) {
                     assert.strictEqual(removed, undefined, "Expected item to be removed");
                     done = true;
                 });
@@ -485,7 +485,7 @@
             assert.ok(currentServer, "need current server");
             var item = { firstName: "Aaron", lastName: "Powell" };
 
-            currentServer.add("test", item).done(function (records) {
+            currentServer.add("test", item).then(function (records) {
                 assert.ok(records, "Didn't get any records back");
                 assert.strictEqual(records.length, 1, "Got more than one record back");
                 item = records[0];
@@ -511,7 +511,7 @@
                 lastName: "Powell"
             };
 
-            currentServer.add("test", item).done(function (data) {
+            currentServer.add("test", item).then(function (data) {
                 assert.ok(data, "Didn't get data");
                 assert.strictEqual(data.length, 1, "Inserted more data than expected");
                 item = data[0]
@@ -519,7 +519,7 @@
 
             return waitFor(() => item.id).then(function () {
                 var done = false;
-                currentServer.get("test", item.id).done(function (data) {
+                currentServer.get("test", item.id).then(function (data) {
                     assert.ok(data, "didn't get data back");
                     assert.strictEqual(data.id, item.id, "ID's didn't match");
                     assert.strictEqual(data.firstName, item.firstName, "First names didn't match");
@@ -544,14 +544,14 @@
             };
 
             var done = false;
-            currentServer.add("test", [item1, item2]).done(function () {
+            currentServer.add("test", [item1, item2]).then(function () {
                 done = true;
             });
 
             return waitFor(() => done).then(function () {
                 done = false;
 
-                currentServer.query("test").execute().done(function (results) {
+                currentServer.query("test").execute().then(function (results) {
                     assert.ok(results, "no results");
                     assert.strictEqual(results.length, 2, "Incorrect number of results");
                     assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
@@ -568,7 +568,7 @@
             assert.ok(currentServer, "need current server");
 
             var done = false;
-            currentServer.get("test", 7).done(function (data) {
+            currentServer.get("test", 7).then(function (data) {
                 assert.ok(data === undefined, "Didn't expect to get any data");
                 done = true;
             });
@@ -593,14 +593,14 @@
             };
 
             var done = false;
-            currentServer.add("test", [item1, item2, item3]).done(function () {
+            currentServer.add("test", [item1, item2, item3]).then(function () {
                 done = true;
             });
 
             return waitFor(() => done).then(function () {
                 done = false;
 
-                currentServer.query("test").filter("firstName", "Aaron").execute().done(function (results) {
+                currentServer.query("test").filter("firstName", "Aaron").execute().then(function (results) {
                     assert.ok(results, "no results");
                     assert.strictEqual(results.length, 2, "Incorrect number of results");
                     assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
@@ -630,7 +630,7 @@
             };
 
             var done = false;
-            currentServer.add("test", [item1, item2, item3]).done(function () {
+            currentServer.add("test", [item1, item2, item3]).then(function () {
                 done = true;
             });
 
@@ -639,7 +639,7 @@
 
                 currentServer.query("test").filter(function (data) {
                     return data.firstName === "Aaron" && data.lastName === "Powell";
-                }).execute().done(function (results) {
+                }).execute().then(function (results) {
                     assert.ok(results, "no results");
                     assert.strictEqual(results.length, 2, "Incorrect number of results");
                     assert.strictEqual(results[0].firstName, item1.firstName, "item 1 First names don't match");
@@ -672,7 +672,7 @@
                         }
                     }
                 }
-            }).done(function (s) {
+            }).then(function (s) {
                 assert.ok(s, "Expected a completed DB");
                 currentServer = s;
             });
@@ -727,7 +727,7 @@
                         }
                     }
                 }
-            }).done(function (s) {
+            }).then(function (s) {
                 assert.ok(s, "Expected a completed DB");
                 currentServer = s;
             });
@@ -735,7 +735,7 @@
 
             return waitFor(() => currentServer).then(function () {
 
-                currentServer.add("test", [item1, item2, item3]).done(function () {
+                currentServer.add("test", [item1, item2, item3]).then(function () {
                     done = true;
                 });
 
@@ -743,7 +743,7 @@
             }).then(function () {
                 assert.ok(done, "Previous data wasn't complete")
                 done = false;
-                currentServer.index("test", "firstName").only("Aaron").done(function (results) {
+                currentServer.index("test", "firstName").only("Aaron").then(function (results) {
                     assert.ok(results, "Expected a result set");
                     assert.strictEqual(results.length, 2, "didn't get back expected record counts");
                     done = true;
@@ -774,7 +774,7 @@
                         }
                     }
                 }
-            }).done(function (s) {
+            }).then(function (s) {
                 assert.ok(s, "Expected a completed DB");
                 currentServer = s;
             });
@@ -782,7 +782,7 @@
 
             return waitFor(() => currentServer).then(function () {
 
-                currentServer.add("test", [item1]).done(function () {
+                currentServer.add("test", [item1]).then(function () {
                     done = true;
                 });
 
@@ -790,7 +790,7 @@
             }).then(function () {
                 assert.ok(done, "Previous data wasn't complete")
                 done = false;
-                currentServer.index("test", "firstName").only("Bob").done(function (results) {
+                currentServer.index("test", "firstName").only("Bob").then(function (results) {
                     assert.ok(results, "Expected a result set");
                     assert.strictEqual(results.length, 0, "didn't get back expected record counts");
                     done = true;

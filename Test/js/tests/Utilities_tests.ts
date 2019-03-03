@@ -70,7 +70,7 @@
             let wasCancelled = false;
             signal.addEventListener("cancelled", () => wasCancelled = true);
 
-            signal.promise.cancel();
+            signal.cancel();
 
             assert.ok(wasCancelled, "Promise wasn't cancelled");
         });
@@ -80,13 +80,13 @@
             let wasCancelled = false;
             signal.addEventListener("cancelled", (e) => assert.strictEqual(signal, e.detail.signal));
 
-            signal.promise.cancel();
+            signal.cancel();
         });
 
         it("can be completed", () => {
             const signal = new Signal();
             let completed = false;
-            signal.promise.done(() => completed = true);
+            signal.promise.then(() => completed = true);
 
             signal.complete();
 
@@ -96,7 +96,7 @@
         it("includes value when completed", () => {
             const signal = new Signal();
             let completed = false;
-            signal.promise.done((data) => {
+            signal.promise.then((data) => {
                 assert.ok(data, "didn't get data");
                 assert.ok(data.isComplete, "Should have had complete property");
             });
@@ -107,7 +107,7 @@
         it("can't be completed more than once", () => {
             const signal = new Signal();
             let completed = 0;
-            signal.promise.done(() => completed++);
+            signal.promise.then(() => completed++);
 
             signal.complete();
 
@@ -134,7 +134,7 @@
         it("calling error propagates to the promise", () => {
             const signal = new Signal();
             let errorCalled = false;
-            signal.promise.done(() => assert.ok(false, "shouldn't be called"), () => errorCalled = true);
+            signal.promise.then(() => assert.ok(false, "shouldn't be called"), () => errorCalled = true);
 
             signal.error();
 
@@ -144,7 +144,7 @@
         it("error info is supplied to the promise error handler", () => {
             const signal = new Signal();
             let errorCalled = false;
-            signal.promise.done(() => assert.ok(false, "shouldn't be called"), (errorInfo) => {
+            signal.promise.then(() => assert.ok(false, "shouldn't be called"), (errorInfo) => {
                 errorCalled = true;
                 assert.ok(errorInfo, "no error info");
                 assert.ok(errorInfo.errorDetail, "No error details");
@@ -158,7 +158,7 @@
         it("progress is passed to the promise", () => {
             const signal = new Signal();
             let progress = 0;
-            signal.promise.done(
+            signal.promise.then(
                 () => assert.ok(false, "complete shouldn't be called"),
                 () => assert.ok(false, "Error shouldn't be called"),
                 () => {
@@ -178,7 +178,7 @@
 
             const signal = new Signal();
             let progress = [];
-            signal.promise.done(
+            signal.promise.then(
                 () => assert.ok(false, "complete shouldn't be called"),
                 () => assert.ok(false, "Error shouldn't be called"),
                 (data) => progress.push(data)

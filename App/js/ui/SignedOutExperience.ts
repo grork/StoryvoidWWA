@@ -12,7 +12,7 @@
             WinJS.Utilities.addClass(element, "signedOut-container");
             DOM.loadTemplate("/HtmlTemplates.html", "signedOut").then((template) => {
                 return template.render(null, element);
-            }).done(() => {
+            }).then(() => {
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedOutExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
@@ -31,7 +31,7 @@
         }
 
         public startLogin(): void {
-            this.viewModel.startLogin().done(null, () => {
+            this.viewModel.startLogin().then(null, () => {
                 this._loginButton.innerText = "Failed";
             });
         }

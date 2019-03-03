@@ -16,7 +16,7 @@
             WinJS.Utilities.addClass(element, "dbFiddler-container");
             DOM.loadTemplate("/HtmlTemplates.html", "dbFiddler").then((template) => {
                 return template.render(null, element);
-            }).done(() => {
+            }).then(() => {
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.DbFiddler");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);

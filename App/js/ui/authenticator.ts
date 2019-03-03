@@ -18,7 +18,7 @@
 
             Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
                 return template.render(null, element);
-            }).done(() => {
+            }).then(() => {
                 // Make sure we set the attribute after, since when we render
                 // the template on our own element, it'll process the win-control
                 // attribute and create two of them. This would be bad, mmmkay?
@@ -124,7 +124,7 @@
 
             // Bounce through the dispatcher to give the DOM a moment to layout
             // and then actually apply the transform to initial positions
-            WinJS.Promise.timeout(1).done(() => {
+            WinJS.Promise.timeout(1).then(() => {
                 el.style.opacity = targetOpacity.toString();
             });
         }

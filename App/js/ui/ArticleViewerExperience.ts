@@ -61,7 +61,7 @@
 
             DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
                 return template.render({}, element);
-            }).done(() => {
+            }).then(() => {
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ArticleViewerExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
@@ -202,7 +202,7 @@
                 this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.js")
             ]).then(() => {
                 return this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js");
-            }).done(() => {
+            }).then(() => {
                 this._afterReady();
             });
         }
@@ -236,7 +236,7 @@
                     this._firstDivFocused();
                 }, 20);
             } else {
-                WinJS.UI.Animation.slideUp(this.element).done(() => {
+                WinJS.UI.Animation.slideUp(this.element).then(() => {
                     this._firstDivFocused();
                     this.viewModel.signalArticleDisplayed();
                 });
@@ -335,7 +335,7 @@
 
                 case WinJS.Utilities.Key.d:
                     shortcutInvoked = "ShowDisplaySettings";
-                    this._showToolbarIfNotVisible().done(() => {
+                    this._showToolbarIfNotVisible().then(() => {
                         this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
                     });
                     break;
@@ -352,7 +352,7 @@
 
                 case WinJS.Utilities.Key.t:
                     shortcutInvoked = "FocusToolbar";
-                    this._showToolbarIfNotVisible().done(() => {
+                    this._showToolbarIfNotVisible().then(() => {
                         this._lastDivFocused();
                     });
                     break;
@@ -475,10 +475,10 @@
                     hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
-                hidden.done(() => {
+                hidden.then(() => {
                     offset.top = (directionMultiplier * (this._toolbarContainer.clientHeight + topOffset)) + "px";
 
-                    WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).done(() => {
+                    WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).then(() => {
                         WinJS.Utilities.addClass(this._toolbarContainer, "hide");
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
                         signal.complete();
@@ -500,8 +500,8 @@
                     shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
 
-                shown.done(() => {
-                    WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
+                shown.then(() => {
+                    WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).then(() => {
                         (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
                         
                         signal.complete();
@@ -576,7 +576,7 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
-            WinJS.UI.Animation.slideDown(this.element).done(() => {
+            WinJS.UI.Animation.slideDown(this.element).then(() => {
                 // Flip this flag to allow the next navigate to complete, because
                 // we're normally supressing navigations after the first load.
                 this._pageReady = false;
@@ -779,7 +779,7 @@
                     bookmark_id: this.bookmark.bookmark_id,
                     progress: this.bookmark.progress,
                     progress_timestamp: this.bookmark.progress_timestamp
-                }).done(() => { }, () => { });
+                }).then(() => { }, () => { });
             }
 
             // When cleaning up, make sure we remove the reference to ourselves
@@ -840,7 +840,7 @@
 
             // This is dependent on an OS API that is not widely used, so lets be safe, and eat
             // all errors from it, so we can still show the article
-            activityStart.then(null, () => { }).done(() => {
+            activityStart.then(null, () => { }).then(() => {
                 this._displayedSignal.complete();
             });
         }
@@ -896,7 +896,7 @@
                 return;
             }
 
-            this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).done((bookmark) => {
+            this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).then((bookmark) => {
                 this.bookmark = bookmark;
             });
         }
@@ -968,7 +968,7 @@
                 updateBookmark = this._instapaperDB.likeBookmark(this.bookmark.bookmark_id);
             }
 
-            updateBookmark.done((bookmark: IBookmark) => {
+            updateBookmark.then((bookmark: IBookmark) => {
                 this.bookmark = bookmark;
                 let liked = false;
 
@@ -987,7 +987,7 @@
 
         private _delete(): void {
             Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "Article" }));
-            this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).done(() => {
+            this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).then(() => {
                 this._eventSource.dispatchEvent("removed", null);
             });
         }
@@ -995,7 +995,7 @@
         private _move(e: UIEvent): void {
             this.eventSource.dispatchEvent("showMove", null);
             var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
-            moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).done((result: boolean) => {
+            moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).then((result: boolean) => {
                 if (!result) {
                     return;
                 }
@@ -1029,7 +1029,7 @@
 
             Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "Article" }));
 
-            this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder).done(() => {
+            this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder).then(() => {
                 this._eventSource.dispatchEvent("removed", null);
             });
         }
@@ -1124,7 +1124,7 @@
                     break;
 
                 case ScreenMode.PictureInPicture:
-                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay, this._getPictureInPictureSize()).done(null, () => { });
+                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay, this._getPictureInPictureSize()).then(null, () => { });
                     break;
 
                 case ScreenMode.Normal:
@@ -1209,7 +1209,7 @@
                     break;
 
                 case ScreenMode.PictureInPicture:
-                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.default).done(null, () => {});
+                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.default).then(null, () => {});
                     break;
             }
 

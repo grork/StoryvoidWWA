@@ -319,7 +319,7 @@
         private _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>) {
             this.startSync(ev.detail.reason, {
                 noEvents: !ev.detail.showEvents
-            }).done(() => {
+            }).then(() => {
                 ev.detail.complete();
             }, () => {
                 ev.detail.complete();
@@ -332,7 +332,7 @@
                 return;
             }
 
-            this._currentSync.signal.promise.done(
+            this._currentSync.signal.promise.then(
                 () => e.detail.complete(),
                 () => e.detail.complete()
             );
@@ -440,7 +440,7 @@
                     // There are 4 fixed folders; we only care about the users own folders
                     return folders.length - 4;
                 })
-            }).done((result: { unreadArticleCount: number, folderCount: number }) => {
+            }).then((result: { unreadArticleCount: number, folderCount: number }) => {
                 // We only want to log changes, not the same count every time.
                 var telemetrySettings = new Settings.TelemetrySettings();
                 if (telemetrySettings.lastFolderCountSeen != result.folderCount) {
@@ -483,7 +483,7 @@
             this._whatToRead = new WhatToRead(this._instapaperDB);
             this._jumpListIdleWriter = new Utilities.Debounce(() => this._whatToRead.refreshJumplists(), 1_000);
 
-            this._instapaperDB.initialize().done((result) => {
+            this._instapaperDB.initialize().then((result) => {
                 this._dbOpened = true;
                 this._currentFolderDbId = this.commonFolderDbIds.unread;
 
@@ -628,11 +628,11 @@
                 }
 
                 return articleDisplay;
-            }).done(() => {
+            }).then(() => {
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
-                    this.startSync(SyncReason.Initial, { dontWaitForDownloads: true }).done(() => {
+                    this.startSync(SyncReason.Initial, { dontWaitForDownloads: true }).then(() => {
                         completedSignal.complete();
                     });
                 } else {
@@ -721,7 +721,7 @@
             // If the spinner is dismissed for cancellation reasons,
             // we need to cancel any more work, since we don't want
             // to show if the customer has given up
-            spinner.waitForCompletion().done((successful: boolean) => {
+            spinner.waitForCompletion().then((successful: boolean) => {
                 if (successful) {
                     return;
                 }
@@ -922,7 +922,7 @@
 
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
-            }).done(() => this._clearCurrentSync());
+            }).then(() => this._clearCurrentSync());
 
             return this._currentSync.signal.promise;
         }
@@ -1053,7 +1053,7 @@
         public refreshCurrentFolder(): void {
             this._eventSource.dispatchEvent("folderchanging", null);
 
-            this.getDetailsForFolder(this._currentFolderDbId).done((result) => {
+            this.getDetailsForFolder(this._currentFolderDbId).then((result) => {
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("folderchanged", result);
             }, () => {
@@ -1166,7 +1166,7 @@
                 tooltip: "Move to another folder (M)",
                 onclick: (e: UIEvent) => {
                     var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
-                    moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).done((result: boolean) => {
+                    moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).then((result: boolean) => {
                         if (!result) {
                             return;
                         }
@@ -1326,7 +1326,7 @@
                 document.head.appendChild(scriptTag);
             }
 
-            settingsScripts.done(() => {
+            settingsScripts.then(() => {
                 var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
                 Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
             });

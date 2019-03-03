@@ -23,12 +23,12 @@
 
         public again(): void {
             this.tryCount++;
-            WinJS.Promise.timeout().done(() => {
+            WinJS.Promise.timeout().then(() => {
                 const creds = AuthenticatorTestUI.credentialsToUse;
                 if (!creds) {
                     this.viewModel.credentialAcquisitionComplete.error({});
                 } else if (creds === -1) {
-                    this.viewModel.credentialAcquisitionComplete.promise.cancel();
+                    this.viewModel.credentialAcquisitionComplete.cancel();
                 } else {
                     this.viewModel.username = creds.username;
                     this.viewModel.password = creds.password;

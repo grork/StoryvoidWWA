@@ -26,7 +26,7 @@
                     template.render({}, element),
                     WinJS.Promise.timeout()
                 ]);
-            }).done(() => {
+            }).then(() => {
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
@@ -42,7 +42,7 @@
                 }));
 
                 element.classList.remove("hide");
-                WinJS.UI.Animation.slideUp(this.element).done(() => {
+                WinJS.UI.Animation.slideUp(this.element).then(() => {
                     // Capture previously focused element so we focus it when the
                     // spinner closed.
                     this._previouslyFocusedElement = <HTMLElement>document.activeElement;
@@ -122,7 +122,7 @@
                 this.displayDelay = WinJS.Promise.timeout(params.after);
             }
 
-            this.displayDelay.done(() => {
+            this.displayDelay.then(() => {
                 this.makeVisible();
             })
         }

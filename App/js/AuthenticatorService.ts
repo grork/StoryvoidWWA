@@ -226,7 +226,7 @@
             WinJS.Promise.join([
                 accounts.getAccessToken(this.username, this.password),
                 WinJS.Promise.timeout(minimumDuration || 0)
-            ]).done((result) => {
+            ]).then((result) => {
                 if (!this.holdWorkingStateOnSuccess) {
                     this.isWorking = false;
                 }

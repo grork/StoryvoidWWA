@@ -52,7 +52,7 @@
 
             DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedInExperience");
 
-            WinJS.UI.processAll(element).done(() => {
+            WinJS.UI.processAll(element).then(() => {
                 this._initialize();
             });
         }
@@ -244,7 +244,7 @@
 
         public splitViewOpening() {
             WinJS.Utilities.addClass(this._splitToggle.element, "splitView-open");
-            this.viewModel.listFolders().done((folders: IFolder[]) => {
+            this.viewModel.listFolders().then((folders: IFolder[]) => {
                 this._folderList.data = new WinJS.Binding.List(folders);
             });
         }
@@ -270,12 +270,12 @@
             confirmSignoutDialog.commands.append(staySignedInCommand);
 
 
-            confirmSignoutDialog.showAsync().done((command) => {
+            confirmSignoutDialog.showAsync().then((command) => {
                 if (command.id != "signout") {
                     return;
                 }
 
-                this.viewModel.signOut(true/*clearCredentials*/).done(null);
+                this.viewModel.signOut(true/*clearCredentials*/).then(null);
             });
         }
 
@@ -360,7 +360,7 @@
         }
 
         public showFeedbackHub(): void {
-            Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri("https://www.codevoid.net/storyvoid/faq.html#support")).done(null, () => { });
+            Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri("https://www.codevoid.net/storyvoid/faq.html#support")).then(null, () => { });
         }
 
         public _renderFolderDetails(folderDetails: IFolderDetails): void {
@@ -380,14 +380,14 @@
 
             this._emptyStateListeners = Utilities.addEventListeners(<any>folderDetails.bookmarks, {
                 itemremoved: () => {
-                    this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                    this._contentList.itemDataSource.getCount().then(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
                 },
                 iteminserted: () => {
-                    this._contentList.itemDataSource.getCount().done(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                    this._contentList.itemDataSource.getCount().then(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
                 }
             });
 
-            this._contentList.itemDataSource.getCount().done((count) => {
+            this._contentList.itemDataSource.getCount().then((count) => {
                 this._updateEmptyStateBasedOnBookmarkCount(count);
             });
         }
@@ -419,7 +419,7 @@
                 WinJS.Utilities.addClass(this._contentList.element, "hide");
                 WinJS.Utilities.removeClass(this._emptyStateContainer, "hide");
 
-                Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "emptyState").done((template) => {
+                Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "emptyState").then((template) => {
                     template.render({ folder_id: this.viewModel.currentFolderId }, this._emptyStateContainer);
                 });
             }
@@ -443,7 +443,7 @@
         }
 
         private _hideSyncProgress(): void {
-            WinJS.Promise.timeout(2 * 1000).done(() => {
+            WinJS.Promise.timeout(2 * 1000).then(() => {
                 Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
 
                 if (!WhatsNewControl.shouldShowWhatsNew()) {
@@ -503,7 +503,7 @@
 
             this._notificationContainer.style.transform = `translateY(-${height}px)`;
 
-            WinJS.Promise.timeout().done(() => {
+            WinJS.Promise.timeout().then(() => {
                 WinJS.Utilities.addClass(this._contentContainer, "notification-animation");
                 WinJS.Utilities.addClass(this._notificationContainer, "notification-animation");
                 this._contentContainer.style.transform = `translateY(${height}px)`;
@@ -723,7 +723,7 @@
         }
 
         public clearDb(): void {
-            this.viewModel.clearDb().done(() => {
+            this.viewModel.clearDb().then(() => {
                 Utilities.Logging.instance.log("Cleared DB"); 
             });
         }

@@ -95,7 +95,7 @@
 
             // Bounce the UI thread to allow layout to complete
             // so that things are positioned appropriately
-            WinJS.Promise.timeout().done(() => {
+            WinJS.Promise.timeout().then(() => {
                 var alignment = "bottom";
                 
                 if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {

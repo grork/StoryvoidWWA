@@ -31,7 +31,7 @@
 
         private _eventSource = new Utilities.EventSource();
         private _handlersToCleanup: Utilities.ICancellable[] = [];
-        private _currentTimer: WinJS.Promise<any>;
+        private _currentTimer: number;
         private _watchingPaused = false;
         private _suspendedAt = 0;
         private _wentOfflineAt = 0;
@@ -64,7 +64,7 @@
 
         private _resetTimer(startNow?: boolean): void {
             if (this._currentTimer) {
-                this._currentTimer.cancel();
+                clearTimeout(this._currentTimer);
             }
 
             var interval = this.dbIdleInterval;
@@ -72,12 +72,12 @@
                 interval = 0;
             }
 
-            this._currentTimer = WinJS.Promise.timeout(interval).then(() => {
+            this._currentTimer = setTimeout(() => {
                 this._raiseSyncNeeded(SyncReason.Timer, false);
-            });
+            }, interval);
         }
 
-        private _raiseSyncNeeded(reason: SyncReason, showEvents: boolean = true): WinJS.Promise<any> {
+        private _raiseSyncNeeded(reason: SyncReason, showEvents: boolean = true): PromiseLike<any> {
             var eventPayload = new SyndNeededEventArgs();
             eventPayload.reason = reason;
             eventPayload.showEvents = showEvents;
@@ -92,7 +92,7 @@
                 return;
             }
 
-            this._currentTimer.cancel();
+            clearTimeout(this._currentTimer);
             this._currentTimer = null;
         }
 

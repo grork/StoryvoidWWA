@@ -36,7 +36,7 @@
                     template.render({}, element),
                     WinJS.Promise.timeout()
                 ]);
-            }).done(() => {
+            }).then(() => {
                 DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
                 this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
                 DOM.marryPartsToControl(element, this);
@@ -80,7 +80,7 @@
                 this._versionElement.innerText += versionLabel;
 
                 WinJS.Utilities.removeClass(element, "hide");
-                WinJS.UI.Animation.slideUp(this.element).done(() => {
+                WinJS.UI.Animation.slideUp(this.element).then(() => {
                     // Capture previously focused element so we focus it when the
                     // setting is dismissed.
                     //
@@ -167,7 +167,7 @@
             this.viewModel.dispose();
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
 
-            WinJS.UI.Animation.slideDown(this.element).done(() => {
+            WinJS.UI.Animation.slideDown(this.element).then(() => {
                 Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
                 this.viewModel = null;
 
@@ -223,12 +223,12 @@
         }
 
         public forgetMeAndSignout(): void {
-            this.viewModel.forgetMeAndSignout().done(() => { });
+            this.viewModel.forgetMeAndSignout().then(() => { });
             this.close();
         }
 
         public dumpDb(): void {
-            this.viewModel.articleListViewModel.dumpDb().done((dumpData: string) => {
+            this.viewModel.articleListViewModel.dumpDb().then((dumpData: string) => {
                 Utilities.Logging.instance.log("Dumped");
 
                 Utilities.Logging.instance.log(dumpData, true);
@@ -291,7 +291,7 @@
             var articleListViewModel = this.articleListViewModel;
             articleListViewModel.signOut(false/*clearCredentials*/).then(() => {
                 return WinJS.Promise.timeout();
-            }).done(() => {
+            }).then(() => {
                 articleListViewModel.signedIn(false);
             });
         }
@@ -313,7 +313,7 @@
                 // Since it's off, lets make sure we're not uploading _anything_
                 // and handle any errors when it fails, since we don't care about
                 // those.
-                Telemetry.instance.clearStorageAsync().done(null, () => { });
+                Telemetry.instance.clearStorageAsync().then(null, () => { });
             }
         }
 

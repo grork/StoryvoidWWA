@@ -91,7 +91,7 @@
 
             // Bounce through the dispatcher to give the DOM a moment to layout
             // and then actually apply the transform to initial positions
-            WinJS.Promise.timeout(1).done(() => {
+            WinJS.Promise.timeout(1).then(() => {
                 signedInElement.style.transform = "translateX(100vw)";
                 signedOutElement.style.transform = "translateX(0)";
             });
@@ -161,11 +161,11 @@
                 }
             });
 
-            signedInResult.done(() => {
+            signedInResult.then(() => {
 
                 // Bounce through the dispatcher to give the DOM a moment to layout
                 // and then actually apply the transform to initial positions
-                WinJS.Promise.timeout(1).done(() => {
+                WinJS.Promise.timeout(1).then(() => {
                     signedInElement.style.transform = "translateX(0)";
                     signedOutElement.style.transform = "translateX(-100vw)";
                 });

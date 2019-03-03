@@ -4,7 +4,7 @@
         window.location.href = "/tests_mocha.html?fgrep=" + testToRun;
     }
 
-    WinJS.Utilities.ready().done(() => {
+    WinJS.Utilities.ready().then(() => {
         var runSpecificTestButton = document.getElementById("runSpecificTestButton");
         runSpecificTestButton.addEventListener("click", runSpecificTest);
 

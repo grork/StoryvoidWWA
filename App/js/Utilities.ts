@@ -141,7 +141,7 @@ namespace Codevoid.Utilities {
                 }
 
                 dialogVisible = true;
-                (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync().done(function () {
+                (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync().then(function () {
                     dialogVisible = false;
                     showPendingAlerts();
                 });
@@ -267,6 +267,10 @@ namespace Codevoid.Utilities {
         public progress(progressInfo?: any): void {
             this._progress(progressInfo);
         }
+
+        public cancel(): void {
+            this._wrappedPromise.cancel();
+        }
     }
 
     export interface Signal {
@@ -360,7 +364,7 @@ namespace Codevoid.Utilities {
                 var signal = signals.shift();
 
                 if (cancellationSource && cancellationSource.cancelled) {
-                    signal.promise.cancel();
+                    signal.cancel();
                     return;
                 }
 

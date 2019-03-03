@@ -13,7 +13,7 @@
                 WinJS.Promise.join([
                     WinJS.Promise.timeout(),
                     telemetryInit
-                ]).done(() => {
+                ]).then(() => {
                     ShareTargetApp._appInstance = new ShareTargetApp();
                     ShareTargetApp._appInstance.initializeWithShareInformation(<Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]));
                 });
@@ -55,7 +55,7 @@
     // but it is waited on later when we get the activated event.
     var telemetryInit = Telemetry.initialize();
 
-    WinJS.Utilities.ready().done(() => {
+    WinJS.Utilities.ready().then(() => {
         ShareTargetApp.listenForActivation();
     });
 }
@@ -151,7 +151,7 @@ module Codevoid.Storyvoid.UI {
                         return Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(iconFile);
                     }),
                 });
-            }).done((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
+            }).then((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
                 Telemetry.instance.track("SharedSuccessfully", toPropertySet({ duration: duration }));
                 Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                     sharedArticles: 1,
@@ -201,7 +201,7 @@ module Codevoid.Storyvoid.UI {
             WinJS.Promise.join({
                 title: shareDetails.data.properties.title,
                 url: shareDetails.data.getUriAsync(),
-            }).done((details: IArticleDetails) => {
+            }).then((details: IArticleDetails) => {
                 if (!details.title) {
                     details.title = details.url.absoluteUri;
                 }
@@ -241,7 +241,7 @@ module Codevoid.Storyvoid.UI {
 
             DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ShareTargetSignedInExperience");
 
-            WinJS.UI.processAll(element).done(() => {
+            WinJS.UI.processAll(element).then(() => {
                 this._initialize();
             });
 
