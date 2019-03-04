@@ -89,7 +89,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
         return objectData;
     }
 
-    function handleSingleItemJSONError(error: Codevoid.OAuth.IRequestError): WinJS.Promise<{ error: number } | { error_code: number; message: string }> {
+    function handleSingleItemJSONError(error: Codevoid.OAuth.IRequestError): PromiseLike<{ error: number } | { error_code: number; message: string }> {
         var result;
 
         if (error.response) {
@@ -164,7 +164,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     export class Accounts {
         constructor(private _clientInformation: Codevoid.OAuth.ClientInformation) { }
 
-        public getAccessToken(username: string, password: string): WinJS.Promise<IAccessTokenInformation> {
+        public getAccessToken(username: string, password: string): PromiseLike<IAccessTokenInformation> {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.access_token);
             request.data = [
                 { key: "x_auth_username", value: username },
@@ -190,7 +190,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             });
         }
 
-        public verifyCredentials(): WinJS.Promise<IUserInformation> {
+        public verifyCredentials(): PromiseLike<IUserInformation> {
             var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.verify_credentials);
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
@@ -232,7 +232,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             window.appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
         }
 
-        public list(parameters?: IBookmarkListParameters): WinJS.Promise<IBookmarkListResult> {
+        public list(parameters?: IBookmarkListParameters): PromiseLike<IBookmarkListResult> {
             const data: Codevoid.OAuth.NameValuePair[] = [];
             if (parameters) {
                 if (parameters.limit) {
@@ -274,7 +274,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             });
         }
 
-        public add(parameters: IBookmarkAddParameters): WinJS.Promise<IBookmark> {
+        public add(parameters: IBookmarkAddParameters): PromiseLike<IBookmark> {
             if (!parameters.url) {
                 throw new Error("Requires URL");
             }
@@ -302,7 +302,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public deleteBookmark(bookmark_id: number): WinJS.Promise<any> {
+        public deleteBookmark(bookmark_id: number): PromiseLike<any> {
             if (!bookmark_id) {
                 throw new Error("Requires bookmark ID to delete");
             }
@@ -313,7 +313,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public move(parameters: IBookmarkMoveParameters): WinJS.Promise<IBookmark> {
+        public move(parameters: IBookmarkMoveParameters): PromiseLike<IBookmark> {
             if (!parameters.bookmark_id) {
                 throw new Error("Requires Bookmark ID");
             }
@@ -333,7 +333,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public updateReadProgress(parameters: IBookmarkUpdateReadProgressParameters): WinJS.Promise<IBookmark> {
+        public updateReadProgress(parameters: IBookmarkUpdateReadProgressParameters): PromiseLike<IBookmark> {
             if (!parameters.bookmark_id) {
                 throw new Error("Requires Bookmark ID");
             }
@@ -357,7 +357,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public star(bookmark_id: number): WinJS.Promise<IBookmark> {
+        public star(bookmark_id: number): PromiseLike<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -369,7 +369,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public unstar(bookmark_id: number): WinJS.Promise<IBookmark> {
+        public unstar(bookmark_id: number): PromiseLike<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -381,7 +381,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public archive(bookmark_id: number): WinJS.Promise<IBookmark> {
+        public archive(bookmark_id: number): PromiseLike<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -392,7 +392,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public unarchive(bookmark_id: number): WinJS.Promise<IBookmark> {
+        public unarchive(bookmark_id: number): PromiseLike<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -403,7 +403,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
         }
 
-        public getText(bookmark_id: number): WinJS.Promise<string> {
+        public getText(bookmark_id: number): PromiseLike<string> {
             if (!bookmark_id) {
                 throw new Error("bookmark ID required");
             }
@@ -412,12 +412,12 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.getText);
             request.data = data;
 
-            return request.send().then(function (response: string) {
+            return <PromiseLike<string>>request.send().then(function (response: string) {
                 return response;
             }, handleSingleItemJSONError);
         }
 
-        public getTextAndSaveToFileInDirectory(bookmark_id: number, destinationDirectory: Windows.Storage.StorageFolder): WinJS.Promise<Windows.Storage.StorageFile> {
+        public getTextAndSaveToFileInDirectory(bookmark_id: number, destinationDirectory: Windows.Storage.StorageFolder): PromiseLike<Windows.Storage.StorageFile> {
             if (!bookmark_id) {
                 throw new Error("bookmark ID required");
             }
@@ -438,20 +438,18 @@ namespace Codevoid.Storyvoid.InstapaperApi {
                     return file.openAsync(Windows.Storage.FileAccessMode.readWrite);
                 });
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     outputStream: fileOutputStream,
                     inputStream: content,
                 });
-            }).then(function (result) {
-                return result.inputStream.writeToStreamAsync(result.outputStream).then(() => {
-                    return result;
-                });
-            }).then(function (result) {
+            }).then((result: any) => {
+                return result.inputStream.writeToStreamAsync(result.outputStream).then(() => result);
+            }).then((result) => {
                 // Close the two streams we read so we can
                 // open the file and hand it to someone else.
                 result.outputStream.close();
                 result.inputStream.close();
-                return destinationDirectory.getFileAsync(targetFileName);
+                return <PromiseLike<Windows.Storage.StorageFile>>destinationDirectory.getFileAsync(targetFileName);
             });
         }
 
@@ -485,12 +483,12 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     export class Folders {
         constructor(private _clientInformation: Codevoid.OAuth.ClientInformation) { }
 
-        public list(): WinJS.Promise<IFolder[]> {
+        public list(): PromiseLike<IFolder[]> {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.list);
-            return request.send().then(extractArrayFromResponse, handleSingleItemJSONError);
+            return <PromiseLike<IFolder[]>>request.send().then(extractArrayFromResponse, handleSingleItemJSONError);
         }
 
-        public add(title: string): WinJS.Promise<IFolder> {
+        public add(title: string): PromiseLike<IFolder> {
             if (!title) {
                 throw new Error("Title is required to create a folder");
             }
@@ -506,7 +504,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             }, handleSingleItemJSONError);
         }
 
-        public deleteFolder(folder_id: string): WinJS.Promise<any> {
+        public deleteFolder(folder_id: string): PromiseLike<any> {
             if (!folder_id) {
                 throw new Error("Folder ID is required to delete a folder");
             }

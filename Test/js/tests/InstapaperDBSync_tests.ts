@@ -22,12 +22,12 @@
     let addedRemoteBookmarks: IBookmark[];
     let sourceUrls: Codevoid.Storyvoid.InstapaperApi.IBookmarkAddParameters[];
 
-    function destroyRemoteAccountData(this: Mocha.Context): WinJS.Promise<void> {
+    function destroyRemoteAccountData(this: Mocha.Context): PromiseLike<void> {
         this.timeout(60000);
         return InstapaperTestUtilities.destroyRemoteAccountData(clientInformation);
     }
 
-    function testDelay(): WinJS.Promise<void> {
+    function testDelay(): PromiseLike<void> {
         return WinJS.Promise.timeout(DEFAULT_TEST_DELAY);
     }
     
@@ -79,7 +79,7 @@
             return Codevoid.Utilities.serialize(addedRemoteFolders, (folder, index) => {
                 if (folder.folder_id !== undefined) {
                     // assume we've already got the info
-                    return WinJS.Promise.as();
+                    return Codevoid.Utilities.as();
                 }
 
                 return folders.add(folder.title).then((remoteFolder) => addedRemoteFolders[index] = remoteFolder);
@@ -211,7 +211,7 @@
                 return idb.getFolderFromFolderId(targetRemoteFolder.folder_id);
             }).then((localFolder) => {
                 localFolder.title = Date.now() + "a";
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     updatedFolder: instapaperDB.updateFolder(localFolder),
                     timeout: WinJS.Promise.timeout(),
                 });
@@ -238,18 +238,18 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: instapaperDB.addFolder(fakeFolder, true),
                     timeout: WinJS.Promise.timeout(),
                 }).then(() => {
-                    return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
-                }).then((addedFolder) => {
+                    return <any>instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
+                }).then((addedFolder: IFolder) => {
                     assert.ok(addedFolder, "Didn't get added folder");
                     assert.strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
                     assert.ok(!!addedFolder.id, "Folder didn't have DB id");
 
-                    return WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
-                }).then(() => {
+                    return <any>WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
+                }).then((r) => {
                     return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
                 }).then((addedFolder) => {
                     assert.ok(!addedFolder, "Shouldn't have gotten the folder. It should have been removed");
@@ -273,12 +273,12 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: instapaperDB.addFolder(fakeFolder, true),
                     timeout: WinJS.Promise.timeout(),
                 }).then(() => {
-                    return instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
-                }).then((addedFolder) => {
+                    return <any>instapaperDB.getFolderFromFolderId(fakeFolder.folder_id);
+                }).then((addedFolder: IFolder) => {
                     assert.ok(addedFolder, "Didn't get added folder");
                     assert.strictEqual(addedFolder.folder_id, fakeFolder.folder_id, "Not the correct folder");
                     assert.ok(!!addedFolder.id, "Folder didn't have DB id");
@@ -286,18 +286,18 @@
                     const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
                     // Add a non-local folder to syncdown at the same time.
-                    return folders.add(newRemoteFolder.title);
-                }).then((addedRemoteFolder) =>  {
+                    return <any>folders.add(newRemoteFolder.title);
+                }).then((addedRemoteFolder: IFolder) =>  {
                     // Save the ID for later user.
                     newRemoteFolder.folder_id = addedRemoteFolder.folder_id;
 
-                    return WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
+                    return <PromiseLike<any>>WinJS.Promise.join([sync.sync({ folders: true }), WinJS.Promise.timeout()]);
                 }).then(() => {
-                    return WinJS.Promise.join({
+                    return <any>WinJS.Promise.join({
                         deleted: instapaperDB.getFolderFromFolderId(fakeFolder.folder_id),
                         added: instapaperDB.getFolderFromFolderId(newRemoteFolder.folder_id),
                     });
-                }).then((folders) => {
+                }).then((folders: { deleted: IFolder; added: IFolder }) => {
                     assert.ok(!folders.deleted, "Shouldn't have gotten the folder. It should have been removed");
 
                     assert.ok(folders.added, "Didn't find added folder");
@@ -379,7 +379,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: idb.addFolder(local),
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation)).add(remote.title),
                 }).then((data) => {
@@ -390,7 +390,7 @@
                 }).then(() => {
                     return expectNoPendingFolderEdits(instapaperDB);
                 }).then(() => {
-                    return instapaperDB.getFolderByDbId(local.id);
+                    return <any>instapaperDB.getFolderByDbId(local.id);
                 }).then((localFolder: ISpecialFolder) => {
                     assert.ok(localFolder, "Didn't find the local folder");
                     assert.strictEqual(localFolder.folder_id, remote.folder_id, "Folder ID didn't match the local folder");
@@ -408,7 +408,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: idb.getFolderFromFolderId(targetFolder.folder_id),
                     remoteFolders: folders.list(),
                 });
@@ -422,7 +422,7 @@
             }).then(() => {
                 return sync.sync({ folders: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteFolders: folders.list(),
                     localFolder: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
                 });
@@ -445,7 +445,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: idb.getFolderFromFolderId(targetFolder.folder_id),
                     remoteFolders: folders.list(),
                 });
@@ -455,14 +455,14 @@
                     return item.folder_id === data.local.folder_id;
                 }), "Folder to delete wasn't present remotely");
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: instapaperDB.removeFolder(data.local.id),
                     remote: folders.deleteFolder(data.local.folder_id),
                 });
             }).then(() => {
                 return sync.sync({ folders: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteFolders: folders.list(),
                     localFolder: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
                 });
@@ -486,7 +486,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     toRemove: idb.getFolderFromFolderId(targetFolder.folder_id),
                     toAdd: idb.addFolder(newFolder),
                     remoteFolders: folders.list(),
@@ -505,7 +505,7 @@
             }).then(() => {
                 return sync.sync({ folders: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteFolders: folders.list(),
                     removed: instapaperDB.getFolderFromFolderId(targetFolder.folder_id),
                     added: instapaperDB.getFolderByDbId(newFolder.id),
@@ -547,7 +547,7 @@
                 return sync.sync({ bookmarks: true });
             }).then((idb) => {
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                 });
@@ -614,7 +614,7 @@
             const f = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
             const b = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-            return WinJS.Promise.join({
+            return <PromiseLike<any>>WinJS.Promise.join({
                 folderAdd: f.add(addedFolderName),
                 bookmarkAdd: b.add(sourceUrls.shift()),
                 idb: getNewInstapaperDBAndInit(),
@@ -623,21 +623,21 @@
                 addedFolder = data.folderAdd;
                 addedRemoteBookmarks.push(data.bookmarkAdd);
 
-                return WinJS.Promise.join({
+                return <any>WinJS.Promise.join({
                     folders: data.idb.listCurrentFolders(),
                     bookmarks: data.idb.listCurrentBookmarks(),
                 });
-            }).then((data) => {
+            }).then((data: { bookmarks: IBookmark[]; folders: IFolder[] }) => {
                 currentBookmarkCount = data.bookmarks.length;
                 currentFolderCount = data.folders.length;
 
                 return sync.sync({ folders: true, bookmarks: false });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <any>WinJS.Promise.join({
                     folders: instapaperDB.listCurrentFolders(),
                     bookmarks: instapaperDB.listCurrentBookmarks(),
                 });
-            }).then((data) => {
+            }).then((data: { bookmarks: IBookmark[]; folders: IFolder[] }) => {
                 assert.strictEqual(data.folders.length, currentFolderCount + 1, "Incorrect number of folders");
 
                 assert.ok(data.folders.some((folder) => {
@@ -646,8 +646,8 @@
 
                 assert.strictEqual(data.bookmarks.length, currentBookmarkCount, "Incorrect number of bookmarks");
 
-                return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
-            }).then((folder) => {
+                return <any>instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
+            }).then((folder: IFolder) => {
                 addedRemoteFolders.push(folder);
             });
         });
@@ -663,28 +663,28 @@
             const f = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
             const b = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-            return WinJS.Promise.join({
+            return <PromiseLike<any>>WinJS.Promise.join({
                 folderAdd: f.add(addedFolderName),
                 idb: getNewInstapaperDBAndInit(),
             }).then((data) => {
                 instapaperDB = data.idb;
                 addedFolder = data.folderAdd;
 
-                return WinJS.Promise.join({
+                return <any>WinJS.Promise.join({
                     folders: data.idb.listCurrentFolders(),
                     bookmarks: data.idb.listCurrentBookmarks(),
                 });
-            }).then((data) => {
+            }).then((data: { bookmarks: IBookmark[]; folders: IFolder[] }) => {
                 currentBookmarkCount = data.bookmarks.length;
                 currentFolderCount = data.folders.length;
 
                 return sync.sync({ folders: false, bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <any>WinJS.Promise.join({
                     folders: instapaperDB.listCurrentFolders(),
                     bookmarks: instapaperDB.listCurrentBookmarks(),
                 });
-            }).then((data) => {
+            }).then((data: { bookmarks: IBookmark[]; folders: IFolder[] }) => {
                 assert.strictEqual(data.folders.length, currentFolderCount, "Incorrect number of folders");
                 assert.strictEqual(data.bookmarks.length, currentBookmarkCount + 1, "Incorrect number of bookmarks");
 
@@ -694,8 +694,8 @@
 
                 return sync.sync();
             }).then(() => {
-                return instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
-            }).then((folder) => {
+                return <any>instapaperDB.getFolderFromFolderId(addedFolder.folder_id);
+            }).then((folder: IFolder) => {
                 addedRemoteFolders.push(folder);
             });
         });
@@ -712,7 +712,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     localBookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                 });
@@ -749,7 +749,7 @@
             }).then((current) => {
                 targetBookmark = current.shift();
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     added: instapaperDB.addUrl({ url: targetBookmark.url, title: targetTitle }),
                     localBookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                 });
@@ -831,10 +831,10 @@
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
 
-                return idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
-            }).then((localBookmarks) => {
+                return <any>idb.listCurrentBookmarks(idb.commonFolderDbIds.unread);
+            }).then((localBookmarks: IBookmark[]) => {
                 const bookmark = localBookmarks[0];
-                const likePromise = WinJS.Promise.as();
+                const likePromise = Codevoid.Utilities.as();
 
                 assert.ok(bookmark, "Need a bookmark to work with");
 
@@ -844,7 +844,7 @@
                     });
                 }
 
-                return (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).unstar(bookmark.bookmark_id);
+                return <any>(new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).unstar(bookmark.bookmark_id);
             }).then((bookmark) => {
                 bookmark.starred = parseInt(bookmark.starred);
                 updatedBookmark = bookmark;
@@ -865,7 +865,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     local: idb.likeBookmark(targetBookmark.bookmark_id),
                     remoteLikes: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked }),
                 });
@@ -899,16 +899,16 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                let setupData = WinJS.Promise.as();
+                let setupData = Codevoid.Utilities.as();
                 if (targetBookmark.starred === 0) {
-                    setupData = WinJS.Promise.join({
+                    setupData = <PromiseLike<any>>WinJS.Promise.join({
                         local: idb.likeBookmark(targetBookmark.bookmark_id, true),
                         remote: bookmarks.star(targetBookmark.bookmark_id),
                     });
                 }
 
                 return setupData.then(() => {
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>>WinJS.Promise.join({
                         local: idb.unlikeBookmark(targetBookmark.bookmark_id),
                         remoteLikes: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked }),
                     });
@@ -987,7 +987,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteBookmarks: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     localBookmark: instapaperDB.getBookmarkByBookmarkId(updatedBookmark.bookmark_id),
                 });
@@ -1178,13 +1178,13 @@
                     return bookmarks.move({ bookmark_id: item, destination: remoteFolder2 });
                 });
 
-                return WinJS.Promise.join([moves, moves2]);
+                return <PromiseLike<any>>WinJS.Promise.join([moves, moves2]);
             }).then(() => {
                 return sync.sync();
             }).then(() => {
                 return getNewInstapaperDBAndInit();
             }).then((idb) => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     unread: idb.listCurrentBookmarks(idb.commonFolderDbIds.unread),
                     folder1: idb.listCurrentFolders().then((folders) => {
                         folders = folders.filter((folder) => {
@@ -1252,7 +1252,7 @@
 
                 return getNewSyncEngine().sync({ bookmarks: true, folders: false, skipOrphanCleanup: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmarks: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                     bookmark1: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1265,7 +1265,7 @@
                 assert.strictEqual(data.bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
                 assert.strictEqual(data.bookmark1.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     orphaned: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.orphaned),
                     bookmark1: data.bookmark1,
                 });
@@ -1310,14 +1310,14 @@
 
                 bookmarkToUpdateProgressFor = currentBookmarks[0];
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     update: instapaperDB.updateReadProgress(bookmarkToUpdateProgressFor.bookmark_id, 0.2),
                     deleteBookmark: instapaperDB.removeBookmark(fakeAddedBookmark.bookmark_id),
                 });
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                     removedLocally: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1356,7 +1356,7 @@
 
                 updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
                     add: addLocalOnlyFakeBookmark(instapaperDB),
                 });
@@ -1367,7 +1367,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list(),
                     local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1406,7 +1406,7 @@
 
                 updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
                     add: addLocalOnlyFakeBookmark(instapaperDB),
                 });
@@ -1417,7 +1417,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list(),
                     local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1459,7 +1459,7 @@
 
                 updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
                     folders: instapaperDB.listCurrentFolders(),
                     added: addLocalOnlyFakeBookmark(instapaperDB),
@@ -1472,7 +1472,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list(),
                     local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1510,7 +1510,7 @@
 
                 updatedBookmarkId = currentBookmarks[0].bookmark_id;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     update: instapaperDB.updateReadProgress(updatedBookmarkId, progressValue),
                     added: addLocalOnlyFakeBookmark(instapaperDB),
                 });
@@ -1521,7 +1521,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remote: (new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation)).list(),
                     local: instapaperDB.getBookmarkByBookmarkId(fakeAddedBookmark.bookmark_id),
                 });
@@ -1553,7 +1553,7 @@
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: idb.addFolder({
                         title: Date.now() + "a",
                         folder_id: "345234",
@@ -1573,7 +1573,7 @@
             }).then((data) => {
                 return getNewSyncEngine().sync({ bookmarks: true });
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmark: instapaperDB.getBookmarkByBookmarkId(movedBookmark.bookmark_id),
                     folder: instapaperDB.getFolderByDbId(fakeFolder.id),
                 });
@@ -1600,7 +1600,7 @@
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: idb.addFolder({
                         title: Date.now() + "a",
                         folder_id: Date.now() + "",
@@ -1618,7 +1618,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync();
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmark: instapaperDB.getBookmarkByBookmarkId(movedBookmark.bookmark_id),
                     folder: instapaperDB.getFolderByDbId(fakeFolder.id),
                 });
@@ -1648,7 +1648,7 @@
                 instapaperDB = idb;
 
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: idb.addFolder({
                         folder_id: "132456",
                         title: Date.now() + "a",
@@ -1670,7 +1670,7 @@
             }).then(() => {
                 return getNewSyncEngine().sync();
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmark: instapaperDB.getBookmarkByBookmarkId(movedOutOfFakeFolderBookmark.bookmark_id),
                     folder: instapaperDB.getFolderByDbId(fakeFolder.id),
                 });
@@ -1710,7 +1710,7 @@
                 return folders.add(item);
             }).then(() => {
                 // Get the remote data, so we can manipulate it.
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folders: folders.list(),
                     bookmarks: bookmarks.list({ folder_id: Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread }),
                 });
@@ -1812,7 +1812,7 @@
                 assert.strictEqual(folders.length, 2, "Incorrect folders");
 
                 return Codevoid.Utilities.serialize(folders, (folder) => {
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>>WinJS.Promise.join({
                         remoteBookmarks: bookmarks.list({ folder_id: folder.folder_id }),
                         localBookmarks: instapaperDB.listCurrentBookmarks(folder.id),
                     }).then((data) => {
@@ -1870,7 +1870,7 @@
 
                 folderAFolderId = folders[0].folder_id;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folderA: instapaperDB.listCurrentBookmarks(folders[0].id),
                     folderB: instapaperDB.listCurrentBookmarks(folders[1].id),
                 });
@@ -1878,7 +1878,7 @@
                 bookmarkToMoveToUnread = data.folderA[0];
                 bookmarkToMoveToFolderA = data.folderB[0];
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     moveToUnread: instapaperDB.moveBookmark(bookmarkToMoveToUnread.bookmark_id, instapaperDB.commonFolderDbIds.unread),
                     moveToFolderA: instapaperDB.moveBookmark(bookmarkToMoveToFolderA.bookmark_id, bookmarkToMoveToUnread.folder_dbid),
                 });
@@ -1906,7 +1906,7 @@
                 assert.strictEqual(unreadBookmarks[0].bookmark_id, bookmarkToMoveToUnread.bookmark_id, "Bookmark wasn't found in unread folder");
                 assert.strictEqual(folderABookmarks[0].bookmark_id, bookmarkToMoveToFolderA.bookmark_id, "Bookmark wasn't found in folder A");
             }).then((data) => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     unread: instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
                     folderA: instapaperDB.listCurrentBookmarks(bookmarkToMoveToUnread.folder_dbid),
                 });
@@ -2129,7 +2129,7 @@
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     add: idb.addFolder({ title: newFolderTitle }),
                     bookmarks: idb.listCurrentBookmarks(),
                 });

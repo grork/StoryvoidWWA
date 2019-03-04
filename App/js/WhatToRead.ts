@@ -67,7 +67,7 @@ namespace Codevoid.Storyvoid {
     }
 
     export class WhatToRead {
-        private _jumpListSaveInProgress: WinJS.Promise<void>;
+        private _jumpListSaveInProgress: PromiseLike<void>;
 
         constructor(private db: InstapaperDB) {
             if (!db) {
@@ -75,7 +75,7 @@ namespace Codevoid.Storyvoid {
             }
         }
 
-        public getStuffToRead(): WinJS.Promise<IReadGroup[]> {
+        public getStuffToRead(): PromiseLike<IReadGroup[]> {
             return this.db.listCurrentBookmarks().then((bookmarks: IBookmark[]): IReadGroup[] => {
                 let byRecentlyRead: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
                 let byAdded: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
@@ -136,7 +136,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        private _refreshJumpListImpl(items: IJumpListItem[]): WinJS.Promise<void> {
+        private _refreshJumpListImpl(items: IJumpListItem[]): PromiseLike<void> {
             const removedDbIds: number[] = [];
 
             // Process the current jump list items, and build
@@ -154,18 +154,18 @@ namespace Codevoid.Storyvoid {
                 removedDbIds.push(linkInformation.bookmark_id);
             });
 
-            let updateRemovedPins: WinJS.Promise<void> = WinJS.Promise.as();
+            let updateRemovedPins: PromiseLike<void> = Codevoid.Utilities.as();
             if (removedDbIds.length > 0) {
                 // Get bookmarks by the removed IDs
                 const bookmarks = removedDbIds.map((id) => {
                     return this.db.getBookmarkByBookmarkId(id);
                 });
 
-                updateRemovedPins = WinJS.Promise.join(bookmarks).then((bookmarks: IBookmark[]) => {
+                updateRemovedPins = <PromiseLike<any>>WinJS.Promise.join(bookmarks).then((bookmarks: IBookmark[]) => {
                     // Filter out any bookmarks that we didn't find (e.g. are null)
                     bookmarks = bookmarks.filter(b => !!b);
                     if (bookmarks.length < 1) {
-                        return WinJS.Promise.as([]);
+                        return Codevoid.Utilities.as([]);
                     }
 
                     // now update all the bookmarks to have the explicitlyUnpinned property
@@ -174,7 +174,7 @@ namespace Codevoid.Storyvoid {
                         return this.db.updateBookmark(bookmark, true /*dontRaiseChangeNotification*/);
                     });
 
-                    return WinJS.Promise.join(updates);
+                    return <PromiseLike<any>>WinJS.Promise.join(updates);
                 });
             }
 
@@ -199,7 +199,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public static clearJumpList(): WinJS.Promise<void> {
+        public static clearJumpList(): PromiseLike<void> {
             return Windows.UI.StartScreen.JumpList.loadCurrentAsync().then((list) => {
                 list.items.clear();
                 list.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;

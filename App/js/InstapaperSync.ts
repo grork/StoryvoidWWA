@@ -17,7 +17,7 @@
         }
     }
 
-    function handleRemote1241Error(err: { error: number }): WinJS.Promise<any> {
+    function handleRemote1241Error(err: { error: number }): PromiseLike<any> {
         if (err.error === 1241) {
             return;
         }
@@ -103,8 +103,8 @@
         ///
         /// Has mirror method for removing a folder.
         /// </summary>
-        private _addFolderPendingEdit(edit: IFolderPendingEdit, db: InstapaperDB): WinJS.Promise<IFolder> {
-            return WinJS.Promise.join({
+        private _addFolderPendingEdit(edit: IFolderPendingEdit, db: InstapaperDB): PromiseLike<IFolder> {
+            return <PromiseLike<any>>WinJS.Promise.join({
                 local: db.getFolderByDbId(edit.folder_dbid),
                 remote: this._folders.add(edit.title).then(null, (error) => {
                     // Error 1251 is the error that the folder with that name
@@ -155,7 +155,7 @@
         ///
         /// Has mirror method for removing a folder.
         /// </summary>
-        private _removeFolderPendingEdit(edit: IFolderPendingEdit): WinJS.Promise<void> {
+        private _removeFolderPendingEdit(edit: IFolderPendingEdit): PromiseLike<void> {
             return this._folders.deleteFolder(edit.removedFolderId).then(null, (error) => {
                 // Folder isn't present on the server, and since we're trying
                 // to delete the thing anyway, this is ok.
@@ -167,7 +167,7 @@
             });
         }
 
-        private _syncFolders(db: InstapaperDB, cancellationSource: Utilities.CancellationSource): WinJS.Promise<void> {
+        private _syncFolders(db: InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<void> {
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart });
 
             return db.getPendingFolderEdits().then((pendingEdits) => {
@@ -192,7 +192,7 @@
                     }
                 }, 0, cancellationSource);
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     remoteFolders: this._folders.list(),
                     localFolders: db.listCurrentFolders(),
                 });
@@ -203,9 +203,9 @@
 
                 // Find all the changes from the remote server
                 // that aren't locally for folders on the server
-                let syncs = data.remoteFolders.reduce<WinJS.Promise<any>[]>((data, rf) => {
+                let syncs = data.remoteFolders.reduce<PromiseLike<any>[]>((data, rf) => {
                     const synced = db.getFolderFromFolderId(rf.folder_id).then((lf) => {
-                        let done: WinJS.Promise<IFolder> = WinJS.Promise.as();
+                        let done: PromiseLike<IFolder> = Codevoid.Utilities.as();
 
                         // Notify that the remote folder w/ name had some changes
                         this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, {
@@ -249,7 +249,7 @@
                     return promises;
                 }, syncs);
 
-                return WinJS.Promise.join(syncs);
+                return <PromiseLike<any>>WinJS.Promise.join(syncs);
             }).then(() => {
                 // Make sure there aren't any pending local edits, given we should have
                 // sync'd everything.
@@ -267,8 +267,8 @@
             });
         }
 
-        private _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): WinJS.Promise<void> {
-            let promise = WinJS.Promise.as();
+        private _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): PromiseLike<void> {
+            let promise = Codevoid.Utilities.as();
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart });
 
             if (!options.singleFolder) {
@@ -305,17 +305,17 @@
                         return [folder];
                     }
 
-                    return db.getPendingFolderEdits().then((edits) => {
+                    return db.getPendingFolderEdits().then((edits: IFolderPendingEdit[]): PromiseLike<IFolder[]> => {
                         const edit = edits.filter((e) => e.folder_dbid === folder.id)[0];
 
                         if (!edit) {
                             window.appfail("Even though the folder had no folder ID, it had no pending edit either...");
-                            return WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
+                            return <any>WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
                         }
 
                         // Before we do any other work, we need to make sure
                         // the the pending folder add was pushed up to the service.
-                        return this._addFolderPendingEdit(edit, db).then(() => db.getFolderByDbId(folder.id)).then((syncedFolder) => [syncedFolder]);
+                        return <PromiseLike<IFolder[]>>this._addFolderPendingEdit(edit, db).then(() => db.getFolderByDbId(folder.id)).then((syncedFolder) => [syncedFolder]);
                     });
                 });
             }
@@ -328,8 +328,8 @@
                 // If we've just sync'd the remote folders, theres no point
                 // in us getting the remote list *AGAIN*, so just let it filter
                 // based on the local folders
-                const remoteFolders = options.didSyncFolders ? WinJS.Promise.as(folders) : this._folders.list();
-                return WinJS.Promise.join({
+                const remoteFolders = options.didSyncFolders ? Codevoid.Utilities.as(folders) : this._folders.list();
+                return <PromiseLike<any>>WinJS.Promise.join({
                     currentFolders: folders,
                     // Map the remote folders to easy look up if it's present or not
                     remoteFolders: remoteFolders.then((rFolders) => rFolders.map((rFolder) => rFolder.folder_id)),
@@ -404,7 +404,7 @@
             });
         }
 
-        private _syncBookmarkPendingAdds(db: InstapaperDB): WinJS.Promise<void> {
+        private _syncBookmarkPendingAdds(db: InstapaperDB): PromiseLike<void> {
             const b = this._bookmarks;
 
             return db.getPendingBookmarkAdds().then((pendingAdds) => {
@@ -417,7 +417,7 @@
             });
         }
 
-        private _syncBookmarksForFolder(db: InstapaperDB, dbIdOfFolderToSync: number): WinJS.Promise<void> {
+        private _syncBookmarksForFolder(db: InstapaperDB, dbIdOfFolderToSync: number): PromiseLike<void> {
             const b = this._bookmarks;
             let folderId: string;
             let pendingEdits: IBookmarkPendingEdits;
@@ -432,7 +432,7 @@
                 }
 
                 return Codevoid.Utilities.serialize(pendingEdits.moves, (move: IBookmarkPendingEdit) => {
-                    let operation: WinJS.Promise<IBookmark | IFolder>;
+                    let operation: PromiseLike<IBookmark | IFolder>;
 
                     switch (move.destinationfolder_dbid) {
                         case db.commonFolderDbIds.archive:
@@ -474,7 +474,7 @@
             }).then(() => {
                 // Wait for the operations to complete, and return the local data
                 // so we can look for oprphaned bookmarks
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     folder: db.getFolderByDbId(dbIdOfFolderToSync),
                     localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
                 });
@@ -504,7 +504,7 @@
                 // us whats *different* from that state.
                 const rb = result.bookmarks;
                 const rd = result.meta || { delete_ids: null };
-                let operations: WinJS.Promise<IBookmark>[] = [];
+                let operations: PromiseLike<IBookmark>[] = [];
 
                 this.dispatchEvent("bookmarkslistcompleted", { duration: result.duration });
 
@@ -563,7 +563,7 @@
                     }, operations);
                 }
 
-                return WinJS.Promise.join(operations);
+                return <PromiseLike<any>>WinJS.Promise.join(operations);
             });
         }
 
@@ -625,15 +625,15 @@
                         return data;
                     }, operations);
                 }
-                return WinJS.Promise.join(operations);
+                return <PromiseLike<any>>WinJS.Promise.join(operations);
             });
         }
 
-        public sync(options?: ISyncOptions): WinJS.Promise<void> {
+        public sync(options?: ISyncOptions): PromiseLike<void> {
             options = options || { folders: true, bookmarks: true };
             const cancellationSource = options.cancellationSource || new Codevoid.Utilities.CancellationSource();
             const db = options.dbInstance || new InstapaperDB();
-            const initialize = options.dbInstance ? WinJS.Promise.as(db) : db.initialize();
+            const initialize = options.dbInstance ? Codevoid.Utilities.as(db) : db.initialize();
 
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.start });
 
@@ -658,7 +658,7 @@
                 });
             }).then(() => {
                 this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.end });
-                return WinJS.Promise.timeout();
+                return <PromiseLike<any>>WinJS.Promise.timeout();
             });
         }
     }

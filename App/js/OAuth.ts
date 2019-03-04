@@ -222,7 +222,7 @@
             return signature;
         }
 
-        private _sendCore(): WinJS.Promise<Windows.Web.Http.IHttpContent> {
+        private _sendCore(): PromiseLike<Windows.Web.Http.IHttpContent> {
             // Calculate the data state (E.g. body or URL pay load)
             // Note that this does not use HttpFormUrlEncodedContent to handle the encoding, because
             // of the way we need to handle the headers, and body encoding & payload to calcuate
@@ -265,11 +265,11 @@
             // Note that we're using sendRequestAsync rather than getRequestAsync/postRequestAsync
             // versions to allow for a more linear code path, rather than splitting the method calls
             // themselves.
-            const operation: WinJS.Promise<Windows.Web.Http.IHttpContent> = httpClient.sendRequestAsync(request).then(function (responseMessage) {
+            const operation: PromiseLike<Windows.Web.Http.IHttpContent> = httpClient.sendRequestAsync(request).then(function (responseMessage) {
                 if (!responseMessage.isSuccessStatusCode) {
                     // When we barf, start the error
                     // payload to look normative
-                    return <any>WinJS.Promise.join({
+                    return <any><PromiseLike<any>>WinJS.Promise.join({
                         status: responseMessage.statusCode,
                         response: responseMessage.content.readAsStringAsync(),
                     }).then(function (result) {
@@ -283,11 +283,11 @@
             return operation;
         }
 
-        public send(): WinJS.Promise<string> {
-            return this._sendCore().then((content) => content.readAsStringAsync());
+        public send(): PromiseLike<string> {
+            return this._sendCore().then((content) => <PromiseLike<string>>content.readAsStringAsync());
         }
 
-        public retrieveRawContent(): WinJS.Promise<Windows.Web.Http.IHttpContent> {
+        public retrieveRawContent(): PromiseLike<Windows.Web.Http.IHttpContent> {
             return this._sendCore();
         }
     }

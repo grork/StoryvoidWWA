@@ -149,43 +149,6 @@
 
             assert.ok(errorCalled, "Error wasn't called");
         });
-
-        it("progress is passed to the promise", () => {
-            const signal = new Signal();
-            let progress = 0;
-            signal.promise.then(
-                () => assert.ok(false, "complete shouldn't be called"),
-                () => assert.ok(false, "Error shouldn't be called"),
-                () => {
-                    progress++;
-                }
-            );
-
-            signal.progress();
-            signal.progress();
-
-            assert.strictEqual(progress, 2, "expected progress to be called twice");
-        });
-
-        it("data is supplied to the promise when progress is reported", () => {
-            let item1 = { data: "item1" };
-            let item2 = { data: "item2" };
-
-            const signal = new Signal();
-            let progress = [];
-            signal.promise.then(
-                () => assert.ok(false, "complete shouldn't be called"),
-                () => assert.ok(false, "Error shouldn't be called"),
-                (data) => progress.push(data)
-            );
-
-            signal.progress(item1);
-            signal.progress(item2);
-
-            assert.strictEqual(progress.length, 2, "expected progress to be called twice");
-            assert.strictEqual(progress[0], item1, "First item wasn't correct");
-            assert.strictEqual(progress[1], item2, "second item wasn't correct");
-        });
     });
 
     describe("Utilities Serialize promise execution", () => {
@@ -802,7 +765,7 @@
             setTimeout(resetBounce, 30); // Bounce to 50ms
             setTimeout(resetBounce, 45); // Bounce to 65ms
 
-            return WinJS.Promise.join([
+            return <PromiseLike<any>>WinJS.Promise.join([
                 WinJS.Promise.timeout(20),
                 completionPromise
             ]).then((results) => {
@@ -830,7 +793,7 @@
             bouncer.bounce();
             setTimeout(() => bouncer.bounce(), 10)
 
-            return WinJS.Promise.join([
+            return <PromiseLike<any>>WinJS.Promise.join([
                 WinJS.Promise.timeout(30),
                 completionPromise
             ]).then((results) => assert.strictEqual(completionCount, 1, "Bounce Completed more than once"));
@@ -852,7 +815,7 @@
             bouncer.bounce();
             setTimeout(() => bouncer.bounce(), 10)
 
-            return WinJS.Promise.join([
+            return <PromiseLike<any>>WinJS.Promise.join([
                 WinJS.Promise.timeout(30),
                 completionPromise
             ]).then((results) => assert.strictEqual(completionCount, 2, "Bounce Completed more than once"));

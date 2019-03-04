@@ -289,7 +289,7 @@
             this._currentBookmarks.splice(indexOfBookmark, 1);
         }
 
-        private _cleanupDownloadedArticles(): WinJS.Promise<any> {
+        private _cleanupDownloadedArticles(): PromiseLike<any> {
             return Windows.Storage.ApplicationData.current.localFolder.getFolderAsync(ARTICLES_FOLDER_NAME).then((folder) => {
                 return folder.deleteAsync();
             }).then(() => {
@@ -434,7 +434,7 @@
         }
 
         private _logTotalHomeAndFoldersForTelemetry(): void {
-            WinJS.Promise.join({
+            <PromiseLike<any>>WinJS.Promise.join({
                 unreadArticleCount: this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread).then(articles => articles.length),
                 folderCount: this._instapaperDB.listCurrentFolders().then((folders) => {
                     // There are 4 fixed folders; we only care about the users own folders
@@ -455,9 +455,9 @@
             });
         }
 
-        public initializeDB(): WinJS.Promise<void> {
+        public initializeDB(): PromiseLike<void> {
             if (this._dbOpened) {
-                return WinJS.Promise.as(null);
+                return Codevoid.Utilities.as(null);
             }
 
             if (this._pendingDbOpen) {
@@ -524,7 +524,7 @@
             return this._currentFolder.bookmarks.getAt(index);
         }
 
-        public signOut(clearCredentials: boolean): WinJS.Promise<any> {
+        public signOut(clearCredentials: boolean): PromiseLike<any> {
             if (this._currentSync.cancellationSource) {
                 this._currentSync.cancellationSource.cancel();
             }
@@ -550,7 +550,7 @@
 
             var idb = new Codevoid.Storyvoid.InstapaperDB();
             return idb.initialize().then(() => {
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     idb.deleteAllData(),
                     this._cleanupDownloadedArticles(),
                     WhatToRead.clearJumpList(),
@@ -575,7 +575,7 @@
                 // and dispatching the event since there is
                 // an occasional crash when clearing then
                 // setting them.
-                return WinJS.Promise.timeout().then(() => {
+                return <any>WinJS.Promise.timeout().then(() => {
                     return {
                         allowTelemetry: allowTelemetry,
                     };
@@ -592,7 +592,7 @@
             });
         }
 
-        public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
+        public signedIn(usingSavedCredentials: boolean): PromiseLike<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             var completedSignal = new Codevoid.Utilities.Signal();
             this._wasSignedInAutomatically = usingSavedCredentials;
@@ -604,11 +604,11 @@
                 type: "app",
             }));
 
-            WinJS.Promise.join({
+            <PromiseLike<any>>WinJS.Promise.join({
                 db: this.initializeDB(),
                 uiReady: this._readyForEvents.promise,
             }).then(() => {
-                var articleDisplay = WinJS.Promise.as<any>();
+                var articleDisplay = Codevoid.Utilities.as<any>();
 
                 // Try showing a saved article before doing the rest of the work.
                 var transientSettings = new Settings.TransientSettings();
@@ -660,7 +660,7 @@
 
         private _externallyInitiatedDisplayArticle: Utilities.CancellationSource;
 
-        private externallyInintiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): WinJS.Promise<any> {
+        private externallyInintiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): PromiseLike<any> {
             if (this._externallyInitiatedDisplayArticle) {
                 this._externallyInitiatedDisplayArticle.cancel();
             }
@@ -699,7 +699,7 @@
             });
         }
 
-        private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): WinJS.Promise<IBookmark> {
+        private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): PromiseLike<IBookmark> {
             var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
             // By updating with that we have, it'll return us a new one if there is one, otherwise
             // it'll just give us back the same item again.
@@ -717,7 +717,7 @@
             }, () => bookmark);
         }
 
-        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, cancellationSource: Utilities.CancellationSource): { downloaded: WinJS.Promise<IBookmark>; displayComplete(): void } {
+        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, cancellationSource: Utilities.CancellationSource): { downloaded: PromiseLike<IBookmark>; displayComplete(): void } {
             const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
             const spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
             spinner.show({ after: 2000 });
@@ -742,7 +742,7 @@
             }).then((result: IBookmark) => {
                 // Insert it as an orphan into the DB
                 result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
-                return WinJS.Promise.timeout(8 * 1000).then(() => result); //this._instapaperDB.addBookmark(result);
+                return <any>WinJS.Promise.timeout(8 * 1000).then(() => result); //this._instapaperDB.addBookmark(result);
             }).then((result: IBookmark) => {
                 // Get The content from the service using the orphan bookmark we added
                 return this.syncSingleArticle(result);
@@ -794,7 +794,7 @@
             this.events.dispatchEvent("signincomplete", null);
         }
 
-        public startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): WinJS.Promise<any> {
+        public startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): PromiseLike<any> {
             if (this._currentSync.signal) {
                 return this._currentSync.signal.promise;
             }
@@ -802,7 +802,7 @@
             // Don't try to sync if we're offline
             var internetProfile = Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
             if (!internetProfile || internetProfile.getNetworkConnectivityLevel() != Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess) {
-                return WinJS.Promise.as();
+                return Codevoid.Utilities.as();
             }
 
             parameters = parameters || {};
@@ -873,7 +873,7 @@
                 }
             });
 
-            WinJS.Promise.join({
+            <PromiseLike<any>>WinJS.Promise.join({
                 sync: sync.sync({
                     dbInstance: this._instapaperDB,
                     folders: true,
@@ -937,7 +937,7 @@
             return this._currentSync.signal.promise;
         }
 
-        public clearDb(): WinJS.Promise<any> {
+        public clearDb(): PromiseLike<any> {
             this.disposeDB();
             var idb = new Codevoid.Storyvoid.InstapaperDB();
 
@@ -948,7 +948,7 @@
             });
         }
 
-        public dumpDb(): WinJS.Promise<any> {
+        public dumpDb(): PromiseLike<any> {
             let database: Server;
             let dumpData = {};
 
@@ -958,7 +958,7 @@
             }).then((openedDb) => {
                 database = openedDb;
 
-                const tablePromises: WinJS.Promise<any>[] = [];
+                const tablePromises: PromiseLike<any>[] = [];
 
                 for (let i = 0; i < database.objectStoreNames.length; i++) {
                     let tableName = database.objectStoreNames[i];
@@ -967,7 +967,7 @@
                     );
                 }
 
-                return WinJS.Promise.join(tablePromises);
+                return <PromiseLike<any>>WinJS.Promise.join(tablePromises);
             }).then(() => {
                 return JSON.stringify(dumpData, null, 2);
             });
@@ -977,7 +977,7 @@
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new DbFiddlerViewModel(this._instapaperDB));
         }
 
-        public listFolders(): WinJS.Promise<Codevoid.Storyvoid.IFolder[]> {
+        public listFolders(): PromiseLike<Codevoid.Storyvoid.IFolder[]> {
             return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
                 return folders.filter((item) => {
                     if (item.localOnly) {
@@ -1021,8 +1021,8 @@
             });
         }
 
-        public getDetailsForFolder(folderId: number): WinJS.Promise<IFolderDetails> {
-            return WinJS.Promise.join({
+        public getDetailsForFolder(folderId: number): PromiseLike<IFolderDetails> {
+            return <PromiseLike<any>>WinJS.Promise.join({
                 folder: this._instapaperDB.getFolderByDbId(folderId),
                 bookmarks: this._instapaperDB.listCurrentBookmarks(folderId),
             }).then((result) => {
@@ -1082,12 +1082,12 @@
             this.refreshCurrentFolder();
         }
 
-        private syncSingleArticle(bookmark: IBookmark): WinJS.Promise<IBookmark> {
+        private syncSingleArticle(bookmark: IBookmark): PromiseLike<IBookmark> {
             return Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
                 var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
                 Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
-                return articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource());
-            }).then((bookmark) => {
+                return <any>articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource());
+            }).then((bookmark: IBookmark) => {
                 Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
                 return bookmark;
             });
@@ -1222,29 +1222,29 @@
         }
 
         public delete(bookmarksToDelete: IBookmark[]): void {
-            Utilities.serialize(bookmarksToDelete, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+            Utilities.serialize(bookmarksToDelete, (bookmark: IBookmark, index: number): PromiseLike<any> => {
                 return this._instapaperDB.removeBookmark(bookmark.bookmark_id);
             });
         }
 
         public unlike(bookmarksToUnlike: IBookmark[]): void {
-            Utilities.serialize(bookmarksToUnlike, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+            Utilities.serialize(bookmarksToUnlike, (bookmark: IBookmark, index: number): PromiseLike<any> => {
                 return this._instapaperDB.unlikeBookmark(bookmark.bookmark_id);
             });
         }
 
         public archive(bookmarksToArchive: IBookmark[]): void {
-            Utilities.serialize(bookmarksToArchive, (bookmark: IBookmark, index: number): WinJS.Promise<any> => {
+            Utilities.serialize(bookmarksToArchive, (bookmark: IBookmark, index: number): PromiseLike<any> => {
                 return this._instapaperDB.moveBookmark(bookmark.bookmark_id, this.commonFolderDbIds.archive);
             });
         }
 
-        public showArticle(bookmark: IBookmark, restoring: boolean): WinJS.Promise<any> {
+        public showArticle(bookmark: IBookmark, restoring: boolean): PromiseLike<any> {
             // Sometimes the article has gone, but we thought we were viewing it, so
             // handle it by no-oping after clearing the saved article ID.
             if (!bookmark) {
                 (new Settings.TransientSettings()).clearLastViewedArticleId();
-                return WinJS.Promise.as();
+                return Codevoid.Utilities.as();
             }
 
             // if the local file path has gone AWOL, lets not load, and complete silently.
@@ -1272,7 +1272,7 @@
             return viewer.displayed;
         }
 
-        private _promptToOpenBrowser(bookmark: IBookmark): WinJS.Promise<any> {
+        private _promptToOpenBrowser(bookmark: IBookmark): PromiseLike<any> {
             var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser, or attempt to download it?", "Open in a web browser?");
             var commands = prompt.commands;
 
@@ -1318,7 +1318,7 @@
 
         public showSettings(): void {
             var settingsAvailable = !!WinJS.Utilities.getMember("Codevoid.Storyvoid.UI.SettingsPopupExperience");
-            var settingsScripts = WinJS.Promise.as();
+            var settingsScripts = Codevoid.Utilities.as();
 
             // If settings namespace wasn't available, then we can assume
             // that the script file needs to be added in.

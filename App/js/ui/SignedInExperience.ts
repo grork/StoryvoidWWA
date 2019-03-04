@@ -425,7 +425,7 @@
             }
         }
 
-        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): WinJS.Promise<void> {
+        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): PromiseLike<void> {
             var headerContainer = document.createElement("div");
             var syncProgress = new SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
@@ -436,7 +436,7 @@
 
             if (this._notificationBeingDisplayed()) {
                 this._switchNotificationElement(headerContainer);
-                return WinJS.Promise.as();
+                return Codevoid.Utilities.as();
             }
 
             return this._addNotificationElement(headerContainer);
@@ -477,7 +477,7 @@
             this._switchNotificationElement(whatsNewControl.element);
         }
 
-        private _addNotificationElement(element: HTMLElement): WinJS.Promise<void> {
+        private _addNotificationElement(element: HTMLElement): PromiseLike<void> {
             const signal = new Utilities.Signal();
 
             this._notificationContainer.appendChild(element);
@@ -521,7 +521,7 @@
             this._notificationContainer.appendChild(element);
         }
 
-        private _removeNotificationElement(element: Element): WinJS.Promise<void> {
+        private _removeNotificationElement(element: Element): PromiseLike<void> {
             const signal = new Utilities.Signal();
 
             let height = this._notificationContainer.clientHeight;
@@ -653,7 +653,7 @@
             }
         }
 
-        private _renderItem(itemPromise: WinJS.Promise<WinJS.UI.IItem<IBookmark>>): { element: HTMLElement, renderComplete: WinJS.Promise<any> } {
+        private _renderItem(itemPromise: PromiseLike<WinJS.UI.IItem<IBookmark>>): { element: HTMLElement, renderComplete: PromiseLike<any> } {
             var element = document.createElement("div");
             return {
                 element: element,

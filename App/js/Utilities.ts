@@ -181,6 +181,10 @@ namespace Codevoid.Utilities {
         detail: T;
     }
 
+    export function as<T>(value?: T): PromiseLike<T> {
+        return WinJS.Promise.as<T>(value);
+    }
+
     export class Debounce {
         private completed: boolean = false;
         private timeoutId: number = null;
@@ -229,11 +233,10 @@ namespace Codevoid.Utilities {
     }
 
     export class Signal extends EventSource {
-        private _wrappedPromise: WinJS.Promise<any>;
+        private _wrappedPromise: PromiseLike<any>;
         private _complete: (value: any) => void;
         private _completed: boolean = false;
         private _error: (errorInfo: any) => void;
-        private _progress: (progress: any) => void;
 
         constructor() {
             super();
@@ -241,14 +244,13 @@ namespace Codevoid.Utilities {
             var that = this;
             // This uses the "that" pattern 'c ause it's called from a constructor, and
             // I don't want to mess with anything weird to upset the promise gods.
-            this._wrappedPromise = new WinJS.Promise(function (c, e, p) {
+            this._wrappedPromise = new WinJS.Promise(function (c, e) {
                 that._complete = c;
                 that._error = e;
-                that._progress = p;
             });
         }
 
-        public get promise(): WinJS.Promise<any> {
+        public get promise(): PromiseLike<any> {
             return this._wrappedPromise;
         }
 
@@ -263,10 +265,6 @@ namespace Codevoid.Utilities {
 
         public error(errorInfo?: any): void {
             this._error(errorInfo);
-        }
-
-        public progress(progressInfo?: any): void {
-            this._progress(progressInfo);
         }
 
         public cancel(): void {
@@ -347,7 +345,7 @@ namespace Codevoid.Utilities {
         }
     }
 
-    export function serialize(items: any[], work: (item: any, index?: number) => WinJS.Promise<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): WinJS.Promise<any> {
+    export function serialize(items: any[], work: (item: any, index?: number) => PromiseLike<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): PromiseLike<any> {
         concurrentWorkLimit = (!concurrentWorkLimit) ? 1 : concurrentWorkLimit;
         const results: any[] = [];
         const signals: Signal[] = [];
@@ -380,7 +378,7 @@ namespace Codevoid.Utilities {
 
             results.push(signal.promise.then(() => {
                 numberInFlight++;
-                return WinJS.Promise.as(work(item, index));
+                return Codevoid.Utilities.as(work(item, index));
             }).then((value) => {
                 numberInFlight--;
                 doWork();
@@ -394,7 +392,7 @@ namespace Codevoid.Utilities {
 
         doWork();
 
-        return WinJS.Promise.join(results);
+        return <PromiseLike<any>>WinJS.Promise.join(results);
     }
 
     interface EventHandlerEntry {
@@ -432,7 +430,7 @@ namespace Codevoid.Utilities {
 }
 
 namespace Codevoid.Utilities.DOM {
-    let fragmentCache: { [path: string]: WinJS.Promise<HTMLElement> } = {};
+    let fragmentCache: { [path: string]: PromiseLike<HTMLElement> } = {};
     let templateCache: { [templateId: string]: WinJS.Binding.Template } = {};
     const TEMPLATE_ID_ATTRIBUTE_NAME = "data-templateid";
 
@@ -482,7 +480,7 @@ namespace Codevoid.Utilities.DOM {
         element.setAttribute("data-win-control", controlClassName);
     }
 
-    export function loadTemplate(path: string, id: string): WinJS.Promise<WinJS.Binding.Template> {
+    export function loadTemplate(path: string, id: string): PromiseLike<WinJS.Binding.Template> {
         const templateCacheKey = `${path}#${id}`;
         const template = templateCache[templateCacheKey];
         if (template) {
@@ -507,7 +505,7 @@ namespace Codevoid.Utilities.DOM {
                 });
             });
 
-            return WinJS.Promise.join(templatePromises);
+            return <PromiseLike<any>>WinJS.Promise.join(templatePromises);
         }).then(function (templateControls: { template: WinJS.Binding.Template; id: string }[]) {
             for (let controlInfo of templateControls) {
                 templateCache[path + "#" + controlInfo.id] = controlInfo.template;

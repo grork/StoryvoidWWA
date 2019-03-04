@@ -32,7 +32,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
     var articlesFolder: st.StorageFolder;
     var stateConfigured = false;
 
-    function deleteAllLocalFiles(): WinJS.Promise<any> {
+    function deleteAllLocalFiles(): PromiseLike<any> {
         return st.ApplicationData.current.localFolder.createFolderAsync("ArticleTemp", st.CreationCollisionOption.openIfExists).then((folder: st.StorageFolder) => {
             articlesFolder = folder;
             return folder.getItemsAsync();
@@ -41,13 +41,13 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 return file.deleteAsync();
             });
 
-            return WinJS.Promise.join(deletes);
+            return <PromiseLike<any>>WinJS.Promise.join(deletes);
         });
     }
 
     interface IBookmarkHash { [id: number]: string };
 
-    function setupLocalAndRemoteState(): WinJS.Promise<any> {
+    function setupLocalAndRemoteState(): PromiseLike<any> {
         if (stateConfigured) {
             return WinJS.Promise.timeout();
         }
@@ -55,7 +55,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
         var dbInstance = new av.InstapaperDB();
 
         var api = new av.InstapaperApi.Bookmarks(clientInformation);
-        return WinJS.Promise.join([
+        return <PromiseLike<any>>WinJS.Promise.join([
             api.add({ url: normalArticleUrl }).then((article: av.IBookmark) => {
                 normalArticleId = article.bookmark_id;
             }),
@@ -151,9 +151,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
                 assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
 
-                return articlesFolder.getFolderAsync(articleWithImageId.toString());
+                return <PromiseLike<st.StorageFolder>>articlesFolder.getFolderAsync(articleWithImageId.toString());
             }).then((imagesSubFolder: st.StorageFolder) => {
-                return imagesSubFolder.getFilesAsync();
+                return <PromiseLike<c.IVectorView<Windows.Storage.StorageFile>>><any>imagesSubFolder.getFilesAsync();
             }).then((files) => {
                 assert.strictEqual(files.size, 2, "Unexpected number of files");
                 files.forEach((file, index) => {
@@ -161,9 +161,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                     assert.strictEqual(nameAsNumber, index, "Incorrect filename");
                 });
 
-                return articlesFolder.getFileAsync(articleWithImageId + ".html");
+                return <PromiseLike<Windows.Storage.StorageFile>>articlesFolder.getFileAsync(articleWithImageId + ".html");
             }).then((articleFile: st.StorageFile) => {
-                return st.FileIO.readTextAsync(articleFile);
+                return <PromiseLike<string>>st.FileIO.readTextAsync(articleFile);
             }).then((articleContent: string) => {
                 var parser = new DOMParser();
                 var articleDocument = parser.parseFromString(articleContent, "text/html");
@@ -202,9 +202,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
                 assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
 
-                return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
+                return <PromiseLike<st.StorageFolder>>articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
             }).then((imagesSubFolder: st.StorageFolder) => {
-                return imagesSubFolder.getFilesAsync();
+                return <PromiseLike<c.IVectorView<st.StorageFile>>>imagesSubFolder.getFilesAsync();
             }).then((files) => {
                 assert.strictEqual(files.size, 1, "Unexpected number of files");
                 files.forEach((file, index) => {
@@ -236,9 +236,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
                 assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.jpg", "Incorrect first image path");
 
-                return articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
+                return <PromiseLike<st.StorageFolder>>articlesFolder.getFolderAsync(syncedBookmark.bookmark_id.toString());
             }).then((imagesSubFolder: st.StorageFolder) => {
-                return imagesSubFolder.getFilesAsync();
+                return <PromiseLike<c.IVectorView<st.StorageFile>>>imagesSubFolder.getFilesAsync();
             }).then((files) => {
                 assert.strictEqual(files.size, 1, "Unexpected number of files");
                 files.forEach((file, index) => {
@@ -279,7 +279,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 assert.ok(!syncedBookmark.hasImages, "Didn't expect images");
                 assert.ok(syncedBookmark.articleUnavailable, "File should indicate error");
 
-                return articlesFolder.tryGetItemAsync(badBookmarkId + ".html");
+                return <any>articlesFolder.tryGetItemAsync(badBookmarkId + ".html");
             }).then((articleFile: st.IStorageItem) => {
                 assert.ok(articleFile == null, "Shouldn't have downloaded article");
 
@@ -299,11 +299,11 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 articleSync = new av.InstapaperArticleSync(clientInformation, articlesFolder);
                 // Create Fake File, and sync two articles so there are files
                 // present that *SHOULD* be there.
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     articlesFolder.createFileAsync("1.html", st.CreationCollisionOption.replaceExisting),
                     articlesFolder.createFileAsync("2.html", st.CreationCollisionOption.replaceExisting),
                     articlesFolder.createFolderAsync("2", st.CreationCollisionOption.replaceExisting).then((articleFolder: st.StorageFolder) => {
-                        return WinJS.Promise.join([
+                        return <PromiseLike<any>>WinJS.Promise.join([
                             articleFolder.createFileAsync("1.png", st.CreationCollisionOption.replaceExisting),
                             articleFolder.createFileAsync("2.png", st.CreationCollisionOption.replaceExisting),
                         ]);
@@ -313,7 +313,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 ]);
             }).then(() => {
                 return articleSync.removeFilesForNotPresentArticles(instapaperDB).then(() => {
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>>WinJS.Promise.join({
                         files: articlesFolder.getFilesAsync(),
                         folders: articlesFolder.getFoldersAsync(),
                     });
@@ -468,7 +468,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
                 var bookmarks = idb.listCurrentBookmarks();
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmarks: bookmarks,
                     fileMap: files,
                 });

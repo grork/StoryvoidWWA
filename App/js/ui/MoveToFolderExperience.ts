@@ -28,7 +28,7 @@
             });
         }
 
-        public get ready(): WinJS.Promise<any> {
+        public get ready(): PromiseLike<any> {
             return this._ready.promise;
         }
 
@@ -41,7 +41,7 @@
             }
         }
 
-        public refresh(): WinJS.Promise<any> {
+        public refresh(): PromiseLike<any> {
             // Only update the item template if we haven't already set one
             if (this._contentList.itemTemplate != this._itemTemplate.element) {
                 this._contentList.itemTemplate = this._itemTemplate.element;
@@ -81,7 +81,7 @@
             this._moveSignal.complete(null);
         }
 
-        public show(targetPosition: HTMLElement): WinJS.Promise<IFolder> {
+        public show(targetPosition: HTMLElement): PromiseLike<IFolder> {
             if (this._moveSignal) {
                 this._moveSignal.complete(null);
             }
@@ -124,7 +124,7 @@
         constructor(private _instapaperDB: InstapaperDB) {
         }
 
-        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): WinJS.Promise<boolean> {
+        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): PromiseLike<boolean> {
             var element = document.createElement("div");
             document.body.appendChild(element);
 
@@ -141,19 +141,19 @@
                     return false;
                 }
 
-                return Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => {
+                return <any>Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => {
                     return this._instapaperDB.moveBookmark(item.bookmark_id, targetFolder.id);
                 }).then(() => {
                     return true;
                 });
-            }).then((result: WinJS.Promise<boolean>) => {
+            }).then((result: PromiseLike<boolean>) => {
                 Utilities.DOM.removeChild(document.body, element);
 
                 return result;
             });
         }
 
-        public listFolders(): WinJS.Promise<Codevoid.Storyvoid.IFolder[]> {
+        public listFolders(): PromiseLike<Codevoid.Storyvoid.IFolder[]> {
             return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
                 return folders.filter((item) => {
                     if (item.localOnly

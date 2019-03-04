@@ -86,7 +86,7 @@
             this._eventSource = new Utilities.EventSource();
         }
 
-        public syncAllArticlesNotDownloaded(idb: InstapaperDB, cancellationSource: Utilities.CancellationSource): WinJS.Promise<any> {
+        public syncAllArticlesNotDownloaded(idb: InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<any> {
             this._eventSource.dispatchEvent("allarticlesstarting", null);
 
             // First list all the current folders, and then sort them by 
@@ -151,7 +151,7 @@
                     });
                 });
 
-                return WinJS.Promise.join(bookmarks);
+                return <IBookmark[][]><any><PromiseLike<any>>WinJS.Promise.join(bookmarks);
             }).then((bookmarksByFolder: IBookmark[][]) => {
                 // Flatten them all into on big array, assuming that
                 // they're implicitly sorted now
@@ -171,7 +171,7 @@
             });
         }
 
-        public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB, cancellationSource: Utilities.CancellationSource): WinJS.Promise<IBookmark> {
+        public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<IBookmark> {
             var localBookmark = dbInstance.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
                 this._eventSource.dispatchEvent("syncingarticlestarting", {
                     bookmark_id: bookmark_id,
@@ -184,7 +184,7 @@
 
             const articleStartTime = Date.now();
 
-            var processArticle = WinJS.Promise.join({
+            var processArticle = <PromiseLike<any>>WinJS.Promise.join({
                 file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then((result) => {
                     this._eventSource.dispatchEvent("syncarticlebodycompleted", {
                         bookmark_id: bookmark_id,
@@ -197,7 +197,7 @@
                 return this._processArticle(result.file, result.localBookmark, cancellationSource);
             });
 
-            return WinJS.Promise.join({
+            return <PromiseLike<IBookmark>><any><PromiseLike<any>>WinJS.Promise.join({
                 articleInformation: processArticle.then(null, (e) => {
                     return {
                         articleUnavailable: (e && e.file && e.file.error === 1550),
@@ -226,7 +226,7 @@
             });
         }
 
-        public removeFilesForNotPresentArticles(instapaperDB: av.InstapaperDB): WinJS.Promise<any> {
+        public removeFilesForNotPresentArticles(instapaperDB: av.InstapaperDB): PromiseLike<any> {
             var files = this._destinationFolder.getFilesAsync();
 
             var currentBookmarkIds = instapaperDB.listCurrentBookmarks().then((bookmarks) => {
@@ -249,7 +249,7 @@
                 return map;
             });
 
-            return WinJS.Promise.join({
+            return <PromiseLike<any>>WinJS.Promise.join({
                 currentBookmarkIds: currentBookmarkIds,
                 folderMap: folderMap,
                 files: files,
@@ -287,7 +287,7 @@
                     deletions.push(folderToDelete.deleteAsync());
                 });
 
-                return WinJS.Promise.join(deletions);
+                return <PromiseLike<any>>WinJS.Promise.join(deletions);
             });
         }
 
@@ -295,7 +295,7 @@
             return this._eventSource;
         }
 
-        private _processArticle(file: st.StorageFile, bookmark: IBookmark, cancellationSource: Utilities.CancellationSource): WinJS.Promise<IProcessedArticleInformation> {
+        private _processArticle(file: st.StorageFile, bookmark: IBookmark, cancellationSource: Utilities.CancellationSource): PromiseLike<IProcessedArticleInformation> {
             var fileContentsOperation = st.FileIO.readTextAsync(file);
             var parser = new DOMParser();
             var articleDocument: Document;
@@ -315,7 +315,7 @@
                     return WinJS.Promise.wrapError(new Error("Article Sync Cancelled: Processing Article: After Reading file"));
                 }
 
-                var images: WinJS.Promise<HTMLImageElement[]>;
+                var images: PromiseLike<HTMLImageElement[]>;
                 articleDocument = parser.parseFromString(contents, "text/html");
 
                 // See if the URL is for youtube, to allow customized processing of
@@ -339,7 +339,7 @@
 
                         var imageElement = document.createElement("img");
                         imageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
-                        images = WinJS.Promise.as([imageElement]);
+                        images = Codevoid.Utilities.as([imageElement]);
                         break;
 
                     case SpecializedThumbnail.Vimeo:
@@ -363,7 +363,7 @@
                                 });
                             }
 
-                            return WinJS.Promise.join({
+                            return <PromiseLike<any>>WinJS.Promise.join({
                                 data: response.content.readAsStringAsync(),
                                 response: response,
                             });
@@ -391,14 +391,14 @@
 
                     case SpecializedThumbnail.None:
                     default:
-                        images = WinJS.Promise.as(<HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body));
+                        images = Codevoid.Utilities.as(<HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body));
                         break;
                 }
 
                 return <any>images;
             }).then((images: HTMLImageElement[]) => {
 
-                var imagesCompleted: WinJS.Promise<any> = WinJS.Promise.as();
+                var imagesCompleted: PromiseLike<any> = Codevoid.Utilities.as();
 
                 // Apppend messaging bootstrapper to allow two way
                 // messaging between the webview we load this in,
@@ -468,7 +468,7 @@
             }).then(() => processedInformation);
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): WinJS.Promise<IFirstImageInformation> {
+        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): PromiseLike<IFirstImageInformation> {
             var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
             var firstSuccessfulImage: IFirstImageInformation;
 
@@ -547,7 +547,7 @@
         private _downloadImageToDisk(
             sourceUrl: Windows.Foundation.Uri,
             destinationFileNumber: number,
-            destinationFolder: st.StorageFolder): WinJS.Promise<{ filename: string; extension: string; size: { width: number, height: number } }> {
+            destinationFolder: st.StorageFolder): PromiseLike<{ filename: string; extension: string; size: { width: number, height: number } }> {
 
             var client = new http.HttpClient();
             client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
@@ -561,7 +561,7 @@
 
                 // Cast away the type, since it seems to be wrong, and
                 // and isn't really relevant
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     buffer: response.content.readAsBufferAsync(),
                     response: response
                 });
@@ -654,7 +654,7 @@
                     destinationFileName,
                     st.CreationCollisionOption.replaceExisting).then((file: st.StorageFile) => {
 
-                        return WinJS.Promise.join({
+                        return <PromiseLike<any>>WinJS.Promise.join({
                             stream: file.openAsync(st.FileAccessMode.readWrite),
                             file: file
                         });
@@ -662,7 +662,7 @@
 
                 // TypeScript got real confused by the types here,
                 // so cast them away like farts in the wind
-                return <any>WinJS.Promise.join({
+                return <any><PromiseLike<any>>WinJS.Promise.join({
                     remoteContent: response.content,
                     destination: destinationFile,
                     destinationFileName: destinationFileName,
@@ -671,7 +671,7 @@
             });
 
             // Write the stream to disk
-            return downloadStream.then((result: { destination: { stream: st.Streams.IRandomAccessStream; file: st.StorageFile }, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
+            return <PromiseLike<{ filename: string; extension: string; size: { width: number, height: number } }>><any>downloadStream.then((result: { destination: { stream: st.Streams.IRandomAccessStream; file: st.StorageFile }, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
                 return result.remoteContent.writeToStreamAsync(result.destination.stream).then(() => result);
             }).then((result) => {
                 result.remoteContent.close();
@@ -695,7 +695,7 @@
 
                 // Return the filename so that the image URL
                 // can be rewritten.
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     filename: result.destinationFileName,
                     extension: result.extension,
                     size: size

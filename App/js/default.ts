@@ -73,7 +73,7 @@
             Codevoid.Utilities.HiddenApiHelper.extendIntoTitleBar();
         }
 
-        public initialize(): WinJS.Promise<void> {
+        public initialize(): PromiseLike<void> {
             const baseInit = super.initialize();
             Telemetry.trackAppLaunched("tile");
 

@@ -5,7 +5,7 @@
         private _uiSettings: Windows.UI.ViewManagement.UISettings;
         private _launchInformation: IAppLaunchInformation;
 
-        public initialize(): WinJS.Promise<any> {
+        public initialize(): PromiseLike<any> {
             this._uiSettings = new Windows.UI.ViewManagement.UISettings();
 
             const viewerSettings = new Settings.ViewerSettings();
@@ -14,7 +14,7 @@
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
             var credentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
-            let work: WinJS.Promise<any> = WinJS.Promise.as();
+            let work: PromiseLike<any> = Codevoid.Utilities.as();
             if (!credentials) {
                 this.signOut(false/*wasPreviouslySignedIn*/);
             } else {
@@ -97,7 +97,7 @@
             });
         }
 
-        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): WinJS.Promise<void> {
+        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): PromiseLike<void> {
             var signedInElement = <HTMLElement>document.body.firstElementChild;
 
             if (!this._signedInViewModel) {

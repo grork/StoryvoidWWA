@@ -34,7 +34,14 @@
                 records = [records];
             }
 
-            var signal = new Signal();
+            var progress;
+            var complete;
+            var error;
+            var p = new WinJS.Promise((c, e, p) => {
+                complete = c;
+                error = e;
+                progress = p;
+            });
 
             records.forEach(function Server_Add_RecordsForEach(record) {
                 var req;
@@ -48,22 +55,23 @@
                     var target = e.target;
                     record[target.source.keyPath] = target.result;
 
-                    signal.progress();
+                    progress();
                 };
             });
 
             transaction.oncomplete = function Server_Add_Complete() {
-                signal.complete(records, that);
+                complete(records);
             };
 
             transaction.onerror = function Server_Add_Error(e) {
-                signal.error(e);
+                error(e);
             };
 
             transaction.onabort = function Server_Add_Abort(e) {
-                signal.error(records, e);
+                error(records);
             };
-            return signal.promise;
+
+            return p;
         };
 
         this.add = function Server_Add(table, records) {
@@ -311,23 +319,30 @@
             }
 
             var req = indexedDB.deleteDatabase(name);
-            var signal = new Signal();
+            var progress;
+            var complete;
+            var error;
+            var p = new WinJS.Promise((c, e, p) => {
+                complete = c;
+                error = e;
+                progress = p;
+            });
 
             req.onsuccess = function () {
-                signal.complete();
+                complete();
             };
 
             req.onerror = function (e) {
                 console.log('error deleting database', arguments);
-                signal.error(e);
+                error(e);
             };
 
             req.onblocked = function (e) {
                 console.log('db blocked on delete', arguments);
-                signal.progress(e);
+                progress(e);
             };
 
-            return signal.promise;
+            return p;
         },
         _getCache: function _getCache() {
             return dbCache;

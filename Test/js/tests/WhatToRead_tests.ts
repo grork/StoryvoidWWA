@@ -4,7 +4,7 @@ namespace CodevoidTests.WhatToReadTests {
     const DB_CONTEXT_KEY = "db";
 
     interface IWhatToRead_ForTest {
-        _refreshJumpListImpl(currentList: Codevoid.Storyvoid.IJumpListItem[]): WinJS.Promise<Windows.UI.StartScreen.JumpList>;
+        _refreshJumpListImpl(currentList: Codevoid.Storyvoid.IJumpListItem[]): PromiseLike<Windows.UI.StartScreen.JumpList>;
     }
 
     let bookmarkId = 100000;
@@ -42,7 +42,7 @@ namespace CodevoidTests.WhatToReadTests {
         };
     }
 
-    function getDb(): WinJS.Promise<Codevoid.Storyvoid.InstapaperDB> {
+    function getDb(): PromiseLike<Codevoid.Storyvoid.InstapaperDB> {
         const dbName = "WhatToReadTests";
         const db = new Codevoid.Storyvoid.InstapaperDB();
 
@@ -50,9 +50,9 @@ namespace CodevoidTests.WhatToReadTests {
         return db.initialize(dbName).then(() => db.deleteAllData()).then(() => db.initialize(dbName));
     }
 
-    function addBookmarksToDb(bookmarksToAdd: Codevoid.Storyvoid.IBookmark[], db: Codevoid.Storyvoid.InstapaperDB): WinJS.Promise<void> {
+    function addBookmarksToDb(bookmarksToAdd: Codevoid.Storyvoid.IBookmark[], db: Codevoid.Storyvoid.InstapaperDB): PromiseLike<void> {
         const adds = bookmarksToAdd.map((item) => db.addBookmark(item));
-        return WinJS.Promise.join(adds).then(() => { });
+        return <PromiseLike<any>>WinJS.Promise.join(adds).then(() => { });
     }
 
     function getSampleBookmarks(folder_dbid: number): Codevoid.Storyvoid.IBookmark[] {
@@ -253,7 +253,7 @@ namespace CodevoidTests.WhatToReadTests {
                 });
 
                 return (<IWhatToRead_ForTest>(<any>toRead))._refreshJumpListImpl(jumpListItems).then(() => {
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>>WinJS.Promise.join({
                         items: jumpListItems,
                         itemsToRead: toRead.getStuffToRead(),
                     });

@@ -44,7 +44,7 @@
             this.authenticator.holdWorkingStateOnSuccess = true;
         }
 
-        public startLogin(): WinJS.Promise<void> {
+        public startLogin(): PromiseLike<void> {
             return this.authenticator.authenticate(500).then((tokenDetails: InstapaperApi.IAccessTokenInformation) => {
                 var clientInfo = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenDetails);
                 this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);

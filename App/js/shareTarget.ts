@@ -10,7 +10,7 @@
             Windows.UI.WebUI.WebUIApplication.addEventListener("activated", (args) => {
                 // We really need to yield to the browser before we go lala on getting
                 // data and potentially doing any more operations, so bounce around a timeout.
-                WinJS.Promise.join([
+                <PromiseLike<any>>WinJS.Promise.join([
                     WinJS.Promise.timeout(),
                     telemetryInit
                 ]).then(() => {
@@ -104,7 +104,7 @@ module Codevoid.Storyvoid.UI {
             this.saveToInstapaper();
         }
 
-        public signedIn(usingSavedCredentials: boolean): WinJS.Promise<any> {
+        public signedIn(usingSavedCredentials: boolean): PromiseLike<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
 
             Telemetry.instance.track("SignedIn", toPropertySet({
@@ -112,7 +112,7 @@ module Codevoid.Storyvoid.UI {
                 appType: "shareTarget",
             }));
 
-            return WinJS.Promise.as();
+            return Codevoid.Utilities.as();
         }
 
         public signInCompleted(): void { /* No op in this situation */ }
@@ -132,7 +132,7 @@ module Codevoid.Storyvoid.UI {
             const start = Date.now();
             let duration: number = 0;
 
-            WinJS.Promise.join({
+            <PromiseLike<any>>WinJS.Promise.join({
                 operation: bookmarks.add({
                     title: this._articleDetails.title,
                     url: this._articleDetails.url.absoluteUri
@@ -142,7 +142,7 @@ module Codevoid.Storyvoid.UI {
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Complete);
 
                 var executingPackage = Windows.ApplicationModel.Package.current;
-                return WinJS.Promise.join({
+                return <any>WinJS.Promise.join({
                     timeout: WinJS.Promise.timeout(1000),
                     // Because the quick link might need an image, we should start loading it
                     // while the timeout above is showing the user "All Done" to make out lives
@@ -198,7 +198,7 @@ module Codevoid.Storyvoid.UI {
         public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation): void {
             this._shareOperation = shareDetails;
 
-            WinJS.Promise.join({
+            <PromiseLike<any>>WinJS.Promise.join({
                 title: shareDetails.data.properties.title,
                 url: shareDetails.data.getUriAsync(),
             }).then((details: IArticleDetails) => {

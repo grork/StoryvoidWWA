@@ -208,7 +208,7 @@
             this.authenticationErrorMessage = message;
         }
 
-        public authenticate(minimumDuration?: number): WinJS.Promise<InstapaperApi.IAccessTokenInformation> {
+        public authenticate(minimumDuration?: number): PromiseLike<InstapaperApi.IAccessTokenInformation> {
             // Reset authentication state
             this.authenticationError = 0;
 
@@ -223,7 +223,7 @@
 
             this.isWorking = true;
 
-            WinJS.Promise.join([
+            <PromiseLike<any>>WinJS.Promise.join([
                 accounts.getAccessToken(this.username, this.password),
                 WinJS.Promise.timeout(minimumDuration || 0)
             ]).then((result) => {
@@ -244,7 +244,7 @@
             return authenticationComplete.promise;
         }
 
-        public promptForCredentials(): WinJS.Promise<Codevoid.Storyvoid.InstapaperApi.IAccessTokenInformation> {
+        public promptForCredentials(): PromiseLike<Codevoid.Storyvoid.InstapaperApi.IAccessTokenInformation> {
             this.credentialAcquisitionComplete = new Codevoid.Utilities.Signal();
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this);
             return this.credentialAcquisitionComplete.promise;

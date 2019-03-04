@@ -32,7 +32,7 @@
             WinJS.Utilities.addClass(element, "hide");
 
             DOM.loadTemplate("/HtmlTemplates.html", "settingsPopup").then((template) => {
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     template.render({}, element),
                     WinJS.Promise.timeout()
                 ]);
@@ -323,7 +323,7 @@
             viewerSettings.refreshThemeOnDOM();
         }
 
-        public forgetMeAndSignout(): WinJS.Promise<any> {
+        public forgetMeAndSignout(): PromiseLike<any> {
             return this.articleListViewModel.signOut(true).then(() => {
                 Telemetry.instance.deleteProfile();
             });

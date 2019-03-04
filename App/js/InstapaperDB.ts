@@ -3,13 +3,13 @@
 }
 
 namespace Codevoid.Storyvoid {
-    function noDbError(): WinJS.Promise<any> {
+    function noDbError(): PromiseLike<any> {
         var error = new Error("Not connected to the server");
         error.code = InstapaperDBErrorCodes.NODB;
         return WinJS.Promise.wrapError(error);
     }
 
-    function noClientInformationError(): WinJS.Promise<any> {
+    function noClientInformationError(): PromiseLike<any> {
         var error = new Error("No client informaton");
         error.code = InstapaperDBErrorCodes.NOCLIENTINFORMATION;
         return WinJS.Promise.wrapError(error);
@@ -125,7 +125,7 @@ namespace Codevoid.Storyvoid {
 
         public commonFolderDbIds: InstapaperDBCommonFolderDBIds;
 
-        private _addPendingFolderEdit(folderEditToPend: IFolder): WinJS.Promise<IFolderPendingEdit> {
+        private _addPendingFolderEdit(folderEditToPend: IFolder): PromiseLike<IFolderPendingEdit> {
             if (!this._db) {
                 return noDbError();
             }
@@ -139,7 +139,7 @@ namespace Codevoid.Storyvoid {
             return this._db.put<IFolderPendingEdit>(InstapaperDBTableNames.FolderUpdates, pendingEdit).then(extractFirstItemInArray);
         }
 
-        public initialize(name?: string, version?: number): WinJS.Promise<InstapaperDB> {
+        public initialize(name?: string, version?: number): PromiseLike<InstapaperDB> {
             this._name = name || Codevoid.Storyvoid.InstapaperDB.DBName;
             this._version = version || Codevoid.Storyvoid.InstapaperDB.DBVersion;
 
@@ -198,13 +198,13 @@ namespace Codevoid.Storyvoid {
                 version: this._version,
                 schema: schema,
             }, createDefaultData).then((db) => this._db = db).then(() => {
-                return WinJS.Promise.join({
+                return <any><PromiseLike<any>>WinJS.Promise.join({
                     archive: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive),
                     liked: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked),
                     unread: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread),
                     orphaned: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned),
                 });
-            }).then((data) => {
+            }).then((data: { archive: IFolder; liked: IFolder; unread: IFolder; orphaned: IFolder }) => {
                 this.commonFolderDbIds = {
                     archive: data.archive.id,
                     liked: data.liked.id,
@@ -215,7 +215,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public getFolderFromFolderId(folderId: string): WinJS.Promise<IFolder> {
+        public getFolderFromFolderId(folderId: string): PromiseLike<IFolder> {
             if (!this._db) {
                 return noDbError();
             }
@@ -228,7 +228,7 @@ namespace Codevoid.Storyvoid {
         /// Returns a snap-shotted state of the current folders. This is
         /// not a live collection, and thus doesn't refect changes
         /// </summary>
-        public listCurrentFolders(): WinJS.Promise<IFolder[]> {
+        public listCurrentFolders(): PromiseLike<IFolder[]> {
             if (!this._db) {
                 return noDbError();
             }
@@ -242,7 +242,7 @@ namespace Codevoid.Storyvoid {
         /// If the folder is already marked for deletion, it will merely drop
         /// the pending "delete" if there is one.
         /// </summary>
-        public addFolder(folder: IFolder, dontAddPendingEdit?: boolean): WinJS.Promise<IFolder> {
+        public addFolder(folder: IFolder, dontAddPendingEdit?: boolean): PromiseLike<IFolder> {
             if (!this._db) {
                 return noDbError();
             }
@@ -295,7 +295,7 @@ namespace Codevoid.Storyvoid {
                 });
         }
 
-        public deletePendingFolderEdit(pendingFolderEditId: number): WinJS.Promise<void> {
+        public deletePendingFolderEdit(pendingFolderEditId: number): PromiseLike<void> {
             if (!this._db) {
                 return noDbError();
             }
@@ -303,7 +303,7 @@ namespace Codevoid.Storyvoid {
             return this._db.remove(InstapaperDBTableNames.FolderUpdates, pendingFolderEditId);
         }
 
-        public getFolderByDbId(folderDbId: number): WinJS.Promise<IFolder> {
+        public getFolderByDbId(folderDbId: number): PromiseLike<IFolder> {
             if (!this._db) {
                 return noDbError();
             }
@@ -311,7 +311,7 @@ namespace Codevoid.Storyvoid {
             return this._db.get(InstapaperDBTableNames.Folders, folderDbId);
         }
 
-        public getFolderDbIdFromFolderId(folderId: string): WinJS.Promise<IFolder> {
+        public getFolderDbIdFromFolderId(folderId: string): PromiseLike<IFolder> {
             if (!this._db) {
                 return noDbError();
             }
@@ -321,7 +321,7 @@ namespace Codevoid.Storyvoid {
                 then(extractFirstItemInArray);
         }
 
-        public updateFolder(folderDetails: IFolder): WinJS.Promise<IFolder> {
+        public updateFolder(folderDetails: IFolder): PromiseLike<IFolder> {
             if (!this._db) {
                 return noDbError();
             }
@@ -337,12 +337,12 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public removeFolder(folderDbId: number, dontAddPendingEdit?: boolean): WinJS.Promise<void> {
+        public removeFolder(folderDbId: number, dontAddPendingEdit?: boolean): PromiseLike<void> {
             if (!this._db) {
                 return noDbError();
             }
 
-            let completePromise: WinJS.Promise<any> = WinJS.Promise.as();
+            let completePromise: PromiseLike<any> = Codevoid.Utilities.as();
             let wasUnsyncedEdit = false;
 
             let folderBeingRemoved: IFolder;
@@ -393,7 +393,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public getPendingFolderEdits(): WinJS.Promise<IFolderPendingEdit[]> {
+        public getPendingFolderEdits(): PromiseLike<IFolderPendingEdit[]> {
             if (!this._db) {
                 return noDbError();
             }
@@ -401,16 +401,16 @@ namespace Codevoid.Storyvoid {
             return this._db.query(InstapaperDBTableNames.FolderUpdates).execute<IFolderPendingEdit>();
         }
 
-        public getPendingBookmarkEdits(folderDbId?: number): WinJS.Promise<IBookmarkPendingEdits> {
+        public getPendingBookmarkEdits(folderDbId?: number): PromiseLike<IBookmarkPendingEdits> {
             if (!this._db) {
                 return noDbError();
             }
 
-            let edits: WinJS.Promise<IBookmarkPendingEdit[]>;
+            let edits: PromiseLike<IBookmarkPendingEdit[]>;
             if (!folderDbId) {
                 edits = this._db.query(InstapaperDBTableNames.BookmarkUpdates).execute<IBookmarkPendingEdit>();
             } else {
-                edits = WinJS.Promise.join({
+                edits = <PromiseLike<any>>WinJS.Promise.join({
                     source: this._db.index(InstapaperDBTableNames.BookmarkUpdates, "sourcefolder_dbid").only(folderDbId),
                     destination: this._db.index(InstapaperDBTableNames.BookmarkUpdates, "destinationfolder_dbid").only(folderDbId),
                 }).then((data: { source: IBookmarkPendingEdit[]; destination: IBookmarkPendingEdit[] }) => data.source.concat(data.destination));
@@ -483,7 +483,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public getPendingBookmarkAdds(): WinJS.Promise<IBookmarkPendingEdit[]> {
+        public getPendingBookmarkAdds(): PromiseLike<IBookmarkPendingEdit[]> {
             if (!this._db) {
                 return noDbError();
             }
@@ -491,7 +491,7 @@ namespace Codevoid.Storyvoid {
             return this.getPendingBookmarkEdits().then((data) => data.adds || []);
         }
 
-        public listCurrentBookmarks(folder_dbid?: number | string): WinJS.Promise<IBookmark[]> {
+        public listCurrentBookmarks(folder_dbid?: number | string): PromiseLike<IBookmark[]> {
             if (!this._db) {
                 return noDbError();
             }
@@ -505,7 +505,7 @@ namespace Codevoid.Storyvoid {
             return this._db.query(InstapaperDBTableNames.Bookmarks).execute();
         }
 
-        public addBookmark(bookmark: IBookmark): WinJS.Promise<IBookmark> {
+        public addBookmark(bookmark: IBookmark): PromiseLike<IBookmark> {
             window.appassert(!!bookmark.folder_dbid, "No Folder DB ID provided");
 
             if (!this._db) {
@@ -527,7 +527,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public addUrl(bookmarkToAdd: { url: string; title: string }): WinJS.Promise<IBookmarkPendingEdit> {
+        public addUrl(bookmarkToAdd: { url: string; title: string }): PromiseLike<IBookmarkPendingEdit> {
             if (!this._db) {
                 return noDbError();
             }
@@ -539,7 +539,7 @@ namespace Codevoid.Storyvoid {
             }).then(extractFirstItemInArray);
         }
 
-        public deletePendingBookmarkEdit(pendingBookmarkEditId: number): WinJS.Promise<void> {
+        public deletePendingBookmarkEdit(pendingBookmarkEditId: number): PromiseLike<void> {
             if (!this._db) {
                 return noDbError();
             }
@@ -547,7 +547,7 @@ namespace Codevoid.Storyvoid {
             return this._db.remove(InstapaperDBTableNames.BookmarkUpdates, pendingBookmarkEditId);
         }
 
-        private _getPendingEditForBookmarkAndType(bookmark: number, type: InstapaperDBBookmarkChangeTypes): WinJS.Promise<IBookmarkPendingEdit> {
+        private _getPendingEditForBookmarkAndType(bookmark: number, type: InstapaperDBBookmarkChangeTypes): PromiseLike<IBookmarkPendingEdit> {
             if (!this._db) {
                 return noDbError();
             }
@@ -563,7 +563,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public getBookmarkByBookmarkId(bookmark_id: number): WinJS.Promise<IBookmark> {
+        public getBookmarkByBookmarkId(bookmark_id: number): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -571,15 +571,15 @@ namespace Codevoid.Storyvoid {
             return this._db.get<IBookmark>(InstapaperDBTableNames.Bookmarks, bookmark_id);
         }
 
-        public removeBookmark(bookmark_id: number, fromServer?: boolean): WinJS.Promise<void> {
+        public removeBookmark(bookmark_id: number, fromServer?: boolean): PromiseLike<void> {
             if (!this._db) {
                 return noDbError();
             }
 
             let sourcefolder_dbid;
-            let removedPromise = this.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
+            let removedPromise = <PromiseLike<void>><any>this.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
                 sourcefolder_dbid = bookmark.folder_dbid;
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     this._db.remove(InstapaperDBTableNames.Bookmarks, bookmark_id),
                     this._db.index(
                         InstapaperDBTableNames.BookmarkUpdates,
@@ -592,7 +592,7 @@ namespace Codevoid.Storyvoid {
                             const removedEdits = pendingEditsForBookmark.filter((item) => item.type !== InstapaperDBBookmarkChangeTypes.LIKE).
                                 map((existingPendingEdit) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, existingPendingEdit.id));
 
-                            return WinJS.Promise.join(removedEdits);
+                            return <PromiseLike<any>>WinJS.Promise.join(removedEdits);
                         })
                 ]);
             });
@@ -607,7 +607,7 @@ namespace Codevoid.Storyvoid {
                         sourcefolder_dbid: sourcefolder_dbid,
                     };
 
-                    return this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
+                    return <any>this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
                 });
             }
 
@@ -621,7 +621,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public updateBookmark(bookmark: IBookmark, dontRaiseChangeNotification?: boolean): WinJS.Promise<IBookmark> {
+        public updateBookmark(bookmark: IBookmark, dontRaiseChangeNotification?: boolean): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -639,7 +639,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public moveBookmark(bookmark_id: number, destinationFolderDbId: number, fromServer?: boolean): WinJS.Promise<IBookmark> {
+        public moveBookmark(bookmark_id: number, destinationFolderDbId: number, fromServer?: boolean): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -651,7 +651,7 @@ namespace Codevoid.Storyvoid {
 
             let sourcefolder_dbid: number;
 
-            var movedBookmark: WinJS.Promise<IBookmark> = WinJS.Promise.join(data).then((data: { bookmark: IBookmark; folder: IFolder }) => {
+            var movedBookmark: PromiseLike<IBookmark> = <PromiseLike<any>>WinJS.Promise.join(data).then((data: { bookmark: IBookmark; folder: IFolder }) => {
                 if (!data.folder) {
                     var error = new Error();
                     error.code = InstapaperDBErrorCodes.FOLDER_NOT_FOUND;
@@ -691,7 +691,7 @@ namespace Codevoid.Storyvoid {
                         folder: data.folder,
                     };
 
-                    return this._db.index(InstapaperDBTableNames.BookmarkUpdates,
+                    return <PromiseLike<any>>this._db.index(InstapaperDBTableNames.BookmarkUpdates,
                         "bookmark_id").
                         only<IBookmarkPendingEdit>(movedBookmark.bookmark_id).
                         then((pendingEditsForBookmark) => {
@@ -701,12 +701,12 @@ namespace Codevoid.Storyvoid {
                             const removedEdits = pendingEditsForBookmark.filter((item) => item.type === InstapaperDBBookmarkChangeTypes.MOVE).
                                 map((existingMove) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, existingMove.id));
 
-                            return WinJS.Promise.join(removedEdits);
+                            return <PromiseLike<any>>WinJS.Promise.join(removedEdits);
                         }).then(() => {
                             // Cheat and return the already completed promise
                             // with the data we actually want. Allows the rest of
                             // this function to behave cleanly.
-                            return WinJS.Promise.join(completedData);
+                            return <PromiseLike<any>>WinJS.Promise.join(completedData);
                         });
                 }).then((data: { bookmark: IBookmark; folder: IFolder }) => {
                     const pendingEdit = {
@@ -732,7 +732,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public likeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean, ignoreMissingBookmark?: boolean): WinJS.Promise<IBookmark> {
+        public likeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean, ignoreMissingBookmark?: boolean): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -755,9 +755,9 @@ namespace Codevoid.Storyvoid {
 
                 sourcefolder_dbid = bookmark.folder_dbid;
 
-                let promise: WinJS.Promise<IBookmark>;
+                let promise: PromiseLike<IBookmark>;
                 if (bookmark.starred === 1) {
-                    promise = WinJS.Promise.as(bookmark);
+                    promise = Codevoid.Utilities.as(bookmark);
                 } else {
                     bookmark.starred = 1;
                     promise = this.updateBookmark(bookmark, true);
@@ -766,7 +766,7 @@ namespace Codevoid.Storyvoid {
                 return promise.then((bookmark) => {
                     updatedBookmark = bookmark;
 
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>><PromiseLike<any>>WinJS.Promise.join({
                         unlike: this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.UNLIKE),
                         like: this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.LIKE),
                     });
@@ -785,7 +785,7 @@ namespace Codevoid.Storyvoid {
 
                     return this.deletePendingBookmarkEdit(pendingEdits.unlike.id);
                 }).then(() => {
-                    var f = WinJS.Promise.as();
+                    var f = Codevoid.Utilities.as();
                     if (!dontAddPendingUpdate && !wasUnsyncedEdit) {
                         const edit = {
                             type: InstapaperDBBookmarkChangeTypes.LIKE,
@@ -809,7 +809,7 @@ namespace Codevoid.Storyvoid {
             return likedComplete.then(() => updatedBookmark);
         }
 
-        public unlikeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean): WinJS.Promise<IBookmark> {
+        public unlikeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -818,7 +818,7 @@ namespace Codevoid.Storyvoid {
             let sourcefolder_dbid: number;
             let updatedBookmark: IBookmark;
 
-            let unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then((bookmark): WinJS.Promise<IBookmark> => {
+            let unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then((bookmark): PromiseLike<IBookmark> => {
                 if (!bookmark) {
                     var error = new Error();
                     error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
@@ -828,14 +828,14 @@ namespace Codevoid.Storyvoid {
                 sourcefolder_dbid = bookmark.folder_dbid;
 
                 if (bookmark.starred === 0) {
-                    return WinJS.Promise.as(bookmark);
+                    return Codevoid.Utilities.as(bookmark);
                 }
 
                 bookmark.starred = 0;
                 return this.updateBookmark(bookmark, true);
             }).then((bookmark) => {
                 updatedBookmark = bookmark
-                return WinJS.Promise.join({
+                return <PromiseLike<any>><PromiseLike<any>>WinJS.Promise.join({
                     like: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE),
                     unlike: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE),
                 });
@@ -879,7 +879,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public updateReadProgress(bookmark_id: number, progress: number): WinJS.Promise<IBookmark> {
+        public updateReadProgress(bookmark_id: number, progress: number): PromiseLike<IBookmark> {
             if (!this._db) {
                 return noDbError();
             }
@@ -902,7 +902,7 @@ namespace Codevoid.Storyvoid {
             });
         }
 
-        public deleteAllData(): WinJS.Promise<void> {
+        public deleteAllData(): PromiseLike<void> {
             if (!this._db) {
                 return noDbError();
             }

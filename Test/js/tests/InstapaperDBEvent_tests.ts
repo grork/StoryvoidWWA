@@ -247,7 +247,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmark: idb.addBookmark({
                         bookmark_id: Date.now(),
                         title: Date.now() + "",

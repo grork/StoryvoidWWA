@@ -14,7 +14,7 @@
     }
     export class Telemetry {
         private static _client: Codevoid.Utilities.Mixpanel.MixpanelClient;
-        static initialize(): WinJS.Promise<any> {
+        static initialize(): PromiseLike<any> {
             const settings = new Settings.TelemetrySettings();
             Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("PLACEHOLDER");
             Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;

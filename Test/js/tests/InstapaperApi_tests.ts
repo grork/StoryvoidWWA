@@ -28,7 +28,7 @@
         assert.ok(false, "request failed: " + message);
     }
 
-    function listInStarredFolderExpectingNoStarredItems(): WinJS.Promise<void> {
+    function listInStarredFolderExpectingNoStarredItems(): PromiseLike<void> {
         const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         return bookmarks.list({ folder_id: "starred" }).then((data) => {
@@ -37,7 +37,7 @@
         }, failedPromiseHandler);
     }
 
-    function listInArchiveFolderExpectingNoArchivedItems(): WinJS.Promise<any> {
+    function listInArchiveFolderExpectingNoArchivedItems(): PromiseLike<any> {
         const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         return bookmarks.list({ folder_id: "archive" }).then((data) => {
@@ -387,12 +387,12 @@
                     }
 
                     return fileToDelete.deleteAsync();
-                }).then(() => bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory)).then((storageFile) => {
+                }).then(() => <any>bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory)).then((storageFile: Windows.Storage.StorageFile) => {
                     assert.ok(storageFile, "Expected to get actual data back");
                     openedFile = storageFile;
 
                     return storageFile.getBasicPropertiesAsync();
-                }).then(function (basicProperties) {
+                }).then((basicProperties) => {
                     assert.notStrictEqual(basicProperties.size, 0, "Shouldn't have had file written to disk");
 
                     return openedFile.deleteAsync();
@@ -409,8 +409,8 @@
                     targetFileName = bookmark.bookmark_id + ".html";
                     badBookmarkId = bookmark.bookmark_id;
 
-                    return destinationDirectory.tryGetItemAsync(targetFileName);
-                }).then((fileToDelete) => {
+                    return <PromiseLike<Windows.Storage.IStorageItem>><any>destinationDirectory.tryGetItemAsync(targetFileName);
+                }).then((fileToDelete: Windows.Storage.IStorageItem) => {
                     if (!fileToDelete) {
                         return;
                     }

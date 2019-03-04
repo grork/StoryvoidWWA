@@ -22,7 +22,7 @@
             element.classList.add("dialog", "win-disposable", "fullscreenspinner-dialog", "hide");
 
             DOM.loadTemplate("/HtmlTemplates.html", "fullscreenSpinner").then((template) => {
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     template.render({}, element),
                     WinJS.Promise.timeout()
                 ]);
@@ -82,7 +82,7 @@
 
         public dispose() { }
 
-        public dismissCallback: () => WinJS.Promise<any>;
+        public dismissCallback: () => PromiseLike<any>;
 
         public complete(successful: boolean): void {
             if (this.displayDelay) {
@@ -97,7 +97,7 @@
             const completionSignal = this.completionSignal;
             this.completionSignal = null;
 
-            let removalDelay = WinJS.Promise.as();
+            let removalDelay = Codevoid.Utilities.as();
 
             if (!successful) {
                 removalDelay = this.dismissCallback();
@@ -109,7 +109,7 @@
             });
         }
 
-        public waitForCompletion(): WinJS.Promise<boolean> {
+        public waitForCompletion(): PromiseLike<boolean> {
             return this.completionSignal.promise;
         }
 

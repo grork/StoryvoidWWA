@@ -57,15 +57,15 @@
             }
         }
 
-        public addAdditionalScriptInsideWebView(fullScriptPath: string): WinJS.Promise<any> {
+        public addAdditionalScriptInsideWebView(fullScriptPath: string): PromiseLike<any> {
             return this.invokeForResult("addscript", { url: fullScriptPath });
         }
 
-        public addStyleSheet(fullStyleSheetPath: string): WinJS.Promise<any> {
+        public addStyleSheet(fullStyleSheetPath: string): PromiseLike<any> {
             return this.invokeForResult("addstylesheet", { url: fullStyleSheetPath });
         }
 
-        public invokeForResult(message: string, payload?: any): WinJS.Promise<any> {
+        public invokeForResult(message: string, payload?: any): PromiseLike<any> {
             var completionSignal = new Signal();
             var responseId = this._nextMessageId++;
 

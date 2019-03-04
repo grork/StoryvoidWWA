@@ -36,7 +36,7 @@
         constructor(private _bookmark: IBookmark) {
         }
 
-        public start(): WinJS.Promise<void> {
+        public start(): PromiseLike<void> {
             if (this._started) {
                 return;
             }

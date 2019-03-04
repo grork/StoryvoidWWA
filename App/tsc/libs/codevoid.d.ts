@@ -16,7 +16,7 @@
 
     export interface ISignedInViewModel extends UICore.ViewModel {
         processLaunchInformation?(launchInformation: IAppLaunchInformation): void;
-        signedIn(usingSavedCredentials: boolean): WinJS.Promise<any>;
+        signedIn(usingSavedCredentials: boolean): PromiseLike<any>;
         signInCompleted(): void;
         uiPresented?(): void;
     }
@@ -111,25 +111,25 @@ declare var MSHTMLWebViewElement: {
 
 // db.js types
 interface IndexQuery {
-    only<T>(value: any): WinJS.Promise<T[]>;
+    only<T>(value: any): PromiseLike<T[]>;
 }
 
 interface Query {
-    execute<T>(): WinJS.Promise<T[]>;
+    execute<T>(): PromiseLike<T[]>;
 }
 
 declare class db {
-    static open(parameters: { server: string; version: number; schema?: any }, upgradeCallback?: (server: Server, versionChange: IDBVersionChangeEvent) => void): WinJS.Promise<Server>;
-    static deleteDb(name: string): WinJS.Promise<void>;
+    static open(parameters: { server: string; version: number; schema?: any }, upgradeCallback?: (server: Server, versionChange: IDBVersionChangeEvent) => void): PromiseLike<Server>;
+    static deleteDb(name: string): PromiseLike<void>;
 }
 
 interface Server {
-    add<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
-    put<T>(table: string, records: T | T[]): WinJS.Promise<T[]>;
+    add<T>(table: string, records: T | T[]): PromiseLike<T[]>;
+    put<T>(table: string, records: T | T[]): PromiseLike<T[]>;
     index(table: string, index: string): IndexQuery;
     query(table: string): Query;
-    remove(table: string, id: any): WinJS.Promise<void>;
-    get<T>(table: string, id: any): WinJS.Promise<T>;
+    remove(table: string, id: any): PromiseLike<void>;
+    get<T>(table: string, id: any): PromiseLike<T>;
     close(): void;
     objectStoreNames: DOMStringList;
 }

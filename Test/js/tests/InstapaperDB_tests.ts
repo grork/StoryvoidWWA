@@ -86,7 +86,7 @@
     /// this expects the "this" pointer to be bound to the
     /// instapaper db wrapper
     /// </summary>
-    function moveAndValidate(bookmark: IBookmark, destinationFolder: IFolder, fromServer: boolean): WinJS.Promise<void> {
+    function moveAndValidate(bookmark: IBookmark, destinationFolder: IFolder, fromServer: boolean): PromiseLike<void> {
         return this.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (this: InstapaperDB, originalBookmark: IBookmark) {
             assert.ok(originalBookmark, "Didn't find original bookmark");
             assert.notStrictEqual(originalBookmark.folder_dbid, destinationFolder.id, "Bookmark is already in destination folder");
@@ -112,16 +112,16 @@
         assert.strictEqual(pendingEdit.sourcefolder_dbid, sourcefolder_dbid, "Not marked with the correct ID");
     }
 
-    function cleanupPendingEdits(this: InstapaperDB): WinJS.Promise<void> {
+    function cleanupPendingEdits(this: InstapaperDB): PromiseLike<void> {
         return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then((edits) => {
             let deletes = edits.map((edit) => this.deletePendingBookmarkEdit(edit.id));
-            return WinJS.Promise.join(deletes);
+            return <PromiseLike<any>>WinJS.Promise.join(deletes);
         });
     }
 
     const LOCAL_BOOKMARK_ID = 42424242;
 
-    function canRemoveBookmarkNoPendingEdit(): WinJS.Promise<void> {
+    function canRemoveBookmarkNoPendingEdit(): PromiseLike<void> {
         let instapaperDB: InstapaperDB;
 
         return getNewInstapaperDBAndInit().then((idb) => {
@@ -136,7 +136,7 @@
         });
     }
 
-    function canAddBookmarkNoPendingEdit(): WinJS.Promise<void> {
+    function canAddBookmarkNoPendingEdit(): PromiseLike<void> {
         let instapaperDB: InstapaperDB;
         const bookmark: Codevoid.Storyvoid.IBookmark = {
             title: "LocalBookmark",
@@ -163,7 +163,7 @@
         });
     }
 
-    function addSampleData(): WinJS.Promise<void> {
+    function addSampleData(): PromiseLike<void> {
         setSampleData();
         let instapaperDB: InstapaperDB;
         const expectedFolderIds = defaultFolderIds.concat([]);
@@ -181,7 +181,7 @@
                 });
             });
 
-            return WinJS.Promise.join(addedFolders);
+            return <PromiseLike<any>>WinJS.Promise.join(addedFolders);
         }).then(() => instapaperDB.listCurrentFolders()).
            then((currentFolders) => {
                 assert.ok(currentFolders, "Didn't get any added Folders");
@@ -203,15 +203,15 @@
                 const addedBookmarks = sampleBookmarks.map((bookmark) => instapaperDB.addBookmark(bookmark));
                 addedBookmarks.push(WinJS.Promise.timeout());
 
-                return WinJS.Promise.join(addedBookmarks).then(() => instapaperDB.listCurrentBookmarks());
+                return <PromiseLike<any>>WinJS.Promise.join(addedBookmarks).then(() => instapaperDB.listCurrentBookmarks());
             }).then((currentBookmarks) => {
                 assert.ok(currentBookmarks, "didn't find any bookmarks");
                 assert.strictEqual(currentBookmarks.length, sampleBookmarks.length, "Didn't find expected bookmarks");
             });
     }
 
-    function deleteCoreInfraDbs(): WinJS.Promise<void> {
-        return WinJS.Promise.join([
+    function deleteCoreInfraDbs(): PromiseLike<void> {
+        return <PromiseLike<any>>WinJS.Promise.join([
             deleteDb("One"),
             deleteDb("Two"),
         ]);
@@ -453,12 +453,12 @@
                 instapaperDB = idb;
                 return instapaperDB.addFolder({ title: "shouldntBeSyncd" });
             }).then((addedFolder) => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     timeout: WinJS.Promise.timeout(),
-                    folder: WinJS.Promise.as(addedFolder),
+                    folder: Codevoid.Utilities.as(addedFolder),
                 });
             }).
-                then((data) => WinJS.Promise.join([instapaperDB.removeFolder(data.folder.id), WinJS.Promise.timeout()])).
+                then((data) => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.removeFolder(data.folder.id), WinJS.Promise.timeout()])).
                 then(() => expectNoPendingFolderEdits(instapaperDB));
         });
 
@@ -477,14 +477,14 @@
                 // Need to give the folder a fake ID to make sure we can resurect it
                 // We don't want to sync things in these simple tests
                 addedFolder.folder_id = Date.now().toString();
-                return WinJS.Promise.join([instapaperDB.updateFolder(addedFolder), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.updateFolder(addedFolder), WinJS.Promise.timeout()]);
             }).then(() => expectNoPendingFolderEdits(instapaperDB)).
-                then(() => WinJS.Promise.join([instapaperDB.removeFolder(addedFolder.id), WinJS.Promise.timeout()])).
+                then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.removeFolder(addedFolder.id), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getFolderByDbId(addedFolder.id)).
                 then((data) => {
                     assert.ok(!data, "Didn't expect any data");
 
-                    return WinJS.Promise.join({
+                    return <PromiseLike<any>>WinJS.Promise.join({
                         folder: instapaperDB.addFolder({ title: folderTitle }),
                         timeout: WinJS.Promise.timeout(),
                     });
@@ -518,7 +518,7 @@
             }).then((bookmark) => {
                 assert.notStrictEqual(bookmark.url, "http://www.bing.com", "URL shouldn't have been that which we're about to set it to");
                 bookmark.url = "http://www.bing.com";
-                return WinJS.Promise.join([instapaperDB.updateBookmark(bookmark), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.updateBookmark(bookmark), WinJS.Promise.timeout()]);
             }).then(() => instapaperDB.getBookmarkByBookmarkId(bookmark_id)).then((updatedBookmark) => {
                 assert.ok(updatedBookmark, "no bookmark returned");
                 assert.strictEqual(updatedBookmark.url, "http://www.bing.com", "Incorrect Url");
@@ -533,7 +533,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join([idb.addUrl({
+                return <PromiseLike<any>>WinJS.Promise.join([idb.addUrl({
                     url: "http://www.microsoft.com",
                     title: "Microsoft",
                 }), WinJS.Promise.timeout()]);
@@ -585,7 +585,7 @@
                 assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
                 return WinJS.Promise.timeout();
             }).then(() => expectNoPendingBookmarkEdits(instapaperDB)).
-                then(() => WinJS.Promise.join([instapaperDB.likeBookmark(bookmark.bookmark_id, true), WinJS.Promise.timeout()])).
+                then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(bookmark.bookmark_id, true), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -618,7 +618,7 @@
                 assert.ok(bookmark, "Didn't get bookmark");
                 assert.strictEqual(bookmark.starred, 1, "Bookmark needs to be liked to unlike it");
 
-                return WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
             }).then((unlikedBookmark) => {
                 unlikedBookmark = unlikedBookmark[0];
                 assert.ok(unlikedBookmark, "no bookmark returned");
@@ -642,7 +642,7 @@
                 return idb.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID);
             }).then((bookmark) => {
                 assert.notStrictEqual(bookmark.progress, targetProgress, "Bookmark already had the target progress");
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     bookmark: instapaperDB.updateReadProgress(bookmark.bookmark_id, targetProgress),
                     timeout: WinJS.Promise.timeout(),
                 });
@@ -668,7 +668,7 @@
                 return idb.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID);
             }).then((bookmark) => {
                 folder_dbid = bookmark.folder_dbid;
-                return WinJS.Promise.join([instapaperDB.removeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.removeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()]);
             }).then(() => instapaperDB.listCurrentBookmarks()).then((currentBookmarks) => {
                 assert.ok(currentBookmarks, "Didn't get any pending bookmarks");
 
@@ -684,7 +684,7 @@
                 assert.strictEqual(edit.type, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE, "Expected Delete type");
                 assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                 assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Incorrect source folder");
-            }).then(() => WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()])).
+            }).then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()])).
                then(() => expectNoPendingBookmarkEdits(instapaperDB));
         });
 
@@ -699,7 +699,7 @@
                 instapaperDB = idb;
 
                 return expectNoPendingBookmarkEdits(instapaperDB);
-            }).then(() => WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+            }).then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -721,7 +721,7 @@
                     assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                     assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked for the correct folder");
                 }).
-                then(() => WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()])).
+                then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()])).
                 then(() => expectNoPendingBookmarkEdits(instapaperDB));
         });
 
@@ -734,7 +734,7 @@
                 instapaperDB = idb;
 
                 return expectNoPendingBookmarkEdits(instapaperDB);
-            }).then(() => WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+            }).then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -769,7 +769,7 @@
                     assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                     assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Marked with the wrong source folder ID");
 
-                    return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+                    return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
                 }).then(() => expectNoPendingBookmarkEdits(instapaperDB));
         });
 
@@ -780,9 +780,9 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
             }).then(() => expectNoPendingBookmarkEdits(instapaperDB)).
-                then(() => WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+                then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -803,7 +803,7 @@
                     assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                     assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "Not marked with correct source folder");
 
-                    return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+                    return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
                 }).then(() => expectNoPendingBookmarkEdits(instapaperDB));
         });
 
@@ -814,9 +814,9 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID, true), WinJS.Promise.timeout()]);
             }).then(() => expectNoPendingBookmarkEdits(instapaperDB)).
-                then(() => WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+                then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => {
                     return instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID);
                 }).then((newBookmark) => {
@@ -838,7 +838,7 @@
                     assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                     assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
 
-                    return WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()]);
+                    return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()]);
                 }).then(() => colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits())).
                 then((currentPendingEdits) => {
                     assert.ok(currentPendingEdits, "Didn't find any pending edits");
@@ -851,7 +851,7 @@
                     assert.strictEqual(edit.bookmark_id, LOCAL_BOOKMARK_ID, "Wrong bookmark");
                     assert.strictEqual(edit.sourcefolder_dbid, folder_dbid, "marked with the wrong source folder");
 
-                    return WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
+                    return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.deletePendingBookmarkEdit(pendingEditId), WinJS.Promise.timeout()]);
                 }).then(() => expectNoPendingBookmarkEdits(instapaperDB));
         });
 
@@ -863,7 +863,7 @@
                 instapaperDB = idb;
 
                 return expectNoPendingBookmarkEdits(instapaperDB);
-            }).then(() => WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+            }).then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.likeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -902,7 +902,7 @@
                 instapaperDB = idb;
 
                 return expectNoPendingBookmarkEdits(instapaperDB);
-            }).then(() => WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
+            }).then(() => <PromiseLike<any>>WinJS.Promise.join([instapaperDB.unlikeBookmark(LOCAL_BOOKMARK_ID), WinJS.Promise.timeout()])).
                 then(() => instapaperDB.getBookmarkByBookmarkId(LOCAL_BOOKMARK_ID)).
                 then((newBookmark) => {
                     assert.ok(newBookmark, "no bookmark returned");
@@ -1074,7 +1074,7 @@
 
                 assert.strictEqual(likeEdit.bookmark_id, targetBookmark.bookmark_id, "Like had wrong like bookmark");
 
-                return WinJS.Promise.join([instapaperDB.removeBookmark(targetBookmark.bookmark_id), WinJS.Promise.timeout()]);
+                return <PromiseLike<any>>WinJS.Promise.join([instapaperDB.removeBookmark(targetBookmark.bookmark_id), WinJS.Promise.timeout()]);
             }).then(() => colludePendingBookmarkEdits(instapaperDB.getPendingBookmarkEdits())).then((pendingEdits) => {
                 let likeEdit: IBookmarkPendingEdit;
                 let deleteEdit: IBookmarkPendingEdit;
@@ -1109,12 +1109,12 @@
 
         it("updateSampleBookmarks", () => {
             return getNewInstapaperDBAndInit().then((idb) => {
-                let gets: WinJS.Promise<IBookmark>[] = sampleBookmarks.map((bookmark, index) => {
+                let gets: PromiseLike<IBookmark>[] = sampleBookmarks.map((bookmark, index) => {
                     return idb.getBookmarkByBookmarkId(bookmark.bookmark_id).then((dbBookmark) => sampleBookmarks[index] = dbBookmark);
                 });
 
                 assert.strictEqual(gets.length, sampleBookmarks.length);
-                return WinJS.Promise.join(gets);
+                return <PromiseLike<any>>WinJS.Promise.join(gets);
             });
         });
 
@@ -1188,7 +1188,7 @@
             let instapaperDB: InstapaperDB;
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     idb.likeBookmark(sampleBookmarks[5].bookmark_id, true),
                     idb.likeBookmark(sampleBookmarks[7].bookmark_id, true),
                     WinJS.Promise.timeout()
@@ -1221,7 +1221,7 @@
 
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     move: instapaperDB.moveBookmark(bookmark1.bookmark_id, destinationFolder.id),
                     like1: instapaperDB.likeBookmark(bookmark2.bookmark_id),
                     like2: instapaperDB.likeBookmark(bookmark3.bookmark_id),
@@ -1304,7 +1304,7 @@
                 }, []);
 
                 addPromises.push(WinJS.Promise.timeout());
-                return WinJS.Promise.join(addPromises);
+                return <PromiseLike<any>>WinJS.Promise.join(addPromises);
             }).then(() => instapaperDB.getPendingBookmarkEdits()).then((pendingEdits) => {
                 assert.ok(pendingEdits, "Expected pending edits");
                 assert.strictEqual(pendingEdits.adds.length, sampleBookmarks.length, "Didn't find enough pending edits");
@@ -1337,7 +1337,7 @@
             return getNewInstapaperDBAndInit().then((idb) => {
                 instapaperDB = idb;
 
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     like: idb.likeBookmark(sampleBookmarks[0].bookmark_id, true),
                     unreadFolder: idb.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread),
                     archiveFolder: idb.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive),
@@ -1356,9 +1356,9 @@
                     WinJS.Promise.timeout(),
                 ];
 
-                return WinJS.Promise.join(operations);
+                return <PromiseLike<any>>WinJS.Promise.join(operations);
             }).then(() => {
-                return WinJS.Promise.join({
+                return <PromiseLike<any>>WinJS.Promise.join({
                     unread: instapaperDB.getPendingBookmarkEdits(unreadFolderDbId),
                     archive: instapaperDB.getPendingBookmarkEdits(archiveFolderDbId),
                     sampleFolder: instapaperDB.getPendingBookmarkEdits(sampleFolders[0].id),
@@ -1425,7 +1425,7 @@
                 folder_dbid: null
             };
 
-            return WinJS.Promise.join([
+            return <PromiseLike<any>>WinJS.Promise.join([
                 getNewInstapaperDBAndInit(dbNameOne),
                 getNewInstapaperDBAndInit(dbNameTwo)
             ]).then((result) => {
@@ -1434,12 +1434,12 @@
                 bookmarkOne.folder_dbid = dbOne.commonFolderDbIds.unread;
                 bookmarkTwo.folder_dbid = dbTwo.commonFolderDbIds.unread;
 
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     dbOne.addBookmark(bookmarkOne),
                     dbTwo.addBookmark(bookmarkTwo)
                 ]);
             }).then(() => {
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     dbOne.listCurrentBookmarks(),
                     dbTwo.listCurrentBookmarks()
                 ]);
@@ -1453,11 +1453,11 @@
                 assert.strictEqual(result[1][0].title, bookmarkTwo.title, "DB two bookmark has wrong title");
                 assert.strictEqual(result[1][0].bookmark_id, bookmarkTwo.bookmark_id, "DB two bookmark has wrong ID");
 
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     dbOne.deleteAllData(),
                     dbTwo.deleteAllData()
                 ]).then(() => {
-                    return WinJS.Promise.join([
+                    return <PromiseLike<any>>WinJS.Promise.join([
                         getNewInstapaperDBAndInit(dbNameOne),
                         getNewInstapaperDBAndInit(dbNameTwo),
                     ]);
@@ -1466,7 +1466,7 @@
                     dbTwo = result[0];
                 });
             }).then(() => {
-                return WinJS.Promise.join([
+                return <PromiseLike<any>>WinJS.Promise.join([
                     dbOne.listCurrentBookmarks(),
                     dbTwo.listCurrentBookmarks()
                 ]);

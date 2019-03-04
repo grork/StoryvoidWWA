@@ -196,7 +196,7 @@
         private _handleReady(): void {
             this._pageReady = true;
 
-            WinJS.Promise.join([
+            <PromiseLike<any>>WinJS.Promise.join([
                 this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
                 this._messenger.addStyleSheet("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.css"),
                 this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.js")
@@ -307,9 +307,9 @@
             this._keyDownMap[e.keyCode] = true;
         }
 
-        private _showToolbarIfNotVisible(): WinJS.Promise<any> {
+        private _showToolbarIfNotVisible(): PromiseLike<any> {
             if (this._toolbarVisible) {
-                return WinJS.Promise.as();
+                return Codevoid.Utilities.as();
             }
 
             return this._toggleToolbar();
@@ -452,7 +452,7 @@
             }
         }
 
-        private _toggleToolbar(): WinJS.Promise<any> {
+        private _toggleToolbar(): PromiseLike<any> {
             var offset = {
                 top: null,
                 left: "0px",
@@ -470,9 +470,9 @@
             }
 
             if (this._toolbarVisible) {
-                var hidden = WinJS.Promise.as<void>();
+                var hidden = Codevoid.Utilities.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
-                    hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
+                    hidden = <PromiseLike<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
                 hidden.then(() => {
@@ -495,7 +495,7 @@
                 this._updateToolbarPaddingToKeepToolbarBelowTitle();
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight + topOffset) + "px";
 
-                var shown = WinJS.Promise.as<void>();
+                var shown = Codevoid.Utilities.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
                     shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
@@ -854,7 +854,7 @@
             }));
         }
 
-        public get displayed(): WinJS.Promise<any> {
+        public get displayed(): PromiseLike<any> {
             return this._displayedSignal.promise;
         }
 

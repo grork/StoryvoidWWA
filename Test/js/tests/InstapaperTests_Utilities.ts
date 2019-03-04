@@ -23,7 +23,7 @@
         playground.innerHTML = "";
     }
 
-    export function getNewInstapaperDBAndInit(name?: string, version?: number): WinJS.Promise<InstapaperDB> {
+    export function getNewInstapaperDBAndInit(name?: string, version?: number): PromiseLike<InstapaperDB> {
         return new InstapaperDB().initialize(name, version).then((idb) => {
             pendingDbs.push(idb);
 
@@ -31,14 +31,14 @@
         });
     }
 
-    export function expectNoPendingFolderEdits(idb: InstapaperDB): WinJS.Promise<void> {
+    export function expectNoPendingFolderEdits(idb: InstapaperDB): PromiseLike<void> {
         return idb.getPendingFolderEdits().then((pendingEdits) => {
             assert.ok(pendingEdits, "Expected valid pending edits structure");
             assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    export function colludePendingBookmarkEdits(pendingEditPromise: WinJS.Promise<Codevoid.Storyvoid.IBookmarkPendingEdits>): WinJS.Promise<Codevoid.Storyvoid.IBookmarkPendingEdit[]> {
+    export function colludePendingBookmarkEdits(pendingEditPromise: PromiseLike<Codevoid.Storyvoid.IBookmarkPendingEdits>): PromiseLike<Codevoid.Storyvoid.IBookmarkPendingEdit[]> {
         return pendingEditPromise.then((edits) => {
             if (Array.isArray(edits)) {
                 return edits;
@@ -79,14 +79,14 @@
         });
     }
 
-    export function expectNoPendingBookmarkEdits(idb: InstapaperDB): WinJS.Promise<void> {
+    export function expectNoPendingBookmarkEdits(idb: InstapaperDB): PromiseLike<void> {
         return colludePendingBookmarkEdits(idb.getPendingBookmarkEdits()).then((pendingEdits) => {
             assert.ok(pendingEdits, "Expected valid pending edits structure");
             assert.strictEqual(pendingEdits.length, 0, "Didn't expect to find any pending edits");
         });
     }
 
-    export function deleteDb(name?: string): WinJS.Promise<void> {
+    export function deleteDb(name?: string): PromiseLike<void> {
         cleanUpOpenDbs();
 
         return WinJS.Promise.timeout().then(() => db.deleteDb(name || InstapaperDB.DBName)).then(() => assert.ok(true));
@@ -110,7 +110,7 @@
         // Remove all the folders. If there are any bookmarks in these folders
         // when this happens, the back end will move them to "Archive".
         return folders.list().then((serverFolders) => {
-            return WinJS.Promise.join({
+            return <PromiseLike<any>>WinJS.Promise.join({
                 bookmarks: Codevoid.Utilities.serialize(serverFolders, (folder) => {
                     // We can't delete the default folders, so skip them
                     if (defaultFolderIds.indexOf(folder.folder_id) !== -1) {
@@ -157,7 +157,7 @@
                 });
             });
 
-            return WinJS.Promise.join([removals, progressReset]);
+            return <PromiseLike<any>>WinJS.Promise.join([removals, progressReset]);
         });
     }
 }
