@@ -65,22 +65,17 @@
             assert.ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
         });
 
-        it("can be exlicitly cancelled", () => {
+        it("can be explicitly cancelled", () => {
             const signal = new Signal();
-            let wasCancelled = false;
-            signal.addEventListener("cancelled", () => wasCancelled = true);
+            const p = signal.promise.then(() => {
+                assert.ok(false, "Promise was not cancelled");
+            }, (e) => {
+                assert.strictEqual(e.name, "Canceled", "Promise wasn't cancelled");
+            });
 
             signal.cancel();
 
-            assert.ok(wasCancelled, "Promise wasn't cancelled");
-        });
-
-        it("when cancelled, event contains signal instance", () => {
-            const signal = new Signal();
-            let wasCancelled = false;
-            signal.addEventListener("cancelled", (e) => assert.strictEqual(signal, e.detail.signal));
-
-            signal.cancel();
+            return p;
         });
 
         it("can be completed", () => {

@@ -245,11 +245,7 @@ namespace Codevoid.Utilities {
                 that._complete = c;
                 that._error = e;
                 that._progress = p;
-            }, this._handleCancelled.bind(this));
-        }
-
-        private _handleCancelled(): void {
-            this.dispatchEvent("cancelled", { signal: this });
+            });
         }
 
         public get promise(): WinJS.Promise<any> {
@@ -274,12 +270,10 @@ namespace Codevoid.Utilities {
         }
 
         public cancel(): void {
-            this._wrappedPromise.cancel();
+            const error = new Error("Canceled");
+            error.name = "Canceled";
+            this._error(error);
         }
-    }
-
-    export interface Signal {
-        addEventListener(name: "cancelled", handler: (eventData: Utilities.EventObject<{ signal: Signal }>) => any, useCapture?: boolean): void;
     }
 
     export interface ILogMessage {
