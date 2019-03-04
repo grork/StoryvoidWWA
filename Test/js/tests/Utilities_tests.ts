@@ -847,4 +847,53 @@
             });
         });
     });
+
+    describe("Utilities Timeout Promise", () => {
+        it("completes when called without delay", async () => {
+            await Codevoid.Utilities.timeout();
+        });
+
+        it("completes after timeout", async () => {
+            const start = Date.now();
+            await Codevoid.Utilities.timeout(100);
+
+            const duration = Date.now() - start;
+            assert.ok((duration > 99) && (duration < 120), `Timeout was too short or too long ${duration}`);
+        });
+
+        it("cancelling cancellation source cancels timeout & errors promise", () => {
+            const cs = new Codevoid.Utilities.CancellationSource();
+            const start = Date.now();
+
+            const p = Codevoid.Utilities.timeout(100, cs).then(() => {
+                assert.ok(false, "Promise shouldn't complete");
+            }, (e) => {
+                assert.strictEqual(e.name, "Canceled", "Promise didn't indicate cancellation");
+
+                const duration = Date.now() - start;
+                assert.ok(duration < 90, "Error handler may have been delayed, it shouldn't");
+            });
+
+            setTimeout(() => cs.cancel(), 10);
+
+            return p;
+        });
+
+        it("using already cancelled concellation source rejects promise", () => {
+            const start = Date.now();
+            const cs = new Codevoid.Utilities.CancellationSource();
+            cs.cancel();
+
+            const p = Codevoid.Utilities.timeout(100, cs).then(() => {
+                assert.ok(false, "Promise shouldn't complete");
+            }, (e) => {
+                assert.strictEqual(e.name, "Canceled", "Promise didn't indicate cancellation");
+
+                const duration = Date.now() - start;
+                assert.ok(duration < 90, "Error handler may have been delayed, it shouldn't");
+            });
+
+            return p;
+        });
+    });
 }

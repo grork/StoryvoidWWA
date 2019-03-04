@@ -4,6 +4,13 @@
 }
 
 namespace Codevoid.Utilities {
+    function getCancelledError(): Error {
+        const error = new Error("Canceled");
+        error.name = "Canceled";
+
+        return error;
+    }
+
     type EventListenerEntry = {
         useCapture: boolean;
         listener: Function;
@@ -268,10 +275,38 @@ namespace Codevoid.Utilities {
         }
 
         public cancel(): void {
-            const error = new Error("Canceled");
-            error.name = "Canceled";
-            this._error(error);
+            this._error(getCancelledError());
         }
+    }
+
+    export function timeout(delay: number = 0, cancellationToken?: CancellationSource): Promise<void> {
+        let timerId: number = 0;
+        let listener: ICancellable;
+
+        if (cancellationToken) {
+            if (cancellationToken.cancelled) {
+                return Promise.reject(getCancelledError());
+            }
+
+            listener = addEventListeners(cancellationToken, {
+                cancelled: () => {
+                    clearTimeout(timerId);
+                    reject(getCancelledError());
+                }
+            });
+        }
+
+        let reject: (e: any) => any;
+        const p = new Promise<void>((c, r) => {
+            timerId = setTimeout(() => {
+                c();
+                if (listener) { listener.cancel(); }
+            }, delay);
+
+            reject = r;
+        });
+
+        return p;
     }
 
     export interface ILogMessage {
@@ -333,16 +368,21 @@ namespace Codevoid.Utilities {
         }
     }
 
-    export class CancellationSource {
+    export class CancellationSource extends EventSource {
         private _cancelled: boolean = false;
 
         public cancel(): void {
             this._cancelled = true;
+            this.dispatchEvent("cancelled");
         }
 
         public get cancelled(): boolean {
             return this._cancelled;
         }
+    }
+
+    export interface CancellationSource {
+        addEventListener(name: "cancelled", handler: (eventData: Utilities.EventObject<void>) => any, useCapture?: boolean): void;
     }
 
     export function serialize(items: any[], work: (item: any, index?: number) => PromiseLike<any>, concurrentWorkLimit?: number, cancellationSource?: CancellationSource): PromiseLike<any> {
