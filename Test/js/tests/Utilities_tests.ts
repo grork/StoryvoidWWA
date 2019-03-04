@@ -152,107 +152,121 @@
     });
 
     describe("Utilities Serialize promise execution", () => {
-        it("all promises are executed", () => {
+        it("all promises are executed", async () => {
             let promisesCompleted = 0;
             const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-            return Codevoid.Utilities.serialize(data, () => {
+            await Codevoid.Utilities.serialize(data, () => {
                 promisesCompleted++;
-                return WinJS.Promise.timeout();
-            }).then(() => assert.strictEqual(promisesCompleted, 10));
+                return Promise.resolve();
+            });
+            
+            
+            assert.strictEqual(promisesCompleted, 10);
         });
 
-        it("doesn't run out of stack space with lots of items to process", function (this: Mocha.Context) {
+        it("doesn't run out of stack space with lots of items to process", async function (this: Mocha.Context) {
             this.timeout(60000);
             let promisesCompleted = 0;
             const data = [];
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 6000; i++) {
                 data.push(i);
             }
 
-            return Codevoid.Utilities.serialize(data, () => {
+            await Codevoid.Utilities.serialize(data, () => {
                 promisesCompleted++;
-                return WinJS.Promise.timeout();
-            }).then(() => assert.strictEqual(promisesCompleted, data.length));
+                return Promise.resolve();
+            });
+            
+            assert.strictEqual(promisesCompleted, data.length);
         });
 
-        it("the work is performed sequentially", () => {
+        it("the work is performed sequentially", async () => {
             let promiseExecuting = false;
             let completedPromises = 0;
             const data = [1, 2, 3, 4, 5, 6, 8, 9, 10];
 
-            return Codevoid.Utilities.serialize(data, () => {
+            await Codevoid.Utilities.serialize(data, async () => {
                 assert.ok(!promiseExecuting, "A promise was already executing");
                 promiseExecuting = true;
-                return WinJS.Promise.timeout(10).then(() => {
-                    promiseExecuting = false;
-                    completedPromises++;
-                });
-            }).then(() => assert.strictEqual(completedPromises, data.length));
+
+                await Codevoid.Utilities.timeout(10);
+
+                promiseExecuting = false;
+                completedPromises++;
+            });
+
+            assert.strictEqual(completedPromises, data.length);
         });
 
-        it("concurrent work respects limit of concurrent items in flight", () => {
+        it("concurrent work respects limit of concurrent items in flight", async () => {
             let promiseExecuting = 0;
             let completedPromises = 0;
             const data = [1, 2, 3, 4, 5, 6, 8, 9, 10];
 
-            return Codevoid.Utilities.serialize(data, () => {
+            return Codevoid.Utilities.serialize(data, async () => {
                 promiseExecuting++;
-                assert.ok(promiseExecuting < 3, "Only expected up to to promises")
-                return WinJS.Promise.timeout(10).then(() => {
-                    promiseExecuting--;
-                    completedPromises++;
-                });
-            }, 2).then(() => {
-                assert.strictEqual(promiseExecuting, 0, "All promises should be complete");
-                assert.strictEqual(completedPromises, data.length);
-            });
+                assert.ok(promiseExecuting < 3, "Only expected up to to promises");
+
+                await Codevoid.Utilities.timeout(10);
+
+                promiseExecuting--;
+                completedPromises++;
+            }, 2);
+
+            assert.strictEqual(promiseExecuting, 0, "All promises should be complete");
+            assert.strictEqual(completedPromises, data.length);
         });
 
-        it("all work is processed even if one promise fails", () => {
+        it("all work is processed even if one promise fails", async () => {
             const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-            return Codevoid.Utilities.serialize(data, (item: number) => {
-                if (item === 5) {
-                    throw "Failure!";
-                }
+            try {
+                await Codevoid.Utilities.serialize(data, (item: number) => {
+                    if (item === 5) {
+                        throw "Failure!";
+                    }
 
-                return WinJS.Promise.timeout();
-            }).then(
-                () => assert.ok(false, "Shouldn't succeed"),
-                () => assert.ok(true, "should have gotten error")
-            );
+                    return WinJS.Promise.timeout();
+                });
+
+                assert.ok(false, "Shouldn't succeed");
+            } catch (e) {
+                assert.ok(true, "should have gotten error")
+            }
         });
 
-        it("values are returned as an array when completed", () => {
+        it("values are returned as an array when completed", async () => {
             const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-            return Codevoid.Utilities.serialize(data, (item: number) => {
-                return WinJS.Promise.timeout().then(() => {
-                    return item;
-                });
-            }).then((values: number[]) => {
-                values.forEach((value, index) => assert.strictEqual(value, data[index], "Values & Order didn't match at index: " + index));
+            const values: number[] = await Codevoid.Utilities.serialize(data, async (item: number) => {
+                await Codevoid.Utilities.timeout();
+                return item;
             });
+
+            values.forEach((value, index) => assert.strictEqual(value, data[index], "Values & Order didn't match at index: " + index));
         });
 
-        it("can be cancelled", () => {
+        it("can be cancelled", async () => {
             let promisesCompleted = 0;
             const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             const cancel = new Codevoid.Utilities.CancellationSource();
 
-            return Codevoid.Utilities.serialize(data, (item: number) => {
-                promisesCompleted++;
-                if (item === 5) {
-                    cancel.cancel();
-                    return;
-                }
+            try {
+                await Codevoid.Utilities.serialize(data, (item: number) => {
+                    promisesCompleted++;
+                    if (item === 5) {
+                        cancel.cancel();
+                        return;
+                    }
 
-                return WinJS.Promise.timeout();
-            }, 0, cancel).then(
-                () => assert.ok(false, "shouldn't succeed"),
-                () => assert.strictEqual(promisesCompleted, 5)
-            );
+                    return WinJS.Promise.timeout();
+                }, 0, cancel);
+
+                assert.ok(false, "shouldn't succeed");
+            } catch (e) {
+                assert.strictEqual(promisesCompleted, 5);
+            }
         });
     });
 
