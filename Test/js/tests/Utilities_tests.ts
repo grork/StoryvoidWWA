@@ -335,18 +335,17 @@
         beforeEach(InstapaperTestUtilities.clearPlayground);
         afterEach(InstapaperTestUtilities.clearPlayground);
 
-        it("Disposed controls have their unload method called", () => {
+        it("Disposed controls have their unload method called", async () => {
             let playground = getPlayground();
 
             let controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
 
-            return WinJS.UI.process(controlElement).then(() => {
-                domUtilities.disposeOfControl(controlElement);
-                assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
-            });
+            await WinJS.UI.process(controlElement);
+            domUtilities.disposeOfControl(controlElement);
+            assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
         });
 
-        it("Unload is called on the entire tree being unloaded", () => {
+        it("Unload is called on the entire tree being unloaded", async () => {
             let playground = getPlayground();
             let parent = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
 
@@ -354,16 +353,14 @@
                 parent.appendChild(CodevoidTests.TestControl.getElementForControl());
             }
 
-            return WinJS.UI.processAll(playground).then(() => {
-                const controls = WinJS.Utilities.query("[data-win-control]", playground);
+            await WinJS.UI.processAll(playground);
 
-                domUtilities.disposeOfControlTree(parent);
-
-                controls.forEach((control) => assert.ok(control.winControl.disposed, "Control wasn't disposed"));
-            });
+            const controls = WinJS.Utilities.query("[data-win-control]", playground);
+            domUtilities.disposeOfControlTree(parent);
+            controls.forEach((control) => assert.ok(control.winControl.disposed, "Control wasn't disposed"));
         });
 
-        it("Unloading a tree calls from the leaf nodes in", () => {
+        it("Unloading a tree calls from the leaf nodes in", async () => {
             let playground = getPlayground();
             let parent = playground.appendChild(CodevoidTests.CustomUnloadingControl.getElementForControl());
 
@@ -371,63 +368,59 @@
                 parent = parent.appendChild(CodevoidTests.CustomUnloadingControl.getElementForControl());
             }
 
-            return WinJS.UI.processAll(playground).then(() => {
-                let controls = WinJS.Utilities.query("[data-win-control]", playground);
-                domUtilities.disposeOfControlTree(<HTMLElement>playground.firstChild);
+            await WinJS.UI.processAll(playground);
+            let controls = WinJS.Utilities.query("[data-win-control]", playground);
+            domUtilities.disposeOfControlTree(<HTMLElement>playground.firstChild);
 
-                let unloadOrder = CodevoidTests.CustomUnloadingControl.unloadedOrder;
-                assert.strictEqual(unloadOrder.length, 6, "Incorrect number of controls");
+            let unloadOrder = CodevoidTests.CustomUnloadingControl.unloadedOrder;
+            assert.strictEqual(unloadOrder.length, 6, "Incorrect number of controls");
 
-                for (let i = 1; i < unloadOrder.length; i++) {
-                    assert.ok(unloadOrder[i - 1] > unloadOrder[i], "Incorrect unload order detected. Control '" + unloadOrder[i - 1] + "' was not after '" + unloadOrder[i] + "'");
-                }
+            for (let i = 1; i < unloadOrder.length; i++) {
+                assert.ok(unloadOrder[i - 1] > unloadOrder[i], "Incorrect unload order detected. Control '" + unloadOrder[i - 1] + "' was not after '" + unloadOrder[i] + "'");
+            }
 
-                CodevoidTests.CustomUnloadingControl.unloadedOrder = null;
-            });
+            CodevoidTests.CustomUnloadingControl.unloadedOrder = null;
         });
 
-        it("one unload throwing does not stop all other unloads from being called", () => {
+        it("one unload throwing does not stop all other unloads from being called", async () => {
             let playground = getPlayground();
 
             let controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
             let failingElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
             let controlElement2 = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
 
-            return WinJS.UI.processAll(playground).then(() => {
-                failingElement.winControl.dispose = () => { throw new Error() };
+            await WinJS.UI.processAll(playground);
+            failingElement.winControl.dispose = () => { throw new Error() };
 
-                domUtilities.disposeOfControlTree(playground);
-                assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
-                assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
-            });
+            domUtilities.disposeOfControlTree(playground);
+            assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
 
-        it("using the empty helper calls unload", () => {
+        it("using the empty helper calls unload", async () => {
             let playground = getPlayground();
 
             let controlElement = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
             let controlElement2 = playground.appendChild(CodevoidTests.TestControl.getElementForControl());
 
-            return WinJS.UI.processAll(playground).then(() => {
-                domUtilities.empty(playground);
-                assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
-                assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
-            });
+            await WinJS.UI.processAll(playground);
+            domUtilities.empty(playground);
+            assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
 
-        it("remove child helper calls unload", () => {
+        it("remove child helper calls unload", async () => {
             let playground = getPlayground();
             let parent = playground.appendChild(document.createElement("div"));
 
             let controlElement = parent.appendChild(CodevoidTests.TestControl.getElementForControl());
             let controlElement2 = parent.appendChild(CodevoidTests.TestControl.getElementForControl());
 
-            return WinJS.UI.processAll(playground).then(() => {
-                domUtilities.removeChild(playground, parent);
+            await WinJS.UI.processAll(playground);
+            domUtilities.removeChild(playground, parent);
 
-                assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
-                assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
-            });
+            assert.ok(controlElement.winControl.disposed, "Control wasn't disposed");
+            assert.ok(controlElement2.winControl.disposed, "Control wasn't disposed");
         });
     });
 
@@ -435,49 +428,54 @@
         beforeEach(InstapaperTestUtilities.clearPlayground);
         afterEach(InstapaperTestUtilities.clearPlayground);
 
-        it("can be loaded", () => {
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then((template) => {
-                assert.ok(template, "Template Loaded!");
-                domUtilities.clearTemplateCaches();
-            });
+        it("can be loaded", async () => {
+            const template = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate");
+            assert.ok(template, "Template Loaded!");
+            domUtilities.clearTemplateCaches();
         });
 
-        it("a template is actually returned", () => {
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate").then((template) => {
-                assert.ok(template, "Template Loaded!");
-                assert.ok(template instanceof WinJS.Binding.Template, "Template isn't a WinJS.Binding.Template");
-                domUtilities.clearTemplateCaches();
-            });
+        it("a template is actually returned", async () => {
+            const template = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "testTemplate");
+            assert.ok(template, "Template Loaded!");
+            assert.ok(template instanceof WinJS.Binding.Template, "Template isn't a WinJS.Binding.Template");
+            domUtilities.clearTemplateCaches();
         });
 
-        it("failure is raised when the file containing the template doesn't exist", () => {
-            return domUtilities.loadTemplate("/foo.html", "testTemplate").then(null, () => assert.ok(true, "Should have failed to load template"));
+        it("failure is raised when the file containing the template doesn't exist", async () => {
+            try {
+                const template = await domUtilities.loadTemplate("/foo.html", "testTemplate");
+            } catch (e) {
+                assert.ok(true, "Should have failed to load template");
+            }
         });
 
-        it("failure is rased when the template is not in the file, but the file exists", () => {
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "foo").then(null, () => assert.ok(true, "Should have failed to load template"));
+        it("failure is rased when the template is not in the file, but the file exists", async () => {
+            try {
+                const template = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "foo");
+            } catch (e) {
+                assert.ok(true, "Should have failed to load template");
+            }
         });
 
-        it("parts are married to their object instance", () => {
+        it("parts are married to their object instance", async () => {
             const playground = getPlayground();
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts").then(
-                (template) => template.render(null, playground)
-            ).then(() => {
-                const instance: any = {};
-                domUtilities.marryPartsToControl(playground, instance);
+            const template = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts");
+            await template.render(null, playground);
 
-                assert.ok(instance.content, "Content not found");
-                assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
+            const instance: any = {};
+            domUtilities.marryPartsToControl(playground, instance);
 
-                assert.ok(instance.otherContent, "Other Content not found");
-                assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+            assert.ok(instance.content, "Content not found");
+            assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
 
-                assert.ok(instance.aControl, "No Control found");
-                assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
-            });
+            assert.ok(instance.otherContent, "Other Content not found");
+            assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+
+            assert.ok(instance.aControl, "No Control found");
+            assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
         });
 
-        it("only the supplied subtree has it's parts married to an object", () => {
+        it("only the supplied subtree has it's parts married to an object", async () => {
             const playground = getPlayground();
             const uberContainer = playground.appendChild(document.createElement("div"));
             const fakePart = document.createElement("div");
@@ -485,78 +483,77 @@
             uberContainer.appendChild(fakePart);
 
             const templateContainer = playground.appendChild(document.createElement("div"));
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts").then(
-                (template) => template.render(null, templateContainer)
-            ).then(() => {
-                const instance: any = {};
-                domUtilities.marryPartsToControl(templateContainer, instance);
+            const template = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithParts");
+            await template.render(null, templateContainer);
 
-                assert.ok(!instance.fakePart, "Didn't expect to find fake part");
+            const instance: any = {};
+            domUtilities.marryPartsToControl(templateContainer, instance);
 
-                assert.ok(instance.content, "Content not found");
-                assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
+            assert.ok(!instance.fakePart, "Didn't expect to find fake part");
 
-                assert.ok(instance.otherContent, "Other Content not found");
-                assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+            assert.ok(instance.content, "Content not found");
+            assert.strictEqual(instance.content.innerText, "Test", "Incorrect element");
 
-                assert.ok(instance.aControl, "No Control found");
-                assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
-            });
+            assert.ok(instance.otherContent, "Other Content not found");
+            assert.strictEqual(instance.otherContent.innerText, "Foo", "Incorrect otherContent element");
+
+            assert.ok(instance.aControl, "No Control found");
+            assert.ok(instance.aControl instanceof CodevoidTests.TestControl, "Part was not the control instance");
         });
 
-        it("declarative events are attached", () => {
+        it("declarative events are attached", async () => {
             const playground = getPlayground();
 
             // Make sure there is an event on the root node
             playground.setAttribute("data-event", "{ customRoot: handleCustomRoot }");
 
-            return domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithEvents").then((t) => t.render(null, playground)).then(
-                () => {
-                    let customCalled = false;
-                    let custom2Called = false;
-                    let customRootCalled = false;
+            const t = await domUtilities.loadTemplate("/js/tests/TestTemplate.html", "templateWithEvents");
+            await t.render(null, playground);
 
-                    const parts: any = {};
-                    const instance = {
-                        hasFlag: true,
-                        handleCustom: msfp(function (e) {
-                            if (e && this.hasFlag) {
-                                customCalled = true;
-                            }
-                        }),
-                        handleCustom2: msfp(function (e) {
-                            if (e && this.hasFlag) {
-                                custom2Called = true;
-                            }
-                        }),
-                        handleCustomRoot: msfp(function (e) {
-                            if (e && this.hasFlag) {
-                                customRootCalled = true;
-                            }
-                        }),
-                    };
+            let customCalled = false;
+            let custom2Called = false;
+            let customRootCalled = false;
 
-                    domUtilities.marryEventsToHandlers(playground, instance);
-                    domUtilities.marryPartsToControl(playground, parts);
+            const parts: any = {};
+            const instance = {
+                hasFlag: true,
+                handleCustom: msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        customCalled = true;
+                    }
+                }),
+                handleCustom2: msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        custom2Called = true;
+                    }
+                }),
+                handleCustomRoot: msfp(function (e) {
+                    if (e && this.hasFlag) {
+                        customRootCalled = true;
+                    }
+                }),
+            };
 
-                    const customEvent = document.createEvent("Event");
-                    customEvent.initEvent("custom", true, true);
-                    parts.parent.dispatchEvent(customEvent);
+            domUtilities.marryEventsToHandlers(playground, instance);
+            domUtilities.marryPartsToControl(playground, parts);
 
-                    assert.ok(customCalled, "Custom handler wasn't called");
+            const customEvent = document.createEvent("Event");
+            customEvent.initEvent("custom", true, true);
+            parts.parent.dispatchEvent(customEvent);
 
-                    const custom2Event = document.createEvent("Event");
-                    custom2Event.initEvent("custom2", true, true);
-                    parts.child.dispatchEvent(custom2Event);
+            assert.ok(customCalled, "Custom handler wasn't called");
 
-                    assert.ok(custom2Called, "Custom2 handler wasn't called");
+            const custom2Event = document.createEvent("Event");
+            custom2Event.initEvent("custom2", true, true);
+            parts.child.dispatchEvent(custom2Event);
 
-                    const customRootEvent = document.createEvent("Event");
-                    customRootEvent.initEvent("customRoot", true, true);
-                    playground.dispatchEvent(customRootEvent);
+            assert.ok(custom2Called, "Custom2 handler wasn't called");
 
-                    assert.ok(customRootCalled, "Custom root handler wasn't called");
-                });
+            const customRootEvent = document.createEvent("Event");
+            customRootEvent.initEvent("customRoot", true, true);
+            playground.dispatchEvent(customRootEvent);
+
+            assert.ok(customRootCalled, "Custom root handler wasn't called");
         });
 
         it("marrying events on a tree that has no event attributes doesn't raise an error", () => {
@@ -718,7 +715,7 @@
             assert.ok(failed, "Didn't get failure constructoring object without timeout");
         });
 
-        it("operation isn't executed if never bounced", () => {
+        it("operation isn't executed if never bounced", async () => {
             let completeCallback = null;
             let wasCalled = false;
             const completionPromise = new WinJS.Promise((c, e, p) => {
@@ -730,36 +727,37 @@
 
             const bouncer = new Codevoid.Utilities.Debounce(() => completeCallback(), 1);
 
-            return WinJS.Promise.any([
+            await Promise.race([
                 WinJS.Promise.timeout(10),
                 completionPromise
-            ]).then((results) => assert.ok(!wasCalled, "Did not expect completion handler to be called"));
+            ]);
+
+            assert.ok(!wasCalled, "Did not expect completion handler to be called");
         });
 
-        it("bouncing once executes operation", () => {
+        it("bouncing once executes operation", async () => {
             let completeCallback = null;
             let wasCalled = false;
             const completionPromise = new WinJS.Promise((c, e, p) => {
                 completeCallback = () => {
                     wasCalled = true;
-                    c();
+                    c(1);
                 }
             });
 
             const bouncer = new Codevoid.Utilities.Debounce(() => completeCallback(), 1);
-
             bouncer.bounce();
 
-            return WinJS.Promise.any([
+            const result: number = await Promise.race([
                 WinJS.Promise.timeout(100),
                 completionPromise
-            ]).then((results) => {
-                assert.ok(wasCalled, "Expected completion handler to be called");
-                assert.strictEqual(results.key, "1", "Wrong promise completed");
-            });
+            ]);
+
+            assert.ok(wasCalled, "Expected completion handler to be called");
+            assert.strictEqual(result, 1, "Wrong promise completed");
         });
 
-        it("operation is delay after multiple bounces within the timeout", () => {
+        it("operation is delay after multiple bounces within the timeout", async () => {
             let end = -1;
             let completeCallback = null;
             let wasCalled = false;
@@ -779,17 +777,17 @@
             setTimeout(resetBounce, 30); // Bounce to 50ms
             setTimeout(resetBounce, 45); // Bounce to 65ms
 
-            return <PromiseLike<any>>WinJS.Promise.join([
+            await Promise.all([
                 WinJS.Promise.timeout(20),
                 completionPromise
-            ]).then((results) => {
-                assert.ok(wasCalled, "Expected completion handler to be called");
-                assert.ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
-                assert.ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
-            });
+            ]);
+
+            assert.ok(wasCalled, "Expected completion handler to be called");
+            assert.ok(end > 30, `Operation was not debounced quickly. Took ${end}ms`);
+            assert.ok(end < 100, `Operation took too long to debounce. Took ${end}ms`);
         });
 
-        it("bouncing after operation is executed does not execute the bounce again", () => {
+        it("bouncing after operation is executed does not execute the bounce again", async () => {
             let completionCount = 0;
             let completeCallback = null;
             let wasCalled = false;
@@ -807,13 +805,15 @@
             bouncer.bounce();
             setTimeout(() => bouncer.bounce(), 10)
 
-            return <PromiseLike<any>>WinJS.Promise.join([
+            await Promise.all([
                 WinJS.Promise.timeout(30),
                 completionPromise
-            ]).then((results) => assert.strictEqual(completionCount, 1, "Bounce Completed more than once"));
+            ]);
+            
+            assert.strictEqual(completionCount, 1, "Bounce Completed more than once");
         });
 
-        it("operation is executed when multiple-bouncing is enabled, and bounced after first operation", () => {
+        it("operation is executed when multiple-bouncing is enabled, and bounced after first operation", async () => {
             let completionCount = 0;
             let completeCallback = null;
             let wasCalled = false;
@@ -829,19 +829,21 @@
             bouncer.bounce();
             setTimeout(() => bouncer.bounce(), 10)
 
-            return <PromiseLike<any>>WinJS.Promise.join([
+            await Promise.all([
                 WinJS.Promise.timeout(30),
                 completionPromise
-            ]).then((results) => assert.strictEqual(completionCount, 2, "Bounce Completed more than once"));
+            ]);
+            
+            assert.strictEqual(completionCount, 2, "Bounce Completed more than once");
         });
 
-        it("triggering bounce bounce interval completes operation immediately", () => {
+        it("triggering bounce before interval completes operation immediately", async () => {
             let completeCallback = null;
             let wasCalled = false;
             const completionPromise = new WinJS.Promise((c, e, p) => {
                 completeCallback = () => {
                     wasCalled = true;
-                    c();
+                    c(1);
                 }
             });
 
@@ -852,13 +854,13 @@
                 bouncer.triggerNow();
             }, 50);
 
-            return WinJS.Promise.any([
+            const result: number = await Promise.race([
                 WinJS.Promise.timeout(100),
                 completionPromise
-            ]).then((results) => {
-                assert.ok(wasCalled, "Expected completion handler to be called");
-                assert.strictEqual(results.key, "1", "Wrong promise completed");
-            });
+            ]);
+
+            assert.ok(wasCalled, "Expected completion handler to be called");
+            assert.strictEqual(result, 1, "Wrong promise completed");
         });
     });
 
