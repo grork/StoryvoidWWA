@@ -21,20 +21,20 @@
             this.again();
         }
 
-        public again(): void {
+        public async again(): Promise<void> {
             this.tryCount++;
-            WinJS.Promise.timeout().then(() => {
-                const creds = AuthenticatorTestUI.credentialsToUse;
-                if (!creds) {
-                    this.viewModel.credentialAcquisitionComplete.error({});
-                } else if (creds === -1) {
-                    this.viewModel.credentialAcquisitionComplete.cancel();
-                } else {
-                    this.viewModel.username = creds.username;
-                    this.viewModel.password = creds.password;
-                    this.viewModel.credentialAcquisitionComplete.complete();
-                }
-            });
+            await Codevoid.Utilities.timeout();
+
+            const creds = AuthenticatorTestUI.credentialsToUse;
+            if (!creds) {
+                this.viewModel.credentialAcquisitionComplete.error({});
+            } else if (creds === -1) {
+                this.viewModel.credentialAcquisitionComplete.cancel();
+            } else {
+                this.viewModel.username = creds.username;
+                this.viewModel.password = creds.password;
+                this.viewModel.credentialAcquisitionComplete.complete();
+            }
         }
 
         private static credStore: any;
@@ -192,29 +192,28 @@
             return vm.authenticate();
         });
 
-        it("canSaveCredentials", () => {
+        it("canSaveCredentials", async () => {
             authenticator.clearClientInformation();
 
             const vm = new authenticator.AuthenticatorViewModel();
             vm.username = testCredentials.user;
             vm.password = testCredentials.password;
 
-            return vm.authenticate().then(function (tokenResult) {
-                const clientInformation = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenResult);
-                const tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
+            const tokenResult = await vm.authenticate();
+            const clientInformation = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenResult);
+            const tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
 
-                assert.ok(clientInformation, "No client information");
-                assert.ok(clientInformation.clientToken, "No token information");
-                assert.ok(clientInformation.clientTokenSecret, "No secret information");
+            assert.ok(clientInformation, "No client information");
+            assert.ok(clientInformation.clientToken, "No token information");
+            assert.ok(clientInformation.clientTokenSecret, "No secret information");
 
-                assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
-                assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
 
-                authenticator.clearClientInformation();
-            });
+            authenticator.clearClientInformation();
         });
 
-        it("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", () => {
+        it("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompleted", async () => {
             const vm = new authenticator.AuthenticatorViewModel();
             let isWorkingBecameTrue = false;
             let canAuthenticateIsFalse = false;
@@ -242,19 +241,18 @@
             vm.username = testCredentials.user;
             vm.password = testCredentials.password;
 
-            return vm.authenticate().then(() => {
-                assert.ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
-                assert.ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
-                assert.ok(allowPasswordEntryIsFalse, "Expected allowPasswordEntry to become false during authentication");
-                assert.ok(allowUsernameEntryIsFalse, "Expected allowUsernameEntry to become false during authentication");
-                assert.ok(!vm.isWorking, "Should have completed authentication");
-                assert.ok(vm.canAuthenticate, "Should be able to authenticate again");
-                assert.ok(vm.allowPasswordEntry, "Should be able to enter password again");
-                assert.ok(vm.allowUsernameEntry, "Should be able to enter username again");
-            });
+            await vm.authenticate();
+            assert.ok(isWorkingBecameTrue, "Expected isWorking to have become true during authentication");
+            assert.ok(canAuthenticateIsFalse, "Expected canAuthenticate to become false during authentication");
+            assert.ok(allowPasswordEntryIsFalse, "Expected allowPasswordEntry to become false during authentication");
+            assert.ok(allowUsernameEntryIsFalse, "Expected allowUsernameEntry to become false during authentication");
+            assert.ok(!vm.isWorking, "Should have completed authentication");
+            assert.ok(vm.canAuthenticate, "Should be able to authenticate again");
+            assert.ok(vm.allowPasswordEntry, "Should be able to enter password again");
+            assert.ok(vm.allowUsernameEntry, "Should be able to enter username again");
         });
 
-        it("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", () => {
+        it("whenAuthenticatingIsWorkingIsTrueAndBecomesFalseWhenCompletedWithError", async () => {
             const vm = new authenticator.AuthenticatorViewModel();
             let isWorkingBecameTrue = false;
 
@@ -264,27 +262,29 @@
                 }
             });
 
-            return vm.authenticate().then(() => {
+            try {
+                await vm.authenticate();
                 assert.ok(false, "Expected to fail authentication");
-            }, () => {
+            } catch (e) {
                 assert.ok(!isWorkingBecameTrue, "Expected isWorking to not have become true during authentication");
                 assert.ok(!vm.isWorking, "Should have completed authentication");
-            });
+            }
         });
 
-        it("canFailureToAuthenticateIsCorrectlyPropogated", () => {
+        it("canFailureToAuthenticateIsCorrectlyPropogated", async () => {
             const vm = new authenticator.AuthenticatorViewModel();
 
             vm.username = testCredentials.user;
             vm.password = "foo";
 
-            return vm.authenticate().then(() => {
+            try {
+                await vm.authenticate();
                 assert.ok(false, "Expected to complete authentication");
-            }, () => {
+            } catch(e) {
                 assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
                 assert.strictEqual(vm.authenticationErrorMessage, Codevoid.Storyvoid.Authenticator.friendlyMessageForError(401), "Wrong error message");
                 assert.ok(true, "Didn't expect to fail authentication");
-            });
+            }
         });
 
         it("authenticationErrorPropertyRaisesEvent", () => {
@@ -305,7 +305,7 @@
             assert.ok(authenticationErrorMessageChanged, "Authentication error didn't change");
         });
 
-        it("authenticationErrorIsResetWhenReauthenticating", () => {
+        it("authenticationErrorIsResetWhenReauthenticating", async () => {
             const vm = new authenticator.AuthenticatorViewModel();
             let authenticationErrorWasReset = false;
             let authenticationErrorMessageWasReset = false;
@@ -313,9 +313,10 @@
             vm.username = testCredentials.user;
             vm.password = "foo";
 
-            return vm.authenticate().then(() => {
+            try {
+                await vm.authenticate();
                 assert.ok(false, "Expected to fails authentication");
-            }, () => {
+            } catch (e) {
                 assert.strictEqual(vm.authenticationError, 401, "Expected auth error");
 
                 vm.addEventListener("authenticationErrorChanged", () => {
@@ -326,15 +327,16 @@
                         }
                     }
                 });
+            }
 
-                return vm.authenticate();
-            }).then(() => {
+            try {
+                await vm.authenticate()
                 assert.ok(false, "shouldn't have succeeded");
-            }, () => {
+            } catch(e) {
                 assert.ok(authenticationErrorWasReset, "Should have been reset");
                 assert.ok(authenticationErrorMessageWasReset, "message wasn't reset");
                 assert.strictEqual(vm.authenticationError, 401, "Incorrect error code");
-            });
+            }
         });
     });
 }
