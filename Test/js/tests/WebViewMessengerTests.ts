@@ -31,7 +31,7 @@ namespace Codevoid.WebViewMessengerTests {
             return s.promise;
         });
 
-        it("webViewCanInvokeMessageRemotely", () => {
+        it("webViewCanInvokeMessageRemotely", async () => {
             var s = new Signal();
 
             var div = getPlayground();
@@ -45,14 +45,13 @@ namespace Codevoid.WebViewMessengerTests {
 
             assert.ok(!!messenger, "Didn't construct messenger");
 
-            return s.promise.then(() => {
-                return messenger.invokeForResult("ping");
-            }).then((message) => {
-                assert.strictEqual(message, "pong", "Incorrect message");
-            });
+            await s.promise;
+
+            const message = await messenger.invokeForResult("ping");
+            assert.strictEqual(message, "pong", "Incorrect message");
         });
 
-        it("webViewCanInjectAdditionalScript", () => {
+        it("webViewCanInjectAdditionalScript", async () => {
             var s = new Signal();
 
             var div = getPlayground();
@@ -66,13 +65,11 @@ namespace Codevoid.WebViewMessengerTests {
 
             assert.ok(!!messenger, "Didn't construct messenger");
 
-            return s.promise.then(() => {
-                return messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/tests/WebViewTestScript.js");
-            }).then(() => {
-                return messenger.invokeForResult("gettest");
-            }).then((testCookie: number) => {
-                assert.strictEqual(testCookie, 42, "Got incorrect test cookie");
-            });
+            await s.promise;
+            await messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/tests/WebViewTestScript.js");
+
+            const testCookie: number = await messenger.invokeForResult("gettest");
+            assert.strictEqual(testCookie, 42, "Got incorrect test cookie");
         });
     });
 }
