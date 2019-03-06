@@ -34,9 +34,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
         };
     }
 
-    describe("AutoSyncWatcher", function () {
+    describe("AutoSyncWatcher", () => {
 
-        it("timerDoesNotRaiseWithoutEvent", () => {
+        it("timerDoesNotRaiseWithoutEvent", async () => {
             var signal = new util.Signal();
 
             var syncWatcher = getWatcher().watcher;
@@ -46,9 +46,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
                 signal.error("Promise Shouldn't Complete");
             });
 
-            return WinJS.Promise.any([signal.promise, WinJS.Promise.timeout(200)]).then(() => {
-                assert.ok(true, "Completed");
-            });
+            await Promise.race([signal.promise, Codevoid.Utilities.timeout(200)]);
         });
 
         it("timerDoesRaiseAfterEvent", () => {
@@ -68,7 +66,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             return signal.promise;
         });
 
-        it("timerDoesGetCancelledIfSecondEventHappensInTimeWindow", () => {
+        it("timerDoesGetCancelledIfSecondEventHappensInTimeWindow", async () => {
             var secondEventDispatched = false;
             var signal = new util.Signal();
 
@@ -86,20 +84,20 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
             // Reset the timer
-            WinJS.Promise.timeout(75).then(() => {
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
+            await Codevoid.Utilities.timeout(75);
+            
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
-                return WinJS.Promise.timeout(75);
-            }).then(() => {
-                // Reset the timer again
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
-                secondEventDispatched = true;
-            });
+            await Codevoid.Utilities.timeout(75);
+            
+            // Reset the timer again
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
+            secondEventDispatched = true;
 
             return signal.promise;
         });
 
-        it("timerNotRaisedWhenWatchingPaused", () => {
+        it("timerNotRaisedWhenWatchingPaused", async () => {
             var syncEventSeen = false;
             var secondEventDispatched = false;
             var signal = new util.Signal();
@@ -119,23 +117,20 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             w.watcher.pauseWatching();
 
             // Reset the timer
-            WinJS.Promise.timeout(75).then(() => {
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
+            await WinJS.Promise.timeout(75);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
-                return WinJS.Promise.timeout(75);
-            }).then(() => {
-                // Reset the timer again
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
-                secondEventDispatched = true;
-            });
+            await WinJS.Promise.timeout(75);
+            // Reset the timer again
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
+            secondEventDispatched = true;
 
-            return WinJS.Promise.timeout(500).then(() => {
-                assert.ok(secondEventDispatched, "second timer wasn't dispatched");
-                assert.ok(!syncEventSeen, "Didn't expect to see sync needed");
-            });
+            await Codevoid.Utilities.timeout(500);
+            assert.ok(secondEventDispatched, "second timer wasn't dispatched");
+            assert.ok(!syncEventSeen, "Didn't expect to see sync needed");
         });
 
-        it("timerRaisedAfterAnEventAfterWatchingResumed", () => {
+        it("timerRaisedAfterAnEventAfterWatchingResumed", async () => {
             var syncEventSeen = false;
             var signal = new util.Signal();
 
@@ -153,27 +148,24 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
             // Start the timer
             w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
-
             w.watcher.pauseWatching();
 
             // Reset the timer
-            WinJS.Promise.timeout(25).then(() => {
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
+            await Codevoid.Utilities.timeout(25);
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
-                w.watcher.resumeWatching();
+            w.watcher.resumeWatching();
 
-                // wait to make sure the event isn't some how raised
-                return WinJS.Promise.timeout(100);
-            }).then(() => {
+            // wait to make sure the event isn't some how raised
+            await WinJS.Promise.timeout(100);
 
-                // Dispatch the event to start the timer
-                w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
-            });
+            // Dispatch the event to start the timer
+            w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
             return signal.promise;
         });
 
-        it("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", () => {
+        it("leavingBackgroundRaisesSyncNeededEventIfIdleForLongerThanMinDuration", async () => {
             var syncEventSeen = false;
             var syncSeenSignal = new util.Signal();
             var enteredBackgroundCompleteSignal = new util.Signal();
@@ -183,18 +175,17 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
             w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(enteredBackgroundCompleteSignal));
 
-            WinJS.Promise.timeout(50).then(() => {
-                util.addEventListeners(w.watcher.eventSource, {
-                    syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
-                        assert.ok(!syncEventSeen, "Sync event already seen");
-                        syncEventSeen = true;
+            await WinJS.Promise.timeout(50);
+            util.addEventListeners(w.watcher.eventSource, {
+                syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
+                    assert.ok(!syncEventSeen, "Sync event already seen");
+                    syncEventSeen = true;
 
-                        syncSeenSignal.complete();
-                    }
-                });
-
-                w.appEventSource.dispatchEvent("leavingbackground", null);
+                    syncSeenSignal.complete();
+                }
             });
+
+            w.appEventSource.dispatchEvent("leavingbackground", null);
 
             return syncSeenSignal.promise;
         });
@@ -283,7 +274,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             assert.ok(!syncEventSeen, "Didn't expect to see sync event");
         });
 
-        it("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", () => {
+        it("syncRequiredWhenOfflineForMoreThanMinimumOfflineTime", async () => {
             var syncEventSeenSignal = new util.Signal();
 
             var w = getWatcher();
@@ -299,15 +290,14 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             // Go offline to update previous state
             w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-            WinJS.Promise.timeout(50).then(() => {
-                // Go online to trigger the event
-                w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
-            });
+            await Codevoid.Utilities.timeout(50);
+            // Go online to trigger the event
+            w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
 
             return syncEventSeenSignal.promise;
         });
 
-        it("syncRequiredAndIndicatesArticleSyncWhenOfflineForMoreThanMinimumOfflineTimeForFullSync", () => {
+        it("syncRequiredAndIndicatesArticleSyncWhenOfflineForMoreThanMinimumOfflineTimeForFullSync", async () => {
             var syncEventSeenSignal = new util.Signal();
 
             var w = getWatcher();
@@ -323,10 +313,10 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             // Go offline to update previous state
             w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.constrainedInternetAccess));
 
-            WinJS.Promise.timeout(50).then(() => {
-                // Go online to trigger the event
-                w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
-            });
+            await Codevoid.Utilities.timeout(50);
+
+            // Go online to trigger the event
+            w.networkEventSource.dispatchEvent("networkstatuschanged", getFakeNetworkStatusChanged(Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess));
 
             return syncEventSeenSignal.promise;
         });
