@@ -65,58 +65,55 @@
             assert.strictEqual(result, expectedResult, "Signature wasn't generated correctly");
         });
 
-        it("canVerifyTwitterCredentials", () => {
+        it("canVerifyTwitterCredentials", async () => {
             const url = "https://api.twitter.com/1.1/account/verify_credentials.json";
             const request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url, Codevoid.OAuth.Operations.GET);
 
-            return request.send().then((resultData) => {
-                const result = JSON.parse(resultData);
-                assert.strictEqual(result.screen_name, "CodevoidTest", "couldn't get screen name");
-            });
+            const resultData = await request.send();
+            const result = JSON.parse(resultData);
+            assert.strictEqual(result.screen_name, "CodevoidTest", "couldn't get screen name");
         });
 
-        it("canPostStatusToTwitter", () => {
+        it("canPostStatusToTwitter", async () => {
             const url = "https://api.twitter.com/1.1/statuses/update.json";
             const request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url);
             request.data = [{ key: "status", value: "Test@Status %78 update: " + Date.now() }];
 
-            return request.send().then((resultData) => {
-                const result = JSON.parse(resultData);
-                assert.strictEqual(result.text, request.data[0].value);
-            });
+            const resultData = await request.send();
+            const result = JSON.parse(resultData);
+            assert.strictEqual(result.text, request.data[0].value);
         });
 
-        it("canMakeGetRequestWithPayload", () => {
+        it("canMakeGetRequestWithPayload", async () => {
             const url = "https://api.twitter.com/1.1/statuses/home_timeline.json";
             const request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url, Codevoid.OAuth.Operations.GET);
             request.data = [{ key: "count", value: 1 }];
 
-            return request.send().then((resultData) => {
-                const result = JSON.parse(resultData);
-                assert.strictEqual(Array.isArray(result), true, "Result from query wasn't an array");
-                assert.strictEqual(result.length, 1, "Only expected one tweet");
-            });
+            const resultData = await request.send();
+            const result = JSON.parse(resultData);
+            assert.strictEqual(Array.isArray(result), true, "Result from query wasn't an array");
+            assert.strictEqual(result.length, 1, "Only expected one tweet");
         });
 
-        it("unreachableHostsFailPredictablyForPostRequest", () => {
+        it("unreachableHostsFailPredictablyForPostRequest", async () => {
             const url = "https://a/1.1/statuses/update.json"; // Not real
             const request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url);
             request.data = [{ key: "status", value: "Test@Status %78 update: " + Date.now() }];
 
-            return request.send().then(
-                (resultData) => assert.ok(false, "Shouldn't have been successful"),
-                () => { }
-            );
+            try {
+                await request.send();
+                assert.ok(false, "Shouldn't have been successful");
+            } catch (e) { }
         });
 
-        it("unreachableHostsFailPredictablyForGetRequest", () => {
+        it("unreachableHostsFailPredictablyForGetRequest", async () => {
             const url = "https://a/1.1/account/verify_credentials.json";
             const request = new Codevoid.OAuth.OAuthRequest(realClientInfo, url, Codevoid.OAuth.Operations.GET);
 
-            return request.send().then(
-                (resultData) => assert.ok(false, "Didn't expect query to succeed"),
-                () => { }
-            );
+            try {
+                await request.send();
+                assert.ok(false, "Didn't expect query to succeed");
+            } catch(e) { }
         });
     });
 }
