@@ -9,12 +9,14 @@
     import IFolder = Codevoid.Storyvoid.IFolder;
     import IBookmarkPendingEdit = Codevoid.Storyvoid.IBookmarkPendingEdit;
 
-    const tidyDb = deleteDb.bind(null, null);
+    const LOCAL_BOOKMARK_ID = 42424242;
     const defaultFolderIds: string[] = [
         Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread,
         Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked,
         Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive,
-        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned];
+        Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned
+    ];
+    const tidyDb: () => Promise<any> = deleteDb.bind(null, null);
 
     let sampleFolders: IFolder[];
     let sampleBookmarks: IBookmark[];
@@ -86,19 +88,18 @@
     /// this expects the "this" pointer to be bound to the
     /// instapaper db wrapper
     /// </summary>
-    function moveAndValidate(bookmark: IBookmark, destinationFolder: IFolder, fromServer: boolean): PromiseLike<void> {
-        return this.getBookmarkByBookmarkId(bookmark.bookmark_id).then(function (this: InstapaperDB, originalBookmark: IBookmark) {
-            assert.ok(originalBookmark, "Didn't find original bookmark");
-            assert.notStrictEqual(originalBookmark.folder_dbid, destinationFolder.id, "Bookmark is already in destination folder");
-            return this.moveBookmark(bookmark.bookmark_id, destinationFolder.id, fromServer);
-        }.bind(this)).then((movedBookmark: IBookmark) => {
-            assert.ok(movedBookmark, "no moved bookmark");
-            assert.strictEqual(movedBookmark.folder_dbid, destinationFolder.id, "Not in destination folder");
-            assert.strictEqual(movedBookmark.folder_id, destinationFolder.folder_id, "Not in destination folder");
+    async function moveAndValidate(this: InstapaperDB, bookmark: IBookmark, destinationFolder: IFolder, fromServer: boolean): Promise<void> {
+        const originalBookmark = await this.getBookmarkByBookmarkId(bookmark.bookmark_id);
+        assert.ok(originalBookmark, "Didn't find original bookmark");
+        assert.notStrictEqual(originalBookmark.folder_dbid, destinationFolder.id, "Bookmark is already in destination folder");
 
-            bookmark.folder_id = destinationFolder.folder_id;
-            bookmark.folder_dbid = destinationFolder.id;
-        });
+        const movedBookmark = await this.moveBookmark(bookmark.bookmark_id, destinationFolder.id, fromServer);
+        assert.ok(movedBookmark, "no moved bookmark");
+        assert.strictEqual(movedBookmark.folder_dbid, destinationFolder.id, "Not in destination folder");
+        assert.strictEqual(movedBookmark.folder_id, destinationFolder.folder_id, "Not in destination folder");
+
+        bookmark.folder_id = destinationFolder.folder_id;
+        bookmark.folder_dbid = destinationFolder.id;
     }
 
     function validatePendingEdits(edits: IBookmarkPendingEdit[], bookmark_id: number, folder: IFolder, sourcefolder_dbid: number): void {
@@ -112,106 +113,83 @@
         assert.strictEqual(pendingEdit.sourcefolder_dbid, sourcefolder_dbid, "Not marked with the correct ID");
     }
 
-    function cleanupPendingEdits(this: InstapaperDB): PromiseLike<void> {
-        return colludePendingBookmarkEdits(this.getPendingBookmarkEdits()).then((edits) => {
-            let deletes = edits.map((edit) => this.deletePendingBookmarkEdit(edit.id));
-            return <PromiseLike<any>>WinJS.Promise.join(deletes);
-        });
+    async function cleanupPendingEdits(this: InstapaperDB): Promise<void> {
+        const edits = await colludePendingBookmarkEdits(this.getPendingBookmarkEdits());
+        let deletes = edits.map((edit) => this.deletePendingBookmarkEdit(edit.id));
+        await Promise.all(deletes);
     }
 
-    const LOCAL_BOOKMARK_ID = 42424242;
-
-    function canRemoveBookmarkNoPendingEdit(): PromiseLike<void> {
-        let instapaperDB: InstapaperDB;
-
-        return getNewInstapaperDBAndInit().then((idb) => {
-            instapaperDB = idb;
-            return idb.removeBookmark(LOCAL_BOOKMARK_ID, true);
-        }).then(() => WinJS.Promise.timeout()).
-           then(() => expectNoPendingBookmarkEdits(instapaperDB)).
-           then(() => instapaperDB.listCurrentBookmarks()).
-           then((currentBookmarks) => {
-            assert.ok(currentBookmarks, "no bookmarks returned");
-            assert.strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
-        });
+    async function canRemoveBookmarkNoPendingEdit(): Promise<void> {
+        const instapaperDB = await getNewInstapaperDBAndInit();
+        await instapaperDB.removeBookmark(LOCAL_BOOKMARK_ID, true);
+        await expectNoPendingBookmarkEdits(instapaperDB);
+        const currentBookmarks = await instapaperDB.listCurrentBookmarks();
+        assert.ok(currentBookmarks, "no bookmarks returned");
+        assert.strictEqual(currentBookmarks.length, 0, "Didn't expect bookmarks");
     }
 
-    function canAddBookmarkNoPendingEdit(): PromiseLike<void> {
-        let instapaperDB: InstapaperDB;
+    async function canAddBookmarkNoPendingEdit(): Promise<void> {
         const bookmark: Codevoid.Storyvoid.IBookmark = {
             title: "LocalBookmark",
             bookmark_id: LOCAL_BOOKMARK_ID,
         };
 
-        return getNewInstapaperDBAndInit().then((idb) => {
-            instapaperDB = idb;
-            bookmark.folder_dbid = idb.commonFolderDbIds.unread;
-            return idb.addBookmark(bookmark);
-        }).then((addedBookmark) => {
-            assert.ok(addedBookmark, "Didn't get bookmark back");
-            assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
-            return WinJS.Promise.timeout();
-        }).then(() => expectNoPendingBookmarkEdits(instapaperDB)).
-           then(() => instapaperDB.listCurrentBookmarks()).
-           then((currentBookmarks) => {
-            assert.ok(currentBookmarks, "no folders returned");
-            assert.strictEqual(currentBookmarks.length, 1, "Only expected 1 bookmark");
+        const instapaperDB = await getNewInstapaperDBAndInit();
+        bookmark.folder_dbid = instapaperDB.commonFolderDbIds.unread;
+        const addedBookmark = await instapaperDB.addBookmark(bookmark);
 
-            assert.strictEqual(currentBookmarks[0].bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
-            assert.strictEqual(currentBookmarks[0].folder_id, bookmark.folder_id, "Folder ID didn't match");
-            assert.strictEqual(currentBookmarks[0].title, bookmark.title, "Folder ID didn't match");
-        });
+        assert.ok(addedBookmark, "Didn't get bookmark back");
+        assert.strictEqual(addedBookmark.bookmark_id, bookmark.bookmark_id, "Wrong bookmark ID");
+
+        await expectNoPendingBookmarkEdits(instapaperDB);
+        const currentBookmarks = await instapaperDB.listCurrentBookmarks();
+        assert.ok(currentBookmarks, "no folders returned");
+        assert.strictEqual(currentBookmarks.length, 1, "Only expected 1 bookmark");
+
+        assert.strictEqual(currentBookmarks[0].bookmark_id, bookmark.bookmark_id, "Bookmark ID didn't match");
+        assert.strictEqual(currentBookmarks[0].folder_id, bookmark.folder_id, "Folder ID didn't match");
+        assert.strictEqual(currentBookmarks[0].title, bookmark.title, "Folder ID didn't match");
     }
 
-    function addSampleData(): PromiseLike<void> {
+    async function addSampleData(): Promise<void> {
         setSampleData();
-        let instapaperDB: InstapaperDB;
         const expectedFolderIds = defaultFolderIds.concat([]);
         assert.notStrictEqual(sampleFolders.length, 0, "Need more than 0 sample folders to create");
 
-        return getNewInstapaperDBAndInit().then((idb) => {
-            instapaperDB = idb;
+        const instapaperDB = await getNewInstapaperDBAndInit();
+        const addedFolders = sampleFolders.map(async (folder) => {
+            const addedFolder = await instapaperDB.addFolder({ title: folder.title }, true)
+            addedFolder.folder_id = folder.folder_id;
+            folder.id = addedFolder.id;
+            expectedFolderIds.push(folder.folder_id);
+            await instapaperDB.updateFolder(addedFolder);
+        });
+        await Promise.all(addedFolders);
 
-            const addedFolders = sampleFolders.map((folder) => {
-                return idb.addFolder({ title: folder.title }, true).then((addedFolder) => {
-                    addedFolder.folder_id = folder.folder_id;
-                    folder.id = addedFolder.id;
-                    expectedFolderIds.push(folder.folder_id);
-                    return idb.updateFolder(addedFolder);
-                });
+        const currentFolders = await instapaperDB.listCurrentFolders();
+        assert.ok(currentFolders, "Didn't get any added Folders");
+        assert.strictEqual(currentFolders.length, defaultFolderIds.length + sampleFolders.length, "Unexpected number of folders");
+
+        const notFoundFolders = currentFolders.filter((folder) => expectedFolderIds.indexOf(folder.folder_id) === -1);
+        assert.strictEqual(notFoundFolders.length, 0, "Didn't expect to find unmatched folders");
+
+        currentFolders.forEach((folder) => {
+            sampleBookmarks.forEach((bookmark) => {
+                if (bookmark.folder_id === folder.folder_id) {
+                    bookmark.folder_dbid = folder.id;
+                }
             });
+        });
 
-            return <PromiseLike<any>>WinJS.Promise.join(addedFolders);
-        }).then(() => instapaperDB.listCurrentFolders()).
-           then((currentFolders) => {
-                assert.ok(currentFolders, "Didn't get any added Folders");
-                assert.strictEqual(currentFolders.length, defaultFolderIds.length + sampleFolders.length, "Unexpected number of folders");
-
-                const notFoundFolders = currentFolders.filter((folder) => expectedFolderIds.indexOf(folder.folder_id) === -1);
-                assert.strictEqual(notFoundFolders.length, 0, "Didn't expect to find unmatched folders");
-
-                currentFolders.forEach((folder) => {
-                    sampleBookmarks.forEach((bookmark) => {
-                        if (bookmark.folder_id === folder.folder_id) {
-                            bookmark.folder_dbid = folder.id;
-                        }
-                    });
-                });
-
-                return WinJS.Promise.timeout();
-            }).then(() => {
-                const addedBookmarks = sampleBookmarks.map((bookmark) => instapaperDB.addBookmark(bookmark));
-                addedBookmarks.push(WinJS.Promise.timeout());
-
-                return <PromiseLike<any>>WinJS.Promise.join(addedBookmarks).then(() => instapaperDB.listCurrentBookmarks());
-            }).then((currentBookmarks) => {
-                assert.ok(currentBookmarks, "didn't find any bookmarks");
-                assert.strictEqual(currentBookmarks.length, sampleBookmarks.length, "Didn't find expected bookmarks");
-            });
+        const addedBookmarks = sampleBookmarks.map((bookmark) => instapaperDB.addBookmark(bookmark));
+        await Promise.all(addedBookmarks);
+        const currentBookmarks = await instapaperDB.listCurrentBookmarks();
+        assert.ok(currentBookmarks, "didn't find any bookmarks");
+        assert.strictEqual(currentBookmarks.length, sampleBookmarks.length, "Didn't find expected bookmarks");
     }
 
-    function deleteCoreInfraDbs(): PromiseLike<void> {
-        return <PromiseLike<any>>WinJS.Promise.join([
+    async function deleteCoreInfraDbs(): Promise<void> {
+        await Promise.all([
             deleteDb("One"),
             deleteDb("Two"),
         ]);
