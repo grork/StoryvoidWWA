@@ -15,84 +15,68 @@
     let bookmarkAddedToFolderId: number;
     let bookmarkAddedToFolderId2: number;
 
-    function failedPromiseHandler(req): void {
-        let message;
-        if (req.error) {
-            message = "Code: " + req.error + ", Message: " + req.message;
-        } else if (req.responseText) {
-            message = req.responseText;
-        } else {
-            message = req;
-        }
-
-        assert.ok(false, "request failed: " + message);
-    }
-
-    function listInStarredFolderExpectingNoStarredItems(): PromiseLike<void> {
+    async function listInStarredFolderExpectingNoStarredItems(): Promise<void> {
         const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-        return bookmarks.list({ folder_id: "starred" }).then((data) => {
-            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-        }, failedPromiseHandler);
+        const data = await bookmarks.list({ folder_id: "starred" });
+        assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+        assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
     }
 
-    function listInArchiveFolderExpectingNoArchivedItems(): PromiseLike<any> {
+    async function listInArchiveFolderExpectingNoArchivedItems(): Promise<any> {
         const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-        return bookmarks.list({ folder_id: "archive" }).then((data) => {
-            assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-            assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-        }, failedPromiseHandler);
+        const data = await bookmarks.list({ folder_id: "archive" });
+        assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+        assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
     }
 
     describe("instapaperApi", () => {
         describe("instapaperApiAccounts", () => {
-            it("canGetAccessToken", () => {
+            it("canGetAccessToken", async () => {
                 const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-                return accounts.getAccessToken("PLACEHOLDER", "PLACEHOLDER").then((tokenInfo) => {
-                    assert.ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
-                    assert.strictEqual(tokenInfo.oauth_token, token, "token didn't match");
+                const tokenInfo = await accounts.getAccessToken("PLACEHOLDER", "PLACEHOLDER");
+                assert.ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
+                assert.strictEqual(tokenInfo.oauth_token, token, "token didn't match");
 
-                    assert.ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
-                    assert.strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
-                }, failedPromiseHandler);
+                assert.ok(tokenInfo.hasOwnProperty("oauth_token_secret"), "no auth token secret property found");
+                assert.strictEqual(tokenInfo.oauth_token_secret, secret, "Secret didn't match");
             });
 
-            it("can'tGetAccessTokenWhenUsingBadCredentials", () => {
+            it("can'tGetAccessTokenWhenUsingBadCredentials", async () => {
                 const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-                return accounts.getAccessToken("PLACEHOLDER", "IncorrectPassword").then(
-                    () => assert.ok(false, "shouldn't succeed"),
-                    (err) => {
-                        assert.ok(true, "Should have errored");
-                        assert.strictEqual(err.status, 401, "Expected auth failure");
-                    });
+                try {
+                    await accounts.getAccessToken("PLACEHOLDER", "IncorrectPassword");
+                    assert.ok(false, "shouldn't succeed");
+                } catch (err) {
+                    assert.ok(true, "Should have errored");
+                    assert.strictEqual(err.status, 401, "Expected auth failure");
+                }
             });
 
-            it("canVerifyCredentials", function canVerifyCredentials() {
+            it("canVerifyCredentials", async () => {
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
-
-                return accounts.verifyCredentials().then((verifiedCreds) => {
-                    assert.strictEqual(verifiedCreds.type, "user");
-                    assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
-                    assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
-                }, failedPromiseHandler);
+                const verifiedCreds = await accounts.verifyCredentials();
+                assert.strictEqual(verifiedCreds.type, "user");
+                assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
+                assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
             });
 
-            it("verifyingBadCredentialsFails", () => {
+            it("verifyingBadCredentialsFails", async () => {
                 const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token + "3", secret + "a");
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-                return accounts.verifyCredentials().then(
-                    () => assert.ok(false, "Should have failed"),
-                    (err) => {
-                        assert.ok(true, "Shouldn't have succeeded");
-                        assert.strictEqual(err.error, 403, "Should have failed with error 403");
-                    });
+                try {
+                    await accounts.verifyCredentials();
+                    assert.ok(false, "Should have failed");
+                } catch (err) {
+                    assert.ok(true, "Shouldn't have succeeded");
+                    assert.strictEqual(err.error, 403, "Should have failed with error 403");
+                }
             });
         });
 
@@ -140,28 +124,23 @@
         });
 
         describe("instapaperApiBookmarks", () => {
-            it("clearRemoteData", () => {
+            it("clearRemoteData", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return InstapaperTestUtilities.destroyRemoteAccountData(clientInformation).then(
-                    () => bookmarks.list()
-                ).then(
-                    (rb) => Codevoid.Utilities.serialize(rb.bookmarks, (item) => bookmarks.deleteBookmark(item.bookmark_id))
-                ).then(() => {
-                    assert.ok(true, "Deleted remote data");
-                }, failedPromiseHandler);
+                await InstapaperTestUtilities.destroyRemoteAccountData(clientInformation);
+                const rb = await bookmarks.list();
+                await Codevoid.Utilities.serialize(rb.bookmarks, (item) => bookmarks.deleteBookmark(item.bookmark_id));
             });
 
-            it("listIsEmpty", () => {
+            it("listIsEmpty", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                
-                return bookmarks.list().then((data) => {
-                    assert.ok(data.meta, "Didn't get a meta object");
-                    assert.ok(data.user, "Didn't get user object");
-                    assert.ok(data.bookmarks, "Didn't get any bookmark data");
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-                }, failedPromiseHandler);
+
+                const data = await bookmarks.list();
+                assert.ok(data.meta, "Didn't get a meta object");
+                assert.ok(data.user, "Didn't get user object");
+                assert.ok(data.bookmarks, "Didn't get any bookmark data");
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             });
 
             it("addThrowsWhenNoUrl", () => {
@@ -176,73 +155,74 @@
                 );
             });
 
-            it("addAddsUrlReturnsCorrectObject", () => {
+            it("addAddsUrlReturnsCorrectObject", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
-                
-                return bookmarks.add({ url: urlToAdd }).then((data) => {
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
-                    assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(data.hash, "ZB6AejJM");
-                    assert.strictEqual(data.starred, "0");
-                    assert.strictEqual(data.progress, 0);
 
-                    justAddedId = data.bookmark_id;
-                }, failedPromiseHandler);
+                const data = await bookmarks.add({ url: urlToAdd });
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
+                assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(data.hash, "ZB6AejJM");
+                assert.strictEqual(data.starred, "0");
+                assert.strictEqual(data.progress, 0);
+
+                justAddedId = data.bookmark_id;
             });
 
-            it("listShowsAddedBookmark", () => {
+            it("listShowsAddedBookmark", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.list().then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
+                const data = await bookmarks.list();
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
-                    // Validate the only bookmark
-                    const bookmarkData = data.bookmarks[0];
-                    assert.strictEqual(bookmarkData.type, "bookmark");
-                    assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
-                    assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(bookmarkData.hash, "ZB6AejJM");
-                    assert.strictEqual(bookmarkData.starred, "0");
-                    assert.strictEqual(bookmarkData.progress, 0);
-                    assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
+                // Validate the only bookmark
+                const bookmarkData = data.bookmarks[0];
+                assert.strictEqual(bookmarkData.type, "bookmark");
+                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(bookmarkData.hash, "ZB6AejJM");
+                assert.strictEqual(bookmarkData.starred, "0");
+                assert.strictEqual(bookmarkData.progress, 0);
+                assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
 
-                    justAddedBookmark = bookmarkData;
-                }, failedPromiseHandler);
+                justAddedBookmark = bookmarkData;
             });
 
-            it("listShowsNoDataWithUptodateHaveData", () => {
+            it("listShowsNoDataWithUptodateHaveData", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.list({
+                const data = await bookmarks.list({
                     have: [{
                         id: justAddedBookmark.bookmark_id,
                         hash: justAddedBookmark.hash,
                     }]
-                }).then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
-                }, failedPromiseHandler);
+                });
+
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             });
 
-            it("updateProgress", () => {
+            it("updateProgress", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50 }).then(
-                    (data) => {
-                        assert.strictEqual(data.type, "bookmark");
-                        assert.equal(data.progress, 0.2);
-                        updatedProgressHash = data.hash;
-                    }, failedPromiseHandler);
+                const data = await bookmarks.updateReadProgress({
+                    bookmark_id: justAddedId,
+                    progress: 0.2,
+                    progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50
+                });
+
+                assert.strictEqual(data.type, "bookmark");
+                assert.equal(data.progress, 0.2);
+                updatedProgressHash = data.hash;
             });
 
-            it("listWithHaveProgressInfoUpdatesProgress", () => {
+            it("listWithHaveProgressInfoUpdatesProgress", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const newProgress = (Math.round(Math.random() * 100) / 100);
 
-                return bookmarks.list({
+                const data = await bookmarks.list({
                     have: [{
                         id: justAddedBookmark.bookmark_id,
                         progress: newProgress,
@@ -251,18 +231,18 @@
                         // the current state, but doesn't tell us that it recomputed the hash.
                         progressLastChanged: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
                     }]
-                }).then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 1, "Expected updated item");
+                });
 
-                    if (data.bookmarks.length === 0) {
-                        return;
-                    }
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 1, "Expected updated item");
 
-                    const updatedBookmark = data.bookmarks[0];
-                    assert.equal(updatedBookmark.progress, newProgress, "progress wasn't updated");
-                    assert.notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
-                }, failedPromiseHandler);
+                if (data.bookmarks.length === 0) {
+                    return;
+                }
+
+                const updatedBookmark = data.bookmarks[0];
+                assert.equal(updatedBookmark.progress, newProgress, "progress wasn't updated");
+                assert.notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
             });
 
             it("updateProgressMoreThan1", () => {
@@ -271,7 +251,7 @@
                 assert.throws(
                     () => bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() }),
                     (ex) => {
-                    return ex.message === "Must have valid progress between 0.0 and 1.0";
+                        return ex.message === "Must have valid progress between 0.0 and 1.0";
                     },
                     "Should have failed with error on progress value");
             });
@@ -289,198 +269,196 @@
 
             it("listInStarredFolderExpectingNoStarredItems", listInStarredFolderExpectingNoStarredItems);
 
-            it("star", () => {
+            it("star", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.star(justAddedId).then(
-                    (data) => assert.equal(data.starred, 1, "Item should have been starred"),
-                    failedPromiseHandler
-                );
+                const data = await bookmarks.star(justAddedId);
+                assert.equal(data.starred, 1, "Item should have been starred")
             });
 
-            it("listInStarredFolderExpectingSingleStarredItem", () => {
+            it("listInStarredFolderExpectingSingleStarredItem", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.list({ folder_id: "starred" }).then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
+                const data = await bookmarks.list({ folder_id: "starred" });
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
-                    // Validate the only bookmark
-                    const bookmarkData = data.bookmarks[0];
-                    assert.strictEqual(bookmarkData.type, "bookmark");
-                    assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
-                    assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(bookmarkData.starred, "1");
-                    assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
-                }, failedPromiseHandler);
+                // Validate the only bookmark
+                const bookmarkData = data.bookmarks[0];
+                assert.strictEqual(bookmarkData.type, "bookmark");
+                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(bookmarkData.starred, "1");
+                assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
             });
 
-            it("unstar", () => {
+            it("unstar", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.unstar(justAddedId).then((data) => assert.equal(data.starred, 0, "Item shouldn't have been starred"), failedPromiseHandler);
+                const data = await bookmarks.unstar(justAddedId);
+                assert.equal(data.starred, 0, "Item shouldn't have been starred");
             });
 
             it("listInStarredFolderExpectingNoStarredItemsAfterUnStarring", listInStarredFolderExpectingNoStarredItems);
 
             it("listInArchiveFolderExpectingNoArchivedItems", listInArchiveFolderExpectingNoArchivedItems);
 
-            it("archive", () => {
+            it("archive", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.archive(justAddedId).then((data) => {
-                    // There is no information in the bookmark itself to indicate
-                    // that the item is in fact archived, so lets just validate it looks right
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(data.starred, "0");
-                }, failedPromiseHandler);
+                const data = await bookmarks.archive(justAddedId);
+                // There is no information in the bookmark itself to indicate
+                // that the item is in fact archived, so lets just validate it looks right
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(data.starred, "0");
             });
 
-            it("listInArchiveFolderExpectingSingleArchivedItem", () => {
+            it("listInArchiveFolderExpectingSingleArchivedItem", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.list({ folder_id: "archive" }).then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
+                const data = await bookmarks.list({ folder_id: "archive" });
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data");
+                assert.strictEqual(data.bookmarks.length, 1, "Didn't expect any pre-existing data");
 
-                    // Validate the only bookmark
-                    const bookmarkData = data.bookmarks[0];
-                    assert.strictEqual(bookmarkData.type, "bookmark");
-                    assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
-                    assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(bookmarkData.starred, "0");
-                    assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
-                }, failedPromiseHandler);
+                // Validate the only bookmark
+                const bookmarkData = data.bookmarks[0];
+                assert.strictEqual(bookmarkData.type, "bookmark");
+                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(bookmarkData.starred, "0");
+                assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
             });
 
-            it("unarchive", () => {
+            it("unarchive", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.unarchive(justAddedId).then((data) => {
-                    // There is no information in the bookmark itself to indicate
-                    // that the item is in fact unarchived, so lets just validate it looks right
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
-                    assert.strictEqual(data.starred, "0");
-                }, failedPromiseHandler);
+                const data = await bookmarks.unarchive(justAddedId);
+                // There is no information in the bookmark itself to indicate
+                // that the item is in fact unarchived, so lets just validate it looks right
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
+                assert.strictEqual(data.starred, "0");
             });
 
             it("listInArchiveFolderExpectingNoArchivedItems2", listInArchiveFolderExpectingNoArchivedItems);
 
-            it("getText", () => {
+            it("getText", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.getText(justAddedId).then((data) => assert.ok(data, "Expected to get actual data back"), failedPromiseHandler);
+                const data = await bookmarks.getText(justAddedId);
+                assert.ok(data, "Expected to get actual data back");
             });
 
-            it("getTextToDirectory", () => {
+            it("getTextToDirectory", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
                 const destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
                 const targetFileName = justAddedId + ".html";
-                let openedFile: Windows.Storage.StorageFile;
 
-                return destinationDirectory.tryGetItemAsync(targetFileName).then((fileToDelete) => { 
-                    if (!fileToDelete) {
-                        return;
-                    }
+                const fileToDelete = await destinationDirectory.tryGetItemAsync(targetFileName);
+                if (fileToDelete) {
+                    await fileToDelete.deleteAsync();
+                }
+                
+                const openedFile = await bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory);
+                assert.ok(openedFile, "Expected to get actual data back");
 
-                    return fileToDelete.deleteAsync();
-                }).then(() => <any>bookmarks.getTextAndSaveToFileInDirectory(justAddedId, destinationDirectory)).then((storageFile: Windows.Storage.StorageFile) => {
-                    assert.ok(storageFile, "Expected to get actual data back");
-                    openedFile = storageFile;
+                const basicProperties = await openedFile.getBasicPropertiesAsync();
+                assert.notStrictEqual(basicProperties.size, 0, "Shouldn't have had file written to disk");
 
-                    return storageFile.getBasicPropertiesAsync();
-                }).then((basicProperties) => {
-                    assert.notStrictEqual(basicProperties.size, 0, "Shouldn't have had file written to disk");
-
-                    return openedFile.deleteAsync();
-                }).then(null, failedPromiseHandler);
+                await openedFile.deleteAsync();
             });
 
-            it("getTextToDirectoryForUnavailableBookmarkDoesntWriteFile", () => {
+            it("getTextToDirectoryForUnavailableBookmarkDoesntWriteFile", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const destinationDirectory = Windows.Storage.ApplicationData.current.temporaryFolder;
                 let badBookmarkId: number;
                 let targetFileName: string;
 
-                return bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then((bookmark) => {
-                    targetFileName = bookmark.bookmark_id + ".html";
-                    badBookmarkId = bookmark.bookmark_id;
+                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" });
+                targetFileName = bookmark.bookmark_id + ".html";
+                badBookmarkId = bookmark.bookmark_id;
 
-                    return <PromiseLike<Windows.Storage.IStorageItem>><any>destinationDirectory.tryGetItemAsync(targetFileName);
-                }).then((fileToDelete: Windows.Storage.IStorageItem) => {
-                    if (!fileToDelete) {
-                        return;
-                    }
+                const fileToDelete = await destinationDirectory.tryGetItemAsync(targetFileName);
+                if (fileToDelete) {
+                    await fileToDelete.deleteAsync();
+                }
 
-                    return fileToDelete.deleteAsync();
-                }).then(() => bookmarks.getTextAndSaveToFileInDirectory(badBookmarkId, destinationDirectory)).then(
-                    () => assert.ok(false, "didn't expect success for this bookmark"),
-                    () => destinationDirectory.tryGetItemAsync(targetFileName)
-                ).then(function (storageFile) {
+                try {
+                    await bookmarks.getTextAndSaveToFileInDirectory(badBookmarkId, destinationDirectory);
+                    assert.ok(false, "didn't expect success for this bookmark");
+                } catch (e) {
+                    const storageFile = await destinationDirectory.tryGetItemAsync(targetFileName);
                     assert.strictEqual(storageFile, null, "Didn't expect any storage file");
+                }
 
-                    // Clean up the bad bookmark we added
-                    return bookmarks.deleteBookmark(badBookmarkId);
-                }).then(null, failedPromiseHandler);
+                // Clean up the bad bookmark we added
+                await bookmarks.deleteBookmark(badBookmarkId);
             });
 
-            it("deleteAddedUrl", () => {
+            it("deleteAddedUrl", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.deleteBookmark(justAddedId).then((data) => {
-                    assert.ok(Array.isArray(data), "no data returned");
-                    assert.strictEqual(data.length, 0, "Expected no elements in array");
-                }, failedPromiseHandler);
+                const data = await bookmarks.deleteBookmark(justAddedId);
+                assert.ok(Array.isArray(data), "no data returned");
+                assert.strictEqual(data.length, 0, "Expected no elements in array");
             });
 
-            it("deleteNonExistantUrl", () => {
+            it("deleteNonExistantUrl", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.deleteBookmark(justAddedId).then(
-                    () => assert.ok(false, "expected failed eror handler to be called"),
-                    (e) => assert.strictEqual(e.error, 1241, "Unexpected error code")
-                );
+                try {
+                    await bookmarks.deleteBookmark(justAddedId);
+                    assert.ok(false, "expected failed eror handler to be called");
+                } catch (e) {
+                    assert.strictEqual(e.error, 1241, "Unexpected error code")
+                }
             });
 
-            it("getText_nonExistantBookmark", () => {
+            it("getText_nonExistantBookmark", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.getText(justAddedId).then(
-                    () => assert.ok(false, "Expected failed handler to be called, not success"),
-                    (e) => assert.strictEqual(e.error, 1241, "Unexpected error code")
-                );
+                try {
+                    await bookmarks.getText(justAddedId);
+                    assert.ok(false, "Expected failed handler to be called, not success");
+                } catch (e) {
+                    assert.strictEqual(e.error, 1241, "Unexpected error code");
+                }
             });
 
-            it("getText_unavailableBookmark", () => {
+            it("getText_unavailableBookmark", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 let badBookmarkId: number;
 
                 // This URL isn't actually a valid URL, so should fail
-                return bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" }).then((bookmark) => {
-                    badBookmarkId = bookmark.bookmark_id;
-                    return bookmarks.getText(bookmark.bookmark_id);
-                }).then(
-                    () => assert.ok(false, "Expected failed handler to be called, not success"),
-                    (e) => assert.strictEqual(e.error, 1550, "Unexpected error code"),
-                ).then(() => bookmarks.deleteBookmark(badBookmarkId));
+                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" });
+                badBookmarkId = bookmark.bookmark_id;
+
+                try {
+                    await bookmarks.getText(bookmark.bookmark_id);
+                    assert.ok(false, "Expected failed handler to be called, not success");
+                } catch (e) {
+                    assert.strictEqual(e.error, 1550, "Unexpected error code");
+                }
+
+                await bookmarks.deleteBookmark(badBookmarkId);
             });
 
-            it("addWithAdditionalParameters", () => {
+            it("addWithAdditionalParameters", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage2.html";
                 let bookmarkToCleanup: number;
 
-                return bookmarks.add({ url: urlToAdd, title: "Custom Title", description: "Custom Description" }).then((data) => {
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
-                    assert.strictEqual(data.title, "Custom Title", "title wasn't expected");
-                    assert.strictEqual(data.description, "Custom Description");
+                const data = await bookmarks.add({ url: urlToAdd, title: "Custom Title", description: "Custom Description" });
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
+                assert.strictEqual(data.title, "Custom Title", "title wasn't expected");
+                assert.strictEqual(data.description, "Custom Description");
 
-                    bookmarkToCleanup = data.bookmark_id;
-                }).then(() => bookmarks.deleteBookmark(bookmarkToCleanup)).then(null, failedPromiseHandler);
+                bookmarkToCleanup = data.bookmark_id;
+
+                await bookmarks.deleteBookmark(bookmarkToCleanup);
             });
         });
 
@@ -493,170 +471,160 @@
              move (Between folders) #
             */
 
-            it("listDefaultShouldBeEmpty", () => {
-                const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-                
-                return folders.list().then((folders) => {
-                    assert.ok(Array.isArray(folders), "Folders should have been an array");
-                    assert.strictEqual(folders.length, 0, "Shouldn't have found any folders");
-                }, failedPromiseHandler);
+            it("listDefaultShouldBeEmpty", async () => {
+                const foldersApi = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
+                const folders = await foldersApi.list();
+                assert.ok(Array.isArray(folders), "Folders should have been an array");
+                assert.strictEqual(folders.length, 0, "Shouldn't have found any folders");
             });
 
-            it("addnewFolder", () => {
+            it("addnewFolder", async () => {
                 const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-                
-                return folders.add("folder").then((data) => {
-                    assert.strictEqual(data.title, "folder", "expected title to be that which was passed in");
 
-                    addedFolderId = data.folder_id;
-                }, failedPromiseHandler);
+                const data = await folders.add("folder");
+                assert.strictEqual(data.title, "folder", "expected title to be that which was passed in");
+
+                addedFolderId = data.folder_id;
             });
 
-            it("addDuplicateFolderReturnsError", () => {
+            it("addDuplicateFolderReturnsError", async () => {
                 const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
                 const title = Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + "";
+
+                await folders.add(title);
                 
-                return folders.add(title).then(
-                    () => folders.add(title)
-                ).then(
-                    () => assert.ok(false, "Shouldn't have been able to add the folder"),
-                    (error) => assert.strictEqual(error.error, 1251, "Incorrect error code")
-                );
+                try {
+                    await folders.add(title);
+                    assert.ok(false, "Shouldn't have been able to add the folder");
+                } catch (error) {
+                    assert.strictEqual(error.error, 1251, "Incorrect error code")
+                }
             });
 
-            it("listWithAddedFolders", () => {
-                const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
-                
-                return folders.list().then((folders) => {
-                    assert.ok(Array.isArray(folders), "Folders should have been an array");
-                    assert.strictEqual(folders.length, 2, "Shouldn't have found any folders");
+            it("listWithAddedFolders", async () => {
+                const foldersApi = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
 
-                    let foundFolderWithCorrectTitle = false;
-                    folders.forEach((folder) => {
-                        if (folder.title === "folder") {
-                            if (foundFolderWithCorrectTitle) {
-                                assert.ok(false, "Shouldn't have found more than 1 folder with title 'folder'");
-                            }
+                const folders = await foldersApi.list();
+                assert.ok(Array.isArray(folders), "Folders should have been an array");
+                assert.strictEqual(folders.length, 2, "Shouldn't have found any folders");
 
-                            foundFolderWithCorrectTitle = true;
+                let foundFolderWithCorrectTitle = false;
+                folders.forEach((folder) => {
+                    if (folder.title === "folder") {
+                        if (foundFolderWithCorrectTitle) {
+                            assert.ok(false, "Shouldn't have found more than 1 folder with title 'folder'");
                         }
-                    });
 
-                    assert.ok(foundFolderWithCorrectTitle, "folder title was incorrect");
-                }, failedPromiseHandler);
+                        foundFolderWithCorrectTitle = true;
+                    }
+                });
+
+                assert.ok(foundFolderWithCorrectTitle, "folder title was incorrect");
             });
 
-            it("addToFolder", () => {
+            it("addToFolder", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage3.html";
-                
-                return bookmarks.add({ url: urlToAdd, folder_id: addedFolderId }).then((data) => {
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
-                    assert.strictEqual(data.title, "TestPage3", "title wasn't expected");
-                    assert.strictEqual(data.starred, "0");
-                    assert.strictEqual(data.progress, 0);
 
-                    bookmarkAddedToFolderId = data.bookmark_id;
-                }, failedPromiseHandler);
+                const data = await bookmarks.add({ url: urlToAdd, folder_id: addedFolderId });
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
+                assert.strictEqual(data.title, "TestPage3", "title wasn't expected");
+                assert.strictEqual(data.starred, "0");
+                assert.strictEqual(data.progress, 0);
+
+                bookmarkAddedToFolderId = data.bookmark_id;
             });
 
-            it("moveBookmarkIntoFolder", () => {
+            it("moveBookmarkIntoFolder", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
-                
-                return bookmarks.add({ url: urlToAdd }).then((data) => {
-                    assert.strictEqual(data.type, "bookmark");
-                    assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
-                    assert.strictEqual(data.title, "TestPage4", "title wasn't expected");
-                    assert.strictEqual(data.starred, "0");
-                    assert.strictEqual(data.progress, 0);
 
-                    bookmarkAddedToFolderId2 = data.bookmark_id;
+                const data = await bookmarks.add({ url: urlToAdd });
+                assert.strictEqual(data.type, "bookmark");
+                assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
+                assert.strictEqual(data.title, "TestPage4", "title wasn't expected");
+                assert.strictEqual(data.starred, "0");
+                assert.strictEqual(data.progress, 0);
 
-                    return bookmarks.move({ bookmark_id: data.bookmark_id, destination: addedFolderId });
-                }).then((bookmark) => {
-                    assert.strictEqual(bookmark.type, "bookmark");
-                    assert.strictEqual(bookmark.url, urlToAdd, "url wasn't the same");
-                    assert.strictEqual(bookmark.title, "TestPage4", "title wasn't expected");
-                    assert.strictEqual(bookmark.starred, "0");
-                    assert.strictEqual(bookmark.progress, 0);
-                    assert.strictEqual(bookmark.bookmark_id, bookmarkAddedToFolderId2, "Incorrect bookmark returned from move");
-                }, failedPromiseHandler);
+                bookmarkAddedToFolderId2 = data.bookmark_id;
+
+                const bookmark = await bookmarks.move({ bookmark_id: data.bookmark_id, destination: addedFolderId });
+                assert.strictEqual(bookmark.type, "bookmark");
+                assert.strictEqual(bookmark.url, urlToAdd, "url wasn't the same");
+                assert.strictEqual(bookmark.title, "TestPage4", "title wasn't expected");
+                assert.strictEqual(bookmark.starred, "0");
+                assert.strictEqual(bookmark.progress, 0);
+                assert.strictEqual(bookmark.bookmark_id, bookmarkAddedToFolderId2, "Incorrect bookmark returned from move");
             });
 
-            it("listContentsOfAFolder", () => {
+            it("listContentsOfAFolder", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                
-                return bookmarks.list({ folder_id: addedFolderId }).then((data) => {
-                    assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
-                    assert.strictEqual(data.bookmarks.length, 2, "Didn't expect any pre-existing data");
 
-                    let bookmarkData;
-                    let bookmarkData2;
+                const data = await bookmarks.list({ folder_id: addedFolderId });
+                assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
+                assert.strictEqual(data.bookmarks.length, 2, "Didn't expect any pre-existing data");
 
-                    data.bookmarks.forEach((bookmark) => {
-                        if (bookmark.bookmark_id === bookmarkAddedToFolderId) {
-                            bookmarkData = bookmark;
-                        } else if (bookmark.bookmark_id === bookmarkAddedToFolderId2) {
-                            bookmarkData2 = bookmark;
-                        }
-                    });
+                let bookmarkData;
+                let bookmarkData2;
 
-                    // Validate the only bookmark
-                    assert.strictEqual(bookmarkData.type, "bookmark");
-                    assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
-                    assert.strictEqual(bookmarkData.title, "TestPage3", "title wasn't expected");
-                    assert.strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+                data.bookmarks.forEach((bookmark) => {
+                    if (bookmark.bookmark_id === bookmarkAddedToFolderId) {
+                        bookmarkData = bookmark;
+                    } else if (bookmark.bookmark_id === bookmarkAddedToFolderId2) {
+                        bookmarkData2 = bookmark;
+                    }
+                });
 
-                    assert.strictEqual(bookmarkData2.type, "bookmark");
-                    assert.strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
-                    assert.strictEqual(bookmarkData2.title, "TestPage4", "title wasn't expected");
-                    assert.strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
-                }, failedPromiseHandler);
+                // Validate the only bookmark
+                assert.strictEqual(bookmarkData.type, "bookmark");
+                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.title, "TestPage3", "title wasn't expected");
+                assert.strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
+
+                assert.strictEqual(bookmarkData2.type, "bookmark");
+                assert.strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData2.title, "TestPage4", "title wasn't expected");
+                assert.strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
             });
 
-            it("moveBookmarkToUnread", () => {
+            it("moveBookmarkToUnread", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
                 const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
-                
-                return bookmarks.archive(bookmarkAddedToFolderId2).then(() => {
-                    return bookmarks.add({ url: urlToAdd }).then(() => {
-                        return bookmarks.list();
-                    });
-                }).then((unread) => {
-                    assert.ok(unread.bookmarks, "Expected archived bookmarks");
-                    assert.strictEqual(unread.bookmarks.length, 1, "Didn't expect to find any bookmarks");
-                    assert.strictEqual(unread.bookmarks[0].bookmark_id, bookmarkAddedToFolderId2, "Bookmark was incorrect");
-                }, failedPromiseHandler);
+
+                await bookmarks.archive(bookmarkAddedToFolderId2);
+                await bookmarks.add({ url: urlToAdd });
+
+                const unread = await bookmarks.list();
+                assert.ok(unread.bookmarks, "Expected archived bookmarks");
+                assert.strictEqual(unread.bookmarks.length, 1, "Didn't expect to find any bookmarks");
+                assert.strictEqual(unread.bookmarks[0].bookmark_id, bookmarkAddedToFolderId2, "Bookmark was incorrect");
             });
 
-            it("moveBookmarkOutOfArchive", () => {
+            it("moveBookmarkOutOfArchive", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                return bookmarks.archive(bookmarkAddedToFolderId2).then(() => {
-                    return bookmarks.move({ bookmark_id: bookmarkAddedToFolderId2, destination: addedFolderId }).then(() => bookmarks.list({ folder_id: "archive" }));
-                }).then((archivedBookmarks) => {
-                    assert.ok(archivedBookmarks.bookmarks, "Expected archived bookmarks");
-                    assert.strictEqual(archivedBookmarks.bookmarks.length, 0, "Didn't expect to find any bookmarks");
-                }, failedPromiseHandler);
+                await bookmarks.archive(bookmarkAddedToFolderId2);
+                await bookmarks.move({ bookmark_id: bookmarkAddedToFolderId2, destination: addedFolderId });
+
+                const archivedBookmarks = await bookmarks.list({ folder_id: "archive" });
+                assert.ok(archivedBookmarks.bookmarks, "Expected archived bookmarks");
+                assert.strictEqual(archivedBookmarks.bookmarks.length, 0, "Didn't expect to find any bookmarks");
             });
 
-            it("deleteFolder", () => {
+            it("deleteFolder", async () => {
                 const folders = new Codevoid.Storyvoid.InstapaperApi.Folders(clientInformation);
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
                 // delete book mark 'cause it ends up in the archieve folder
-                return bookmarks.deleteBookmark(bookmarkAddedToFolderId).then(() => {
-                    return bookmarks.deleteBookmark(bookmarkAddedToFolderId2);
-                }).then(() => {
-                    return folders.deleteFolder(addedFolderId);
-                }).then((data) => {
-                    assert.ok(Array.isArray(data), "no data returned");
-                    assert.strictEqual(data.length, 0, "Expected no elements in array");
+                await bookmarks.deleteBookmark(bookmarkAddedToFolderId);
+                await bookmarks.deleteBookmark(bookmarkAddedToFolderId2);
 
-                    addedFolderId = null;
-                }).then(null, failedPromiseHandler);
+                const data = await folders.deleteFolder(addedFolderId);
+                assert.ok(Array.isArray(data), "no data returned");
+                assert.strictEqual(data.length, 0, "Expected no elements in array");
+
+                addedFolderId = null;
             });
         });
     });
