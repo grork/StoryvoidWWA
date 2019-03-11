@@ -222,7 +222,7 @@
             return signature;
         }
 
-        private _sendCore(): PromiseLike<Windows.Web.Http.IHttpContent> {
+        private async _sendCore(): Promise<Windows.Web.Http.IHttpContent> {
             // Calculate the data state (E.g. body or URL pay load)
             // Note that this does not use HttpFormUrlEncodedContent to handle the encoding, because
             // of the way we need to handle the headers, and body encoding & payload to calcuate
@@ -265,30 +265,28 @@
             // Note that we're using sendRequestAsync rather than getRequestAsync/postRequestAsync
             // versions to allow for a more linear code path, rather than splitting the method calls
             // themselves.
-            const operation: PromiseLike<Windows.Web.Http.IHttpContent> = httpClient.sendRequestAsync(request).then(function (responseMessage) {
-                if (!responseMessage.isSuccessStatusCode) {
-                    // When we barf, start the error
-                    // payload to look normative
-                    return <any><PromiseLike<any>>WinJS.Promise.join({
-                        status: responseMessage.statusCode,
-                        response: responseMessage.content.readAsStringAsync(),
-                    }).then(function (result) {
-                        return WinJS.Promise.wrapError(result);
-                    });
-                }
+            const responseMessage = await httpClient.sendRequestAsync(request);
+            if (!responseMessage.isSuccessStatusCode) {
+                // When we barf, start the error
+                // payload to look normative
+                return <any><PromiseLike<any>>WinJS.Promise.join({
+                    status: responseMessage.statusCode,
+                    response: responseMessage.content.readAsStringAsync(),
+                }).then(function (result) {
+                    return WinJS.Promise.wrapError(result);
+                });
+            }
 
-                return responseMessage.content;
-            });
-
-            return operation;
+            return responseMessage.content;
         }
 
-        public send(): PromiseLike<string> {
-            return this._sendCore().then((content) => <PromiseLike<string>>content.readAsStringAsync());
+        public async send(): Promise<string> {
+            const content = await this._sendCore();
+            return content.readAsStringAsync();
         }
 
-        public retrieveRawContent(): PromiseLike<Windows.Web.Http.IHttpContent> {
-            return this._sendCore();
+        public async retrieveRawContent(): Promise<Windows.Web.Http.IHttpContent> {
+            return await this._sendCore();
         }
     }
 }
