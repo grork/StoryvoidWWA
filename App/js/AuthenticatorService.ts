@@ -208,46 +208,44 @@
             this.authenticationErrorMessage = message;
         }
 
-        public authenticate(minimumDuration?: number): PromiseLike<InstapaperApi.IAccessTokenInformation> {
+        public async authenticate(minimumDuration?: number): Promise<InstapaperApi.IAccessTokenInformation> {
             // Reset authentication state
             this.authenticationError = 0;
 
             if (!this.canAuthenticate) {
-                return <any>WinJS.Promise.wrapError(new Error("Expected Credentials to be supplied to allow authentication"));
+                return Promise.reject(new Error("Expected Credentials to be supplied to allow authentication"));
             }
 
             const authenticationComplete = new Codevoid.Utilities.Signal();
-
             const clientInformation = Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret));
             const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
             this.isWorking = true;
 
-            <PromiseLike<any>>WinJS.Promise.join([
-                accounts.getAccessToken(this.username, this.password),
-                WinJS.Promise.timeout(minimumDuration || 0)
-            ]).then((result) => {
+            try {
+                const [token, _] = await Promise.all([
+                    accounts.getAccessToken(this.username, this.password),
+                    Codevoid.Utilities.timeout(minimumDuration || 0)
+                ]);
+
                 if (!this.holdWorkingStateOnSuccess) {
                     this.isWorking = false;
                 }
 
-                authenticationComplete.complete(result[0]);
-            }, (errorResult) => {
-                var err = errorResult[0];
+                authenticationComplete.complete(token);
+            } catch(errorResult) {
                 this.isWorking = false;
+                this.authenticationError = errorResult.status || 0;
+                authenticationComplete.error(errorResult);
+            }
 
-                this.authenticationError = err.status || 0;
-
-                authenticationComplete.error(err);
-            });
-
-            return authenticationComplete.promise;
+            return await authenticationComplete.promise;
         }
 
-        public promptForCredentials(): PromiseLike<Codevoid.Storyvoid.InstapaperApi.IAccessTokenInformation> {
+        public async promptForCredentials(): Promise<Codevoid.Storyvoid.InstapaperApi.IAccessTokenInformation> {
             this.credentialAcquisitionComplete = new Codevoid.Utilities.Signal();
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this);
-            return this.credentialAcquisitionComplete.promise;
+            return await this.credentialAcquisitionComplete.promise;
         }
     }
 

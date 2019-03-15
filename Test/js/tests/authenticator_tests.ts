@@ -271,7 +271,7 @@
             }
         });
 
-        it("canFailureToAuthenticateIsCorrectlyPropogated", async () => {
+        it("canFailureToAuthenticateIsCorrectlyPropagated", async () => {
             const vm = new authenticator.AuthenticatorViewModel();
 
             vm.username = testCredentials.user;
