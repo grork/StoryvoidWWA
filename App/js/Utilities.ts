@@ -142,17 +142,17 @@ namespace Codevoid.Utilities {
             var alertsToShow = [];
             var dialogVisible = false;
 
-            function showPendingAlerts() {
+            async function showPendingAlerts() {
                 if (dialogVisible || !alertsToShow.length) {
                     return;
                 }
 
                 dialogVisible = true;
-                (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync().then(function () {
-                    dialogVisible = false;
-                    showPendingAlerts();
-                });
+                await (new Windows.UI.Popups.MessageDialog(alertsToShow.shift())).showAsync();
+                dialogVisible = false;
+                showPendingAlerts();
             }
+
             window.alert = function (message) {
                 if (window.console && window.console.log) {
                     window.console.log(message);
@@ -520,45 +520,53 @@ namespace Codevoid.Utilities.DOM {
         element.setAttribute("data-win-control", controlClassName);
     }
 
-    export function loadTemplate(path: string, id: string): PromiseLike<WinJS.Binding.Template> {
+    export async function loadTemplate(path: string, id: string): Promise<WinJS.Binding.Template> {
         const templateCacheKey = `${path}#${id}`;
+
+        // If we have the template already in memory, return it
         const template = templateCache[templateCacheKey];
         if (template) {
-            return WinJS.Promise.wrap(template);
+            return template;
         }
 
+        // We didn't have it, so lets go get the tree if we have it...
+        // We store promises here, not the result so that if two requests come
+        // in concurrenctly, we can wait on the same actual renderCopy, rather
+        // than starting a second
         let fragmentPromise = fragmentCache[path];
         if (!fragmentPromise) {
+            // Didnt't have the element tree, so lets actually load it.
             fragmentCache[path] = fragmentPromise = WinJS.UI.Fragments.renderCopy(path);
         }
 
-        return fragmentPromise.then(function (fragment: HTMLElement) {
-            const templates = WinJS.Utilities.query("[" + TEMPLATE_ID_ATTRIBUTE_NAME + "]", fragment);
+        // Wait for the load to complete so we have the elements
+        const fragment = await fragmentPromise;
+        const templates = WinJS.Utilities.query(`[${TEMPLATE_ID_ATTRIBUTE_NAME}]`, fragment);
 
-            const templatePromises = templates.map(function (el: HTMLElement) {
-                return WinJS.UI.process(el).then(function (control: WinJS.Binding.Template) {
-                    control.disableOptimizedProcessing = true;
-                    return {
-                        template: control,
-                        id: el.getAttribute(TEMPLATE_ID_ATTRIBUTE_NAME),
-                    };
-                });
-            });
-
-            return <PromiseLike<any>>WinJS.Promise.join(templatePromises);
-        }).then(function (templateControls: { template: WinJS.Binding.Template; id: string }[]) {
-            for (let controlInfo of templateControls) {
-                templateCache[path + "#" + controlInfo.id] = controlInfo.template;
-            }
-
-            const foundTemplate = templateCache[templateCacheKey];
-
-            if (!foundTemplate) {
-                return <any>WinJS.Promise.wrapError(new Error("No template with name '" + id + "' found"));
-            }
-
-            return foundTemplate;
+        // Extract all the templates, even the ones we weren't looking for (aka warm the cache)
+        const templatePromises = templates.map(async (el: HTMLElement) => {
+            const control = await WinJS.UI.process(el);
+            control.disableOptimizedProcessing = true;
+            return {
+                template: control,
+                id: el.getAttribute(TEMPLATE_ID_ATTRIBUTE_NAME),
+            };
         });
+
+        // awit for all the loading to complete
+        const templateControls: { template: WinJS.Binding.Template; id: string }[] = await Promise.all(templatePromises);
+
+        // Plop them in the cache
+        for (let controlInfo of templateControls) {
+            templateCache[path + "#" + controlInfo.id] = controlInfo.template;
+        }
+
+        const foundTemplate = templateCache[templateCacheKey];
+        if (!foundTemplate) {
+            throw new Error("No template with name '" + id + "' found");
+        }
+
+        return foundTemplate;
     }
 
     export function clearTemplateCaches(): void {
