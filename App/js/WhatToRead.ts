@@ -67,7 +67,7 @@ namespace Codevoid.Storyvoid {
     }
 
     export class WhatToRead {
-        private _jumpListSaveInProgress: PromiseLike<void>;
+        private _jumpListSaveInProgress: boolean;
 
         constructor(private db: InstapaperDB) {
             if (!db) {
@@ -75,68 +75,69 @@ namespace Codevoid.Storyvoid {
             }
         }
 
-        public getStuffToRead(): PromiseLike<IReadGroup[]> {
-            return this.db.listCurrentBookmarks().then((bookmarks: IBookmark[]): IReadGroup[] => {
-                let byRecentlyRead: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
-                let byAdded: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
+        public async getStuffToRead(): Promise<IReadGroup[]> {
+            const bookmarks = await this.db.listCurrentBookmarks();
+            let byRecentlyRead: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
+            let byAdded: Codevoid.Storyvoid.IBookmark[] = [].concat(bookmarks);
 
-                byRecentlyRead.sort(sortByRecentlyRead);
-                byAdded.sort(sortByNewlyAdded);
+            byRecentlyRead.sort(sortByRecentlyRead);
+            byAdded.sort(sortByNewlyAdded);
 
-                // Clamp recently read to 5
-                byRecentlyRead = byRecentlyRead.filter(hasProgressAndNotUnpinned).slice(0, 5);
+            // Clamp recently read to 5
+            byRecentlyRead = byRecentlyRead.filter(hasProgressAndNotUnpinned).slice(0, 5);
 
-                // Build list of id's that are in the top-5
-                const readIds: { [id: number]: boolean } = {};
-                for(let item of byRecentlyRead) {
-                    readIds[item.bookmark_id] = true;
-                }
+            // Build list of id's that are in the top-5
+            const readIds: { [id: number]: boolean } = {};
+            for (let item of byRecentlyRead) {
+                readIds[item.bookmark_id] = true;
+            }
 
-                // Clamp recently added to 5 that _aren't_ also in the recently read list.
-                byAdded = byAdded.filter((added) => {
-                    return !readIds[added.bookmark_id] && !added.doNotAddToJumpList;
-                }).slice(0, 5);
+            // Clamp recently added to 5 that _aren't_ also in the recently read list.
+            byAdded = byAdded.filter((added) => {
+                return !readIds[added.bookmark_id] && !added.doNotAddToJumpList;
+            }).slice(0, 5);
 
-                const result = [];
+            const result = [];
 
-                if (byRecentlyRead.length) {
-                    result.push({
-                        name: "Recently Read",
-                        bookmarks: byRecentlyRead
-                    });
-                }
+            if (byRecentlyRead.length) {
+                result.push({
+                    name: "Recently Read",
+                    bookmarks: byRecentlyRead
+                });
+            }
 
-                if (byAdded.length) {
-                    result.push({
-                        name: "Recently Added",
-                        bookmarks: byAdded
-                    });
-                }
+            if (byAdded.length) {
+                result.push({
+                    name: "Recently Added",
+                    bookmarks: byAdded
+                });
+            }
 
-                return result;
-            });
+            return result;
         }
 
-        public refreshJumplists(): void {
+        public async refreshJumplists(): Promise<void> {
             if (this._jumpListSaveInProgress) {
                 return;
             }
 
-            let currentList: StartScreen.JumpList;
-            this._jumpListSaveInProgress = StartScreen.JumpList.loadCurrentAsync().then((list) => {
-                currentList = list;
-                return this._refreshJumpListImpl(list.items);
-            }).then(() => {
-                currentList.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
-                // Ignore errors, but trace them. This can be a flaked API, apparently
-                // https://blog.jayway.com/2018/05/31/uwp-jump-lists-done-right/
-                return currentList.saveAsync().then(null, () => Telemetry.instance.track("ErrorSavingJumpList", null));
-            }).then(() => {
-                this._jumpListSaveInProgress = null;
-            });
+            this._jumpListSaveInProgress = true;
+            const currentList = await StartScreen.JumpList.loadCurrentAsync();
+            await this._refreshJumpListImpl(currentList.items);
+            currentList.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
+
+            // Ignore errors, but trace them. This can be a flaked API, apparently
+            // https://blog.jayway.com/2018/05/31/uwp-jump-lists-done-right/
+            try {
+                await currentList.saveAsync();
+            } catch (e) {
+                Telemetry.instance.track("ErrorSavingJumpList", null);
+            }
+
+            this._jumpListSaveInProgress = false;
         }
 
-        private _refreshJumpListImpl(items: IJumpListItem[]): PromiseLike<void> {
+        private async _refreshJumpListImpl(items: IJumpListItem[]): Promise<void> {
             const removedDbIds: number[] = [];
 
             // Process the current jump list items, and build
@@ -154,57 +155,46 @@ namespace Codevoid.Storyvoid {
                 removedDbIds.push(linkInformation.bookmark_id);
             });
 
-            let updateRemovedPins: PromiseLike<void> = Codevoid.Utilities.as();
             if (removedDbIds.length > 0) {
                 // Get bookmarks by the removed IDs
-                const bookmarks = removedDbIds.map((id) => {
-                    return this.db.getBookmarkByBookmarkId(id);
-                });
-
-                updateRemovedPins = <PromiseLike<any>>WinJS.Promise.join(bookmarks).then((bookmarks: IBookmark[]) => {
-                    // Filter out any bookmarks that we didn't find (e.g. are null)
-                    bookmarks = bookmarks.filter(b => !!b);
-                    if (bookmarks.length < 1) {
-                        return Codevoid.Utilities.as([]);
-                    }
-
+                let bookmarks = await Promise.all(removedDbIds.map((id) => this.db.getBookmarkByBookmarkId(id)));
+                // Filter out any bookmarks that we didn't find (e.g. are null)
+                bookmarks = bookmarks.filter(b => !!b);
+                if (bookmarks.length > 0) {
                     // now update all the bookmarks to have the explicitlyUnpinned property
                     const updates = bookmarks.map(bookmark => {
                         bookmark.doNotAddToJumpList = true;
                         return this.db.updateBookmark(bookmark, true /*dontRaiseChangeNotification*/);
                     });
 
-                    return <PromiseLike<any>>WinJS.Promise.join(updates);
-                });
+                    await Promise.all(updates);
+                }
             }
 
-            return updateRemovedPins.then(() => {
-                // Since we've updated the DB with any explicitly
-                // removed items, we can just load from the DB
-                return this.getStuffToRead();
-            }).then((groups: IReadGroup[]) => {
-                // Convert the what to read list into the JumpList and save it.
-                items.length = 0;
+            const groups = await this.getStuffToRead();
+            items.length = 0; // Reset to no-items
+            // Convert the what to read list into the JumpList and save it.
 
-                const jumpListItem = Windows.UI.StartScreen.JumpListItem;
-                groups.forEach((group) => {
-                    group.bookmarks.forEach((bookmark) => {
-                        const uri = Codevoid.Storyvoid.Deeplinking.getUriForBookmark(bookmark);
-                        const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
-                        jumpItem.groupName = group.name;
-                        jumpItem.logo = new Windows.Foundation.Uri("ms-appx:///images/Article44x44.png");
-                        items.push(jumpItem);
-                    });
-                });
-            });
+
+            const jumpListItem = Windows.UI.StartScreen.JumpListItem;
+            for (let group of groups) {
+                for(let bookmark of group.bookmarks) {
+                    const uri = Codevoid.Storyvoid.Deeplinking.getUriForBookmark(bookmark);
+                    const jumpItem = jumpListItem.createWithArguments(uri, bookmark.title);
+                    jumpItem.groupName = group.name;
+                    jumpItem.logo = new Windows.Foundation.Uri("ms-appx:///images/Article44x44.png");
+                    items.push(jumpItem);
+                }
+            }
         }
 
-        public static clearJumpList(): PromiseLike<void> {
-            return Windows.UI.StartScreen.JumpList.loadCurrentAsync().then((list) => {
+        public static async clearJumpList(): Promise<void> {
+            try {
+                const list = await Windows.UI.StartScreen.JumpList.loadCurrentAsync();
                 list.items.clear();
                 list.systemGroupKind = Windows.UI.StartScreen.JumpListSystemGroupKind.none;
-                return list.saveAsync();
-            }).then(null, () => { });
+                await list.saveAsync();
+            } catch (e) { /* Drop any errors, since this is a flakey API */ }
         }
     }
 }
