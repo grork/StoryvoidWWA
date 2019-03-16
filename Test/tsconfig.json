@@ -4,7 +4,7 @@
     "noEmitOnError": false,
     "removeComments": false,
     "sourceMap": true,
-    "target": "es2016",
+    "target": "es2017",
     "rootDirs":
     [
       "..\\App"
