@@ -440,7 +440,7 @@
                             break;
 
                         case db.commonFolderDbIds.unread:
-                            operation = db.getBookmarkByBookmarkId(move.bookmark_id).then((bookmark) => b.add({ url: bookmark.url }));
+                            operation = db.getBookmarkByBookmarkId(move.bookmark_id).then((bookmark) => <PromiseLike<IBookmark>>b.add({ url: bookmark.url }));
                             break;
 
                         default:
@@ -449,7 +449,7 @@
                                     return;
                                 }
 
-                                return b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, (err) => {
+                                return <PromiseLike<IFolder>>b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, (err) => {
                                     if (err.error === 1242 || err.error === 1500) {
                                         return;
                                     }
@@ -494,7 +494,7 @@
                     };
                 });
 
-                return b.list({
+                return <PromiseLike<InstapaperApi.IBookmarkListResult>>b.list({
                     folder_id: folderId,
                     have: haves,
                     limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
@@ -603,7 +603,7 @@
                 });
 
                 const folderId = InstapaperDBCommonFolderIds.Liked;
-                return b.list({
+                return <PromiseLike<InstapaperApi.IBookmarkListResult>>b.list({
                     folder_id: folderId,
                     have: haves,
                     limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,

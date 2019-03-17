@@ -63,15 +63,12 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     };
     //#endregion
 
-    function extractSingleItemFromJSONArray(data: string): any {
-        return extractDataFromJSON(data, true);
+    enum ResultProcessing {
+        asIs,
+        reduceToSingleItem,
     }
 
-    function extractArrayFromResponse(data: string): any[] {
-        return extractDataFromJSON(data, false);
-    }
-
-    function extractDataFromJSON(data: string, reduceSingleItemToObject: boolean): any {
+    function extractSingleItemFromJSONArray(data: string, resultProcessing?: ResultProcessing): any {
         let objectData = (data) ? JSON.parse(data) : "";
         window.appassert(!!objectData, "didn't parse object data");
         window.appassert(Array.isArray(objectData), "Wasn't an array");
@@ -81,7 +78,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
                 return new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(objectData[0].error_code, objectData[0].message);
             }
 
-            if (reduceSingleItemToObject) {
+            if (resultProcessing == ResultProcessing.reduceToSingleItem) {
                 objectData = objectData[0];
             }
         }
@@ -89,8 +86,17 @@ namespace Codevoid.Storyvoid.InstapaperApi {
         return objectData;
     }
 
-    function handleSingleItemJSONError(error: Codevoid.OAuth.IRequestError): PromiseLike<{ error: number } | { error_code: number; message: string }> {
-        var result;
+    async function processRequest<T>(request: Codevoid.OAuth.OAuthRequest, resultProcessing: ResultProcessing = ResultProcessing.reduceToSingleItem): Promise<T> {
+        let data: string;
+        try {
+            data = await request.send();
+        } catch (e) { throwRequestError(e); };
+
+        return extractSingleItemFromJSONArray(data, resultProcessing);
+    }
+
+    function throwRequestError(error: Codevoid.OAuth.IRequestError): void {
+        let result;
 
         if (error.response) {
             result = extractSingleItemFromJSONArray(error.response);
@@ -98,7 +104,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             result = { error: error.status };
         }
 
-        return WinJS.Promise.wrapError(result);
+        throw result;
     }
 
     export interface IAccessTokenInformation {
@@ -164,7 +170,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     export class Accounts {
         constructor(private _clientInformation: Codevoid.OAuth.ClientInformation) { }
 
-        public getAccessToken(username: string, password: string): PromiseLike<IAccessTokenInformation> {
+        public async getAccessToken(username: string, password: string): Promise<IAccessTokenInformation> {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.access_token);
             request.data = [
                 { key: "x_auth_username", value: username },
@@ -172,27 +178,25 @@ namespace Codevoid.Storyvoid.InstapaperApi {
                 { key: "x_auth_mode", value: "client_auth" }
             ];
 
-            return request.send().then(function extractTokenInfo(responseData: string) {
-                window.appassert(!!responseData, "Didn't get response data");
-                const nameValuePairs = responseData.split("&");
-                const result: IAccessTokenInformation = {
-                    oauth_token: null,
-                    oauth_token_secret: null,
-                };
+            const responseData = await request.send();
+            window.appassert(!!responseData, "Didn't get response data");
+            const nameValuePairs = responseData.split("&");
+            const result: IAccessTokenInformation = {
+                oauth_token: null,
+                oauth_token_secret: null,
+            };
 
-                for (let item of nameValuePairs) {
-                    let tokenParts = item.split("=");
-                    const key = decodeURIComponent(tokenParts[0]);
-                    result[key] = decodeURIComponent(tokenParts[1]);
-                }
+            for (let item of nameValuePairs) {
+                const tokenParts = item.split("=");
+                const key = decodeURIComponent(tokenParts[0]);
+                result[key] = decodeURIComponent(tokenParts[1]);
+            }
 
-                return result;
-            });
+            return result;
         }
 
-        public verifyCredentials(): PromiseLike<IUserInformation> {
-            var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.verify_credentials);
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+        public async verifyCredentials(): Promise<IUserInformation> {
+            return await processRequest(new Codevoid.OAuth.OAuthRequest(this._clientInformation, AccountEndPoints.verify_credentials));
         }
     }
 
@@ -232,7 +236,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             window.appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
         }
 
-        public list(parameters?: IBookmarkListParameters): PromiseLike<IBookmarkListResult> {
+        public async list(parameters?: IBookmarkListParameters): Promise<IBookmarkListResult> {
             const data: Codevoid.OAuth.NameValuePair[] = [];
             if (parameters) {
                 if (parameters.limit) {
@@ -261,20 +265,16 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             }
 
             const startTime = Date.now();
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError).then(function stripMetaAndUserObject(data) {
-                window.appassert(Array.isArray(data), "Expected array for data");
-                window.appassert(data.length > 1, "expected at least 2 objects");
-
-                return {
-                    meta: data.shift(),
-                    user: data.shift(),
-                    bookmarks: data,
-                    duration: Date.now() - startTime
-                };
-            });
+            const [meta, user, ...bookmarks] = await processRequest<any[]>(request);
+            return {
+                meta,
+                user,
+                bookmarks,
+                duration: Date.now() - startTime
+            };
         }
 
-        public add(parameters: IBookmarkAddParameters): PromiseLike<IBookmark> {
+        public async add(parameters: IBookmarkAddParameters): Promise<IBookmark> {
             if (!parameters.url) {
                 throw new Error("Requires URL");
             }
@@ -299,10 +299,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             request.data = data;
 
             this._updateDailyAddCount();
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest<IBookmark>(request);
         }
 
-        public deleteBookmark(bookmark_id: number): PromiseLike<any> {
+        public async deleteBookmark(bookmark_id: number): Promise<any[]> {
             if (!bookmark_id) {
                 throw new Error("Requires bookmark ID to delete");
             }
@@ -310,10 +310,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const data = [{ key: "bookmark_id", value: bookmark_id }];
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.deleteBookmark);
             request.data = data;
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request, ResultProcessing.asIs);
         }
 
-        public move(parameters: IBookmarkMoveParameters): PromiseLike<IBookmark> {
+        public async move(parameters: IBookmarkMoveParameters): Promise<IBookmark> {
             if (!parameters.bookmark_id) {
                 throw new Error("Requires Bookmark ID");
             }
@@ -330,10 +330,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.move);
             request.data = data;
 
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public updateReadProgress(parameters: IBookmarkUpdateReadProgressParameters): PromiseLike<IBookmark> {
+        public async updateReadProgress(parameters: IBookmarkUpdateReadProgressParameters): Promise<IBookmark> {
             if (!parameters.bookmark_id) {
                 throw new Error("Requires Bookmark ID");
             }
@@ -354,10 +354,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
 
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.updateReadProgress);
             request.data = data;
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public star(bookmark_id: number): PromiseLike<IBookmark> {
+        public async star(bookmark_id: number): Promise<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -366,10 +366,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.star);
             request.data = data;
 
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public unstar(bookmark_id: number): PromiseLike<IBookmark> {
+        public async unstar(bookmark_id: number): Promise<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -378,10 +378,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.unstar);
             request.data = data;
 
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public archive(bookmark_id: number): PromiseLike<IBookmark> {
+        public async archive(bookmark_id: number): Promise<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -389,10 +389,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.archive);
             request.data = [{ key: "bookmark_id", value: bookmark_id }]
 
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public unarchive(bookmark_id: number): PromiseLike<IBookmark> {
+        public async unarchive(bookmark_id: number): Promise<IBookmark> {
             if (!bookmark_id) {
                 throw new Error("Bookmark ID required");
             }
@@ -400,10 +400,10 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.unarchive);
             request.data = [{ key: "bookmark_id", value: bookmark_id }];
 
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return await processRequest(request);
         }
 
-        public getText(bookmark_id: number): PromiseLike<string> {
+        public async getText(bookmark_id: number): Promise<string> {
             if (!bookmark_id) {
                 throw new Error("bookmark ID required");
             }
@@ -412,12 +412,12 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.getText);
             request.data = data;
 
-            return <PromiseLike<string>>request.send().then(function (response: string) {
-                return response;
-            }, handleSingleItemJSONError);
+            try {
+                return await request.send();
+            } catch (e) { throwRequestError(e); };
         }
 
-        public getTextAndSaveToFileInDirectory(bookmark_id: number, destinationDirectory: Windows.Storage.StorageFolder): PromiseLike<Windows.Storage.StorageFile> {
+        public async getTextAndSaveToFileInDirectory(bookmark_id: number, destinationDirectory: Windows.Storage.StorageFolder): Promise<Windows.Storage.StorageFile> {
             if (!bookmark_id) {
                 throw new Error("bookmark ID required");
             }
@@ -430,27 +430,24 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.getText);
             request.data = data;
 
-            const contentRequest = request.retrieveRawContent().then((r) => r, handleSingleItemJSONError);
+            let content: Windows.Web.Http.IHttpContent;
+            try {
+                content = await request.retrieveRawContent();
+            } catch (e) {
+                throwRequestError(e);
+            }
+
             const targetFileName = `${bookmark_id}.html`;
+            const file = await destinationDirectory.createFileAsync(targetFileName, Windows.Storage.CreationCollisionOption.replaceExisting);
+            const outputStream = await file.openAsync(Windows.Storage.FileAccessMode.readWrite);
+            await content.writeToStreamAsync(outputStream);
 
-            return contentRequest.then((content: Windows.Web.Http.IHttpContent) => {
-                const fileOutputStream = destinationDirectory.createFileAsync(targetFileName, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                    return file.openAsync(Windows.Storage.FileAccessMode.readWrite);
-                });
+            // Close the two streams we read so we can
+            // open the file and hand it to someone else.
+            outputStream.close();
+            content.close();
 
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    outputStream: fileOutputStream,
-                    inputStream: content,
-                });
-            }).then((result: any) => {
-                return result.inputStream.writeToStreamAsync(result.outputStream).then(() => result);
-            }).then((result) => {
-                // Close the two streams we read so we can
-                // open the file and hand it to someone else.
-                result.outputStream.close();
-                result.inputStream.close();
-                return <PromiseLike<Windows.Storage.StorageFile>>destinationDirectory.getFileAsync(targetFileName);
-            });
+            return destinationDirectory.getFileAsync(targetFileName);
         }
 
         public static haveToString(haveParameter: IHaveStatus | number): string {
@@ -483,35 +480,34 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     export class Folders {
         constructor(private _clientInformation: Codevoid.OAuth.ClientInformation) { }
 
-        public list(): PromiseLike<IFolder[]> {
+        public async list(): Promise<IFolder[]> {
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.list);
-            return <PromiseLike<IFolder[]>>request.send().then(extractArrayFromResponse, handleSingleItemJSONError);
+            return processRequest(request, ResultProcessing.asIs);
         }
 
-        public add(title: string): PromiseLike<IFolder> {
+        public async add(title: string): Promise<IFolder> {
             if (!title) {
                 throw new Error("Title is required to create a folder");
             }
 
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.add);
             request.data = [{ key: "title", value: title }];
-            return request.send().then(extractSingleItemFromJSONArray).then(function (data) {
-                if (!data.folder_id) {
-                    return WinJS.Promise.wrapError(new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title"));
-                }
+            const data = await processRequest<IFolder>(request);
+            if (!data.folder_id) {
+                throw new Codevoid.Storyvoid.InstapaperApi.InstapaperApiException(1251, "User already has a folder with this title");
+            }
 
-                return data;
-            }, handleSingleItemJSONError);
+            return data;
         }
 
-        public deleteFolder(folder_id: string): PromiseLike<any> {
+        public async deleteFolder(folder_id: string): Promise<any[]> {
             if (!folder_id) {
                 throw new Error("Folder ID is required to delete a folder");
             }
 
             const request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, FolderEndPoints.deleteFolder);
             request.data = [{ key: "folder_id", value: folder_id }];
-            return request.send().then(extractSingleItemFromJSONArray, handleSingleItemJSONError);
+            return processRequest(request);
         }
     }
 }

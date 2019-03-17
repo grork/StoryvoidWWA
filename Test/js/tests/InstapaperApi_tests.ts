@@ -143,16 +143,15 @@
                 assert.strictEqual(data.bookmarks.length, 0, "Didn't expect any pre-existing data");
             });
 
-            it("addThrowsWhenNoUrl", () => {
+            it("addThrowsWhenNoUrl", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                assert.throws(
-                    () => bookmarks.add(<any>{}),
-                    (ex) => {
-                        return ex.message === "Requires URL";
-                    },
-                    "Should throw if the URL isn't included"
-                );
+                try {
+                    await bookmarks.add(<any>{});
+                    assert.ok(false, "Shouldn't succeed");
+                } catch (ex) {
+                    assert.strictEqual(ex.message, "Requires URL", "Wrong error message");
+                }
             });
 
             it("addAddsUrlReturnsCorrectObject", async () => {
@@ -245,26 +244,25 @@
                 assert.notStrictEqual(updatedBookmark.hash, updatedProgressHash, "Hash should have changed");
             });
 
-            it("updateProgressMoreThan1", () => {
+            it("updateProgressMoreThan1", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
-                assert.throws(
-                    () => bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() }),
-                    (ex) => {
-                        return ex.message === "Must have valid progress between 0.0 and 1.0";
-                    },
-                    "Should have failed with error on progress value");
+                try {
+                    await bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+                    assert.ok(false, "Should have failed with error on progress value");
+                } catch (ex) {
+                    assert.strictEqual(ex.message, "Must have valid progress between 0.0 and 1.0", "Wrong error message");
+                }
             });
 
-            it("updateProgressLessThan0", () => {
+            it("updateProgressLessThan0", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-
-                assert.throws(
-                    () => bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() }),
-                    (ex) => {
-                        return ex.message === "Must have valid progress between 0.0 and 1.0";
-                    },
-                    "Should have failed with error on progress value");
+                try {
+                    await bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+                    assert.ok(false, "Should have failed with error on progress value");
+                } catch (ex) {
+                    assert.strictEqual(ex.message, "Must have valid progress between 0.0 and 1.0", "Wrong error message");
+                }
             });
 
             it("listInStarredFolderExpectingNoStarredItems", listInStarredFolderExpectingNoStarredItems);
