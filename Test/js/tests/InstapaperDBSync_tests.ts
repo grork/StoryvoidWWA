@@ -1019,6 +1019,7 @@
             });
             assert.ok(!bookmark1NoLongerInUnread, "Bookmark was still found in unread");
 
+            assert.ok(!!bookmark1, "Fake bookmark should have been found in orphaned folder");
             assert.strictEqual(bookmark1.folder_dbid, instapaperDB.commonFolderDbIds.orphaned, "Bookmark 1 not in orphaned folder");
             assert.strictEqual(bookmark1.folder_id, Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned, "Bookmark 1 not in orphaned folder");
 

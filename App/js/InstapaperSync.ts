@@ -17,12 +17,13 @@
         }
     }
 
-    function handleRemote1241Error(err: { error: number }): PromiseLike<any> {
+    function handleRemoteInvalidOrMissingBookmarkIdError(err: { error: number }): void {
+        // 1241 = Invalid or missing booimark ID
         if (err.error === 1241) {
             return;
         }
 
-        return WinJS.Promise.wrapError(err);
+        throw err;
     }
 
     interface IFolderSyncOptions {
@@ -103,46 +104,50 @@
         ///
         /// Has mirror method for removing a folder.
         /// </summary>
-        private _addFolderPendingEdit(edit: IFolderPendingEdit, db: InstapaperDB): PromiseLike<IFolder> {
-            return <PromiseLike<any>>WinJS.Promise.join({
-                local: db.getFolderByDbId(edit.folder_dbid),
-                remote: this._folders.add(edit.title).then(null, (error) => {
-                    // Error 1251 is the error that the folder with that name
-                    // is already on the server. If it's not that then theres
-                    // something else we'll need to do.
-                    if (error.error !== 1251) {
-                        return WinJS.Promise.wrapError(error);
-                    }
+        private async _addFolderPendingEdit(edit: IFolderPendingEdit, db: InstapaperDB): Promise<IFolder> {
+            const localFolderOperation = db.getFolderByDbId(edit.folder_dbid);
+            const remoteAddOperation = this._folders.add(edit.title);
 
-                    // It was 1251, so lets find the folder on the server
-                    // (which requires the full list since theres no other
-                    // way to get a specific folder), and then return *that*
-                    // folders information to that the values of this promise
-                    // can complete and let us sync all the data.
-                    return this._folders.list().then((remoteFolders) => {
-                        // reduce it down to the folder that was already there. note
-                        // that if we dont find it -- which we should -- all
-                        // hell is gonna break loose here.
-                        return remoteFolders.reduce((result, folder) => {
-                            if (result) {
-                                return result;
-                            }
-
-                            if (folder.title === edit.title) {
-                                return folder;
-                            }
-
-                            return null;
-                        }, null);
-                    });
-                }),
-            }).then((data) => {
-                for (let key in data.remote) {
-                    data.local[key] = data.remote[key];
+            const local = await localFolderOperation;
+            let remote: IFolder;
+            try {
+                remote = await remoteAddOperation;
+            } catch (error) {
+                // Error 1251 is the error that the folder with that name
+                // is already on the server. If it's not that then theres
+                // something else we'll need to do.
+                if (error.error !== 1251/*User Folder has a folder with the same name*/) {
+                    throw error;
                 }
 
-                return db.updateFolder(data.local);
-            });
+                // It was 1251, so lets find the folder on the server
+                // (which requires the full list since theres no other
+                // way to get a specific folder), and then return *that*
+                // folders information to that the values of this promise
+                // can complete and let us sync all the data.
+                const remoteFolders = await this._folders.list()
+                // reduce it down to the folder that was already there. note
+                // that if we dont find it -- which we should -- all
+                // hell is gonna break loose here.
+                remote = remoteFolders.reduce((result, folder) => {
+                    if (result) {
+                        return result;
+                    }
+
+                    if (folder.title === edit.title) {
+                        return folder;
+                    }
+
+                    return null;
+                }, null);
+            }
+
+            // Copy properties over
+            for (let key in remote) {
+                local[key] = remote[key];
+            }
+
+            return db.updateFolder(local);
         }
 
         /// <summary>
@@ -155,511 +160,481 @@
         ///
         /// Has mirror method for removing a folder.
         /// </summary>
-        private _removeFolderPendingEdit(edit: IFolderPendingEdit): PromiseLike<void> {
-            return this._folders.deleteFolder(edit.removedFolderId).then(null, (error) => {
+        private async _removeFolderPendingEdit(edit: IFolderPendingEdit): Promise<void> {
+            try {
+                await this._folders.deleteFolder(edit.removedFolderId);
+            } catch (error) {
                 // Folder isn't present on the server, and since we're trying
                 // to delete the thing anyway, this is ok.
+                // 1242 = Invalid or missing folder ID
+                // 1250 = Unexpected error
                 if (error && (error.error === 1242 || error.error === 1250)) {
                     return;
                 }
 
-                return WinJS.Promise.wrapError(error);
-            });
+                throw error;
+            }
         }
 
-        private _syncFolders(db: InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<void> {
+        private async _syncFolders(db: InstapaperDB, cancellationSource: Utilities.CancellationSource): Promise<void> {
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersStart });
 
-            return db.getPendingFolderEdits().then((pendingEdits) => {
-                return Codevoid.Utilities.serialize(pendingEdits, (edit) => {
-                    let syncPromise;
-                    switch (edit.type) {
-                        case InstapaperDBFolderChangeTypes.ADD:
-                            syncPromise = this._addFolderPendingEdit(edit, db);
-                            break;
+            const pendingEdits = await db.getPendingFolderEdits()
+            await Codevoid.Utilities.serialize(pendingEdits, async (edit: IFolderPendingEdit) => {
+                switch (edit.type) {
+                    case InstapaperDBFolderChangeTypes.ADD:
+                        await this._addFolderPendingEdit(edit, db);
+                        break;
 
-                        case InstapaperDBFolderChangeTypes.DELETE:
-                            syncPromise = this._removeFolderPendingEdit(edit);
-                            break;
+                    case InstapaperDBFolderChangeTypes.DELETE:
+                        await this._removeFolderPendingEdit(edit);
+                        break;
 
-                        default:
-                            window.appfail("Shouldn't see other edit types");
-                            break;
-                    }
-
-                    if (syncPromise) {
-                        return syncPromise.then(() => db.deletePendingFolderEdit(edit.id));
-                    }
-                }, 0, cancellationSource);
-            }).then(() => {
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    remoteFolders: this._folders.list(),
-                    localFolders: db.listCurrentFolders(),
-                });
-            }).then((data: { remoteFolders: IFolder[]; localFolders: IFolder[] }) => {
-                if (cancellationSource.cancelled) {
-                    return WinJS.Promise.wrapError(new Error("Folder Sync Cancelled after remote listing"));
+                    default:
+                        window.appfail("Shouldn't see other edit types");
+                        break;
                 }
 
-                // Find all the changes from the remote server
-                // that aren't locally for folders on the server
-                let syncs = data.remoteFolders.reduce<PromiseLike<any>[]>((data, rf) => {
-                    const synced = db.getFolderFromFolderId(rf.folder_id).then((lf) => {
-                        let done: PromiseLike<IFolder> = Codevoid.Utilities.as();
+                await db.deletePendingFolderEdit(edit.id);
+            }, 0, cancellationSource);
 
-                        // Notify that the remote folder w/ name had some changes
-                        this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, {
-                            operation: Codevoid.Storyvoid.InstapaperSyncStatus.folder,
-                            title: rf.title,
-                        });
+            const [remoteFolders, localFolders] = await Promise.all([
+                this._folders.list(),
+                db.listCurrentFolders()
+            ]);
 
-                        if (!lf) {
-                            done = db.addFolder(rf, true);
-                        } else {
-                            // if the title or position has changed
-                            // update those details locally
-                            if ((rf.title !== lf.title) || (rf.position !== lf.position)) {
-                                lf.title = rf.title;
-                                lf.position = rf.position;
-                                done = db.updateFolder(lf);
-                            }
-                        }
+            if (cancellationSource.cancelled) {
+                throw new Error("Folder Sync Cancelled after remote listing");
+            }
 
-                        return done;
-                    });
+            // Find all the changes from the remote server
+            // that aren't locally for folders on the server
+            const addFromRemote = remoteFolders.map(async (rf) => {
+                const lf = await db.getFolderFromFolderId(rf.folder_id);
 
-                    data.push(synced);
-                    return data;
-                }, []);
-
-                // Find all the folders that are not on the server, that
-                // we have locally.
-                syncs = data.localFolders.reduce((promises, item) => {
-                    // Default folders are ignored for any syncing behaviour
-                    // since they're uneditable.
-                    if (isDefaultFolder(item.folder_id)) {
-                        return promises;
-                    }
-
-                    const isInRemote = data.remoteFolders.some((remoteItem) => remoteItem.folder_id === item.folder_id);
-
-                    if (!isInRemote) {
-                        promises.push(db.removeFolder(item.id, true));
-                    }
-                    return promises;
-                }, syncs);
-
-                return <PromiseLike<any>>WinJS.Promise.join(syncs);
-            }).then(() => {
-                // Make sure there aren't any pending local edits, given we should have
-                // sync'd everything.
-
-                return db.getPendingFolderEdits().then((edits) => {
-                    this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd });
-                    // No edits? NO worries!
-                    if (!edits || (edits.length < 1)) {
-                        return;
-                    }
-
-                    debugger;
-                    return <any>WinJS.Promise.wrapError(new Error("There are pending folder edits. Didn't expect any pending folder edits"));
+                // Notify that the remote folder w/ name had some changes
+                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, {
+                    operation: Codevoid.Storyvoid.InstapaperSyncStatus.folder,
+                    title: rf.title,
                 });
+
+                if (!lf) {
+                    await db.addFolder(rf, true);
+                } else {
+                    // if the title or position has changed
+                    // update those details locally
+                    if ((rf.title !== lf.title) || (rf.position !== lf.position)) {
+                        lf.title = rf.title;
+                        lf.position = rf.position;
+                        await db.updateFolder(lf);
+                    }
+                }
             });
+
+            // Find all the folders that are not on the server, that
+            // we have locally.
+            const removeFromLocal = localFolders.map(async (item) => {
+                // Default folders are ignored for any syncing behaviour
+                // since they're uneditable.
+                if (isDefaultFolder(item.folder_id)) {
+                    return;
+                }
+
+                const isInRemote = remoteFolders.some((remoteItem) => remoteItem.folder_id === item.folder_id);
+
+                if (!isInRemote) {
+                    await db.removeFolder(item.id, true);
+                }
+            });
+
+            await Promise.all(addFromRemote.concat(removeFromLocal));
+
+            // Make sure there aren't any pending local edits, given we should have
+            // sync'd everything.
+
+            const edits = await db.getPendingFolderEdits();
+
+            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.foldersEnd });
+            // No edits? NO worries!
+            if (!edits || (edits.length < 1)) {
+                return;
+            }
+
+            debugger;
+            throw new Error("There are pending folder edits. Didn't expect any pending folder edits");
         }
 
-        private _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): PromiseLike<void> {
+        private async _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): Promise<void> {
+            let folders: IFolder[];
             let promise = Codevoid.Utilities.as();
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart });
 
             if (!options.singleFolder) {
-                promise = this._syncBookmarkPendingAdds(db).then(() => db.listCurrentFolders()).then((allFolders) => {
-                    let priorityFolder: IFolder;
-                    let priorityFolderIndex = -1;
+                await this._syncBookmarkPendingAdds(db);
+                const allFolders = await db.listCurrentFolders();
+                let priorityFolder: IFolder;
+                let priorityFolderIndex = -1;
 
-                    // When we're not syncing a single folder, but we're
-                    // still supplied with a folder, we're going to prioritize
-                    // that folder to be the first. The shuffle below basically
-                    // "sorts" the folder by placing the specific folder first.
-                    if (options.folder) {
-                        priorityFolder = allFolders.filter((f, index) => {
-                            if (f.folder_dbid === options.folder) {
-                                priorityFolderIndex = index;
-                                return true;
-                            }
-
-                            return false;
-                        })[0];
-
-                        // Now take the folder found and put it first.
-                        if (priorityFolder && (priorityFolderIndex > -1)) {
-                            allFolders.splice(priorityFolderIndex, 1);
-                            allFolders.unshift(priorityFolder);
+                // When we're not syncing a single folder, but we're
+                // still supplied with a folder, we're going to prioritize
+                // that folder to be the first. The shuffle below basically
+                // "sorts" the folder by placing the specific folder first.
+                if (options.folder) {
+                    priorityFolder = allFolders.filter((f, index) => {
+                        if (f.folder_dbid === options.folder) {
+                            priorityFolderIndex = index;
+                            return true;
                         }
-                    }
 
-                    return allFolders;
-                });
+                        return false;
+                    })[0];
+
+                    // Now take the folder found and put it first.
+                    if (priorityFolder && (priorityFolderIndex > -1)) {
+                        allFolders.splice(priorityFolderIndex, 1);
+                        allFolders.unshift(priorityFolder);
+                    }
+                }
+
+                folders = allFolders;
             } else {
-                promise = db.getFolderByDbId(options.folder).then((folder) => {
-                    if (folder.folder_id) {
-                        return [folder];
+                const folder = await db.getFolderByDbId(options.folder);
+                folders = [folder];
+                if (!folder.folder_id) {
+                    const edits = await db.getPendingFolderEdits();
+                    const edit = edits.filter((e) => e.folder_dbid === folder.id)[0];
+
+                    if (!edit) {
+                        window.appfail("Even though the folder had no folder ID, it had no pending edit either...");
+                        throw new Error("No pending edit for a folder with no folder ID");
                     }
 
-                    return db.getPendingFolderEdits().then((edits: IFolderPendingEdit[]): PromiseLike<IFolder[]> => {
-                        const edit = edits.filter((e) => e.folder_dbid === folder.id)[0];
-
-                        if (!edit) {
-                            window.appfail("Even though the folder had no folder ID, it had no pending edit either...");
-                            return <any>WinJS.Promise.wrapError(new Error("No pending edit for a folder with no folder ID"));
-                        }
-
-                        // Before we do any other work, we need to make sure
-                        // the the pending folder add was pushed up to the service.
-                        return <PromiseLike<IFolder[]>>this._addFolderPendingEdit(edit, db).then(() => db.getFolderByDbId(folder.id)).then((syncedFolder) => [syncedFolder]);
-                    });
-                });
+                    // Before we do any other work, we need to make sure
+                    // the the pending folder add was pushed up to the service.
+                    await this._addFolderPendingEdit(edit, db)
+                    const syncedFolder = await db.getFolderByDbId(folder.id)
+                    folders = [syncedFolder];
+                }
             }
 
-            return promise.then((folders: IFolder[]) => {
-                if (options.cancellationSource.cancelled) {
-                    return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Cancelled: After folders sync"));
+            if (options.cancellationSource.cancelled) {
+                throw new Error("Syncing Bookmarks Cancelled: After folders sync");
+            }
+
+            // If we've just sync'd the remote folders, theres no point
+            // in us getting the remote list *AGAIN*, so just let it filter
+            // based on the local folders
+            let remoteFolders = folders;
+            if (!options.didSyncFolders) {
+                remoteFolders = await this._folders.list();
+            }
+
+            const remoteFolderIds: string[] = remoteFolders.map((rFolder) => rFolder.folder_id);
+            const currentFolders = folders.filter((folder) => {
+                switch (folder.folder_id) {
+                    case InstapaperDBCommonFolderIds.Liked:
+                    case InstapaperDBCommonFolderIds.Orphaned:
+                        return false;
+
+                    default:
+                        return true;
                 }
+            });
 
-                // If we've just sync'd the remote folders, theres no point
-                // in us getting the remote list *AGAIN*, so just let it filter
-                // based on the local folders
-                const remoteFolders = options.didSyncFolders ? Codevoid.Utilities.as(folders) : this._folders.list();
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    currentFolders: folders,
-                    // Map the remote folders to easy look up if it's present or not
-                    remoteFolders: remoteFolders.then((rFolders) => rFolders.map((rFolder) => rFolder.folder_id)),
-                });
-            }).then((data: { currentFolders: IFolder[]; remoteFolders: string[] }) => {
-                if (options.cancellationSource.cancelled) {
-                    return WinJS.Promise.wrapError(new Error("Syncing Bookmarks Cancelled: After relisting remote folders"));
-                }
+            if (options.cancellationSource.cancelled) {
+                throw new Error("Syncing Bookmarks Cancelled: After relisting remote folders");
+            }
 
-                const currentFolders = data.currentFolders.filter((folder) => {
-                    switch (folder.folder_id) {
-                        case InstapaperDBCommonFolderIds.Liked:
-                        case InstapaperDBCommonFolderIds.Orphaned:
-                            return false;
-
-                        default:
-                            return true;
-                    }
-                });
-
-                return Codevoid.Utilities.serialize(currentFolders, (folder: IFolder) => {
-                    if (!isDefaultFolder(folder.folder_id)
-                        && (data.remoteFolders.indexOf(folder.folder_id) === -1)) {
-                        // If it's not a default folder, and the folder we're trying to sync
-                        // isn't available remotely (E.g it's been deleted, or it's not there yet)
-                        // we're going to give up for this specific folder
-                        return;
-                    }
-
-                    this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarkFolder, title: folder.title });
-
-                    // No need to pass the cancellation source here because we're in
-                    // a serialized call so will be broken after each foler.
-                    return this._syncBookmarksForFolder(db, folder.id).then(() => {
-                        if (options._testPerFolderCallback) {
-                            options._testPerFolderCallback(folder.id);
-                        }
-
-                        return WinJS.Promise.timeout();
-                    });
-                }, 0, options.cancellationSource);
-            }).then(() => this._syncLikes(db)).then(() => {
-                if (options.skipOrphanCleanup || options.singleFolder) {
+            // Folder by folder, sync the changes for that folder
+            await Codevoid.Utilities.serialize(currentFolders, async (folder: IFolder) => {
+                if (!isDefaultFolder(folder.folder_id)
+                    && (remoteFolderIds.indexOf(folder.folder_id) === -1)) {
+                    // If it's not a default folder, and the folder we're trying to sync
+                    // isn't available remotely (E.g it's been deleted, or it's not there yet)
+                    // we're going to give up for this specific folder
                     return;
                 }
 
-                return db.listCurrentBookmarks(db.commonFolderDbIds.orphaned).then((orphans) => {
-                    return Codevoid.Utilities.serialize(orphans, (orphan) => db.removeBookmark(orphan.bookmark_id, true));
-                });
-            }).then(() => db.getPendingBookmarkEdits((options.singleFolder ? options.folder : null))).then((edits) => {
-                // Check that there are no orphaned pending edits for bookmarks. If there are, something has
-                // gone very wrong
-                const mergedEdits = [];
+                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarkFolder, title: folder.title });
 
-                Object.keys(edits).forEach((p) => {
-                    // No edits to merge
-                    if (!Array.isArray(edits[p])) {
-                        return;
-                    }
+                // No need to pass the cancellation source here because we're in
+                // a serialized call so will be broken after each foler.
+                await this._syncBookmarksForFolder(db, folder.id);
 
-                    mergedEdits.concat(edits[p]);
-                });
+                if (options._testPerFolderCallback) {
+                    options._testPerFolderCallback(folder.id);
+                }
+            }, 0, options.cancellationSource);
 
-                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd });
+            await this._syncLikes(db);
 
-                if (!mergedEdits.length) {
+            if (!options.skipOrphanCleanup && !options.singleFolder) {
+                const orphans = await db.listCurrentBookmarks(db.commonFolderDbIds.orphaned);
+                await Codevoid.Utilities.serialize(orphans, (orphan) => db.removeBookmark(orphan.bookmark_id, true));
+            }
+
+            const edits = db.getPendingBookmarkEdits((options.singleFolder ? options.folder : null));
+            // Check that there are no orphaned pending edits for bookmarks. If there are, something has
+            // gone very wrong
+            let mergedEdits = [];
+
+            Object.keys(edits).forEach((p) => {
+                // No edits to merge
+                if (!Array.isArray(edits[p])) {
                     return;
                 }
 
-                debugger;
-                return <any>WinJS.Promise.wrapError(new Error("There pending bookmark edits still found. Incomplete sync"));
+                mergedEdits = mergedEdits.concat(edits[p]);
+            });
+
+            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksEnd });
+
+            if (!mergedEdits.length) {
+                return;
+            }
+
+            debugger;
+            throw new Error("There pending bookmark edits still found. Incomplete sync");
+        }
+
+        private async _syncBookmarkPendingAdds(db: InstapaperDB): Promise<void> {
+            const b = this._bookmarks;
+
+            const pendingAdds = await db.getPendingBookmarkAdds();
+            await Codevoid.Utilities.serialize(pendingAdds, async (add: IBookmarkPendingEdit) => {
+                await b.add({ url: add.url, title: add.title });
+                await db.deletePendingBookmarkEdit(add.id);
             });
         }
 
-        private _syncBookmarkPendingAdds(db: InstapaperDB): PromiseLike<void> {
+        private async _syncBookmarksForFolder(db: InstapaperDB, dbIdOfFolderToSync: number): Promise<void> {
             const b = this._bookmarks;
-
-            return db.getPendingBookmarkAdds().then((pendingAdds) => {
-                return Codevoid.Utilities.serialize(pendingAdds, (add: IBookmarkPendingEdit) => {
-                    return b.add({
-                        url: add.url,
-                        title: add.title,
-                    }).then(() => db.deletePendingBookmarkEdit(add.id));
-                });
-            });
-        }
-
-        private _syncBookmarksForFolder(db: InstapaperDB, dbIdOfFolderToSync: number): PromiseLike<void> {
-            const b = this._bookmarks;
-            let folderId: string;
-            let pendingEdits: IBookmarkPendingEdits;
-
             // First get the pending edits to work on
-            return db.getPendingBookmarkEdits(dbIdOfFolderToSync).then((edits) => {
-                pendingEdits = edits;
+            const pendingEdits = await db.getPendingBookmarkEdits(dbIdOfFolderToSync);
 
-                // Moves
-                if (!pendingEdits.moves) {
-                    return;
-                }
-
-                return Codevoid.Utilities.serialize(pendingEdits.moves, (move: IBookmarkPendingEdit) => {
-                    let operation: PromiseLike<IBookmark | IFolder>;
-
+            if (pendingEdits.moves) {
+                await Codevoid.Utilities.serialize(pendingEdits.moves, async (move: IBookmarkPendingEdit) => {
                     switch (move.destinationfolder_dbid) {
                         case db.commonFolderDbIds.archive:
-                            operation = b.archive(move.bookmark_id).then(null, handleRemote1241Error);
+                            try {
+                                await b.archive(move.bookmark_id);
+                            } catch (e) { handleRemoteInvalidOrMissingBookmarkIdError(e); }
                             break;
 
                         case db.commonFolderDbIds.unread:
-                            operation = db.getBookmarkByBookmarkId(move.bookmark_id).then((bookmark) => <PromiseLike<IBookmark>>b.add({ url: bookmark.url }));
+                            const bookmark = await db.getBookmarkByBookmarkId(move.bookmark_id);
+                            await b.add({ url: bookmark.url });
                             break;
 
                         default:
-                            operation = db.getFolderByDbId(move.destinationfolder_dbid).then((folder) => {
-                                if (!folder) {
-                                    return;
+                            const folder = await db.getFolderByDbId(move.destinationfolder_dbid);
+                            if (folder) {
+                                try {
+                                    await b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id });
+                                } catch (err) {
+                                    if (err.error !== 1242 && err.error !== 1500) {
+                                        handleRemoteInvalidOrMissingBookmarkIdError(err);
+                                    }
                                 }
 
-                                return <PromiseLike<IFolder>>b.move({ bookmark_id: move.bookmark_id, destination: folder.folder_id }).then(null, (err) => {
-                                    if (err.error === 1242 || err.error === 1500) {
-                                        return;
-                                    }
-
-                                    return handleRemote1241Error(err);
-                                });
-                            });
+                            }
                             break;
                     }
 
-                    return operation.then(() => db.deletePendingBookmarkEdit(move.id));
+                    await db.deletePendingBookmarkEdit(move.id);
                 });
-            }).then(() => {
-                // *Remote* Deletes
-                if (!pendingEdits.deletes) {
-                    return;
-                }
+            }
 
-                return Codevoid.Utilities.serialize(pendingEdits.deletes, (del: IBookmarkPendingEdit) => {
-                    return b.deleteBookmark(del.bookmark_id).then(null, handleRemote1241Error).then(() => db.deletePendingBookmarkEdit(del.id));
+            // *Remote* Deletes
+            if (pendingEdits.deletes) {
+                await Codevoid.Utilities.serialize(pendingEdits.deletes, async (del: IBookmarkPendingEdit) => {
+                    try {
+                        await b.deleteBookmark(del.bookmark_id);
+                    } catch (e) { handleRemoteInvalidOrMissingBookmarkIdError(e) }
+
+                    await db.deletePendingBookmarkEdit(del.id);
                 });
-            }).then(() => {
-                // Wait for the operations to complete, and return the local data
-                // so we can look for oprphaned bookmarks
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    folder: db.getFolderByDbId(dbIdOfFolderToSync),
-                    localBookmarks: db.listCurrentBookmarks(dbIdOfFolderToSync),
-                });
-            }).then((data: { folder: IFolder; localBookmarks: IBookmark[] }) => {
-                // Build the list of local "haves" for the folder we're
-                // syncing, so that the server can update it's read progress
-                // and tell us of any bookmarks that might have been removed
-                // on the server, or also added.
-                folderId = data.folder.folder_id;
-                const localBookmarks = data.localBookmarks;
-                const haves = localBookmarks.map<InstapaperApi.IHaveStatus>((bookmark) => {
-                    return {
-                        id: bookmark.bookmark_id,
-                        hash: bookmark.hash,
-                        progress: bookmark.progress,
-                        progressLastChanged: bookmark.progress_timestamp,
-                    };
-                });
+            }
 
-                return <PromiseLike<InstapaperApi.IBookmarkListResult>>b.list({
-                    folder_id: folderId,
-                    have: haves,
-                    limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
-                });
-            }).then((result: InstapaperApi.IBookmarkListResult) => {
-                // Now we've told the server what our local state is, and it's telling
-                // us whats *different* from that state.
-                const rb = result.bookmarks;
-                const rd = result.meta || { delete_ids: null };
-                let operations: PromiseLike<IBookmark>[] = [];
+            // Get the local data so we can look for oprphaned bookmarks
+            const [folder, localBookmarks] = await Promise.all([
+                db.getFolderByDbId(dbIdOfFolderToSync),
+                db.listCurrentBookmarks(dbIdOfFolderToSync),
+            ]);
 
-                this.dispatchEvent("bookmarkslistcompleted", { duration: result.duration });
-
-                // Process any existing bookmarks. Note that this can included bookmarks
-                // in this folder we aren't currently aware of (e.g. added), and ones we
-                // think are in another folder. This also includes updating read progress
-                // and other details.
-                if (rb && rb.length) {
-                    operations = rb.reduce((data, bookmark) => {
-                        const work = db.getBookmarkByBookmarkId(bookmark.bookmark_id).then((currentBookmark) => {
-                            if (!currentBookmark) {
-                                bookmark.folder_dbid = dbIdOfFolderToSync;
-                                bookmark.folder_id = folderId;
-                                return;
-                            }
-
-                            if (currentBookmark.folder_dbid !== dbIdOfFolderToSync) {
-                                return db.moveBookmark(bookmark.bookmark_id, dbIdOfFolderToSync, true);
-                            }
-
-                            return currentBookmark;
-                        }).then((current: IBookmark) =>{
-                            // Since the server gave us the data in a non-typed format, lets
-                            // faff with it and get into something that looks typed.
-                            bookmark.starred = parseInt((<any>bookmark.starred), 10);
-                            bookmark.progress = parseFloat(<any>bookmark.progress);
-
-                            if (!current) {
-                                return db.addBookmark(bookmark);
-                            }
-
-                            // The key here is to layer the updated values from the server
-                            // on to the bookmark that we're about to put in the database.
-                            // This is significant because otherwise, the put call will
-                            // *REPLACE* the data for that key losing the folder information etc.
-                            Object.keys(bookmark).forEach((p) => current[p] = bookmark[p]);
-
-                            return db.updateBookmark(current);
-                        });
-
-                        // Do the update
-                        data.push(work);
-                        return data;
-                    }, operations);
-                }
-
-                // The server returns any deletes in the folder as a string separated
-                // by ,'s. So we need to split that apart for the bookmark_id's, and
-                // then go remove them from the local database.
-                if (rd.delete_ids) {
-                    // Note, the reduce is to _append_ the operations we're gonna wait on
-                    operations = rd.delete_ids.split(",").reduce((data, bookmark) => {
-                        const bookmark_id = parseInt(bookmark);
-                        data.push(db.moveBookmark(bookmark_id, db.commonFolderDbIds.orphaned, true));
-                        return data;
-                    }, operations);
-                }
-
-                return <PromiseLike<any>>WinJS.Promise.join(operations);
+            // Build the list of local "haves" for the folder we're
+            // syncing, so that the server can update it's read progress
+            // and tell us of any bookmarks that might have been removed
+            // on the server, or also added.
+            const folderId = folder.folder_id;
+            const haves = localBookmarks.map<InstapaperApi.IHaveStatus>((bookmark) => {
+                return {
+                    id: bookmark.bookmark_id,
+                    hash: bookmark.hash,
+                    progress: bookmark.progress,
+                    progressLastChanged: bookmark.progress_timestamp,
+                };
             });
+
+            const result = await b.list({
+                folder_id: folderId,
+                have: haves,
+                limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
+            });
+
+            // Now we've told the server what our local state is, and it's telling
+            // us whats *different* from that state.
+            const rb = result.bookmarks;
+            const rd = result.meta || { delete_ids: null };
+            let operations: PromiseLike<any>[] = [];
+
+            this.dispatchEvent("bookmarkslistcompleted", { duration: result.duration });
+
+            // Process any existing bookmarks. Note that this can included bookmarks
+            // in this folder we aren't currently aware of (e.g. added), and ones we
+            // think are in another folder. This also includes updating read progress
+            // and other details.
+            if (rb && rb.length) {
+                operations = rb.map(async (bookmark) => {
+                    let currentBookmark = await db.getBookmarkByBookmarkId(bookmark.bookmark_id);
+                    if (!currentBookmark) {
+                        bookmark.folder_dbid = dbIdOfFolderToSync;
+                        bookmark.folder_id = folderId;
+                    } else if (currentBookmark.folder_dbid !== dbIdOfFolderToSync) {
+                        currentBookmark = await db.moveBookmark(bookmark.bookmark_id, dbIdOfFolderToSync, true);
+                    }
+
+                    // Since the server gave us the data in a non-typed format, lets
+                    // faff with it and get into something that looks typed.
+                    bookmark.starred = parseInt((<any>bookmark.starred), 10);
+                    bookmark.progress = parseFloat(<any>bookmark.progress);
+
+                    if (!currentBookmark) {
+                        await db.addBookmark(bookmark);
+                        return;
+                    }
+
+                    // The key here is to layer the updated values from the server
+                    // on to the bookmark that we're about to put in the database.
+                    // This is significant because otherwise, the put call will
+                    // *REPLACE* the data for that key losing the folder information etc.
+                    Object.keys(bookmark).forEach((p) => currentBookmark[p] = bookmark[p]);
+
+                    await db.updateBookmark(currentBookmark);
+                });
+            }
+
+            // The server returns any deletes in the folder as a string separated
+            // by ,'s. So we need to split that apart for the bookmark_id's, and
+            // then go remove them from the local database.
+            if (rd.delete_ids) {
+                // Note, the reduce is to _append_ the operations we're gonna wait on
+                operations = operations.concat(rd.delete_ids.split(",").map(async (bookmark) => {
+                    const bookmark_id = parseInt(bookmark);
+                    await db.moveBookmark(bookmark_id, db.commonFolderDbIds.orphaned, true);
+                }));
+            }
+
+            await Promise.all(operations);
         }
 
-        private _syncLikes(db: InstapaperDB) {
+        private async _syncLikes(db: InstapaperDB): Promise<void> {
             const b = this._bookmarks;
-            let edits: IBookmarkPendingEdits;
+            const edits = await db.getPendingBookmarkEdits();
 
-            // Get the pending edits
-            return db.getPendingBookmarkEdits().then((pendingEdits) => {
-                edits = pendingEdits;
+            if (edits.likes && edits.likes.length) {
+                // Push likes to the service
+                await Codevoid.Utilities.serialize(edits.likes, async (edit: IBookmarkPendingEdit) => {
+                    try {
+                        await b.star(edit.bookmark_id);
+                    } catch (e) {
+                        handleRemoteInvalidOrMissingBookmarkIdError(e);
+                    }
 
-                if (!(edits.likes && edits.likes.length)) {
-                    // No likes? No work!
-                    return;
-                }
-
-                // Push the like edits remotely
-                return Codevoid.Utilities.serialize(edits.likes, (edit) => {
-                    return b.star(edit.bookmark_id).then(null, handleRemote1241Error).then(() => db.deletePendingBookmarkEdit(edit.id));
+                    await db.deletePendingBookmarkEdit(edit.id);
                 });
-            }).then(() => {
-                if (!(edits.unlikes && edits.unlikes.length)) {
-                    // No unlikes? No work!
-                    return;
-                }
+            }
 
-                // push the unlike edits
-                return Codevoid.Utilities.serialize(edits.unlikes, (edit) => {
-                    return b.unstar(edit.bookmark_id).then(null, handleRemote1241Error).then(() => db.deletePendingBookmarkEdit(edit.id));
-                });
-            }).then(() => db.listCurrentBookmarks(db.commonFolderDbIds.liked)).then((localLikes) => {
-                const haves = localLikes.map<InstapaperApi.IHaveStatus>((bookmark) => {
-                    return {
-                        id: bookmark.bookmark_id,
-                        hash: bookmark.hash,
-                    };
-                });
+            if (edits.unlikes && edits.unlikes.length) {
+                // push the unlike edits to the service
+                await Codevoid.Utilities.serialize(edits.unlikes, async (edit: IBookmarkPendingEdit) => {
+                    try {
+                        await b.unstar(edit.bookmark_id);
+                    } catch (e) {
+                        handleRemoteInvalidOrMissingBookmarkIdError(e);
+                    }
 
-                const folderId = InstapaperDBCommonFolderIds.Liked;
-                return <PromiseLike<InstapaperApi.IBookmarkListResult>>b.list({
-                    folder_id: folderId,
-                    have: haves,
-                    limit: this.perFolderBookmarkLimits[folderId] || this.defaultBookmarkLimit,
+                    await db.deletePendingBookmarkEdit(edit.id);
                 });
-            }).then((remoteData) => {
-                const rb = remoteData.bookmarks;
-                const rd = remoteData.meta;
-                // Since we're not going to leave a pending edit, we can just like & unlike the
-                // remaining bookmarks irrespective of their existing state.
-                let operations = rb.reduce((data, rb) => {
-                    data.push(db.likeBookmark(rb.bookmark_id, true, true));
-                    return data;
-                }, []);
+            }
 
-                if (rd.delete_ids) {
-                    operations = rd.delete_ids.split(",").reduce((data, bookmark) => {
-                        const bookmark_id = parseInt(bookmark);
-                        data.push(db.unlikeBookmark(bookmark_id, true));
-                        return data;
-                    }, operations);
-                }
-                return <PromiseLike<any>>WinJS.Promise.join(operations);
+            // Now get the likes from the service.
+            // 1. Calculate the haves for the like folder
+            const localLikes = await db.listCurrentBookmarks(db.commonFolderDbIds.liked);
+            const haves = localLikes.map<InstapaperApi.IHaveStatus>((bookmark) => {
+                return {
+                    id: bookmark.bookmark_id,
+                    hash: bookmark.hash,
+                };
             });
+
+            // 2. List the like folder with the have's from the local state
+            const remoteData = await b.list({
+                folder_id: InstapaperDBCommonFolderIds.Liked,
+                have: haves,
+                limit: this.perFolderBookmarkLimits[InstapaperDBCommonFolderIds.Liked] || this.defaultBookmarkLimit,
+            });
+
+            // 3. Unlike / like as needed
+            const rb = remoteData.bookmarks;
+            const rd = remoteData.meta;
+            // Since we're not going to leave a pending edit, we can just like & unlike the
+            // remaining bookmarks irrespective of their existing state.
+            let likeOperations = rb.map(async (rb) => {
+                await db.likeBookmark(rb.bookmark_id, true, true)
+            });
+
+            let deleteOperations: Promise<void>[] = [];
+            if (rd.delete_ids) {
+                deleteOperations = rd.delete_ids.split(",").map(async (bookmark) => {
+                    const bookmark_id = parseInt(bookmark);
+                    await db.unlikeBookmark(bookmark_id, true);
+                });
+            }
+
+            await Promise.all(likeOperations.concat(deleteOperations));
         }
 
-        public sync(options?: ISyncOptions): PromiseLike<void> {
+        public async sync(options?: ISyncOptions): Promise<void> {
             options = options || { folders: true, bookmarks: true };
             const cancellationSource = options.cancellationSource || new Codevoid.Utilities.CancellationSource();
             const db = options.dbInstance || new InstapaperDB();
-            const initialize = options.dbInstance ? Codevoid.Utilities.as(db) : db.initialize();
 
-            this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.start });
-
-            return initialize.then(() => {
-                if (!options.folders || cancellationSource.cancelled) {
-                    return;
+            try {
+                if (!options.dbInstance) {
+                    await db.initialize();
                 }
 
-                return this._syncFolders(db, cancellationSource);
-            }).then(() => {
-                if (!options.bookmarks || cancellationSource.cancelled) {
-                    return;
+                this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.start });
+
+                if (options.folders && !cancellationSource.cancelled) {
+                    await this._syncFolders(db, cancellationSource);
                 }
 
-                return this._syncBookmarks(db, {
-                    singleFolder: options.singleFolder,
-                    folder: options.folder,
-                    skipOrphanCleanup: options.skipOrphanCleanup,
-                    _testPerFolderCallback: options._testPerFolderCallback,
-                    didSyncFolders: options.folders,
-                    cancellationSource: cancellationSource
-                });
-            }).then(() => {
+                
+                if (options.bookmarks && !cancellationSource.cancelled) {
+                    await this._syncBookmarks(db, {
+                        singleFolder: options.singleFolder,
+                        folder: options.folder,
+                        skipOrphanCleanup: options.skipOrphanCleanup,
+                        _testPerFolderCallback: options._testPerFolderCallback,
+                        didSyncFolders: options.folders,
+                        cancellationSource: cancellationSource
+                    });
+                }
+            } finally {
                 this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.end });
-                return <PromiseLike<any>>WinJS.Promise.timeout();
-            });
+            }
         }
     }
 }

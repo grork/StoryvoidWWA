@@ -86,222 +86,192 @@
             this._eventSource = new Utilities.EventSource();
         }
 
-        public syncAllArticlesNotDownloaded(idb: InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<any> {
+        public async syncAllArticlesNotDownloaded(idb: InstapaperDB, cancellationSource: Utilities.CancellationSource): Promise<void> {
             this._eventSource.dispatchEvent("allarticlesstarting", null);
 
             // First list all the current folders, and then sort them by 
             // ID (E.g. well known first)
-            return idb.listCurrentFolders().then((folders) => {
-                folders.sort((firstFolder: IFolder, secondFolder: IFolder): number => {
-                    if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
-                        // Assume we're sorting pre-canned folders. Sort by "id"
-                        if (firstFolder.id < secondFolder.id) {
-                            return -1;
-                        } else if (firstFolder.id > secondFolder.id) {
-                            return 1;
-                        } else {
-                            return;
-                        }
-                    }
-
-                    if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
-                        // Assume it's a pre-canned folder against a user folder. Pre-canned
-                        // always go first
+            const folders = await idb.listCurrentFolders();
+            folders.sort((firstFolder: IFolder, secondFolder: IFolder): number => {
+                if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
+                    // Assume we're sorting pre-canned folders. Sort by "id"
+                    if (firstFolder.id < secondFolder.id) {
                         return -1;
-                    }
-
-                    if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
-                        // Assume it's a user folder against a pre-canned folder. User folders
-                        // always come after.
-                        return 1;
-                    }
-
-                    // Since we've got user folders, sort soley by the users ordering preference
-                    if (firstFolder.position < secondFolder.position) {
-                        return -1;
-                    } else if (firstFolder.position > secondFolder.position) {
+                    } else if (firstFolder.id > secondFolder.id) {
                         return 1;
                     } else {
-                        return 1;
+                        return;
                     }
-                });
-
-                // Get the bookmarks from each folder, and sort them by highest ID
-                // first. Also remove any that are available locally / aren't
-                // available through the service.
-                var bookmarks = folders.map((folder) => {
-                    return idb.listCurrentBookmarks(folder.id).then((bookmarks) => {
-                        bookmarks = bookmarks.filter((bookmark) => {
-                            return !bookmark.contentAvailableLocally && !bookmark.articleUnavailable;
-                        });
-
-                        bookmarks.sort((bookmarkA, bookmarkB) => {
-                            if (bookmarkA.bookmark_id < bookmarkB.bookmark_id) {
-                                return -1;
-                            }
-
-                            if (bookmarkA.bookmark_id > bookmarkB.bookmark_id) {
-                                return 1;
-                            }
-
-                            return 0;
-                        });
-
-                        return bookmarks;
-                    });
-                });
-
-                return <IBookmark[][]><any><PromiseLike<any>>WinJS.Promise.join(bookmarks);
-            }).then((bookmarksByFolder: IBookmark[][]) => {
-                // Flatten them all into on big array, assuming that
-                // they're implicitly sorted now
-                var bookmarksAsFlatList = [];
-
-                for(let bookmarks of bookmarksByFolder) {
-                    bookmarksAsFlatList = bookmarksAsFlatList.concat(bookmarks);
                 }
 
-                return bookmarksAsFlatList;
-            }).then((articlesByUnreadFirst) => {
-                return Codevoid.Utilities.serialize(articlesByUnreadFirst, (item: IBookmark) => {
-                    return this.syncSingleArticle(item.bookmark_id, idb, cancellationSource).then(null, () => { /* Eat errors */ });
-                }, 4, cancellationSource);
-            }).then(() => {
-                this._eventSource.dispatchEvent("allarticlescompleted", null);
-            });
-        }
+                if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
+                    // Assume it's a pre-canned folder against a user folder. Pre-canned
+                    // always go first
+                    return -1;
+                }
 
-        public syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB, cancellationSource: Utilities.CancellationSource): PromiseLike<IBookmark> {
-            var localBookmark = dbInstance.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
-                this._eventSource.dispatchEvent("syncingarticlestarting", {
-                    bookmark_id: bookmark_id,
-                    title: bookmark.title,
+                if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
+                    // Assume it's a user folder against a pre-canned folder. User folders
+                    // always come after.
+                    return 1;
+                }
+
+                // Since we've got user folders, sort soley by the users ordering preference
+                if (firstFolder.position < secondFolder.position) {
+                    return -1;
+                } else if (firstFolder.position > secondFolder.position) {
+                    return 1;
+                } else {
+                    return 1;
+                }
+            });
+
+            // Get the bookmarks from each folder, and sort them by highest ID
+            // first. Also remove any that are available locally / aren't
+            // available through the service.
+            const bookmarks = folders.map(async (folder) => {
+                let folderBookmarks = await idb.listCurrentBookmarks(folder.id);
+                folderBookmarks = folderBookmarks.filter((bookmark) => !bookmark.contentAvailableLocally && !bookmark.articleUnavailable);
+
+                folderBookmarks.sort((bookmarkA, bookmarkB) => {
+                    if (bookmarkA.bookmark_id < bookmarkB.bookmark_id) {
+                        return -1;
+                    }
+
+                    if (bookmarkA.bookmark_id > bookmarkB.bookmark_id) {
+                        return 1;
+                    }
+
+                    return 0;
                 });
 
-                return bookmark;
+                return folderBookmarks;
             });
 
+            const bookmarksByFolder = await Promise.all(bookmarks);
+            // Flatten them all into on big array, assuming that
+            // they're implicitly sorted now
+            let articlesByUnreadFirst = [];
+
+            for (let bookmarks of bookmarksByFolder) {
+                articlesByUnreadFirst = articlesByUnreadFirst.concat(bookmarks);
+            }
+
+            await Codevoid.Utilities.serialize(articlesByUnreadFirst, async (item: IBookmark) => {
+                try {
+                    await this.syncSingleArticle(item.bookmark_id, idb, cancellationSource);
+                } catch (e) { /* Eat errors */ }
+
+                return null;
+            }, 4, cancellationSource);
+
+
+            this._eventSource.dispatchEvent("allarticlescompleted", null);
+        }
+
+        public async syncSingleArticle(bookmark_id: number, dbInstance: av.InstapaperDB, cancellationSource: Utilities.CancellationSource): Promise<IBookmark> {
+            const localBookmark = await dbInstance.getBookmarkByBookmarkId(bookmark_id);
+            this._eventSource.dispatchEvent("syncingarticlestarting", {
+                bookmark_id: bookmark_id,
+                title: localBookmark.title,
+            });
 
             const articleStartTime = Date.now();
 
-            var processArticle = <PromiseLike<any>>WinJS.Promise.join({
-                file: this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder).then((result) => {
-                    this._eventSource.dispatchEvent("syncarticlebodycompleted", {
-                        bookmark_id: bookmark_id,
-                        articleDownloadDuration: Date.now() - articleStartTime,
-                    });
-                    return result;
-                }),
-                localBookmark: localBookmark
-            }).then((result) => {
-                return this._processArticle(result.file, result.localBookmark, cancellationSource);
-            });
+            const file = await this._bookmarksApi.getTextAndSaveToFileInDirectory(bookmark_id, this._destinationFolder);
+            let articleInformation: IProcessedArticleInformation;
+            try {
+                articleInformation = await this._processArticle(file, localBookmark, cancellationSource);
+            } catch (e) {
+                articleInformation = {
+                    articleUnavailable: (e && e.file && e.file.error === 1550),
+                    failedToDownload: true,
+                    relativePath: null,
+                    hasImages: false,
+                    firstImageInformation: null,
+                    extractedDescription: null,
+                };
+            }
 
-            return <PromiseLike<IBookmark>><any><PromiseLike<any>>WinJS.Promise.join({
-                articleInformation: processArticle.then(null, (e) => {
-                    return {
-                        articleUnavailable: (e && e.file && e.file.error === 1550),
-                        failedToDownload: true,
-                    };
-                }),
-                localBookmark: localBookmark,
-            }).then((result: { articleInformation: IProcessedArticleInformation, localBookmark: av.IBookmark }) => {
-                if (result.articleInformation.failedToDownload) {
-                    result.localBookmark.articleUnavailable = result.articleInformation.articleUnavailable;
-                } else {
-                    result.localBookmark.contentAvailableLocally = true;
-                    result.localBookmark.localFolderRelativePath = result.articleInformation.relativePath;
-                    result.localBookmark.hasImages = result.articleInformation.hasImages;
-                    result.localBookmark.extractedDescription = result.articleInformation.extractedDescription;
-                    if (result.articleInformation.firstImageInformation) {
-                        result.localBookmark.firstImagePath = result.articleInformation.firstImageInformation.localPath;
-                        result.localBookmark.firstImageOriginalUrl = result.articleInformation.firstImageInformation.originalUrl;
-                    }
+            if (articleInformation.failedToDownload) {
+                localBookmark.articleUnavailable = articleInformation.articleUnavailable;
+            } else {
+                localBookmark.contentAvailableLocally = true;
+                localBookmark.localFolderRelativePath = articleInformation.relativePath;
+                localBookmark.hasImages = articleInformation.hasImages;
+                localBookmark.extractedDescription = articleInformation.extractedDescription;
+                if (articleInformation.firstImageInformation) {
+                    localBookmark.firstImagePath = articleInformation.firstImageInformation.localPath;
+                    localBookmark.firstImageOriginalUrl = articleInformation.firstImageInformation.originalUrl;
                 }
+            }
 
-                return dbInstance.updateBookmark(result.localBookmark);
-            }).then((bookmark) => {
-                this._eventSource.dispatchEvent("syncingarticlecompleted", { bookmark_id: bookmark_id });
-                return bookmark;
-            });
+            const bookmark = await dbInstance.updateBookmark(localBookmark);
+            this._eventSource.dispatchEvent("syncingarticlecompleted", { bookmark_id: bookmark_id });
+            return bookmark;
         }
 
-        public removeFilesForNotPresentArticles(instapaperDB: av.InstapaperDB): PromiseLike<any> {
-            var files = this._destinationFolder.getFilesAsync();
+        public async removeFilesForNotPresentArticles(instapaperDB: av.InstapaperDB): Promise<void> {
+            const filesOperation = this._destinationFolder.getFilesAsync();
+            const currentBookmarksOperation = instapaperDB.listCurrentBookmarks();
+            const foldersOperation = this._destinationFolder.getFoldersAsync();
 
-            var currentBookmarkIds = instapaperDB.listCurrentBookmarks().then((bookmarks) => {
-                var bookmark_ids: IBookmarkHash = {};
+            let [currentBookmarks, folders, files] = await Promise.all([currentBookmarksOperation, foldersOperation, filesOperation]);
 
-                for(let bookmark of bookmarks) {
-                    bookmark_ids[bookmark.bookmark_id] = "";
+            const currentBookmarkIds: IBookmarkHash = {};
+            for (let bookmark of currentBookmarks) {
+                currentBookmarkIds[bookmark.bookmark_id] = "";
+            }
+
+            const folderMap: IFolderMap = {};
+            for (let folder of folders) {
+                folderMap[folder.name] = folder;
+            }
+
+            const deletions: PromiseLike<void>[] = [];
+            for (const file of files) {
+                // If the local file isn't HTML, then it's not of interest to us
+                if (!(file.fileType.toLowerCase() === ".html")) {
+                    continue;
                 }
 
-                return bookmark_ids;
-            });
-
-            var folderMap = this._destinationFolder.getFoldersAsync().then((folders: c.IVectorView<st.StorageFolder>) => {
-                var map: IFolderMap = {};
-
-                for(let folder of folders) {
-                    map[folder.name] = folder;
+                // Do magic to convert the filename (which includes the extension) into
+                // a number we can use to look up the ID
+                var bookmarkIdPartOfFileName = file.name.replace(file.fileType, "");
+                var bookmark_id: number = Number(bookmarkIdPartOfFileName);
+                if (isNaN(bookmark_id)) {
+                    continue;
                 }
 
-                return map;
-            });
+                // If the bookmark ID isn't in the list
+                if (currentBookmarkIds.hasOwnProperty(bookmark_id.toString())) {
+                    continue;
+                }
 
-            return <PromiseLike<any>>WinJS.Promise.join({
-                currentBookmarkIds: currentBookmarkIds,
-                folderMap: folderMap,
-                files: files,
-            }).then((result: { currentBookmarkIds: IBookmarkHash, files: c.IVectorView<st.StorageFile>, folderMap: IFolderMap }) => {
-                var deletions: Windows.Foundation.IAsyncAction[] = [];
+                // Delete the the file
+                deletions.push(file.deleteAsync());
 
-                result.files.forEach((file: st.StorageFile) => {
-                    // If the local file isn't HTML, then it's not of interest to us
-                    if (!(file.fileType.toLowerCase() === ".html")) {
-                        return;
-                    }
+                // if theres a folder matching it, delete that too
+                var folderToDelete = folderMap[bookmark_id.toString()];
+                if (!folderToDelete) {
+                    continue;
+                }
 
-                    // Do magic to convert the filename (which includes the extension) into
-                    // a number we can use to look up the ID
-                    var bookmarkIdPartOfFileName = file.name.replace(file.fileType, "");
-                    var bookmark_id: number = Number(bookmarkIdPartOfFileName);
-                    if (isNaN(bookmark_id)) {
-                        return;
-                    }
+                deletions.push(folderToDelete.deleteAsync());
+            }
 
-                    // If the bookmark ID isn't in the list
-                    if (result.currentBookmarkIds.hasOwnProperty(bookmark_id.toString())) {
-                        return;
-                    }
-
-                    // Delete the the file
-                    deletions.push(file.deleteAsync());
-
-                    // if theres a folder matching it, delete that too
-                    var folderToDelete = result.folderMap[bookmark_id.toString()];
-                    if (!folderToDelete) {
-                        return;
-                    }
-
-                    deletions.push(folderToDelete.deleteAsync());
-                });
-
-                return <PromiseLike<any>>WinJS.Promise.join(deletions);
-            });
+            await Promise.all(deletions);
         }
 
         public get events() {
             return this._eventSource;
         }
 
-        private _processArticle(file: st.StorageFile, bookmark: IBookmark, cancellationSource: Utilities.CancellationSource): PromiseLike<IProcessedArticleInformation> {
-            var fileContentsOperation = st.FileIO.readTextAsync(file);
-            var parser = new DOMParser();
-            var articleDocument: Document;
+        private async _processArticle(file: st.StorageFile, bookmark: IBookmark, cancellationSource: Utilities.CancellationSource): Promise<IProcessedArticleInformation> {
+            const parser = new DOMParser();
 
-            var filePath = file.path.substr(this._localFolderPathLength).replace(/\\/g, "/");
-            var processedInformation: IProcessedArticleInformation = {
+            const filePath = file.path.substr(this._localFolderPathLength).replace(/\\/g, "/");
+            const processedInformation: IProcessedArticleInformation = {
                 relativePath: filePath,
                 hasImages: false,
                 firstImageInformation: undefined,
@@ -310,410 +280,358 @@
                 articleUnavailable: false,
             };
 
-            return fileContentsOperation.then((contents: string) => {
-                if (cancellationSource.cancelled) {
-                    return WinJS.Promise.wrapError(new Error("Article Sync Cancelled: Processing Article: After Reading file"));
+            const contents = await st.FileIO.readTextAsync(file);
+            if (cancellationSource.cancelled) {
+                throw new Error("Article Sync Cancelled: Processing Article: After Reading file");
+            }
+
+            let images: HTMLImageElement[];
+            const articleDocument = parser.parseFromString(contents, "text/html");
+
+            // See if the URL is for youtube, to allow customized processing of
+            // youtube.com addresses so we have a better reader experience
+            let uri: Windows.Foundation.Uri = null;
+
+            // Determine if this article requires customized downloading
+            // of the thumbnail (E.g. it's not gonna be in the article)
+            let thumbnailType: SpecializedThumbnail = SpecializedThumbnail.None;
+            try {
+                uri = new Windows.Foundation.Uri(bookmark.url);
+                thumbnailType = InstapaperArticleSync.urlRequiresCustomThumbnail(uri);
+            } catch (e) { }
+
+            switch (thumbnailType) {
+                case SpecializedThumbnail.YouTube:
+                    const videoID = uri.queryParsed.filter((entry) => entry.name === "v")[0];
+                    const ytImageElement = document.createElement("img");
+                    ytImageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
+                    images = [ytImageElement];
+                    break;
+
+                case SpecializedThumbnail.Vimeo:
+                    // Vimeo is a special snowflake; they don't have a supported
+                    // URL format that allows the images to be referenced directly
+                    //
+                    // So, we need to go get a JSON blob from vimeo, and query that
+                    // for the URL for the thumbnail.
+                    //
+                    // Documentation for the oEmbed API call:
+                    // https://developer.vimeo.com/apis/oembed
+                    const dataUri = new Windows.Foundation.Uri("https://vimeo.com/api/oembed.json?url=" + uri)
+                    const client = new Windows.Web.Http.HttpClient();
+                    client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
+
+                    // Attempt to get the data, and pass on the string to be parsed into JSON
+                    const response = await client.getAsync(dataUri);
+                    if (!response.isSuccessStatusCode) {
+                        throw {
+                            errorCode: response.statusCode,
+                        };
+                    }
+
+                    const data = await response.content.readAsStringAsync();
+                    response.close();
+
+                    let json: { thumbnail_url: string };
+                    try {
+                        json = JSON.parse(data);
+                    } catch (ex) { }
+
+                    // If we didn't get anything back, or we didn't get URL
+                    // just return an empty array
+                    if (!json || !json.thumbnail_url) {
+                        images = [];
+                    }
+
+                    const vimeoImageElement = document.createElement("img");
+                    vimeoImageElement.src = json.thumbnail_url;
+
+                    images = [vimeoImageElement];
+                    break;
+
+                case SpecializedThumbnail.None:
+                default:
+                    images = <HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body);
+                    break;
+            }
+
+            // Apppend messaging bootstrapper to allow two way
+            // messaging between the webview we load this in,
+            // and the host page.
+            const scriptTag = articleDocument.createElement("script");
+            scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
+            articleDocument.head.appendChild(scriptTag);
+
+            // Not all pages with content have a block element as their
+            // body-content. This means they get inline sizing, which results
+            // in weird sizing (E.g. no margin).
+            //
+            // To overcome this in a consistent way, just take all the children
+            // from the body, and place them inside a wrapper div.
+            //
+            // Note, that since they're not elements, you can't just
+            // look at children. You can't use childNodes either since
+            // that represents the entire tree. So, lets just reparent
+            // the firstChild until there is no more first child
+            const wrapperTag = articleDocument.createElement("div");
+            while (articleDocument.body.firstChild) {
+                wrapperTag.appendChild(articleDocument.body.firstChild)
+            }
+
+            // Now we've got the things reparented, place the wrapper
+            // into the document.
+            articleDocument.body.appendChild(wrapperTag);
+
+            if (images && images.length > 0) {
+                // No point in processing the document if we don't have any images.
+                processedInformation.hasImages = true;
+
+                // Remove the file extension to create directory name that can be used
+                // to store the images simply. This is done by removing the file extension
+                // from whatever the actual article file name.
+                const imagesFolderName = file.name.replace(file.fileType, "")
+
+                // The <any> cast here is because of the lack of a meaingful
+                // covariance of the types in TypeScript. Or another way: I got this , yo.
+                this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
+                const firstImagePath = await this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id, cancellationSource);
+                if (firstImagePath) {
+                    processedInformation.firstImageInformation = firstImagePath;
+                } else {
+                    // if we never found a first image that successfully downloaded
+                    // we should just assume that there were no real images.
+                    processedInformation.hasImages = false;
                 }
 
-                var images: PromiseLike<HTMLImageElement[]>;
-                articleDocument = parser.parseFromString(contents, "text/html");
+                this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark.bookmark_id });
+            }
 
-                // See if the URL is for youtube, to allow customized processing of
-                // youtube.com addresses so we have a better reader experience
-                let uri: Windows.Foundation.Uri = null;
+            // If the article actually has some content, extract the first 200 or so
+            // characters, and allow them to be persisted into the DB later.
+            const documentContentAsText = articleDocument.body.innerText;
+            if (documentContentAsText) {
+                processedInformation.extractedDescription = documentContentAsText.substr(0, 400);
+            }
 
-                // Determine if this article requires customized downloading
-                // of the thumbnail (E.g. it's not gonna be in the article)
-                let thumbnailType: SpecializedThumbnail = SpecializedThumbnail.None;
-                try {
-                    uri = new Windows.Foundation.Uri(bookmark.url);
-                    thumbnailType = InstapaperArticleSync.urlRequiresCustomThumbnail(uri);
-                } catch (e) {
-                }
-
-                switch (thumbnailType) {
-                    case SpecializedThumbnail.YouTube:
-                        var videoID = uri.queryParsed.filter((entry) => {
-                            return entry.name === "v";
-                        })[0];
-
-                        var imageElement = document.createElement("img");
-                        imageElement.src = "https://img.youtube.com/vi/" + videoID.value + "/hqdefault.jpg";
-                        images = Codevoid.Utilities.as([imageElement]);
-                        break;
-
-                    case SpecializedThumbnail.Vimeo:
-                        // Vimeo is a special snowflake; they don't have a supported
-                        // URL format that allows the images to be referenced directly
-                        //
-                        // So, we need to go get a JSON blob from vimeo, and query that
-                        // for the URL for the thumbnail.
-                        //
-                        // Documentation for the oEmbed API call:
-                        // https://developer.vimeo.com/apis/oembed
-                        var dataUri = new Windows.Foundation.Uri("https://vimeo.com/api/oembed.json?url=" + uri)
-                        var client = new Windows.Web.Http.HttpClient();
-                        client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
-
-                        // Attempt to get the data, and pass on the string to be parsed into JSON
-                        images = client.getAsync(dataUri).then((response: http.HttpResponseMessage) => {
-                            if (!response.isSuccessStatusCode) {
-                                return WinJS.Promise.wrapError({
-                                    errorCode: response.statusCode,
-                                });
-                            }
-
-                            return <PromiseLike<any>>WinJS.Promise.join({
-                                data: response.content.readAsStringAsync(),
-                                response: response,
-                            });
-                        }).then((result: any) => {
-                            result.response.close();
-
-                            var json: { thumbnail_url: string };
-                            try {
-                                json = JSON.parse(result.data);
-                            } catch (ex) {
-                            }
-
-                            // If we didn't get anything back, or we didn't get URL
-                            // just return an empty array
-                            if (!json || !json.thumbnail_url) {
-                                return [];
-                            }
-
-                            var imageElement = document.createElement("img");
-                            imageElement.src = json.thumbnail_url;
-
-                            return [imageElement];
-                        });
-                        break;
-
-                    case SpecializedThumbnail.None:
-                    default:
-                        images = Codevoid.Utilities.as(<HTMLImageElement[]><any>WinJS.Utilities.query("img", articleDocument.body));
-                        break;
-                }
-
-                return <any>images;
-            }).then((images: HTMLImageElement[]) => {
-
-                var imagesCompleted: PromiseLike<any> = Codevoid.Utilities.as();
-
-                // Apppend messaging bootstrapper to allow two way
-                // messaging between the webview we load this in,
-                // and the host page.
-                var scriptTag = articleDocument.createElement("script");
-                scriptTag.src = "ms-appx-web:///js/WebViewMessenger_client.js";
-                articleDocument.head.appendChild(scriptTag);
-
-                // Not all pages with content have a block element as their
-                // body-content. This means they get inline sizing, which results
-                // in weird sizing (E.g. no margin).
-                //
-                // To overcome this in a consistent way, just take all the children
-                // from the body, and place them inside a wrapper div.
-                //
-                // Note, that since they're not elements, you can't just
-                // look at children. You can't use childNodes either since
-                // that represents the entire tree. So, lets just reparent
-                // the firstChild until there is no more first child
-                var wrapperTag = articleDocument.createElement("div");
-                while (articleDocument.body.firstChild) {
-                    wrapperTag.appendChild(articleDocument.body.firstChild)
-                }
-
-                // Now we've got the things reparented, place the wrapper
-                // into the document.
-                articleDocument.body.appendChild(wrapperTag);
-
-                if (images && images.length > 0) {
-                    // No point in processing the document if we don't have any images.
-                    processedInformation.hasImages = true;
-
-                    // Remove the file extension to create directory name that can be used
-                    // to store the images simply. This is done by removing the file extension
-                    // from whatever the actual article file name.
-                    var imagesFolderName = file.name.replace(file.fileType, "")
-
-                    // The <any> cast here is because of the lack of a meaingful
-                    // covariance of the types in TypeScript. Or another way: I got this , yo.
-                    this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
-                    imagesCompleted = this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id, cancellationSource).then((firstImagePath) => {
-                        if (firstImagePath) {
-                            processedInformation.firstImageInformation = firstImagePath;
-                        } else {
-                            // if we never found a first image, that successfully downloaded
-                            // we should just assume that there were no real images.
-                            processedInformation.hasImages = false;
-                        }
-
-                        this._eventSource.dispatchEvent("processingimagescompleted", { bookmark_id: bookmark.bookmark_id });
-                    });
-                }
-                
-                // If the article actually has some content, extract the first 200 or so
-                // characters, and allow them to be persisted into the DB later.
-                var documentContentAsText = articleDocument.body.innerText;
-                if (documentContentAsText) {
-                    processedInformation.extractedDescription = documentContentAsText.substr(0, 400);
-                }
-
-                return imagesCompleted;
-            }).then(() => {
-                // Since we processed the article in some form, we need to
-                // barf it back out disk w/ the modifications
-                var rewrittenArticleContent = "<!DOCTYPE html>\r\n" + articleDocument.documentElement.outerHTML;
-                st.FileIO.writeTextAsync(file, rewrittenArticleContent, st.Streams.UnicodeEncoding.utf8);
-            }).then(() => processedInformation);
+            // Since we processed the article in some form, we need to
+            // barf it back out disk w/ the modifications
+            const rewrittenArticleContent = "<!DOCTYPE html>\r\n" + articleDocument.documentElement.outerHTML;
+            await st.FileIO.writeTextAsync(file, rewrittenArticleContent, st.Streams.UnicodeEncoding.utf8);
+            return processedInformation;
         }
 
-        private _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): PromiseLike<IFirstImageInformation> {
-            var imagesFolder = this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
-            var firstSuccessfulImage: IFirstImageInformation;
+        private async _processImagesInArticle(images: HTMLImageElement[], imagesFolderName: string, bookmark_id: number, cancellationSource: Utilities.CancellationSource): Promise<IFirstImageInformation> {
+            const folder = await this._destinationFolder.createFolderAsync(imagesFolderName, st.CreationCollisionOption.openIfExists);
+            if (cancellationSource.cancelled) {
+                throw new Error("Article Sync Cancelled: Processing Images");
+            }
 
-            return imagesFolder.then((folder: st.StorageFolder) => {
-                if (cancellationSource.cancelled) {
-                    return WinJS.Promise.wrapError(new Error("Article Sync Cancelled: Processing Images"));
-                }
-                return Utilities.serialize(images, (image: HTMLImageElement, index: number) => {
-                    var sourceUrl: Windows.Foundation.Uri;
-                    try {
-                        if (!image.src ||
-                            (image.src.indexOf(document.location.origin) === 0) ||
-                            (image.src.indexOf("data:") === 0)) {
-                            return;
-                        }
-
-                        sourceUrl = new Windows.Foundation.Uri(image.src);
-                    } catch (e) {
+            let firstSuccessfulImage: { localPath: string; originalUrl: string };
+            await Utilities.serialize(images, async (image: HTMLImageElement, index: number) => {
+                let sourceUrl: Windows.Foundation.Uri;
+                try {
+                    if (!image.src ||
+                        (image.src.indexOf(document.location.origin) === 0) ||
+                        (image.src.indexOf("data:") === 0)) {
                         return;
                     }
 
-                    // Only support HTTP / HTTPS links
-                    var scheme = sourceUrl.schemeName.toLowerCase();
-                    switch (scheme) {
-                        case "http":
-                        case "https":
-                            break;
+                    sourceUrl = new Windows.Foundation.Uri(image.src);
+                } catch (e) {
+                    return;
+                }
 
-                        default:
-                            return;
-                    }
+                // Only support HTTP / HTTPS links
+                var scheme = sourceUrl.schemeName.toLowerCase();
+                switch (scheme) {
+                    case "http":
+                    case "https":
+                        break;
 
-                    this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
+                    default:
+                        return;
+                }
+
+                this._eventSource.dispatchEvent("processingimagestarting", { bookmark_id: bookmark_id });
+
+                try {
                     // Download the image from the service and then rewrite
                     // the URL on the image tag to point to the now downloaded
                     // image
-                    return this._downloadImageToDisk(sourceUrl, index, folder).then((result: { filename: string; extension: string, size: { width: number; height: number;}}) => {
-                        // Check if the image is actually in a DOM of somesorts.
-                        // This is a trick/indiciator that this is a specialist
-                        // download e.g. YouTube, Vimeo etc -- e.g. something
-                        // that isn't in the actual downloaded document.
-                        if (image.parentElement) {
-                            image.src = imagesFolderName + "/" + result.filename;
-                        }
+                    const result = await this._downloadImageToDisk(sourceUrl, index, folder);
+                    
+                    // Check if the image is actually in a DOM of somesorts.
+                    // This is a trick/indiciator that this is a specialist
+                    // download e.g. YouTube, Vimeo etc -- e.g. something
+                    // that isn't in the actual downloaded document.
+                    if (image.parentElement) {
+                        image.src = imagesFolderName + "/" + result.filename;
+                    }
 
-                        if (!firstSuccessfulImage && (result.extension != "gif")) {
-                            firstSuccessfulImage = { localPath: "", originalUrl: "" };
-                            firstSuccessfulImage.localPath = getFilenameIfImageMeetsCriteria({
-                                extension: result.extension,
-                                size: result.size,
-                                folder: this._destinationFolder.name + "/" + imagesFolderName,
-                                filename: result.filename
-                            });
+                    if (!firstSuccessfulImage && (result.extension != "gif")) {
+                        firstSuccessfulImage = { localPath: "", originalUrl: "" };
+                        firstSuccessfulImage.localPath = getFilenameIfImageMeetsCriteria({
+                            extension: result.extension,
+                            size: result.size,
+                            folder: this._destinationFolder.name + "/" + imagesFolderName,
+                            filename: result.filename
+                        });
 
-                            // If we did find a candidate image for the first image, lets also
-                            // save the original URI into the database. This is so that when we create
-                            // external information for this article later (UserActivity, or shareing)
-                            // we have an externally accessible image URL 
-                            if (firstSuccessfulImage.localPath) {
-                                firstSuccessfulImage.originalUrl = sourceUrl.absoluteUri;
-                            }
+                        // If we did find a candidate image for the first image, lets also
+                        // save the original URI into the database. This is so that when we create
+                        // external information for this article later (UserActivity, or shareing)
+                        // we have an externally accessible image URL 
+                        if (firstSuccessfulImage.localPath) {
+                            firstSuccessfulImage.originalUrl = sourceUrl.absoluteUri;
                         }
+                    }
 
-                        this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
-                    }, (e: { errorCode: number }) => {
-                        // For each image that fails, remove it from it's parent DOM so that
-                        // we don't get little X's inside the viewer when rendered there.
-                        if (image.parentElement) {
-                            image.parentElement.removeChild(image);
-                        }
-                    });
-                }, 4, cancellationSource);
-            }).then(() => firstSuccessfulImage);
+                    this._eventSource.dispatchEvent("processingimagecompleted", { bookmark_id: bookmark_id });
+                } catch(e) {
+                    // For each image that fails, remove it from it's parent DOM so that
+                    // we don't get little X's inside the viewer when rendered there.
+                    if (image.parentElement) {
+                        image.parentElement.removeChild(image);
+                    }
+                }
+            }, 4, cancellationSource);
+            return firstSuccessfulImage;
         }
 
-        private _downloadImageToDisk(
+        private async _downloadImageToDisk(
             sourceUrl: Windows.Foundation.Uri,
             destinationFileNumber: number,
-            destinationFolder: st.StorageFolder): PromiseLike<{ filename: string; extension: string; size: { width: number, height: number } }> {
+            destinationFolder: st.StorageFolder): Promise<{ filename: string; extension: string; size: { width: number, height: number } }> {
 
-            var client = new http.HttpClient();
+            const client = new http.HttpClient();
             client.defaultRequestHeaders.userAgent.append(this._clientInformation.getUserAgentHeader());
 
-            var downloadStream = client.getAsync(sourceUrl).then((response: http.HttpResponseMessage) => {
-                if (!response.isSuccessStatusCode) {
-                    return WinJS.Promise.wrapError({
-                        errorCode: response.statusCode,
-                    });
-                }
-
-                // Cast away the type, since it seems to be wrong, and
-                // and isn't really relevant
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    buffer: response.content.readAsBufferAsync(),
-                    response: response
-                });
-            }).then((result: any) => {
-                var header = "";
-                var buffer: st.Streams.IBuffer = result.buffer;
-
-                // Get the buffer in an indexable fashion, then loop through to
-                // the MAX_SNIFF_BYTES to find the pre-amble of the file, converting
-                // into *HEX* strings along the way.
-                var reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
-                for (var i = 0; (i < MAX_SNIFF_BYTES) && (i < buffer.length); i++) {
-                    var byte = reader.readByte();
-
-                    // If it's < 10 (hex), then add "0" for completness
-                    if (byte < 17) {
-                        header += "0";
-                    }
-
-                    // Append the hex value
-                    header += byte.toString(16);
-                }
-
-                reader.close();
-
-                return {
-                    header: header.toLowerCase(),
-                    response: result.response,
+            const response = await client.getAsync(sourceUrl);
+            if (!response.isSuccessStatusCode) {
+                throw {
+                    errorCode: response.statusCode,
                 };
-            }).then((result: { header: string; response: http.HttpResponseMessage; }) => {
-                var response = result.response;
-                var header = result.header;
-                var destinationFileName;
-                var extension = "";
+            }
 
-                // Turns out, the mime type header is complete
-                // and utter crap, and is often wrong. So lets just faff
-                // around by sniffing the pre-amble on the file and see
-                // what the actual file type might be.
-                if (header) {
-                    if (header.indexOf(PNG_HEADER) == 0) {
+            const buffer = await response.content.readAsBufferAsync();
+            var header = "";
+
+            // Get the buffer in an indexable fashion, then loop through to
+            // the MAX_SNIFF_BYTES to find the pre-amble of the file, converting
+            // into *HEX* strings along the way.
+            const reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
+            for (var i = 0; (i < MAX_SNIFF_BYTES) && (i < buffer.length); i++) {
+                var byte = reader.readByte();
+
+                // If it's < 10 (hex), then add "0" for completness
+                if (byte < 17) {
+                    header += "0";
+                }
+
+                // Append the hex value
+                header += byte.toString(16);
+            }
+
+            reader.close();
+
+            header = header.toLowerCase();
+            let destinationFileName: string;
+            let extension = "";
+
+            // Turns out, the mime type header is complete
+            // and utter crap, and is often wrong. So lets just faff
+            // around by sniffing the pre-amble on the file and see
+            // what the actual file type might be.
+            if (header) {
+                if (header.indexOf(PNG_HEADER) == 0) {
+                    extension = "png";
+                } else if (header.indexOf(JPEG_HEADER_1) == 0) {
+                    extension = "jpg";
+                } else if (header.indexOf(JPEG_HEADER_2) == 0) {
+                    extension = "jpg";
+                } else if (header.indexOf(JPEG_HEADER_3) == 0) {
+                    extension = "jpg";
+                } else if (header.indexOf(GIF_HEADER_87A) == 0) {
+                    extension = "gif";
+                } else if (header.indexOf(GIF_HEADER_89A) == 0) {
+                    extension = "gif";
+                }
+            }
+
+            // If we didn't find the extension by content sniffing, then
+            // lets try and trust the actual media type.
+            if (!extension) {
+                // Detect what the file type is from the contentType that the
+                // service responded with.
+                switch (response.content.headers.contentType.mediaType.toLocaleLowerCase()) {
+                    case "image/jpg":
+                    case "image/jpeg":
+                        extension = "jpg";
+                        break;
+
+                    case "image/png":
                         extension = "png";
-                    } else if (header.indexOf(JPEG_HEADER_1) == 0) {
-                        extension = "jpg";
-                    } else if (header.indexOf(JPEG_HEADER_2) == 0) {
-                        extension = "jpg";
-                    } else if (header.indexOf(JPEG_HEADER_3) == 0) {
-                        extension = "jpg";
-                    } else if (header.indexOf(GIF_HEADER_87A) == 0) {
+                        break;
+
+                    case "image/svg+xml":
+                        extension = "svg";
+                        break;
+
+                    case "image/gif":
                         extension = "gif";
-                    } else if (header.indexOf(GIF_HEADER_89A) == 0) {
-                        extension = "gif";
-                    }
+                        break;
+
+                    default:
+                        debugger;
+                        destinationFileName = `${destinationFileNumber}`;
+                        break;
                 }
+            }
 
-                // If we didn't find the extension by content sniffing, then
-                // lets try and trust the actual media type.
-                if (!extension) {
-                    // Detect what the file type is from the contentType that the
-                    // service responded with.
-                    switch (response.content.headers.contentType.mediaType.toLocaleLowerCase()) {
-                        case "image/jpg":
-                        case "image/jpeg":
-                            extension = "jpg";
-                            break;
+            // Compute the final file name w. extension
+            destinationFileName = `${destinationFileNumber}.${extension}`;
 
-                        case "image/png":
-                            extension = "png";
-                            break;
-
-                        case "image/svg+xml":
-                            extension = "svg";
-                            break;
-
-                        case "image/gif":
-                            extension = "gif";
-                            break;
-
-                        default:
-                            debugger;
-                            destinationFileName = destinationFileNumber + "";
-                            break;
-                    }
-                }
-
-                // Compute the final file name w. extension
-                destinationFileName = destinationFileNumber + "." + extension;
-
-                var destinationFile = destinationFolder.createFileAsync(
-                    destinationFileName,
-                    st.CreationCollisionOption.replaceExisting).then((file: st.StorageFile) => {
-
-                        return <PromiseLike<any>>WinJS.Promise.join({
-                            stream: file.openAsync(st.FileAccessMode.readWrite),
-                            file: file
-                        });
-                    });
-
-                // TypeScript got real confused by the types here,
-                // so cast them away like farts in the wind
-                return <any><PromiseLike<any>>WinJS.Promise.join({
-                    remoteContent: response.content,
-                    destination: destinationFile,
-                    destinationFileName: destinationFileName,
-                    extension: extension
-                });
-            });
+            const destinationFile = await destinationFolder.createFileAsync(destinationFileName, st.CreationCollisionOption.replaceExisting);
+            const destinationStream = await destinationFile.openAsync(st.FileAccessMode.readWrite);
 
             // Write the stream to disk
-            return <PromiseLike<{ filename: string; extension: string; size: { width: number, height: number } }>><any>downloadStream.then((result: { destination: { stream: st.Streams.IRandomAccessStream; file: st.StorageFile }, remoteContent: http.IHttpContent, destinationFileName: string, extension: string }) => {
-                return result.remoteContent.writeToStreamAsync(result.destination.stream).then(() => result);
-            }).then((result) => {
-                result.remoteContent.close();
-                result.destination.stream.close();
+            await response.content.writeToStreamAsync(destinationStream);
 
-                // Get the size from the file properties, so we can decide
-                // if it's worth using as a preview image. Note, the image
-                // size here is in physical pixels, and doesn't take into
-                // account the scale factor of the device.
-                var size = result.destination.file.properties.getImagePropertiesAsync().then((properties) => {
-                    return {
-                        width: properties.width,
-                        height: properties.height,
-                    };
-                }, () => {
-                    return {
-                        width: 0,
-                        height: 0
-                    };
-                });
+            response.content.close();
+            destinationStream.close();
 
-                // Return the filename so that the image URL
-                // can be rewritten.
-                return <PromiseLike<any>>WinJS.Promise.join({
-                    filename: result.destinationFileName,
-                    extension: result.extension,
-                    size: size
-                });
-            });
+            // Get the size from the file properties, so we can decide
+            // if it's worth using as a preview image. Note, the image
+            // size here is in physical pixels, and doesn't take into
+            // account the scale factor of the device.
+            let size = { width: 0, height: 0 };
+            try {
+                const properties = await destinationFile.properties.getImagePropertiesAsync();
+
+                size = {
+                    width: properties.width,
+                    height: properties.height,
+                };
+            } catch (e) { }
+
+            // Return the filename so that the image URL
+            // can be rewritten.
+            return {
+                filename: destinationFileName,
+                extension,
+                size
+            };
         }
 
         private static urlRequiresCustomThumbnail(uri: Windows.Foundation.Uri): SpecializedThumbnail {
-            var host = uri.host.toLowerCase();
-            var path = uri.path.toLowerCase();
+            const host = uri.host.toLowerCase();
+            const path = uri.path.toLowerCase();
 
             if ((host === "youtube.com" || host === "www.youtube.com")
                 && (path === "/watch")) {
                 // YouTube URLs are of the format:
                 // http[s]://[www.]youtube.com/watch?v=ID
-                var videoID = uri.queryParsed.filter((entry) => {
-                    return entry.name === "v";
-                })[0];
+                const videoID = uri.queryParsed.filter((entry) => entry.name === "v")[0];
 
                 // Make sure we've got a Video ID, vs some other
                 // random part of YouTube
@@ -726,7 +644,7 @@
                 // http[s]://[www.]vimeo.com/IntegerNumericId
 
                 // Drop the leading /
-                var parsedPath = parseInt(uri.path.substring(1));
+                const parsedPath = parseInt(uri.path.substring(1));
 
                 // If the parsed part is actually a number, we
                 if (!isNaN(parsedPath)) {

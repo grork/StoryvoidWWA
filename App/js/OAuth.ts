@@ -270,7 +270,7 @@
                 // When we barf, start the error
                 // payload to look normative
                 const response = await responseMessage.content.readAsStringAsync();
-                throw { status, response };
+                throw { status: responseMessage.statusCode, response };
             }
 
             return responseMessage.content;
