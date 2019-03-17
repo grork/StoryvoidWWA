@@ -269,12 +269,8 @@
             if (!responseMessage.isSuccessStatusCode) {
                 // When we barf, start the error
                 // payload to look normative
-                return <any><PromiseLike<any>>WinJS.Promise.join({
-                    status: responseMessage.statusCode,
-                    response: responseMessage.content.readAsStringAsync(),
-                }).then(function (result) {
-                    return WinJS.Promise.wrapError(result);
-                });
+                const response = await responseMessage.content.readAsStringAsync();
+                throw { status, response };
             }
 
             return responseMessage.content;
