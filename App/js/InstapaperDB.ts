@@ -3,10 +3,10 @@
 }
 
 namespace Codevoid.Storyvoid {
-    function noDbError(): PromiseLike<any> {
+    function noDbError(): void {
         var error = new Error("Not connected to the server");
         error.code = InstapaperDBErrorCodes.NODB;
-        return WinJS.Promise.wrapError(error);
+        throw error;
     }
 
     function noClientInformationError(): PromiseLike<any> {
@@ -125,9 +125,9 @@ namespace Codevoid.Storyvoid {
 
         public commonFolderDbIds: InstapaperDBCommonFolderDBIds;
 
-        private _addPendingFolderEdit(folderEditToPend: IFolder): PromiseLike<IFolderPendingEdit> {
+        private async _addPendingFolderEdit(folderEditToPend: IFolder): Promise<IFolderPendingEdit> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
             var pendingEdit = {
@@ -136,10 +136,11 @@ namespace Codevoid.Storyvoid {
                 title: folderEditToPend.title,
             };
 
-            return this._db.put<IFolderPendingEdit>(InstapaperDBTableNames.FolderUpdates, pendingEdit).then(extractFirstItemInArray);
+            const edit = await this._db.put<IFolderPendingEdit>(InstapaperDBTableNames.FolderUpdates, pendingEdit);
+            return edit[0];
         }
 
-        public initialize(name?: string, version?: number): PromiseLike<InstapaperDB> {
+        public async initialize(name?: string, version?: number): Promise<InstapaperDB> {
             this._name = name || Codevoid.Storyvoid.InstapaperDB.DBName;
             this._version = version || Codevoid.Storyvoid.InstapaperDB.DBVersion;
 
@@ -193,47 +194,48 @@ namespace Codevoid.Storyvoid {
                 }
             };
 
-            return db.open({
+            this._db = await db.open({
                 server: this._name,
                 version: this._version,
                 schema: schema,
-            }, createDefaultData).then((db) => this._db = db).then(() => {
-                return <any><PromiseLike<any>>WinJS.Promise.join({
-                    archive: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive),
-                    liked: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked),
-                    unread: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread),
-                    orphaned: this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned),
-                });
-            }).then((data: { archive: IFolder; liked: IFolder; unread: IFolder; orphaned: IFolder }) => {
-                this.commonFolderDbIds = {
-                    archive: data.archive.id,
-                    liked: data.liked.id,
-                    unread: data.unread.id,
-                    orphaned: data.orphaned.id,
-                };
-                return this;
-            });
+            }, createDefaultData);
+
+            const [archive, liked, unread, orphaned] = await Promise.all([
+                this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Archive),
+                this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked),
+                this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Unread),
+                this.getFolderFromFolderId(Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Orphaned),
+            ]);
+
+            this.commonFolderDbIds = {
+                archive: archive.id,
+                liked: liked.id,
+                unread: unread.id,
+                orphaned: orphaned.id,
+            };
+            return this;
         }
 
-        public getFolderFromFolderId(folderId: string): PromiseLike<IFolder> {
+        public async getFolderFromFolderId(folderId: string): Promise<IFolder> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this._db.index(InstapaperDBTableNames.Folders, "folder_id").
-                only<IFolder>(folderId).then(extractFirstItemInArray);
+            const results = await this._db.index(InstapaperDBTableNames.Folders, "folder_id").only<IFolder>(folderId);
+            return results[0];
         }
 
         /// <summary>
         /// Returns a snap-shotted state of the current folders. This is
         /// not a live collection, and thus doesn't refect changes
         /// </summary>
-        public listCurrentFolders(): PromiseLike<IFolder[]> {
+        public async listCurrentFolders(): Promise<IFolder[]> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this._db.query(InstapaperDBTableNames.Folders).execute();
+            const results = await this._db.query(InstapaperDBTableNames.Folders).execute<IFolder>();
+            return results;
         }
 
         /// <summary>
@@ -242,104 +244,96 @@ namespace Codevoid.Storyvoid {
         /// If the folder is already marked for deletion, it will merely drop
         /// the pending "delete" if there is one.
         /// </summary>
-        public addFolder(folder: IFolder, dontAddPendingEdit?: boolean): PromiseLike<IFolder> {
+        public async addFolder(folder: IFolder, dontAddPendingEdit?: boolean): Promise<IFolder> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this._db.index(InstapaperDBTableNames.Folders, "title").only<IFolder>(folder.title).then((results) => {
-                if (!results || !results.length) {
-                    return;
-                }
-
+            const results = await this._db.index(InstapaperDBTableNames.Folders, "title").only<IFolder>(folder.title);
+            if (results && results.length) {
                 // Since we found an existing folder, we're going to error.
                 const error = new Error(`Folder with the title '${folder.title}' already present`);
                 error.code = InstapaperDBErrorCodes.FOLDER_DUPLICATE_TITLE;
-
-                return WinJS.Promise.wrapError(error);
-            }).then(() => this._db.index(InstapaperDBTableNames.FolderUpdates, "title").only<IFolderPendingEdit>(folder.title)).then(extractFirstItemInArray).then(
-                (pendingItem) => {
-                    if (!pendingItem) {
-                        // There wasn't a pending edit so just move on
-                        return null;
-                    }
-
-                    // The old data from the DB, which we'll return to allow
-                    // the folder to come back.
-                    const dataToResurrect = {
-                        folder_id: pendingItem.removedFolderId,
-                        title: pendingItem.title,
-                    };
-
-                    // Throw away the pending edit now that we got the data on it. This means it looks like
-                    // the folder had never been removed.
-                    return this.deletePendingFolderEdit(pendingItem.id).then(() => dataToResurrect);
-                }).then((existingFolderData) => {
-                    var folderData = existingFolderData || folder;
-
-                    let completedPromise = this._db.add(InstapaperDBTableNames.Folders, folderData).then(extractFirstItemInArray);
-
-                    if (!dontAddPendingEdit && !existingFolderData) {
-                        completedPromise = completedPromise.then((folder) => this._addPendingFolderEdit(folder).then(() => folder));
-                    }
-
-                    return completedPromise;
-                }).then((data: IFolder) => {
-                    this.dispatchEvent("folderschanged", {
-                        operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.ADD,
-                        folder_dbid: data.id,
-                        title: data.title,
-                        folder: data,
-                    });
-                    return data;
-                });
-        }
-
-        public deletePendingFolderEdit(pendingFolderEditId: number): PromiseLike<void> {
-            if (!this._db) {
-                return noDbError();
+                throw error;
             }
 
-            return this._db.remove(InstapaperDBTableNames.FolderUpdates, pendingFolderEditId);
-        }
+            const pendingEdits = await this._db.index(InstapaperDBTableNames.FolderUpdates, "title").only<IFolderPendingEdit>(folder.title);
+            const pendingItem = pendingEdits[0];
+            if (pendingItem) {
+                // The old data from the DB, which we'll return to allow
+                // the folder to come back.
+                const dataToResurrect = {
+                    folder_id: pendingItem.removedFolderId,
+                    title: pendingItem.title,
+                };
 
-        public getFolderByDbId(folderDbId: number): PromiseLike<IFolder> {
-            if (!this._db) {
-                return noDbError();
+                // Throw away the pending edit now that we got the data on it. This means it looks like
+                // the folder had never been removed.
+                await this.deletePendingFolderEdit(pendingItem.id);
+                folder = dataToResurrect;
             }
 
-            return this._db.get(InstapaperDBTableNames.Folders, folderDbId);
-        }
+            const addResult = await this._db.add(InstapaperDBTableNames.Folders, folder)
+            folder = addResult[0];
 
-        public getFolderDbIdFromFolderId(folderId: string): PromiseLike<IFolder> {
-            if (!this._db) {
-                return noDbError();
+            if (!dontAddPendingEdit && !pendingItem) {
+                await this._addPendingFolderEdit(folder);
             }
 
-            return this._db.index(InstapaperDBTableNames.Folders, "folder_id").
-                only<IFolder>(folderId).
-                then(extractFirstItemInArray);
-        }
-
-        public updateFolder(folderDetails: IFolder): PromiseLike<IFolder> {
-            if (!this._db) {
-                return noDbError();
-            }
-
-            return this._db.put(InstapaperDBTableNames.Folders, folderDetails).then(extractFirstItemInArray).then((data) => {
-                this.dispatchEvent("folderschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.UPDATE,
-                    folder_dbid: data.id,
-                    folder: data,
-                });
-
-                return data;
+            this.dispatchEvent("folderschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.ADD,
+                folder_dbid: folder.id,
+                title: folder.title,
+                folder: folder
             });
+
+            return folder;
         }
 
-        public removeFolder(folderDbId: number, dontAddPendingEdit?: boolean): PromiseLike<void> {
+        public async deletePendingFolderEdit(pendingFolderEditId: number): Promise<void> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
+            }
+
+            await this._db.remove(InstapaperDBTableNames.FolderUpdates, pendingFolderEditId);
+        }
+
+        public async getFolderByDbId(folderDbId: number): Promise<IFolder> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const result = await this._db.get<IFolder>(InstapaperDBTableNames.Folders, folderDbId);
+            return result;
+        }
+
+        public async getFolderDbIdFromFolderId(folderId: string): Promise<IFolder> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const result = await this._db.index(InstapaperDBTableNames.Folders, "folder_id").only<IFolder>(folderId);
+            return result[0];
+        }
+
+        public async updateFolder(folderDetails: IFolder): Promise<IFolder> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const data = (await this._db.put(InstapaperDBTableNames.Folders, folderDetails))[0];
+            this.dispatchEvent("folderschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.UPDATE,
+                folder_dbid: data.id,
+                folder: data,
+            });
+
+            return data;
+        }
+
+        public async removeFolder(folderDbId: number, dontAddPendingEdit?: boolean): Promise<void> {
+            if (!this._db) {
+                noDbError();
             }
 
             let completePromise: PromiseLike<any> = Codevoid.Utilities.as();
@@ -347,568 +341,483 @@ namespace Codevoid.Storyvoid {
 
             let folderBeingRemoved: IFolder;
             if (!dontAddPendingEdit) {
-                completePromise = this._db.get<IFolder>(InstapaperDBTableNames.Folders, folderDbId).then((folder) => folderBeingRemoved = folder);
+                folderBeingRemoved = await this._db.get<IFolder>(InstapaperDBTableNames.Folders, folderDbId);
             }
 
-            completePromise = completePromise.then(() => this._db.remove(InstapaperDBTableNames.Folders, folderDbId)).
-                then(() => this._db.index(InstapaperDBTableNames.FolderUpdates, "folder_dbid").only<IFolderPendingEdit>(folderDbId)).
-                then((results) => {
-                    if (!results || !results.length) {
-                        return;
-                    }
-
-                    wasUnsyncedEdit = true;
-
-                    window.appassert(results.length === 1, "Didn't expect to find more than one pending edit for this folder");
-                    return this.deletePendingFolderEdit(results[0].id);
-                });
-
-            if (!dontAddPendingEdit) {
-                completePromise = completePromise.then(() => {
-                    if (wasUnsyncedEdit) {
-                        return;
-                    }
-
-                    // Deletes are a little different, so lets not use
-                    // the _addPendingFolderEdit method here to ensure that we dont
-                    // end up specialcasing that function up the wazoo.
-                    const pendingEdit: any = {
-                        type: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE,
-                        removedFolderId: folderBeingRemoved.folder_id,
-                        title: folderBeingRemoved.title,
-                    };
-
-                    return this._db.put<IFolderPendingEdit>(InstapaperDBTableNames.FolderUpdates, pendingEdit)
-                });
+            await this._db.remove(InstapaperDBTableNames.Folders, folderDbId);
+            const pendingEdits = await this._db.index(InstapaperDBTableNames.FolderUpdates, "folder_dbid").only<IFolderPendingEdit>(folderDbId);
+            if (pendingEdits && pendingEdits.length) {
+                wasUnsyncedEdit = true;
+                window.appassert(pendingEdits.length === 1, "Didn't expect to find more than one pending edit for this folder");
+                await this.deletePendingFolderEdit(pendingEdits[0].id);
             }
 
-            return completePromise.then(() => {
-                this.dispatchEvent("folderschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE,
-                    folder_dbid: folderDbId,
-                });
 
-                // Stop the pending edit making it to the caller.
-                return;
-            });
-        }
-
-        public getPendingFolderEdits(): PromiseLike<IFolderPendingEdit[]> {
-            if (!this._db) {
-                return noDbError();
-            }
-
-            return this._db.query(InstapaperDBTableNames.FolderUpdates).execute<IFolderPendingEdit>();
-        }
-
-        public getPendingBookmarkEdits(folderDbId?: number): PromiseLike<IBookmarkPendingEdits> {
-            if (!this._db) {
-                return noDbError();
-            }
-
-            let edits: PromiseLike<IBookmarkPendingEdit[]>;
-            if (!folderDbId) {
-                edits = this._db.query(InstapaperDBTableNames.BookmarkUpdates).execute<IBookmarkPendingEdit>();
-            } else {
-                edits = <PromiseLike<any>>WinJS.Promise.join({
-                    source: this._db.index(InstapaperDBTableNames.BookmarkUpdates, "sourcefolder_dbid").only(folderDbId),
-                    destination: this._db.index(InstapaperDBTableNames.BookmarkUpdates, "destinationfolder_dbid").only(folderDbId),
-                }).then((data: { source: IBookmarkPendingEdit[]; destination: IBookmarkPendingEdit[] }) => data.source.concat(data.destination));
-            }
-
-            return edits.then((pendingEdits) => {
-                const adds: IBookmarkPendingEdit[] = [];
-                const deletes: IBookmarkPendingEdit[] = [];
-                const moves: IBookmarkPendingEdit[] = [];
-                const likes: IBookmarkPendingEdit[] = [];
-                const unlikes: IBookmarkPendingEdit[] = [];
-
-                for(let pendingEdit of pendingEdits) {
-                    switch (pendingEdit.type) {
-                        case InstapaperDBBookmarkChangeTypes.ADD:
-                            window.appassert(!folderDbId, "Don't support folder specific adds");
-                            adds.push(pendingEdit);
-                            break;
-                        case InstapaperDBBookmarkChangeTypes.DELETE:
-                            deletes.push(pendingEdit);
-                            break;
-
-                        case InstapaperDBBookmarkChangeTypes.MOVE:
-                            moves.push(pendingEdit);
-                            break;
-
-                        case InstapaperDBBookmarkChangeTypes.LIKE:
-                            likes.push(pendingEdit);
-                            break;
-
-                        case InstapaperDBBookmarkChangeTypes.UNLIKE:
-                            unlikes.push(pendingEdit);
-                            break;
-
-                        default:
-                            window.appfail("Unsupported edit type");
-                            break;
-                    }
-                }
-
-                const result = {
-                    adds: null,
-                    deletes: null,
-                    moves: null,
-                    likes: null,
-                    unlikes: null,
+            // If we're adding a pending edit, and we aren't removing a folder add we hadn't
+            // synced yet, then lets go do that pending edit thing
+            if (!dontAddPendingEdit && !wasUnsyncedEdit) {
+                // Deletes are a little different, so lets not use
+                // the _addPendingFolderEdit method here to ensure that we dont
+                // end up special casing that function up the wazoo.
+                const pendingEdit: any = {
+                    type: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE,
+                    removedFolderId: folderBeingRemoved.folder_id,
+                    title: folderBeingRemoved.title,
                 };
 
-                if (adds.length) {
-                    result.adds = adds;
-                }
+                await this._db.put<IFolderPendingEdit>(InstapaperDBTableNames.FolderUpdates, pendingEdit);
+            }
 
-                if (deletes.length) {
-                    result.deletes = deletes;
-                }
-
-                if (moves.length) {
-                    result.moves = moves;
-                }
-
-                if (likes.length) {
-                    result.likes = likes;
-                }
-
-                if (unlikes.length) {
-                    result.unlikes = unlikes;
-                }
-
-                return result;
+            this.dispatchEvent("folderschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBFolderChangeTypes.DELETE,
+                folder_dbid: folderDbId,
             });
         }
 
-        public getPendingBookmarkAdds(): PromiseLike<IBookmarkPendingEdit[]> {
+        public async getPendingFolderEdits(): Promise<IFolderPendingEdit[]> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this.getPendingBookmarkEdits().then((data) => data.adds || []);
+            const result = await this._db.query(InstapaperDBTableNames.FolderUpdates).execute<IFolderPendingEdit>();
+            return result;
         }
 
-        public listCurrentBookmarks(folder_dbid?: number | string): PromiseLike<IBookmark[]> {
+        public async getPendingBookmarkEdits(folderDbId?: number): Promise<IBookmarkPendingEdits> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
+            }
+
+            let pendingEdits: IBookmarkPendingEdit[];
+            if (!folderDbId) {
+                pendingEdits = await this._db.query(InstapaperDBTableNames.BookmarkUpdates).execute<IBookmarkPendingEdit>();
+            } else {
+                const [source, destination] = await Promise.all([
+                    this._db.index(InstapaperDBTableNames.BookmarkUpdates, "sourcefolder_dbid").only<IBookmarkPendingEdit>(folderDbId),
+                    this._db.index(InstapaperDBTableNames.BookmarkUpdates, "destinationfolder_dbid").only<IBookmarkPendingEdit>(folderDbId),
+                ]);
+                pendingEdits = source.concat(destination);
+            }
+
+            const adds: IBookmarkPendingEdit[] = [];
+            const deletes: IBookmarkPendingEdit[] = [];
+            const moves: IBookmarkPendingEdit[] = [];
+            const likes: IBookmarkPendingEdit[] = [];
+            const unlikes: IBookmarkPendingEdit[] = [];
+
+            for (let pendingEdit of pendingEdits) {
+                switch (pendingEdit.type) {
+                    case InstapaperDBBookmarkChangeTypes.ADD:
+                        window.appassert(!folderDbId, "Don't support folder specific adds");
+                        adds.push(pendingEdit);
+                        break;
+                    case InstapaperDBBookmarkChangeTypes.DELETE:
+                        deletes.push(pendingEdit);
+                        break;
+
+                    case InstapaperDBBookmarkChangeTypes.MOVE:
+                        moves.push(pendingEdit);
+                        break;
+
+                    case InstapaperDBBookmarkChangeTypes.LIKE:
+                        likes.push(pendingEdit);
+                        break;
+
+                    case InstapaperDBBookmarkChangeTypes.UNLIKE:
+                        unlikes.push(pendingEdit);
+                        break;
+
+                    default:
+                        window.appfail("Unsupported edit type");
+                        break;
+                }
+            }
+
+            const result = {
+                adds: null,
+                deletes: null,
+                moves: null,
+                likes: null,
+                unlikes: null,
+            };
+
+            if (adds.length) {
+                result.adds = adds;
+            }
+
+            if (deletes.length) {
+                result.deletes = deletes;
+            }
+
+            if (moves.length) {
+                result.moves = moves;
+            }
+
+            if (likes.length) {
+                result.likes = likes;
+            }
+
+            if (unlikes.length) {
+                result.unlikes = unlikes;
+            }
+
+            return result;
+        }
+
+        public async getPendingBookmarkAdds(): Promise<IBookmarkPendingEdit[]> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const data = await this.getPendingBookmarkEdits();
+            return (data.adds || []);
+        }
+
+        public async listCurrentBookmarks(folder_dbid?: number | string): Promise<IBookmark[]> {
+            if (!this._db) {
+                noDbError();
             }
 
             if (folder_dbid && (folder_dbid === this.commonFolderDbIds.liked)) {
-                return this._db.index(InstapaperDBTableNames.Bookmarks, "starred").only(1);
+                return await this._db.index(InstapaperDBTableNames.Bookmarks, "starred").only<IBookmark>(1);
             } else if (folder_dbid && (folder_dbid !== Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked)) {
-                return this._db.index(InstapaperDBTableNames.Bookmarks, "folder_dbid").only(folder_dbid);
+                return await this._db.index(InstapaperDBTableNames.Bookmarks, "folder_dbid").only<IBookmark>(folder_dbid);
             }
 
-            return this._db.query(InstapaperDBTableNames.Bookmarks).execute();
+            return await this._db.query(InstapaperDBTableNames.Bookmarks).execute<IBookmark>();
         }
 
-        public addBookmark(bookmark: IBookmark): PromiseLike<IBookmark> {
+        public async addBookmark(bookmark: IBookmark): Promise<IBookmark> {
             window.appassert(!!bookmark.folder_dbid, "No Folder DB ID provided");
 
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
             if (!bookmark.hasOwnProperty("contentAvailableLocally")) {
                 bookmark.contentAvailableLocally = false;
             }
 
-            return this._db.add(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray).then((added) => {
-                this.dispatchEvent("bookmarkschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD,
-                    bookmark_id: added.bookmark_id,
-                    bookmark: added,
-                });
-
-                return added;
+            const added = await this._db.add(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray);
+            this.dispatchEvent("bookmarkschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD,
+                bookmark_id: added.bookmark_id,
+                bookmark: added,
             });
+
+            return added;
         }
 
-        public addUrl(bookmarkToAdd: { url: string; title: string }): PromiseLike<IBookmarkPendingEdit> {
+        public async addUrl(bookmarkToAdd: { url: string; title: string }): Promise<IBookmarkPendingEdit> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this._db.add<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>{
+            const results = await this._db.add<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>{
                 url: bookmarkToAdd.url,
                 title: bookmarkToAdd.title,
                 type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD
-            }).then(extractFirstItemInArray);
-        }
-
-        public deletePendingBookmarkEdit(pendingBookmarkEditId: number): PromiseLike<void> {
-            if (!this._db) {
-                return noDbError();
-            }
-
-            return this._db.remove(InstapaperDBTableNames.BookmarkUpdates, pendingBookmarkEditId);
-        }
-
-        private _getPendingEditForBookmarkAndType(bookmark: number, type: InstapaperDBBookmarkChangeTypes): PromiseLike<IBookmarkPendingEdit> {
-            if (!this._db) {
-                return noDbError();
-            }
-
-            return this._db.index(InstapaperDBTableNames.BookmarkUpdates, "bookmark_id").only<IBookmarkPendingEdit>(bookmark).then((results) => {
-                if (!results || !results.length) {
-                    return null;
-                }
-
-                var resultsOfType = results.filter((item) => item.type === type);
-                window.appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
-                return resultsOfType[0];
             });
+
+            return results[0];
         }
 
-        public getBookmarkByBookmarkId(bookmark_id: number): PromiseLike<IBookmark> {
+        public async deletePendingBookmarkEdit(pendingBookmarkEditId: number): Promise<void> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            return this._db.get<IBookmark>(InstapaperDBTableNames.Bookmarks, bookmark_id);
+            await this._db.remove(InstapaperDBTableNames.BookmarkUpdates, pendingBookmarkEditId);
         }
 
-        public removeBookmark(bookmark_id: number, fromServer?: boolean): PromiseLike<void> {
+        private async _getPendingEditForBookmarkAndType(bookmark: number, type: InstapaperDBBookmarkChangeTypes): Promise<IBookmarkPendingEdit> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            let sourcefolder_dbid;
-            let removedPromise = <PromiseLike<void>><any>this.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
-                sourcefolder_dbid = bookmark.folder_dbid;
-                return <PromiseLike<any>>WinJS.Promise.join([
-                    this._db.remove(InstapaperDBTableNames.Bookmarks, bookmark_id),
-                    this._db.index(
-                        InstapaperDBTableNames.BookmarkUpdates,
-                        "bookmark_id").
-                        only<IBookmarkPendingEdit>(bookmark_id).
-                        then((pendingEditsForBookmark) => {
-                            // Find all the pending edits that aren't "likes" and
-                            // remove them. Likes are special, and should still be
-                            // left for syncing (before any other changes).
-                            const removedEdits = pendingEditsForBookmark.filter((item) => item.type !== InstapaperDBBookmarkChangeTypes.LIKE).
-                                map((existingPendingEdit) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, existingPendingEdit.id));
+            const results = await this._db.index(InstapaperDBTableNames.BookmarkUpdates, "bookmark_id").only<IBookmarkPendingEdit>(bookmark);
+            if (!results || !results.length) {
+                return null;
+            }
 
-                            return <PromiseLike<any>>WinJS.Promise.join(removedEdits);
-                        })
-                ]);
-            });
+            var resultsOfType = results.filter((item) => item.type === type);
+            window.appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
+            return resultsOfType[0];
+        }
+
+        public async getBookmarkByBookmarkId(bookmark_id: number): Promise<IBookmark> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            return await this._db.get<IBookmark>(InstapaperDBTableNames.Bookmarks, bookmark_id);
+        }
+
+        public async removeBookmark(bookmark_id: number, fromServer?: boolean): Promise<void> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const bookmark = await this.getBookmarkByBookmarkId(bookmark_id);
+            const sourcefolder_dbid = bookmark.folder_dbid;
+
+            const removeBookmarkOperation = this._db.remove(InstapaperDBTableNames.Bookmarks, bookmark_id);
+            const pendingEditsForBookmark = await this._db.index(InstapaperDBTableNames.BookmarkUpdates, "bookmark_id").only<IBookmarkPendingEdit>(bookmark_id);
+
+            // Find all the pending edits that aren't "likes" and
+            // remove them. Likes are special, and should still be
+            // left for syncing (before any other changes).
+            const nonLikePendingEdits = pendingEditsForBookmark.filter((item) => item.type !== InstapaperDBBookmarkChangeTypes.LIKE);
+            const removedEdits = nonLikePendingEdits.map((p) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, p.id));
+
+            await Promise.all(removedEdits);
 
             // If it's not an edit from the server we need to add a pending
             // delete that we can later sync to the server.
             if (!fromServer) {
-                removedPromise = removedPromise.then(() => {
-                    const edit = {
-                        type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE,
-                        bookmark_id: bookmark_id,
-                        sourcefolder_dbid: sourcefolder_dbid,
-                    };
-
-                    return <any>this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
-                });
-            }
-
-            return removedPromise.then(() => {
-                this.dispatchEvent("bookmarkschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE,
+                const edit = {
+                    type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE,
                     bookmark_id: bookmark_id,
                     sourcefolder_dbid: sourcefolder_dbid,
+                };
+
+                await this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
+            }
+
+            this.dispatchEvent("bookmarkschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.DELETE,
+                bookmark_id: bookmark_id,
+                sourcefolder_dbid: sourcefolder_dbid,
+            });
+        }
+
+        public async updateBookmark(bookmark: IBookmark, dontRaiseChangeNotification?: boolean): Promise<IBookmark> {
+            if (!this._db) {
+                noDbError();
+            }
+
+            const updated = await this._db.put(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray);
+            if (!dontRaiseChangeNotification) {
+                this.dispatchEvent("bookmarkschanged", {
+                    operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UPDATE,
+                    bookmark_id: updated.bookmark_id,
+                    bookmark: updated,
                 });
-                // Hide the result of the DB operation
-            });
-        }
-
-        public updateBookmark(bookmark: IBookmark, dontRaiseChangeNotification?: boolean): PromiseLike<IBookmark> {
-            if (!this._db) {
-                return noDbError();
             }
 
-            return this._db.put(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray).then((updated) => {
-                if (!dontRaiseChangeNotification) {
-                    this.dispatchEvent("bookmarkschanged", {
-                        operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UPDATE,
-                        bookmark_id: updated.bookmark_id,
-                        bookmark: updated,
-                    });
-                }
-
-                return updated;
-            });
+            return updated;
         }
 
-        public moveBookmark(bookmark_id: number, destinationFolderDbId: number, fromServer?: boolean): PromiseLike<IBookmark> {
+        public async moveBookmark(bookmark_id: number, destinationFolderDbId: number, fromServer?: boolean): Promise<IBookmark> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
             }
 
-            const data = {
-                bookmark: this.getBookmarkByBookmarkId(bookmark_id),
-                folder: this.getFolderByDbId(destinationFolderDbId),
-            };
+            const [bookmark, folder] = await Promise.all([
+                this.getBookmarkByBookmarkId(bookmark_id),
+                this.getFolderByDbId(destinationFolderDbId),
+            ]);
 
-            let sourcefolder_dbid: number;
+            if (!folder) {
+                var error = new Error();
+                error.code = InstapaperDBErrorCodes.FOLDER_NOT_FOUND;
+                throw error;
+            }
 
-            var movedBookmark: PromiseLike<IBookmark> = <PromiseLike<any>>WinJS.Promise.join(data).then((data: { bookmark: IBookmark; folder: IFolder }) => {
-                if (!data.folder) {
-                    var error = new Error();
-                    error.code = InstapaperDBErrorCodes.FOLDER_NOT_FOUND;
-                    return <any>WinJS.Promise.wrapError(error);
-                }
+            // If we've got an existing folder ID, set it to that
+            // otherwise, just leave it blank, and we'll get it fixed
+            // up later when we actually do a proper sync and update
+            // the folder id's correctly.
+            if (folder.folder_id) {
+                bookmark.folder_id = folder.folder_id;
+            } else {
+                bookmark.folder_id = null;
+            }
 
-                // If we've got an existing folder ID, set it to that
-                // otherwise, just leave it blank, and we'll get it fixed
-                // up later when we actually do a proper sync and update
-                // the folder id's correctly.
-                if (data.folder.folder_id) {
-                    data.bookmark.folder_id = data.folder.folder_id;
-                } else {
-                    data.bookmark.folder_id = null;
-                }
+            switch (folder.folder_id) {
+                case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked:
+                    var invalidDestinationFolder = new Error();
+                    invalidDestinationFolder.code = InstapaperDBErrorCodes.INVALID_DESTINATION_FOLDER;
+                    throw invalidDestinationFolder;
 
-                switch (data.folder.folder_id) {
-                    case Codevoid.Storyvoid.InstapaperDBCommonFolderIds.Liked:
-                        var invalidDestinationFolder = new Error();
-                        invalidDestinationFolder.code = InstapaperDBErrorCodes.INVALID_DESTINATION_FOLDER;
-                        return WinJS.Promise.wrapError(invalidDestinationFolder);
+                default:
+                    break;
+            }
 
-                    default:
-                        break;
-                }
+            const sourcefolder_dbid = bookmark.folder_dbid;
+            bookmark.folder_dbid = folder.id;
 
-                sourcefolder_dbid = data.bookmark.folder_dbid;
-                data.bookmark.folder_dbid = data.folder.id;
-
-                return this.updateBookmark(data.bookmark, true);
-            });
+            const movedBookmark = await this.updateBookmark(bookmark, true);
 
             if (!fromServer) {
-                movedBookmark = movedBookmark.then((movedBookmark) => {
-                    const completedData = {
-                        bookmark: movedBookmark,
-                        folder: data.folder,
-                    };
+                const pendingEditsForBookmark = await this._db.index(InstapaperDBTableNames.BookmarkUpdates, "bookmark_id").only<IBookmarkPendingEdit>(movedBookmark.bookmark_id);
+                // Find all the pending edits that are moves
+                // and remove any pending edits so that we can end up
+                // with only one.
+                const movedPendingEdits = pendingEditsForBookmark.filter((item) => item.type === InstapaperDBBookmarkChangeTypes.MOVE);
+                const removedEdits = movedPendingEdits.map((em) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, em.id));
+                await Promise.all(removedEdits);
 
-                    return <PromiseLike<any>>this._db.index(InstapaperDBTableNames.BookmarkUpdates,
-                        "bookmark_id").
-                        only<IBookmarkPendingEdit>(movedBookmark.bookmark_id).
-                        then((pendingEditsForBookmark) => {
-                            // Find all the pending edits that are moves
-                            // and remove any pending edits so that we can end up
-                            // with only one.
-                            const removedEdits = pendingEditsForBookmark.filter((item) => item.type === InstapaperDBBookmarkChangeTypes.MOVE).
-                                map((existingMove) => this._db.remove(InstapaperDBTableNames.BookmarkUpdates, existingMove.id));
-
-                            return <PromiseLike<any>>WinJS.Promise.join(removedEdits);
-                        }).then(() => {
-                            // Cheat and return the already completed promise
-                            // with the data we actually want. Allows the rest of
-                            // this function to behave cleanly.
-                            return <PromiseLike<any>>WinJS.Promise.join(completedData);
-                        });
-                }).then((data: { bookmark: IBookmark; folder: IFolder }) => {
-                    const pendingEdit = {
-                        type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE,
-                        bookmark_id: data.bookmark.bookmark_id,
-                        destinationfolder_dbid: data.folder.id,
-                        sourcefolder_dbid: sourcefolder_dbid,
-                    };
-
-                    return this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>pendingEdit).then(() => data.bookmark);
-                });
-            }
-
-            return movedBookmark.then((bookmark) => {
-                this.dispatchEvent("bookmarkschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE,
-                    bookmark: bookmark,
-                    bookmark_id: bookmark.bookmark_id,
-                    destinationfolder_dbid: bookmark.folder_dbid,
+                const pendingEdit = {
+                    type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE,
+                    bookmark_id: movedBookmark.bookmark_id,
+                    destinationfolder_dbid: folder.id,
                     sourcefolder_dbid: sourcefolder_dbid,
-                });
-                return bookmark;
-            });
-        }
+                };
 
-        public likeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean, ignoreMissingBookmark?: boolean): PromiseLike<IBookmark> {
-            if (!this._db) {
-                return noDbError();
+                await this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>pendingEdit);
             }
 
-            let updatedBookmark: IBookmark = null;
-            let likedComplete = this.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
-                let wasUnsyncedEdit = false;
-                let sourcefolder_dbid: number;
-
-                if (!bookmark) {
-                    if (ignoreMissingBookmark) {
-                        return;
-                    }
-
-                    const error = new Error();
-                    error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
-                    error.message = "Didn't find bookmark with ID " + bookmark_id;
-                    return <any>WinJS.Promise.wrapError(error);
-                }
-
-                sourcefolder_dbid = bookmark.folder_dbid;
-
-                let promise: PromiseLike<IBookmark>;
-                if (bookmark.starred === 1) {
-                    promise = Codevoid.Utilities.as(bookmark);
-                } else {
-                    bookmark.starred = 1;
-                    promise = this.updateBookmark(bookmark, true);
-                }
-
-                return promise.then((bookmark) => {
-                    updatedBookmark = bookmark;
-
-                    return <PromiseLike<any>><PromiseLike<any>>WinJS.Promise.join({
-                        unlike: this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.UNLIKE),
-                        like: this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.LIKE),
-                    });
-                }).then((pendingEdits: { unlike: IBookmarkPendingEdit; like: IBookmarkPendingEdit }) => {
-                    if (!pendingEdits.unlike && !pendingEdits.like) {
-                        return;
-                    }
-
-                    wasUnsyncedEdit = true;
-
-                    // If it's already a like, then theres nothing else for us to do here
-                    // so lets just move on.
-                    if (pendingEdits.like) {
-                        return;
-                    }
-
-                    return this.deletePendingBookmarkEdit(pendingEdits.unlike.id);
-                }).then(() => {
-                    var f = Codevoid.Utilities.as();
-                    if (!dontAddPendingUpdate && !wasUnsyncedEdit) {
-                        const edit = {
-                            type: InstapaperDBBookmarkChangeTypes.LIKE,
-                            bookmark_id: bookmark_id,
-                            sourcefolder_dbid: sourcefolder_dbid,
-                        };
-
-                        f = this._db.put(InstapaperDBTableNames.BookmarkUpdates, edit);
-                    }
-
-                    return f.then(() => {
-                        this.dispatchEvent("bookmarkschanged", {
-                            operation: InstapaperDBBookmarkChangeTypes.LIKE,
-                            bookmark_id: updatedBookmark.bookmark_id,
-                            bookmark: updatedBookmark,
-                        });
-                    });
-                });
+            this.dispatchEvent("bookmarkschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.MOVE,
+                bookmark: movedBookmark,
+                bookmark_id: movedBookmark.bookmark_id,
+                destinationfolder_dbid: movedBookmark.folder_dbid,
+                sourcefolder_dbid: sourcefolder_dbid,
             });
-
-            return likedComplete.then(() => updatedBookmark);
+            return movedBookmark;
         }
 
-        public unlikeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean): PromiseLike<IBookmark> {
+        public async likeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean, ignoreMissingBookmark?: boolean): Promise<IBookmark> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
+            }
+
+            const bookmark = await this.getBookmarkByBookmarkId(bookmark_id);
+            let wasUnsyncedEdit = false;
+
+            if (!bookmark) {
+                if (ignoreMissingBookmark) {
+                    return null;
+                }
+
+                const error = new Error();
+                error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
+                error.message = "Didn't find bookmark with ID " + bookmark_id;
+                throw error;
+            }
+
+            const sourcefolder_dbid = bookmark.folder_dbid;
+            let updatedBookmark = bookmark;
+            if (bookmark.starred !== 1) {
+                bookmark.starred = 1;
+                updatedBookmark = await this.updateBookmark(bookmark, true);
+            }
+
+            const [unlike, like] = await Promise.all([
+                this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.UNLIKE),
+                this._getPendingEditForBookmarkAndType(bookmark_id, InstapaperDBBookmarkChangeTypes.LIKE),
+            ]);
+
+            if (unlike || like) {
+                wasUnsyncedEdit = true;
+
+                // If it's already a like, then theres nothing else for us to do here
+                // so lets just move on.
+                if (!like) {
+                    await this.deletePendingBookmarkEdit(unlike.id);
+                }
+            }
+
+            if (!dontAddPendingUpdate && !wasUnsyncedEdit) {
+                const edit = {
+                    type: InstapaperDBBookmarkChangeTypes.LIKE,
+                    bookmark_id: bookmark_id,
+                    sourcefolder_dbid: sourcefolder_dbid,
+                };
+
+                await this._db.put(InstapaperDBTableNames.BookmarkUpdates, edit);
+            }
+
+            this.dispatchEvent("bookmarkschanged", {
+                operation: InstapaperDBBookmarkChangeTypes.LIKE,
+                bookmark_id: updatedBookmark.bookmark_id,
+                bookmark: updatedBookmark,
+            });
+
+            return updatedBookmark;
+        }
+
+        public async unlikeBookmark(bookmark_id: number, dontAddPendingUpdate?: boolean): Promise<IBookmark> {
+            if (!this._db) {
+                noDbError();
             }
 
             let wasUnsyncedEdit = false;
-            let sourcefolder_dbid: number;
-            let updatedBookmark: IBookmark;
 
-            let unlikedBookmark = this.getBookmarkByBookmarkId(bookmark_id).then((bookmark): PromiseLike<IBookmark> => {
-                if (!bookmark) {
-                    var error = new Error();
-                    error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
-                    return <any>WinJS.Promise.wrapError(error);
-                }
-
-                sourcefolder_dbid = bookmark.folder_dbid;
-
-                if (bookmark.starred === 0) {
-                    return Codevoid.Utilities.as(bookmark);
-                }
-
+            const bookmark = await this.getBookmarkByBookmarkId(bookmark_id);
+            if (!bookmark) {
+                var error = new Error();
+                error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
+                throw error;
+            }
+            let updatedBookmark = bookmark;
+            const sourcefolder_dbid = bookmark.folder_dbid;
+            if (bookmark.starred !== 0) {
                 bookmark.starred = 0;
-                return this.updateBookmark(bookmark, true);
-            }).then((bookmark) => {
-                updatedBookmark = bookmark
-                return <PromiseLike<any>><PromiseLike<any>>WinJS.Promise.join({
-                    like: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE),
-                    unlike: this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE),
-                });
-            }).then((pendingEdits: { like: IBookmarkPendingEdit; unlike: IBookmarkPendingEdit }) => {
-                if (!pendingEdits.like && !pendingEdits.unlike) {
-                    return;
-                }
+                updatedBookmark = await this.updateBookmark(bookmark, true);
+            }
 
+            const [like, unlike] = await Promise.all([
+                this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.LIKE),
+                this._getPendingEditForBookmarkAndType(bookmark_id, Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE),
+            ]);
+
+            if (like || unlike) {
                 wasUnsyncedEdit = true;
 
-                if (pendingEdits.unlike) {
-                    return;
+                if (!unlike) {
+                    await this.deletePendingBookmarkEdit(like.id);
                 }
-
-                return this.deletePendingBookmarkEdit(pendingEdits.like.id);
-            });
-
-            if (!dontAddPendingUpdate) {
-                unlikedBookmark = unlikedBookmark.then(() => {
-                    if (wasUnsyncedEdit) {
-                        return;
-                    }
-
-                    const edit = {
-                        type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE,
-                        bookmark_id: bookmark_id,
-                        sourcefolder_dbid: sourcefolder_dbid,
-                    };
-
-                    return <any>this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
-                });
             }
 
-            return unlikedBookmark.then(() => {
-                this.dispatchEvent("bookmarkschanged", {
-                    operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE,
-                    bookmark_id: updatedBookmark.bookmark_id,
-                    bookmark: updatedBookmark,
-                });
-                return updatedBookmark;
-            });
-        }
+            if (!dontAddPendingUpdate && !wasUnsyncedEdit) {
+                const edit = {
+                    type: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE,
+                    bookmark_id: bookmark_id,
+                    sourcefolder_dbid: sourcefolder_dbid,
+                };
 
-        public updateReadProgress(bookmark_id: number, progress: number): PromiseLike<IBookmark> {
-            if (!this._db) {
-                return noDbError();
+                await this._db.put<IBookmarkPendingEdit>(InstapaperDBTableNames.BookmarkUpdates, <any>edit);
             }
 
-            return this.getBookmarkByBookmarkId(bookmark_id).then((bookmark) => {
-                if (!bookmark) {
-                    var error = new Error();
-                    error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
-                    return <any>WinJS.Promise.wrapError(error);
-                }
-
-                bookmark.progress = progress;
-                bookmark.progress_timestamp = Date.now();
-                // When upating progress locally, we need to invalidate our hash
-                // so that the service sees/thinks we've got different local data
-                // No, I'm not clear why, but thats what they said.
-                bookmark.hash = Math.random().toString();
-
-                return this.updateBookmark(bookmark);
+            this.dispatchEvent("bookmarkschanged", {
+                operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UNLIKE,
+                bookmark_id: updatedBookmark.bookmark_id,
+                bookmark: updatedBookmark,
             });
+            return updatedBookmark;
         }
 
-        public deleteAllData(): PromiseLike<void> {
+        public async updateReadProgress(bookmark_id: number, progress: number): Promise<IBookmark> {
             if (!this._db) {
-                return noDbError();
+                noDbError();
+            }
+
+            const bookmark = await this.getBookmarkByBookmarkId(bookmark_id);
+            if (!bookmark) {
+                const error = new Error();
+                error.code = InstapaperDBErrorCodes.BOOKMARK_NOT_FOUND;
+                throw error;
+            }
+
+            bookmark.progress = progress;
+            bookmark.progress_timestamp = Date.now();
+            // When upating progress locally, we need to invalidate our hash
+            // so that the service sees/thinks we've got different local data
+            // No, I'm not clear why, but thats what they said.
+            bookmark.hash = Math.random().toString();
+
+            return await this.updateBookmark(bookmark);
+        }
+
+        public async deleteAllData(): Promise<void> {
+            if (!this._db) {
+                noDbError();
             }
 
             this.dispose();
-            return db.deleteDb(this._name);
+            await db.deleteDb(this._name);
         }
 
         public dispose() {

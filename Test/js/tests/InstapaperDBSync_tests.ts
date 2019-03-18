@@ -166,8 +166,9 @@
                 adds.push(sourceUrls.shift());
             }
 
-            await Codevoid.Utilities.serialize(adds, (url: Codevoid.Storyvoid.InstapaperApi.IBookmarkAddParameters) => {
-                return bookmarksApi.add(url).then((added) => remoteBookmarks.push(added));
+            await Codevoid.Utilities.serialize(adds, async (url: Codevoid.Storyvoid.InstapaperApi.IBookmarkAddParameters) => {
+                const added = await bookmarksApi.add(url);
+                remoteBookmarks.push(added);
             });
         }
 
