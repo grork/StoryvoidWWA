@@ -9,16 +9,6 @@ namespace Codevoid.Storyvoid {
         throw error;
     }
 
-    function noClientInformationError(): PromiseLike<any> {
-        var error = new Error("No client informaton");
-        error.code = InstapaperDBErrorCodes.NOCLIENTINFORMATION;
-        return WinJS.Promise.wrapError(error);
-    }
-
-    function extractFirstItemInArray<T>(dataArray: T[]): T {
-        return dataArray[0];
-    }
-
     function createDefaultData(server: Server, upgradeEvent: IDBVersionChangeEvent): void {
         // Create Folders
         server.add("folders", [
@@ -498,7 +488,7 @@ namespace Codevoid.Storyvoid {
                 bookmark.contentAvailableLocally = false;
             }
 
-            const added = await this._db.add(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray);
+            const added = (await this._db.add(InstapaperDBTableNames.Bookmarks, bookmark))[0];
             this.dispatchEvent("bookmarkschanged", {
                 operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD,
                 bookmark_id: added.bookmark_id,
@@ -596,7 +586,7 @@ namespace Codevoid.Storyvoid {
                 noDbError();
             }
 
-            const updated = await this._db.put(InstapaperDBTableNames.Bookmarks, bookmark).then(extractFirstItemInArray);
+            const updated = (await this._db.put(InstapaperDBTableNames.Bookmarks, bookmark))[0];
             if (!dontRaiseChangeNotification) {
                 this.dispatchEvent("bookmarkschanged", {
                     operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.UPDATE,

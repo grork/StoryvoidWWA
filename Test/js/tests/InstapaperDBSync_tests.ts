@@ -953,27 +953,22 @@
             await Promise.all([moves, moves2]);
             await sync.sync();
             const instapaperDB = await getNewInstapaperDBAndInit();
-            const [unread, folder1, folder2] = await Promise.all([
+            const [unreadBookmarks, currentFolders] = await Promise.all([
                 instapaperDB.listCurrentBookmarks(instapaperDB.commonFolderDbIds.unread),
-                instapaperDB.listCurrentFolders().then((folders) => {
-                    folders = folders.filter((folder) => {
-                        return folder.folder_id === remoteFolder1;
-                    });
-
-                    return instapaperDB.listCurrentBookmarks(folders[0].id);
-                }),
-                instapaperDB.listCurrentFolders().then((folders) => {
-                    folders = folders.filter((folder) => {
-                        return folder.folder_id === remoteFolder2;
-                    });
-
-                    return instapaperDB.listCurrentBookmarks(folders[0].id);
-                }),
+                instapaperDB.listCurrentFolders(),
             ]);
 
-            assert.strictEqual(unread.length, 1, "Only expected on bookmark");
-            assert.strictEqual(folder1.length, 2, "Only expected two out of three bookmarks synced");
-            assert.strictEqual(folder2.length, 2, "Only expected two out of three bookmarks synced");
+            const folder1 = currentFolders.filter((folder) => folder.folder_id === remoteFolder1)[0];
+            const folder2 = currentFolders.filter((folder) => folder.folder_id === remoteFolder2)[0];
+
+            const [folder1Bookmarks, folder2Bookmarks] = await Promise.all([
+                instapaperDB.listCurrentBookmarks(folder1.id),
+                instapaperDB.listCurrentBookmarks(folder2.id),
+            ]);
+
+            assert.strictEqual(unreadBookmarks.length, 1, "Only expected on bookmark");
+            assert.strictEqual(folder1Bookmarks.length, 2, "Only expected two out of three bookmarks synced");
+            assert.strictEqual(folder2Bookmarks.length, 2, "Only expected two out of three bookmarks synced");
         });
     });
 

@@ -23,12 +23,11 @@
         playground.innerHTML = "";
     }
 
-    export function getNewInstapaperDBAndInit(name?: string, version?: number): PromiseLike<InstapaperDB> {
-        return (new InstapaperDB()).initialize(name, version).then((idb) => {
-            pendingDbs.push(idb);
+    export async function getNewInstapaperDBAndInit(name?: string, version?: number): Promise<InstapaperDB> {
+        const idb = await (new InstapaperDB()).initialize(name, version);
+        pendingDbs.push(idb);
 
-            return idb;
-        });
+        return idb;
     }
 
     export async function expectNoPendingFolderEdits(idb: InstapaperDB): Promise<void> {

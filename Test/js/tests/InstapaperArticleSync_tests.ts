@@ -48,23 +48,20 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
         const dbInstance = new av.InstapaperDB();
         const api = new av.InstapaperApi.Bookmarks(clientInformation);
 
-        await Promise.all([
-            api.add({ url: normalArticleUrl }).then((article: av.IBookmark) => {
-                normalArticleId = article.bookmark_id;
-            }),
-            api.add({ url: articleWithImageUrl }).then((article: av.IBookmark) => {
-                articleWithImageId = article.bookmark_id;
-            }),
-            api.add({ url: youTubeArticleUrl }).then((article: av.IBookmark) => {
-                youTubeArticleId = article.bookmark_id;
-            }),
-            api.add({ url: vimeoArticleUrl }).then((article: av.IBookmark) => {
-                vimeoArticleId = article.bookmark_id;
-            }),
-            deleteAllLocalFiles().then(() => { // Clear any downloaded files
-                return InstapaperTestUtilities.deleteDb(); // Clear the DB itself
-            }),
+        const [normal, withImage, youTube, vimeo, clearLocalFiles] = await Promise.all([
+            api.add({ url: normalArticleUrl }),
+            api.add({ url: articleWithImageUrl }),
+            api.add({ url: youTubeArticleUrl }),
+            api.add({ url: vimeoArticleUrl }),
+            deleteAllLocalFiles(), // Clear any downloaded files
         ]);
+
+        normalArticleId = normal.bookmark_id;
+        articleWithImageId = withImage.bookmark_id;
+        youTubeArticleId = youTube.bookmark_id;
+        vimeoArticleId = vimeo.bookmark_id;
+
+        await InstapaperTestUtilities.deleteDb(); // Clear the DB itself
 
         await dbInstance.initialize();
         const sync = new av.InstapaperSync(clientInformation);
@@ -232,14 +229,14 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             await Promise.all([
                 articlesFolder.createFileAsync("1.html", st.CreationCollisionOption.replaceExisting),
                 articlesFolder.createFileAsync("2.html", st.CreationCollisionOption.replaceExisting),
-                articlesFolder.createFolderAsync("2", st.CreationCollisionOption.replaceExisting).then((articleFolder: st.StorageFolder) => {
-                    return Promise.all([
-                        articleFolder.createFileAsync("1.png", st.CreationCollisionOption.replaceExisting),
-                        articleFolder.createFileAsync("2.png", st.CreationCollisionOption.replaceExisting),
-                    ]);
-                }),
                 articleSync.syncSingleArticle(articleWithImageId, instapaperDB, new Codevoid.Utilities.CancellationSource()),
                 articleSync.syncSingleArticle(normalArticleId, instapaperDB, new Codevoid.Utilities.CancellationSource())
+            ]);
+
+            const articleFolder = await articlesFolder.createFolderAsync("2", st.CreationCollisionOption.replaceExisting);
+            await Promise.all([
+                articleFolder.createFileAsync("1.png", st.CreationCollisionOption.replaceExisting),
+                articleFolder.createFileAsync("2.png", st.CreationCollisionOption.replaceExisting),
             ]);
 
             await articleSync.removeFilesForNotPresentArticles(instapaperDB);
