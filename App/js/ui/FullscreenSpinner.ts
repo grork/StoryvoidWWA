@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid.UI {
+﻿namespace Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     export class FullscreenSpinnerExperience extends Codevoid.UICore.Control {
@@ -10,7 +10,10 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
+            this.init();
+        }
 
+        private async init(): Promise<void> {
             this._navigationManager = Windows.UI.Core.SystemNavigationManager.getForCurrentView();
 
             // Setup OS back button support
@@ -18,43 +21,38 @@
                 backrequested: this.cancel.bind(this),
             }));
 
-            element.tabIndex = -1; // Make sure the background can get focus so it doesn't jump to the body
-            element.classList.add("dialog", "win-disposable", "fullscreenspinner-dialog", "hide");
+            this.element.tabIndex = -1; // Make sure the background can get focus so it doesn't jump to the body
+            this.element.classList.add("dialog", "win-disposable", "fullscreenspinner-dialog", "hide");
 
-            DOM.loadTemplate("/HtmlTemplates.html", "fullscreenSpinner").then((template) => {
-                return <PromiseLike<any>>WinJS.Promise.join([
-                    template.render({}, element),
-                    WinJS.Promise.timeout()
-                ]);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
+            const template = await DOM.loadTemplate("/HtmlTemplates.html", "fullscreenSpinner");
+            await template.render({}, this.element);
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.element, {
-                    keydown: (e: KeyboardEvent) => {
-                        switch (e.keyCode) {
-                            case WinJS.Utilities.Key.escape:
-                                this.cancel();
-                                break;
-                        }
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.element, {
+                keydown: (e: KeyboardEvent) => {
+                    switch (e.keyCode) {
+                        case WinJS.Utilities.Key.escape:
+                            this.cancel();
+                            break;
                     }
-                }));
+                }
+            }));
 
-                element.classList.remove("hide");
-                WinJS.UI.Animation.slideUp(this.element).then(() => {
-                    // Capture previously focused element so we focus it when the
-                    // spinner closed.
-                    this._previouslyFocusedElement = <HTMLElement>document.activeElement;
-                    this.element.focus();
-                });
-            });
-
-            this.viewModel.dismissCallback = () => {
-                return WinJS.UI.Animation.slideDown(this.element).then(() => {
-                    this.element.classList.add("hide");
-                });
+            this.viewModel.dismissCallback = async () => {
+                await WinJS.UI.Animation.slideDown(this.element);
+                this.element.classList.add("hide");
             };
+
+            this.element.classList.remove("hide");
+
+            await WinJS.UI.Animation.slideUp(this.element);
+            // Capture previously focused element so we focus it when the
+            // spinner closed.
+            this._previouslyFocusedElement = <HTMLElement>document.activeElement;
+            this.element.focus();
         }
 
         public cancel(args?: Windows.UI.Core.BackRequestedEventArgs): void {
@@ -84,7 +82,7 @@
 
         public dismissCallback: () => PromiseLike<any>;
 
-        public complete(successful: boolean): void {
+        public async complete(successful: boolean): Promise<void> {
             if (this.displayDelay) {
                 this.displayDelay.cancel();
                 this.displayDelay = null;
@@ -97,16 +95,12 @@
             const completionSignal = this.completionSignal;
             this.completionSignal = null;
 
-            let removalDelay = Codevoid.Utilities.as();
-
             if (!successful) {
-                removalDelay = this.dismissCallback();
+                await this.dismissCallback();
             }
 
-            removalDelay.then(() => {
-                Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
-                completionSignal.complete(successful);
-            });
+            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this);
+            completionSignal.complete(successful);
         }
 
         public waitForCompletion(): PromiseLike<boolean> {
