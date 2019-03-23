@@ -12,20 +12,22 @@
 
         constructor(element: HTMLElement, options?: any) {
             super(element, options);
+            this.init();
+        }
 
+        private async init(): Promise<void> {
             this._ready = new Codevoid.Utilities.Signal();
 
-            Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "folderList").then((template) => {
-                return template.render({}, element);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.FolderListExperience");
-                DOM.marryPartsToControl(element, this);
-                
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
+            const template = await Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "folderList");
+            await template.render({}, this.element);
 
-                // Let callers now we're ready to be shown
-                this._ready.complete();
-            });
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.FolderListExperience");
+            DOM.marryPartsToControl(this.element, this);
+
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+
+            // Let callers now we're ready to be shown
+            this._ready.complete();
         }
 
         public get ready(): PromiseLike<any> {
@@ -41,30 +43,28 @@
             }
         }
 
-        public refresh(): PromiseLike<any> {
+        public async refresh(): Promise<void> {
             // Only update the item template if we haven't already set one
             if (this._contentList.itemTemplate != this._itemTemplate.element) {
                 this._contentList.itemTemplate = this._itemTemplate.element;
             }
 
-            return this.viewModel.listFolders().then((folders: Codevoid.Storyvoid.IFolder[]) => {
-                this._contentList.itemDataSource = new WinJS.Binding.List(folders).dataSource;
-            });
+            const folders = await this.viewModel.listFolders();
+            this._contentList.itemDataSource = new WinJS.Binding.List(folders).dataSource;
         }
 
         public dismiss(): void {
             this._flyout.hide();
         }
 
-        public listInvoked(e: UIEvent): void {
+        public async listInvoked(e: UIEvent): Promise<void> {
             if (!this._moveSignal) {
                 return;
             }
 
-            (<any>e.detail).itemPromise.then((item: WinJS.UI.IItem<IFolder>) => {
-                this._moveSignal.complete(item.data);
-                this._flyout.hide();
-            });
+            const item: WinJS.UI.IItem<IFolder> = await (<any>e.detail).itemPromise;
+            this._moveSignal.complete(item.data);
+            this._flyout.hide();
         }
 
         public afterShow(): void {
@@ -81,34 +81,30 @@
             this._moveSignal.complete(null);
         }
 
-        public show(targetPosition: HTMLElement): PromiseLike<IFolder> {
+        public async show(targetPosition: HTMLElement): Promise<IFolder> {
             if (this._moveSignal) {
                 this._moveSignal.complete(null);
             }
 
             this._moveSignal = new Codevoid.Utilities.Signal();
-            var completion = this._moveSignal.promise.then((result: any) => {
-                this._moveSignal = null;
-
-                return result;
-            });
 
             // Bounce the UI thread to allow layout to complete
             // so that things are positioned appropriately
-            WinJS.Promise.timeout().then(() => {
-                var alignment = "bottom";
+            await Codevoid.Utilities.timeout();
+            let alignment = "bottom";
                 
-                if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
-                    alignment = "right";
-                }
+            if (targetPosition.firstElementChild.classList.contains("win-menucommand-liner")) {
+                alignment = "right";
+            }
 
-                this._flyout.show(targetPosition, alignment);
+            this._flyout.show(targetPosition, alignment);
 
-                // Kick off loading the folder list
-                this.refresh();
-            });
+            // Kick off loading the folder list
+            this.refresh();
 
-            return completion;
+            const folder = await this._moveSignal.promise;
+            this._moveSignal = null;
+            return folder;
         }
     }
 
@@ -124,7 +120,7 @@
         constructor(private _instapaperDB: InstapaperDB) {
         }
 
-        public move(bookmarks: IBookmark[], targetPosition: HTMLElement): PromiseLike<boolean> {
+        public async move(bookmarks: IBookmark[], targetPosition: HTMLElement): Promise<boolean> {
             var element = document.createElement("div");
             document.body.appendChild(element);
 
@@ -132,71 +128,70 @@
             // so instead of creating a vast swath of complexity for
             // the possibly reuse of the folder list itself, just shove these
             // things into a new element and hope for the best
-            var experience = new MoveToFolderExperience(element, { viewModel: this });
-            return experience.ready.then(() => {
-                return experience.show(targetPosition);
-            }).then((targetFolder: IFolder) => {
-                // if someone clicks cancel, then there willbe no selected folder
-                if (!targetFolder) {
+            const experience = new MoveToFolderExperience(element, { viewModel: this });
+            await experience.ready;
+            const targetFolder = await experience.show(targetPosition);
+
+            // if someone clicks cancel, then there willbe no selected folder
+            if (!targetFolder) {
+                return false;
+            }
+
+            // Move the bookmarks one by one
+            await Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => this._instapaperDB.moveBookmark(item.bookmark_id, targetFolder.id));
+
+            Utilities.DOM.removeChild(document.body, element);
+            return true;
+        }
+
+        public async listFolders(): Promise<IFolder[]> {
+            const folders = await this._instapaperDB.listCurrentFolders();
+
+            const appropriateFolders = folders.filter((item) => {
+                if (item.localOnly
+                    || (item.id === this._instapaperDB.commonFolderDbIds.archive)
+                    || (item.id === this._instapaperDB.commonFolderDbIds.liked)) {
                     return false;
                 }
 
-                return <any>Codevoid.Utilities.serialize(bookmarks, (item: IBookmark) => {
-                    return this._instapaperDB.moveBookmark(item.bookmark_id, targetFolder.id);
-                }).then(() => {
-                    return true;
-                });
-            }).then((result: PromiseLike<boolean>) => {
-                Utilities.DOM.removeChild(document.body, element);
-
-                return result;
+                return true;
             });
-        }
 
-        public listFolders(): PromiseLike<Codevoid.Storyvoid.IFolder[]> {
-            return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
-                return folders.filter((item) => {
-                    if (item.localOnly
-                        || (item.id === this._instapaperDB.commonFolderDbIds.archive)
-                        || (item.id === this._instapaperDB.commonFolderDbIds.liked)) {
-                        return false;
-                    }
-
-                    return true;
-                }).sort((firstFolder: IFolder, secondFolder: IFolder): number => {
-                    if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
-                        // Assume we're sorting pre-canned folders. Sort by "id"
-                        if (firstFolder.id < secondFolder.id) {
-                            return -1;
-                        } else if (firstFolder.id > secondFolder.id) {
-                            return 1;
-                        } else {
-                            return;
-                        }
-                    }
-
-                    if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
-                        // Assume it's a pre-canned folder against a user folder. Pre-canned
-                        // always go first
+            appropriateFolders.sort((firstFolder: IFolder, secondFolder: IFolder): number => {
+                if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
+                    // Assume we're sorting pre-canned folders. Sort by "id"
+                    if (firstFolder.id < secondFolder.id) {
                         return -1;
-                    }
-
-                    if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
-                        // Assume it's a user folder against a pre-canned folder. User folders
-                        // always come after.
-                        return 1;
-                    }
-
-                    // Since we've got user folders, sort soley by the users ordering preference
-                    if (firstFolder.position < secondFolder.position) {
-                        return -1;
-                    } else if (firstFolder.position > secondFolder.position) {
+                    } else if (firstFolder.id > secondFolder.id) {
                         return 1;
                     } else {
-                        return 1;
+                        return;
                     }
-                });
+                }
+
+                if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
+                    // Assume it's a pre-canned folder against a user folder. Pre-canned
+                    // always go first
+                    return -1;
+                }
+
+                if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
+                    // Assume it's a user folder against a pre-canned folder. User folders
+                    // always come after.
+                    return 1;
+                }
+
+                // Since we've got user folders, sort soley by the users ordering preference
+                if (firstFolder.position < secondFolder.position) {
+                    return -1;
+                } else if (firstFolder.position > secondFolder.position) {
+                    return 1;
+                } else {
+                    return 1;
+                }
             });
+
+            return appropriateFolders;
         }
     }
 }
