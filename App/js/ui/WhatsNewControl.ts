@@ -15,21 +15,23 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
+            this.init();
+        }
 
-            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.WhatsNewControl");
+        private async init(): Promise<void> {
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.WhatsNewControl");
 
-            this.template.render({}, this.element).then(() => {
-                DOM.marryPartsToControl(this.element, this);
-                this._messageContainer.textContent = WHATS_NEW_MESSAGE
+            await this.template.render({}, this.element)
+            DOM.marryPartsToControl(this.element, this);
+            this._messageContainer.textContent = WHATS_NEW_MESSAGE
 
-                this._handlersToCleanup.push(Utilities.addEventListeners(this._close, {
-                    click: () => this.dismiss()
-                }));
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._close, {
+                click: () => this.dismiss()
+            }));
 
-                this._handlersToCleanup.push(Utilities.addEventListeners(this._detailsLink, {
-                    click: () => this.dismiss()
-                }));
-            });
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._detailsLink, {
+                click: () => this.dismiss()
+            }));
         }
 
         public dispose(): void {
