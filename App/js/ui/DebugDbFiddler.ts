@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid.UI {
+﻿namespace Codevoid.Storyvoid.UI {
     import DOM = Codevoid.Utilities.DOM;
 
     interface IFiddleCommand {
@@ -13,16 +13,19 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
-            WinJS.Utilities.addClass(element, "dbFiddler-container");
-            DOM.loadTemplate("/HtmlTemplates.html", "dbFiddler").then((template) => {
-                return template.render(null, element);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.DbFiddler");
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
+            this.init();
+        }
 
-                this.fiddleCommands.data = this.viewModel.getCommands();
-            });
+        private async init(): Promise<void> {
+            WinJS.Utilities.addClass(this.element, "dbFiddler-container");
+            const template = await DOM.loadTemplate("/HtmlTemplates.html", "dbFiddler");
+            await template.render(null, this.element);
+
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.DbFiddler");
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            this.fiddleCommands.data = this.viewModel.getCommands();
         }
 
         public fiddleCommandInvoked(e: UIEvent): void {
@@ -58,45 +61,42 @@
                 },
                 {
                     label: "Remove",
-                    handler: () => {
-                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
-                            var firstBookmark = bookmarks[0];
-                            this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDBBookmarkChangeTypes.DELETE,
-                                bookmark: firstBookmark,
-                                bookmark_id: firstBookmark.bookmark_id,
-                            });
+                    handler: async () => {
+                        const bookmarks = await this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread);
+                        var firstBookmark = bookmarks[0];
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: InstapaperDBBookmarkChangeTypes.DELETE,
+                            bookmark: firstBookmark,
+                            bookmark_id: firstBookmark.bookmark_id,
                         });
                     }
                 },
                 {
                     label: "Mutate Title",
-                    handler: () => {
-                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
-                            var firstBookmark = bookmarks[0];
-                            firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
+                    handler: async () => {
+                        const bookmarks = await this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread);
+                        var firstBookmark = bookmarks[0];
+                        firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
 
-                            this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDBBookmarkChangeTypes.UPDATE,
-                                bookmark_id: firstBookmark.bookmark_id,
-                                bookmark: firstBookmark,
-                            });
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: InstapaperDBBookmarkChangeTypes.UPDATE,
+                            bookmark_id: firstBookmark.bookmark_id,
+                            bookmark: firstBookmark,
                         });
                     }
                 },
                 {
                     label: "Mutate Progress",
-                    handler: () => {
-                        this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread).then((bookmarks: IBookmark[]) => {
-                            var firstBookmark = bookmarks[0];
-                            firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
-                            firstBookmark.progress = Math.random();
+                    handler: async () => {
+                        const bookmarks = await this._db.listCurrentBookmarks(this._db.commonFolderDbIds.unread);
+                        var firstBookmark = bookmarks[0];
+                        firstBookmark.title = "OH YEAH I CHANGED, YES I DID";
+                        firstBookmark.progress = Math.random();
 
-                            this._db.dispatchEvent("bookmarkschanged", {
-                                operation: InstapaperDBBookmarkChangeTypes.UPDATE,
-                                bookmark_id: firstBookmark.bookmark_id,
-                                bookmark: firstBookmark,
-                            });
+                        this._db.dispatchEvent("bookmarkschanged", {
+                            operation: InstapaperDBBookmarkChangeTypes.UPDATE,
+                            bookmark_id: firstBookmark.bookmark_id,
+                            bookmark: firstBookmark,
                         });
                     }
                 },
@@ -115,28 +115,25 @@
                 },
                 {
                     label: "Remove folder",
-                    handler: () => {
-                        var commonFolderIds = Object.keys(this._db.commonFolderDbIds).map((key: string) => {
-                            return this._db.commonFolderDbIds[key];
+                    handler: async () => {
+                        var commonFolderIds = Object.keys(this._db.commonFolderDbIds).map((key: string) => this._db.commonFolderDbIds[key]);
+
+                        const folders = await this._db.listCurrentFolders();
+                        var nonDefaultFolders = folders.filter((folder: IFolder) => {
+                            if (folder.localOnly) {
+                                return false;
+                            }
+
+                            if (commonFolderIds.indexOf(folder.id) > -1) {
+                                return false;
+                            }
+
+                            return true;
                         });
 
-                        this._db.listCurrentFolders().then((folders: IFolder[]) => {
-                            var nonDefaultFolders = folders.filter((folder: IFolder) => {
-                                if (folder.localOnly) {
-                                    return false;
-                                }
-
-                                if (commonFolderIds.indexOf(folder.id) > -1) {
-                                    return false;
-                                }
-
-                                return true;
-                            });
-
-                            this._db.dispatchEvent("folderschanged", {
-                                operation: InstapaperDBFolderChangeTypes.DELETE,
-                                folder_dbid: nonDefaultFolders[0].id,
-                            });
+                        this._db.dispatchEvent("folderschanged", {
+                            operation: InstapaperDBFolderChangeTypes.DELETE,
+                            folder_dbid: nonDefaultFolders[0].id,
                         });
                     }
                 }
