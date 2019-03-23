@@ -71,11 +71,9 @@
             Codevoid.Utilities.HiddenApiHelper.extendIntoTitleBar();
         }
 
-        public initialize(): PromiseLike<void> {
-            const baseInit = super.initialize();
+        public async initialize(): Promise<void> {
+            await super.initialize();
             Telemetry.trackAppLaunched("tile");
-
-            return baseInit;
         }
 
         protected getSignedInViewModel(app: UI.IAppWithAbilityToSignIn): UI.ISignedInViewModel {

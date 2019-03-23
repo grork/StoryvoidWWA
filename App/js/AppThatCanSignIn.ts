@@ -5,7 +5,7 @@
         private _uiSettings: Windows.UI.ViewManagement.UISettings;
         private _launchInformation: IAppLaunchInformation;
 
-        public initialize(): PromiseLike<any> {
+        public async initialize(): Promise<void> {
             this._uiSettings = new Windows.UI.ViewManagement.UISettings();
 
             const viewerSettings = new Settings.ViewerSettings();
@@ -13,12 +13,11 @@
 
             Codevoid.UICore.Experiences.initializeHost(new Codevoid.UICore.WwaExperienceHost(document.body));
 
-            var credentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
-            let work: PromiseLike<any> = Codevoid.Utilities.as();
+            const credentials = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
             if (!credentials) {
                 this.signOut(false/*wasPreviouslySignedIn*/);
             } else {
-                work = this.signedIn(credentials, true /*usingSavedCredentials*/);
+                await this.signedIn(credentials, true /*usingSavedCredentials*/);
             }
 
             // RS5 seems to have removed the default disablement of the zoom
@@ -45,15 +44,13 @@
                     viewerSettings.refreshThemeOnDOM();
                 }
             });
-
-            return work;
         }
 
-        public signOut(wasPreviouslySignedIn?: boolean): void {
-            var signedInElement = <HTMLElement>document.body.firstElementChild;
+        public async signOut(wasPreviouslySignedIn?: boolean): Promise<void> {
+            const signedInElement = <HTMLElement>document.body.firstElementChild;
 
             this._signedOutViewModel = new Codevoid.Storyvoid.UI.SignedOutViewModel(this);
-            var signedOutElement = <HTMLElement>Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this._signedOutViewModel);
+            const signedOutElement = <HTMLElement>Codevoid.UICore.Experiences.currentHost.addExperienceForModel(this._signedOutViewModel);
 
             // If we weren't previously signed in -- e.g. on first startup
             // we shouldn't play an animation on loading.
@@ -71,7 +68,7 @@
             WinJS.Utilities.addClass(signedInElement, "animateTransform");
             WinJS.Utilities.addClass(signedOutElement, "animateTransform");
 
-            var handlersToCancel = Utilities.addEventListeners(signedOutElement, {
+            const handlersToCancel = Utilities.addEventListeners(signedOutElement, {
                 transitionend: (e: TransitionEvent) => {
                     if (e.target != signedOutElement) {
                         return;
@@ -91,21 +88,20 @@
 
             // Bounce through the dispatcher to give the DOM a moment to layout
             // and then actually apply the transform to initial positions
-            WinJS.Promise.timeout(1).then(() => {
-                signedInElement.style.transform = "translateX(100vw)";
-                signedOutElement.style.transform = "translateX(0)";
-            });
+            await Codevoid.Utilities.timeout(1);
+            signedInElement.style.transform = "translateX(100vw)";
+            signedOutElement.style.transform = "translateX(0)";
         }
 
-        public signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): PromiseLike<void> {
-            var signedInElement = <HTMLElement>document.body.firstElementChild;
+        public async signedIn(credentials: OAuth.ClientInformation, usingSavedCredentials: boolean): Promise<void> {
+            const signedInElement = <HTMLElement>document.body.firstElementChild;
 
             if (!this._signedInViewModel) {
                 this._signedInViewModel = this.getSignedInViewModel(this);
                 (<Codevoid.UICore.WwaExperienceHost>Codevoid.UICore.Experiences.currentHost).createExperienceWithModel(signedInElement, this._signedInViewModel);
             }
 
-            var signedInResult = this._signedInViewModel.signedIn(usingSavedCredentials);
+            const signedInResult = this._signedInViewModel.signedIn(usingSavedCredentials);
             WinJS.Utilities.removeClass(signedInElement, "hide");
 
             // If we're using saved credentials, it means we're in
@@ -115,11 +111,12 @@
                 if (this.signedInViewModel.uiPresented) {
                     this.signedInViewModel.uiPresented();
                 }
-                return signedInResult;
+                await signedInResult;
+                return;
             }
 
             // Assume the sibling element ot signed in is "signed out".
-            var signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
+            const signedOutElement = <HTMLElement>signedInElement.nextElementSibling;
 
             // Set the states to animate from. This allows us to animate to an
             // ambient state, rather than a fixed known state.
@@ -132,14 +129,14 @@
 
             // Handler & Handler cleanup for the completion of the
             // entrance animation
-            var handlersToCancel = Utilities.addEventListeners(signedInElement, {
+            let handlersToCancel = Utilities.addEventListeners(signedInElement, {
                 transitionend: (e: TransitionEvent) => {
                     // We'll see other bubbling events from other transitions
                     // make sure we're only handling the one WE started.
                     if (e.target != signedInElement) {
                         return;
                     }
-                    
+
                     // Make sure we don't get hit again
                     handlersToCancel.cancel();
 
@@ -161,17 +158,13 @@
                 }
             });
 
-            signedInResult.then(() => {
+            await signedInResult;
 
-                // Bounce through the dispatcher to give the DOM a moment to layout
-                // and then actually apply the transform to initial positions
-                WinJS.Promise.timeout(1).then(() => {
-                    signedInElement.style.transform = "translateX(0)";
-                    signedOutElement.style.transform = "translateX(-100vw)";
-                });
-            });
-
-            return signedInResult;
+            // Bounce through the dispatcher to give the DOM a moment to layout
+            // and then actually apply the transform to initial positions
+            await Codevoid.Utilities.timeout();
+            signedInElement.style.transform = "translateX(0)";
+            signedOutElement.style.transform = "translateX(-100vw)";
         }
 
         public processLaunchInformation(launchInformation: IAppLaunchInformation): void {
