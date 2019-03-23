@@ -670,7 +670,7 @@
             let completionHandler: () => void;
 
             return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
-                //if (!bookmark) {
+                if (!bookmark) {
                     // Attempt to download it from the service, but do not
                     // allow the promise chain to wait on it, so if the download
                     // takes a really long time we're not sat at the splasyscreen
@@ -680,9 +680,9 @@
                     completionHandler = downloadResult.displayComplete;
 
                     return downloadResult.downloaded;
-                //}
+                }
 
-                //return this.refreshBookmarkWithLatestReadProgress(bookmark);
+                return this.refreshBookmarkWithLatestReadProgress(bookmark);
             }).then((bookmarkToShow) => {
                 if (localCancellationSource.cancelled) {
                     return null;
@@ -742,7 +742,7 @@
             }).then((result: IBookmark) => {
                 // Insert it as an orphan into the DB
                 result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
-                return <any>WinJS.Promise.timeout(8 * 1000).then(() => result); //this._instapaperDB.addBookmark(result);
+                return this._instapaperDB.addBookmark(result);
             }).then((result: IBookmark) => {
                 // Get The content from the service using the orphan bookmark we added
                 return this.syncSingleArticle(result);
