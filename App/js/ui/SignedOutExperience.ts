@@ -9,25 +9,29 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
-            WinJS.Utilities.addClass(element, "signedOut-container");
-            DOM.loadTemplate("/HtmlTemplates.html", "signedOut").then((template) => {
-                return template.render(null, element);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedOutExperience");
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
+            this._init();
+        }
 
-                this._authenticatorControl = new Codevoid.Storyvoid.UI.Authenticator(this._authenticatorContainer, {
-                    viewModel: this.viewModel.authenticator,
-                });
+        private async _init(): Promise<void> {
+            WinJS.Utilities.addClass(this.element, "signedOut-container");
 
-                this._handlersToCleanup.push(Utilities.addEventListeners(this._authenticatorContainer, {
-                    readytoauthenticate: () => {
-                        Windows.UI.ViewManagement.InputPane.getForCurrentView().tryHide();
-                        this.viewModel.startLogin();
-                    }
-                }));
+            const template = await DOM.loadTemplate("/HtmlTemplates.html", "signedOut");
+            await template.render(null, this.element);
+
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.SignedOutExperience");
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            this._authenticatorControl = new Codevoid.Storyvoid.UI.Authenticator(this._authenticatorContainer, {
+                viewModel: this.viewModel.authenticator,
             });
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._authenticatorContainer, {
+                readytoauthenticate: () => {
+                    Windows.UI.ViewManagement.InputPane.getForCurrentView().tryHide();
+                    this.viewModel.startLogin();
+                }
+            }));
         }
 
         public startLogin(): void {

@@ -15,26 +15,29 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SyncProgressControl");
+            this._init();
+        }
 
-            this.template.render({}, this.element).then(() => {
-                DOM.marryPartsToControl(this.element, this);
+        private async _init(): Promise<void> {
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.SyncProgressControl");
 
-                this._messageContainer.textContent = this.initialMessage;
+            await this.template.render({}, this.element);
+            DOM.marryPartsToControl(this.element, this);
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.eventSource, {
-                    syncprogressupdate: (e: Utilities.EventObject<{ message: string }>) => {
-                        this._messageContainer.textContent = e.detail.message;
-                    },
-                    synccompleted: () => {
-                        this._syncComplete();
-                    }
-                }));
+            this._messageContainer.textContent = this.initialMessage;
 
-                this._handlersToCleanup.push(Utilities.addEventListeners(this._cancelSync, {
-                    click: () => this.cancelSync()
-                }));
-            });
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.eventSource, {
+                syncprogressupdate: (e: Utilities.EventObject<{ message: string }>) => {
+                    this._messageContainer.textContent = e.detail.message;
+                },
+                synccompleted: () => {
+                    this._syncComplete();
+                }
+            }));
+
+            this._handlersToCleanup.push(Utilities.addEventListeners(this._cancelSync, {
+                click: () => this.cancelSync()
+            }));
         }
 
         private _syncComplete(): void {

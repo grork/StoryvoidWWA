@@ -16,20 +16,24 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
-            Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials").then(function (template) {
-                return template.render(null, element);
-            }).then(() => {
+            this._init();
+        }
+
+        private async _init(): Promise<void> {
+            const template = await Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "authenticatorCredentials");
+            await template.render(null, this.element);
+
                 // Make sure we set the attribute after, since when we render
                 // the template on our own element, it'll process the win-control
                 // attribute and create two of them. This would be bad, mmmkay?
-                Codevoid.Utilities.DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.Authenticator");
+            Codevoid.Utilities.DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.Authenticator");
 
-                this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(element, this));
-                Codevoid.Utilities.DOM.marryPartsToControl(element, this);
+            this._handlersToCleanup.push(Codevoid.Utilities.DOM.marryEventsToHandlers(this.element, this));
+            Codevoid.Utilities.DOM.marryPartsToControl(this.element, this);
                 this._initializeViewModelListeners();
 
-                WinJS.Promise.timeout().then(() => this.usernameInput.focus());
-            });
+            await Codevoid.Utilities.timeout();
+            this.usernameInput.focus();
         }
 
         private _initializeViewModelListeners() {
@@ -85,7 +89,7 @@
             }
         }
 
-        private _fadeElement(el: HTMLElement, targetOpacity: number) {
+        private async _fadeElement(el: HTMLElement, targetOpacity: number) {
             // If there were some events hanging off this element
             // waiting for a previous animation to complete, just
             // cancel & clean them up
@@ -124,9 +128,8 @@
 
             // Bounce through the dispatcher to give the DOM a moment to layout
             // and then actually apply the transform to initial positions
-            WinJS.Promise.timeout(1).then(() => {
-                el.style.opacity = targetOpacity.toString();
-            });
+            await Codevoid.Utilities.timeout(1);
+            el.style.opacity = targetOpacity.toString();
         }
 
         public dispose() {

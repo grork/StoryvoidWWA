@@ -14,14 +14,13 @@
     }
     export class Telemetry {
         private static _client: Codevoid.Utilities.Mixpanel.MixpanelClient;
-        static initialize(): PromiseLike<any> {
+        static async initialize(): Promise<any> {
             const settings = new Settings.TelemetrySettings();
             Telemetry._client = new Codevoid.Utilities.Mixpanel.MixpanelClient("PLACEHOLDER");
             Telemetry._client.dropEventsForPrivacy = !settings.telemeteryCollectionEnabled;
-            return Telemetry._client.initializeAsync().then(() => {
-                Telemetry._client.start();
-                Telemetry.initializeIdentity();
-            });
+            await Telemetry._client.initializeAsync();
+            Telemetry._client.start();
+            Telemetry.initializeIdentity();
         }
 
         static initializeIdentity(): void {

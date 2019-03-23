@@ -1,4 +1,4 @@
-﻿module Codevoid.Storyvoid {
+﻿namespace Codevoid.Storyvoid {
     let appInititialized = false;
 
     export class App extends UI.AppThatCanSignIn {
@@ -12,7 +12,7 @@
             });
         }
 
-        private handleActivated(args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs): void {
+        private async handleActivated(args: Windows.UI.WebUI.WebUILaunchActivatedEventArgs): Promise<void> {
             let launchInformation: UI.IAppLaunchInformation;
             if (args.kind === Windows.ApplicationModel.Activation.ActivationKind.protocol) {
                 const protocolArgs = <Windows.UI.WebUI.WebUIProtocolActivatedEventArgs>(<any>args);
@@ -34,11 +34,9 @@
                 appInititialized = true;
                 app.launchInformation = launchInformation;
                 var deferral = args.activatedOperation.getDeferral();
-                Telemetry.initialize().then(() => {
-                    app.initialize().then(() => {
-                        deferral.complete();
-                    });
-                });
+                await Telemetry.initialize();
+                await app.initialize();
+                deferral.complete();
             } else {
                 app.processLaunchInformation(launchInformation);
             }

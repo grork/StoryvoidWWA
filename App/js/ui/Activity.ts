@@ -36,35 +36,33 @@
         constructor(private _bookmark: IBookmark) {
         }
 
-        public start(): PromiseLike<void> {
+        public async start(): Promise<void> {
             if (this._started) {
                 return;
             }
 
             let channel = ua.UserActivityChannel.getDefault();
-            return channel.getOrCreateUserActivityAsync(`article:${this._bookmark.bookmark_id}`).then((activity) => {
-                this._started = true;
-                this._activity = activity;
+            const activity = await channel.getOrCreateUserActivityAsync(`article:${this._bookmark.bookmark_id}`);
+            this._started = true;
+            this._activity = activity;
 
-                // Activation URI is what the OS will invoke to reopen the activity
-                activity.activationUri = new Windows.Foundation.Uri(Deeplinking.getUriForBookmark(this._bookmark));
-                activity.contentType = "text/html"; // OS Knows what it _kinda_ points to
-                activity.contentUri = new Windows.Foundation.Uri(this._bookmark.url); // When the customer doesn't have the app, they can open this
-                activity.visualElements.displayText = this._bookmark.title; // fallback display text
-                activity.visualElements.description = this._bookmark.extractedDescription; // Fallback description
-                activity.visualElements.content = getAdaptiveCard(this._bookmark); // The real content that is visible in the card
+            // Activation URI is what the OS will invoke to reopen the activity
+            activity.activationUri = new Windows.Foundation.Uri(Deeplinking.getUriForBookmark(this._bookmark));
+            activity.contentType = "text/html"; // OS Knows what it _kinda_ points to
+            activity.contentUri = new Windows.Foundation.Uri(this._bookmark.url); // When the customer doesn't have the app, they can open this
+            activity.visualElements.displayText = this._bookmark.title; // fallback display text
+            activity.visualElements.description = this._bookmark.extractedDescription; // Fallback description
+            activity.visualElements.content = getAdaptiveCard(this._bookmark); // The real content that is visible in the card
 
-                return activity.saveAsync();
-            }).then(() => {
-                this._session = this._activity.createSession(); // What causes it to start being visible in the timeline
+            await activity.saveAsync();
+            this._session = this._activity.createSession(); // What causes it to start being visible in the timeline
 
-                // Shoulder Tap API, although not able to validate since I can't find an entry point into it
-                let requestManager = ua.UserActivityRequestManager.getForCurrentView();
-                this._requestEvents = Utilities.addEventListeners(requestManager, {
-                    userActivityRequested: (args: Utilities.EventObject<ua.UserActivityRequestedEventArgs>) => {
-                        args.detail.request.setUserActivity(this._activity);
-                    }
-                });
+            // Shoulder Tap API, although not able to validate since I can't find an entry point into it
+            let requestManager = ua.UserActivityRequestManager.getForCurrentView();
+            this._requestEvents = Utilities.addEventListeners(requestManager, {
+                userActivityRequested: (args: Utilities.EventObject<ua.UserActivityRequestedEventArgs>) => {
+                    args.detail.request.setUserActivity(this._activity);
+                }
             });
         }
 
