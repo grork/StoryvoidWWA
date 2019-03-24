@@ -7,16 +7,16 @@
         // activation handler, but also if you don't attach in time,
         // you'll miss the event.
         public static listenForActivation(): void {
-            Windows.UI.WebUI.WebUIApplication.addEventListener("activated", (args) => {
+            Windows.UI.WebUI.WebUIApplication.addEventListener("activated", async (args) => {
                 // We really need to yield to the browser before we go lala on getting
                 // data and potentially doing any more operations, so bounce around a timeout.
-                <PromiseLike<any>>WinJS.Promise.join([
+                await Promise.all([
                     WinJS.Promise.timeout(),
                     telemetryInit
-                ]).then(() => {
-                    ShareTargetApp._appInstance = new ShareTargetApp();
-                    ShareTargetApp._appInstance.initializeWithShareInformation(<Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]));
-                });
+                ]);
+
+                ShareTargetApp._appInstance = new ShareTargetApp();
+                ShareTargetApp._appInstance.initializeWithShareInformation(<Windows.ApplicationModel.Activation.IShareTargetActivatedEventArgs>(args.detail[0]));
             });
         }
 
@@ -53,11 +53,9 @@
 
     // Note, theres no waiting on this to initialize here,
     // but it is waited on later when we get the activated event.
-    var telemetryInit = Telemetry.initialize();
+    const telemetryInit = Telemetry.initialize();
 
-    WinJS.Utilities.ready().then(() => {
-        ShareTargetApp.listenForActivation();
-    });
+    ShareTargetApp.listenForActivation();
 }
 
 module Codevoid.Storyvoid.UI {
@@ -104,7 +102,7 @@ module Codevoid.Storyvoid.UI {
             this.saveToInstapaper();
         }
 
-        public signedIn(usingSavedCredentials: boolean): PromiseLike<any> {
+        public async signedIn(usingSavedCredentials: boolean): Promise<void> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
 
             Telemetry.instance.track("SignedIn", toPropertySet({
@@ -112,12 +110,12 @@ module Codevoid.Storyvoid.UI {
                 appType: "shareTarget",
             }));
 
-            return Codevoid.Utilities.as();
+            return;
         }
 
         public signInCompleted(): void { /* No op in this situation */ }
 
-        public saveToInstapaper(): void {
+        public async saveToInstapaper(): Promise<void> {
             var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(this._clientInformation);
             this._savingToService = true;
 
@@ -128,34 +126,30 @@ module Codevoid.Storyvoid.UI {
                 this._reportedStarted = true;
             }
 
+            let minWait = Codevoid.Utilities.timeout(1000);
             // Track how long the share takes
             const start = Date.now();
-            let duration: number = 0;
-
-            <PromiseLike<any>>WinJS.Promise.join({
-                operation: bookmarks.add({
+            try {
+                await bookmarks.add({
                     title: this._articleDetails.title,
                     url: this._articleDetails.url.absoluteUri
-                }).then((r) => { duration = Date.now() - start; return r; }),
-                delay: WinJS.Promise.timeout(1000), // Let the user see the spinner for a second minimum
-            }).then(() => {
+                });
+
+                const duration = Date.now() - start;
+                await minWait;
+
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Complete);
 
-                var executingPackage = Windows.ApplicationModel.Package.current;
-                return <any>WinJS.Promise.join({
-                    timeout: WinJS.Promise.timeout(1000),
-                    // Because the quick link might need an image, we should start loading it
-                    // while the timeout above is showing the user "All Done" to make out lives
-                    // simpler.
-                    image: executingPackage.installedLocation.getFileAsync("Images\\Square44x44Logo.scale-200.png").then((iconFile: Windows.Storage.StorageFile) => {
-                        return Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(iconFile);
-                    }),
-                });
-            }).then((result: { image: Windows.Storage.Streams.RandomAccessStreamReference }) => {
+                minWait = Codevoid.Utilities.timeout(1000);
+                const executingPackage = Windows.ApplicationModel.Package.current;
+                const iconFile = await executingPackage.installedLocation.getFileAsync("Images\\Square44x44Logo.scale-200.png");
+                const image = await Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(iconFile);
                 Telemetry.instance.track("SharedSuccessfully", toPropertySet({ duration: duration }));
                 Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                     sharedArticles: 1,
                 }));
+
+                await minWait;
 
                 if (this._shareOperation) {
                     // We successfully saved the article, so give the customer
@@ -164,11 +158,11 @@ module Codevoid.Storyvoid.UI {
                     quickLink.id = QUICK_LINK_ID;
                     quickLink.supportedDataFormats.replaceAll([Windows.ApplicationModel.DataTransfer.StandardDataFormats.uri]);
                     quickLink.title = "Add to Instapaper";
-                    quickLink.thumbnail = result.image;
+                    quickLink.thumbnail = image;
 
                     this._shareOperation.reportCompleted(quickLink);
                 }
-            }, (e: any) => {
+            } catch (e) {
                 Telemetry.instance.track("ShareFailed", null);
 
                 if (!this._reportedError) {
@@ -176,7 +170,7 @@ module Codevoid.Storyvoid.UI {
                     this._reportedError = true;
                 }
                 this._eventSource.dispatchEvent("sharingstatechanged", SharingState.Error);
-            });
+            }
         }
 
         public completeSharingDueToClosing(): void {
@@ -195,18 +189,21 @@ module Codevoid.Storyvoid.UI {
             }
         }
 
-        public shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation): void {
+        public async shareDetailsAvailabile(shareDetails: Windows.ApplicationModel.DataTransfer.ShareTarget.ShareOperation): Promise<void> {
             this._shareOperation = shareDetails;
 
-            <PromiseLike<any>>WinJS.Promise.join({
-                title: shareDetails.data.properties.title,
-                url: shareDetails.data.getUriAsync(),
-            }).then((details: IArticleDetails) => {
-                if (!details.title) {
-                    details.title = details.url.absoluteUri;
-                }
+            let [title, url] = await Promise.all([
+                shareDetails.data.properties.title,
+                shareDetails.data.getUriAsync(),
+            ]);
 
-                this._updateArticleDetails(details);
+            if (!title) {
+                title = url.absoluteUri;
+            }
+
+            this._updateArticleDetails({
+                title,
+                url
             });
         }
 
@@ -238,13 +235,10 @@ module Codevoid.Storyvoid.UI {
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
+            this._initialize();
+        }
 
-            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ShareTargetSignedInExperience");
-
-            WinJS.UI.processAll(element).then(() => {
-                this._initialize();
-            });
-
+        private async _initialize(): Promise<void> {
             this._handlersToCleanup.push(Utilities.addEventListeners(this.viewModel.events, {
                 detailschanged: (e: any) => {
                     this._handleArticleDetailsChanged(e.detail);
@@ -263,9 +257,10 @@ module Codevoid.Storyvoid.UI {
                     this.viewModel.completeSharingDueToClosing();
                 }
             }));
-        }
 
-        private _initialize(): void {
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.ShareTargetSignedInExperience");
+            await WinJS.UI.processAll(this.element);
+
             this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
             DOM.marryPartsToControl(this.element, this);
 
@@ -278,7 +273,7 @@ module Codevoid.Storyvoid.UI {
             this._hasArticleDetails = true;
             WinJS.Utilities.removeClass(this.details, "hide");
             this.articleTitle.textContent = articleDetails.title;
-            this.articleUrl.textContent = articleDetails.url.absoluteUri;            
+            this.articleUrl.textContent = articleDetails.url.absoluteUri;
         }
 
         private _handleSharingStateChanged(state: SharingState): void {
