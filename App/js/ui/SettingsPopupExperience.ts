@@ -22,78 +22,78 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
-            
+
+            this.init();
+        }
+
+        private async init(): Promise<void> {
             this._navigationManager = Windows.UI.Core.SystemNavigationManager.getForCurrentView();
-            element.tabIndex = -1; // Make sure the background can get focus so it doesn't jump to the body
+            this.element.tabIndex = -1; // Make sure the background can get focus so it doesn't jump to the body
 
-            WinJS.Utilities.addClass(element, "settingsPopup-dialog");
-            WinJS.Utilities.addClass(element, "dialog");
-            WinJS.Utilities.addClass(element, "win-disposable");
-            WinJS.Utilities.addClass(element, "hide");
+            WinJS.Utilities.addClass(this.element, "settingsPopup-dialog");
+            WinJS.Utilities.addClass(this.element, "dialog");
+            WinJS.Utilities.addClass(this.element, "win-disposable");
+            WinJS.Utilities.addClass(this.element, "hide");
 
-            DOM.loadTemplate("/HtmlTemplates.html", "settingsPopup").then((template) => {
-                return <PromiseLike<any>>WinJS.Promise.join([
-                    template.render({}, element),
-                    WinJS.Promise.timeout()
-                ]);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
+            const template = await DOM.loadTemplate("/HtmlTemplates.html", "settingsPopup");
+            await template.render({}, this.element);
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.element, {
-                    keydown: (e: KeyboardEvent) => {
-                        switch (e.keyCode) {
-                            case WinJS.Utilities.Key.escape:
-                                this.close(null);
-                                break;
-                        }
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.SettingsPopupExperience");
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
+
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.element, {
+                keydown: (e: KeyboardEvent) => {
+                    switch (e.keyCode) {
+                        case WinJS.Utilities.Key.escape:
+                            this.close(null);
+                            break;
                     }
-                }));
+                }
+            }));
 
-                this._manageOpenStateOnSelectElement(this._homeArticleLimit);
-                this._manageOpenStateOnSelectElement(this._likedArticleLimit);
-                this._manageOpenStateOnSelectElement(this._archiveArticleLimit);
-                this._manageOpenStateOnSelectElement(this._otherFoldersArticleLimit);
-                this._manageOpenStateOnSelectElement(this._allowCollectingTelemetry);
-                this._manageOpenStateOnSelectElement(this._uiTheme);
+            this._manageOpenStateOnSelectElement(this._homeArticleLimit);
+            this._manageOpenStateOnSelectElement(this._likedArticleLimit);
+            this._manageOpenStateOnSelectElement(this._archiveArticleLimit);
+            this._manageOpenStateOnSelectElement(this._otherFoldersArticleLimit);
+            this._manageOpenStateOnSelectElement(this._allowCollectingTelemetry);
+            this._manageOpenStateOnSelectElement(this._uiTheme);
 
-                // Setup OS back button support
-                this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
-                    backrequested: this.close.bind(this),
-                }));
+            // Setup OS back button support
+            this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.visible;
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._navigationManager, {
+                backrequested: this.close.bind(this),
+            }));
 
-                var syncSettings = new Settings.SyncSettings();
-                this._selectOptionBasedOnValueNumber(syncSettings.homeArticleLimit, this._homeArticleLimit);
-                this._selectOptionBasedOnValueNumber(syncSettings.likedArticleLimit, this._likedArticleLimit);
-                this._selectOptionBasedOnValueNumber(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
-                this._selectOptionBasedOnValueNumber(syncSettings.otherFoldersLimit, this._otherFoldersArticleLimit);
+            var syncSettings = new Settings.SyncSettings();
+            this._selectOptionBasedOnValueNumber(syncSettings.homeArticleLimit, this._homeArticleLimit);
+            this._selectOptionBasedOnValueNumber(syncSettings.likedArticleLimit, this._likedArticleLimit);
+            this._selectOptionBasedOnValueNumber(syncSettings.archiveArticleLimit, this._archiveArticleLimit);
+            this._selectOptionBasedOnValueNumber(syncSettings.otherFoldersLimit, this._otherFoldersArticleLimit);
 
-                this._selectOptionBasedOnValueBoolean((new Settings.TelemetrySettings()).telemeteryCollectionEnabled, this._allowCollectingTelemetry);
+            this._selectOptionBasedOnValueBoolean((new Settings.TelemetrySettings()).telemeteryCollectionEnabled, this._allowCollectingTelemetry);
 
-                let viewerSettings = new Settings.ViewerSettings();
-                this._selectOptionBasedOnValueNumber(viewerSettings.uiTheme, this._uiTheme);
+            let viewerSettings = new Settings.ViewerSettings();
+            this._selectOptionBasedOnValueNumber(viewerSettings.uiTheme, this._uiTheme);
 
-                var version = Windows.ApplicationModel.Package.current.id.version;
-                var versionLabel = " " + version.major + "." + version.minor + "." + version.build + "." + version.revision;
-                this._versionElement.innerText += versionLabel;
+            var version = Windows.ApplicationModel.Package.current.id.version;
+            var versionLabel = " " + version.major + "." + version.minor + "." + version.build + "." + version.revision;
+            this._versionElement.innerText += versionLabel;
 
-                WinJS.Utilities.removeClass(element, "hide");
-                WinJS.UI.Animation.slideUp(this.element).then(() => {
-                    // Capture previously focused element so we focus it when the
-                    // setting is dismissed.
-                    //
-                    // Note, this is a little bit of a cheat. The settings is normally
-                    // invoked from the flyout nav menu thing. If we captured focus immediately
-                    // when we were invoked, we'd capture the focus from inside the flyout. Bad.
-                    // If we wait till we're showing/focusing ourselves, it means that the flyout
-                    // itself will have restored focus to somewhere helpful. (E.g. back to
-                    // the content)
-                    this._previouslyFocusedElement = <HTMLElement>document.activeElement;
-                    this._homeArticleLimit.focus();
-                });
-            });
+            WinJS.Utilities.removeClass(this.element, "hide");
+            await WinJS.UI.Animation.slideUp(this.element);
+
+            // Capture previously focused element so we focus it when the
+            // setting is dismissed.
+            //
+            // Note, this is a little bit of a cheat. The settings is normally
+            // invoked from the flyout nav menu thing. If we captured focus immediately
+            // when we were invoked, we'd capture the focus from inside the flyout. Bad.
+            // If we wait till we're showing/focusing ourselves, it means that the flyout
+            // itself will have restored focus to somewhere helpful. (E.g. back to
+            // the content)
+            this._previouslyFocusedElement = <HTMLElement>document.activeElement;
+            this._homeArticleLimit.focus();
         }
 
         /// <summary>
@@ -159,7 +159,7 @@
             this._homeArticleLimit.focus();
         }
 
-        public close(args?: Windows.UI.Core.BackRequestedEventArgs): void {
+        public async close(args?: Windows.UI.Core.BackRequestedEventArgs): Promise<void> {
             if (args != null) {
                 args.handled = true;
             }
@@ -167,17 +167,16 @@
             this.viewModel.dispose();
             this._navigationManager.appViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.collapsed;
 
-            WinJS.UI.Animation.slideDown(this.element).then(() => {
-                Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
-                this.viewModel = null;
+            await WinJS.UI.Animation.slideDown(this.element);
+            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
+            this.viewModel = null;
 
-                // Restore focus to whatever was previously focused.
-                try {
-                    this._previouslyFocusedElement.focus();
-                }
-                catch (e) { }
-                this._previouslyFocusedElement = null;
-            });
+            // Restore focus to whatever was previously focused.
+            try {
+                this._previouslyFocusedElement.focus();
+            }
+            catch (e) { }
+            this._previouslyFocusedElement = null;
         }
 
         public dispose(): void {
@@ -223,18 +222,17 @@
         }
 
         public forgetMeAndSignout(): void {
-            this.viewModel.forgetMeAndSignout().then(() => { });
+            this.viewModel.forgetMeAndSignout();
             this.close();
         }
 
-        public dumpDb(): void {
-            this.viewModel.articleListViewModel.dumpDb().then((dumpData: string) => {
+        public async dumpDb(): Promise<void> {
+            try {
+                const dumpData = await this.viewModel.articleListViewModel.dumpDb();
                 Utilities.Logging.instance.log("Dumped");
 
                 Utilities.Logging.instance.log(dumpData, true);
-            }, () => {
-                Utilities.Logging.instance.log("Not dumped");
-            });
+            } catch (e) { Utilities.Logging.instance.log("Not dumped"); }
         }
 
         public showDbFiddler(): void {
@@ -287,13 +285,10 @@
         public dispose(): void {
         }
 
-        public redownload(): void {
+        public async redownload(): Promise<void> {
             var articleListViewModel = this.articleListViewModel;
-            articleListViewModel.signOut(false/*clearCredentials*/).then(() => {
-                return WinJS.Promise.timeout();
-            }).then(() => {
-                articleListViewModel.signedIn(false);
-            });
+            await articleListViewModel.signOut(false/*clearCredentials*/);
+            articleListViewModel.signedIn(false);
         }
 
         public updateArticleSyncLimits(homeLimit: number, likedLimit: number, archiveLimit: number, otherFoldersLimit: number): void {
@@ -304,7 +299,7 @@
             syncSettings.otherFoldersLimit = otherFoldersLimit;
         }
 
-        public updateAllowTelemetry(allowTelemetry: boolean): void {
+        public async updateAllowTelemetry(allowTelemetry: boolean): Promise<void> {
             var telemetrySettings = new Settings.TelemetrySettings();
             telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
             Telemetry.instance.dropEventsForPrivacy = !allowTelemetry;
@@ -313,7 +308,9 @@
                 // Since it's off, lets make sure we're not uploading _anything_
                 // and handle any errors when it fails, since we don't care about
                 // those.
-                Telemetry.instance.clearStorageAsync().then(null, () => { });
+                try {
+                    await Telemetry.instance.clearStorageAsync();
+                } catch (e) { }
             }
         }
 
@@ -323,10 +320,9 @@
             viewerSettings.refreshThemeOnDOM();
         }
 
-        public forgetMeAndSignout(): PromiseLike<any> {
-            return this.articleListViewModel.signOut(true).then(() => {
-                Telemetry.instance.deleteProfile();
-            });
+        public async forgetMeAndSignout(): Promise<void> {
+            await this.articleListViewModel.signOut(true);
+            await Telemetry.instance.deleteProfile();
         }
     }
 }
