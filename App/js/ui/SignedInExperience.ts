@@ -49,15 +49,13 @@
 
         constructor(element: HTMLElement, options: any) {
             super(element, options);
-
-            DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.SignedInExperience");
-
-            WinJS.UI.processAll(element).then(() => {
-                this._initialize();
-            });
+            this._initialize();
         }
 
-        private _initialize(): void {
+        private async _initialize(): Promise<void> {
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.SignedInExperience");
+            await WinJS.UI.processAll(this.element);
+
             this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
             DOM.marryPartsToControl(this.element, this);
 
@@ -109,7 +107,7 @@
 
             this._handleSpacerRequired({ detail: titleBarSpacerHelper.spacerRequired });
 
-            var firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
+            const firstTimeAnimation = Utilities.addEventListeners(this._contentList, {
                 contentanimating: (eventObject) => {
                     if (eventObject.detail.type === "entrance") {
                         eventObject.preventDefault();
@@ -119,11 +117,10 @@
             });
 
             this._handlersToCleanup.push(Utilities.addEventListeners(this._contentList, {
-                keyboardnavigating: (e: Utilities.EventObject<{ oldFocus: number; newFocus: number }>) => {
+                keyboardnavigating: async (e: Utilities.EventObject<{ oldFocus: number; newFocus: number }>) => {
                     Sharing.instance.bookmarkToShare = null;
-                    this._contentList.itemDataSource.itemFromIndex(e.detail.newFocus).then((item) => {
-                        Sharing.instance.bookmarkToShare = item.data;
-                    });
+                    const item = await this._contentList.itemDataSource.itemFromIndex(e.detail.newFocus);
+                    Sharing.instance.bookmarkToShare = item.data;
                 }
             }));
 
@@ -145,10 +142,10 @@
         }
 
         private _handleSizeChange() {
-            var layout = {
+            const layout = {
                 type: null,
                 orientation: 'Vertical',
-            }
+            };
 
             if (window.innerWidth > 550) {
                 layout.type = WinJS.UI.GridLayout;
@@ -238,22 +235,21 @@
         }
 
         public handleSortsChanged(e: UIEvent) {
-            var rawSortOption = parseInt(this._sortsElement.value);
+            const rawSortOption = parseInt(this._sortsElement.value);
             this.viewModel.changeSortTo(<SortOption>rawSortOption);
         }
 
-        public splitViewOpening() {
+        public async splitViewOpening() {
             WinJS.Utilities.addClass(this._splitToggle.element, "splitView-open");
-            this.viewModel.listFolders().then((folders: IFolder[]) => {
-                this._folderList.data = new WinJS.Binding.List(folders);
-            });
+            const folders = await this.viewModel.listFolders();
+            this._folderList.data = new WinJS.Binding.List(folders);
         }
 
         public splitViewClosing() {
             WinJS.Utilities.removeClass(this._splitToggle.element, "splitView-open");
         }
 
-        public signOut(): void {
+        public async signOut(): Promise<void> {
             const confirmSignoutDialog = new Windows.UI.Popups.MessageDialog(
                 "When you sign out, everything you've downloaded will be removed, and you'll need to sign in again to use the app again. Your data will still be in your Instapaper account at instapaper.com",
                 "Are you sure?");
@@ -270,13 +266,12 @@
             confirmSignoutDialog.commands.append(staySignedInCommand);
 
 
-            confirmSignoutDialog.showAsync().then((command) => {
+            const command = await confirmSignoutDialog.showAsync();
                 if (command.id != "signout") {
                     return;
                 }
 
-                this.viewModel.signOut(true/*clearCredentials*/).then(null);
-            });
+            await this.viewModel.signOut(true/*clearCredentials*/);
         }
 
         public menuInvoked(e: PointerEvent): void {
@@ -319,7 +314,7 @@
             }
 
             // Now we've got some commands, show them to the user
-            var commands = this.viewModel.getCommandInformationForBookmarks([data]);
+            const commands = this.viewModel.getCommandInformationForBookmarks([data]);
             Sharing.instance.bookmarkToShare = data;
             this._menu.commands = <any[]>commands;
             this._menu.showAt(elementPosition);
@@ -359,11 +354,13 @@
             this._splitView.closePane();
         }
 
-        public showFeedbackHub(): void {
-            Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri("https://www.codevoid.net/storyvoid/faq.html#support")).then(null, () => { });
+        public async showFeedbackHub(): Promise<void> {
+            try {
+                await Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri("https://www.codevoid.net/storyvoid/faq.html#support"));
+            } catch (e) { }
         }
 
-        public _renderFolderDetails(folderDetails: IFolderDetails): void {
+        public async _renderFolderDetails(folderDetails: IFolderDetails): Promise<void> {
             Utilities.Logging.instance.log("Bookmarks for: " + folderDetails.folder.folder_id);
 
             this._exitSelectionMode();
@@ -379,17 +376,16 @@
             this._contentList.itemDataSource = folderDetails.bookmarks.dataSource;
 
             this._emptyStateListeners = Utilities.addEventListeners(<any>folderDetails.bookmarks, {
-                itemremoved: () => {
-                    this._contentList.itemDataSource.getCount().then(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                itemremoved: async () => {
+                    this._updateEmptyStateBasedOnBookmarkCount(await this._contentList.itemDataSource.getCount());
                 },
-                iteminserted: () => {
-                    this._contentList.itemDataSource.getCount().then(this._updateEmptyStateBasedOnBookmarkCount.bind(this));
+                iteminserted: async() => {
+                    this._updateEmptyStateBasedOnBookmarkCount(await this._contentList.itemDataSource.getCount());
                 }
             });
 
-            this._contentList.itemDataSource.getCount().then((count) => {
-                this._updateEmptyStateBasedOnBookmarkCount(count);
-            });
+            const count = await this._contentList.itemDataSource.getCount();
+            this._updateEmptyStateBasedOnBookmarkCount(count);
         }
 
         private _clearEmptyStateListeners(): void {
@@ -401,9 +397,9 @@
             this._emptyStateListeners = null;
         }
 
-        private _updateEmptyStateBasedOnBookmarkCount(numberOfBookmarks: number): void {
-            var nowHasBookmarks = numberOfBookmarks > 0;
-            var previouslyHadBookmarks = this._contentHasItems;
+        private async _updateEmptyStateBasedOnBookmarkCount(numberOfBookmarks: number): Promise<void> {
+            const nowHasBookmarks = numberOfBookmarks > 0;
+            const previouslyHadBookmarks = this._contentHasItems;
 
             if (this._emptyStateContainer.firstElementChild) {
                 Utilities.DOM.removeChild(this._emptyStateContainer, <HTMLElement>this._emptyStateContainer.firstElementChild);
@@ -419,15 +415,14 @@
                 WinJS.Utilities.addClass(this._contentList.element, "hide");
                 WinJS.Utilities.removeClass(this._emptyStateContainer, "hide");
 
-                Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "emptyState").then((template) => {
-                    template.render({ folder_id: this.viewModel.currentFolderId }, this._emptyStateContainer);
-                });
+                const template = await Codevoid.Utilities.DOM.loadTemplate("/HtmlTemplates.html", "emptyState");
+                await template.render({ folder_id: this.viewModel.currentFolderId }, this._emptyStateContainer);
             }
         }
 
         private _showSyncProgress(initialMessage: string, cancelCallback: () => void): PromiseLike<void> {
-            var headerContainer = document.createElement("div");
-            var syncProgress = new SyncProgressControl(headerContainer, {
+            const headerContainer = document.createElement("div");
+            const syncProgress = new SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
                 template: this._progressTemplate,
                 eventSource: this.viewModel.events,
@@ -442,16 +437,15 @@
             return this._addNotificationElement(headerContainer);
         }
 
-        private _hideSyncProgress(): void {
-            WinJS.Promise.timeout(2 * 1000).then(() => {
-                Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
+        private async _hideSyncProgress(): Promise<void> {
+            await Codevoid.Utilities.timeout(2 * 1000);
+            Codevoid.Utilities.DOM.disposeOfControl(this._notificationContainer.firstElementChild);
 
-                if (!WhatsNewControl.shouldShowWhatsNew()) {
-                    this._removeNotificationElement(this._notificationContainer.firstElementChild);
-                } else {
-                    this._showWhatsNewBanner();
-                }
-            });
+            if (!WhatsNewControl.shouldShowWhatsNew()) {
+                this._removeNotificationElement(this._notificationContainer.firstElementChild);
+            } else {
+                this._showWhatsNewBanner();
+            }
         }
 
         private _notificationBeingDisplayed(): boolean {
@@ -477,13 +471,13 @@
             this._switchNotificationElement(whatsNewControl.element);
         }
 
-        private _addNotificationElement(element: HTMLElement): PromiseLike<void> {
+        private async _addNotificationElement(element: HTMLElement): Promise<void> {
             const signal = new Utilities.Signal();
 
             this._notificationContainer.appendChild(element);
             let height = this._notificationContainer.clientHeight;
 
-            var animHandler = Utilities.addEventListeners(this._contentContainer, {
+            const animHandler = Utilities.addEventListeners(this._contentContainer, {
                 transitionend: (e: TransitionEvent) => {
                     // We'll see other bubbling events from other transitions
                     // make sure we're only handling the one WE started.
@@ -503,14 +497,13 @@
 
             this._notificationContainer.style.transform = `translateY(-${height}px)`;
 
-            WinJS.Promise.timeout().then(() => {
-                WinJS.Utilities.addClass(this._contentContainer, "notification-animation");
-                WinJS.Utilities.addClass(this._notificationContainer, "notification-animation");
-                this._contentContainer.style.transform = `translateY(${height}px)`;
-                this._notificationContainer.style.transform = "translateY(0px)";
-            });
+            await Codevoid.Utilities.timeout();
+            WinJS.Utilities.addClass(this._contentContainer, "notification-animation");
+            WinJS.Utilities.addClass(this._notificationContainer, "notification-animation");
+            this._contentContainer.style.transform = `translateY(${height}px)`;
+            this._notificationContainer.style.transform = "translateY(0px)";
 
-            return signal.promise;
+            await signal.promise;
         }
 
         private _switchNotificationElement(element: Element): void {
@@ -525,7 +518,7 @@
             const signal = new Utilities.Signal();
 
             let height = this._notificationContainer.clientHeight;
-            var animHandler = Utilities.addEventListeners(this._contentContainer, {
+            const animHandler = Utilities.addEventListeners(this._contentContainer, {
                 transitionend: (e: TransitionEvent) => {
                     // We'll see other bubbling events from other transitions
                     // make sure we're only handling the one WE started.
@@ -579,7 +572,7 @@
         }
 
         public folderClicked(e: any): void {
-            var button: UI.SplitViewCommandWithData = e.target.winControl;
+            const button: UI.SplitViewCommandWithData = e.target.winControl;
             this.viewModel.switchCurrentFolderTo(button.dataContext.id);
 
             this._splitView.closePane();
@@ -592,7 +585,7 @@
                 }
 
                 // Highlight the item
-                var container = this._folderList.elementFromIndex(index);
+                const container = this._folderList.elementFromIndex(index);
                 WinJS.Utilities.addClass(container, "folderlist-current");
             });
         }
@@ -603,27 +596,26 @@
                     return;
                 }
 
-                var container = this._folderList.elementFromIndex(index);
+                const container = this._folderList.elementFromIndex(index);
 
                 // Find the current element, and focus it
-                var focusTarget = <HTMLElement>container.querySelector("[role='button']");
+                const focusTarget = <HTMLElement>container.querySelector("[role='button']");
                 focusTarget.focus();
             });
         }
 
-        public contentListSelectionChanged(e: UIEvent): void {
+        public async contentListSelectionChanged(e: UIEvent): Promise<void> {
             if (this._contentList.selection.count() > 0) {
-                this._contentList.selection.getItems().then((items: WinJS.UI.IItem<IBookmark>[]) => {
-                    var bookmarks = items.map((item: WinJS.UI.IItem<IBookmark>) => item.data);
-                    var commands = this.viewModel.getCommandsForSelection(bookmarks);
-                    this._updateToolbarFor(commands);
-                });
+                const items: WinJS.UI.IItem<IBookmark>[] = await this._contentList.selection.getItems();
+                const bookmarks = items.map((item: WinJS.UI.IItem<IBookmark>) => item.data);
+                const commands = this.viewModel.getCommandsForSelection(bookmarks);
+                this._updateToolbarFor(commands);
             } else {
                 this._removeToolBar();
             }
         }
 
-        public listItemInvoked(e: UIEvent): void {
+        public async listItemInvoked(e: UIEvent): Promise<void> {
             // If the touch had been held, then we want to drop
             // this invokation and let the context menu open
             if (this._wasTouchHeld) {
@@ -631,9 +623,8 @@
                 return;
             }
 
-            (<any>e.detail).itemPromise.then((item: WinJS.UI.IItem<IBookmark>) => {
-                this.viewModel.showArticle(item.data, false/*restoring*/);
-            });
+            const item: WinJS.UI.IItem<IBookmark> = await (<any>e.detail).itemPromise;
+            this.viewModel.showArticle(item.data, false/*restoring*/);
         }
 
         public toggleSelectionMode(): void {
@@ -654,13 +645,15 @@
         }
 
         private _renderItem(itemPromise: PromiseLike<WinJS.UI.IItem<IBookmark>>): { element: HTMLElement, renderComplete: PromiseLike<any> } {
-            var element = document.createElement("div");
+            // Using Async here seems to result in the items not being rendered.
+            // For now, continue to use .then
+            const element = document.createElement("div");
             return {
                 element: element,
                 renderComplete: itemPromise.then((item) => {
                     // Default to the article template, but if the article has images,
                     // then use the iamge template instead.
-                    var renderer = this._articleTemplate;
+                    let renderer = this._articleTemplate;
                     if (item.data.hasImages) {
                         renderer = this._imageArticleTemplate;
                     }
@@ -692,7 +685,7 @@
         }
 
         private _updateToolbarFor(commands: WinJS.UI.ICommand[]): void {
-            var commandList = new WinJS.Binding.List(commands);
+            const commandList = new WinJS.Binding.List(commands);
             // If we've already constructed the toolbar,
             // theres no need to construct it again
             if (this._toolBar) {
@@ -701,7 +694,7 @@
             }
 
             // Construct the toolbar element and add it to the tree
-            var toolBarElement = document.createElement("div");
+            const toolBarElement = document.createElement("div");
             toolBarElement.setAttribute("data-win-control", "WinJS.UI.ToolBar");
             this._toolBarContainer.appendChild(toolBarElement);
 
@@ -722,10 +715,9 @@
             this._toolBarContainer.textContent = "";
         }
 
-        public clearDb(): void {
-            this.viewModel.clearDb().then(() => {
-                Utilities.Logging.instance.log("Cleared DB"); 
-            });
+        public async clearDb(): Promise<void> {
+            await this.viewModel.clearDb();
+            Utilities.Logging.instance.log("Cleared DB");
         }
         
         static folderIdToIcon: any;
@@ -757,7 +749,7 @@
     WinJS.Utilities.markSupportedForProcessing(SignedInExperience.prototype.clearDb);
 
     SignedInExperience.folderIdToIcon = WinJS.Binding.converter((folder: string) => {
-        var result = "\uE8B7"; // hollow folder icon
+        let result = "\uE8B7"; // hollow folder icon
 
         switch (folder) {
             case InstapaperDBCommonFolderIds.Archive:
@@ -806,8 +798,8 @@
     SignedInExperience.extractDomainFromUrl = WinJS.Binding.converter((url: string) => {
         // RegEx from:
         // https://regex101.com/r/wN6cZ7/63
-        var regEx = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)/igm
-        var matches = regEx.exec(url);
+        const regEx = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)/igm
+        const matches = regEx.exec(url);
 
         return matches[1];
     });
