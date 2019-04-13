@@ -289,15 +289,14 @@
             this._currentBookmarks.splice(indexOfBookmark, 1);
         }
 
-        private _cleanupDownloadedArticles(): PromiseLike<any> {
-            return Windows.Storage.ApplicationData.current.localFolder.getFolderAsync(ARTICLES_FOLDER_NAME).then((folder) => {
-                return folder.deleteAsync();
-            }).then(() => {
-                // Nothing to do on success
-            }, () => {
+        private async _cleanupDownloadedArticles(): Promise<void> {
+            try {
+            const folder = await Windows.Storage.ApplicationData.current.localFolder.getFolderAsync(ARTICLES_FOLDER_NAME);
+            await folder.deleteAsync();
+            } catch(e) {
                 // Kill all the errors!
                 // Specifically, if it doesn't exist it'll fail to get the folder.
-            });
+            };
         }
 
         private _listenForDbSyncNeeded() {
@@ -316,14 +315,13 @@
             ));
         }
 
-        private _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>) {
-            this.startSync(ev.detail.reason, {
-                noEvents: !ev.detail.showEvents
-            }).then(() => {
-                ev.detail.complete();
-            }, () => {
-                ev.detail.complete();
-            });
+        private async _handleSyncNeeded(ev: Utilities.EventObject<ISyncNeededEventArgs>): Promise<void> {
+            try {
+                await this.startSync(ev.detail.reason, {
+                    noEvents: !ev.detail.showEvents
+                });
+            } catch (e) { }
+            ev.detail.complete();
         }
 
         private _handleCancelSync(e: Utilities.EventObject<Windows.ApplicationModel.SuspendingDeferral>) {
@@ -433,31 +431,30 @@
             });
         }
 
-        private _logTotalHomeAndFoldersForTelemetry(): void {
-            <PromiseLike<any>>WinJS.Promise.join({
-                unreadArticleCount: this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread).then(articles => articles.length),
-                folderCount: this._instapaperDB.listCurrentFolders().then((folders) => {
-                    // There are 4 fixed folders; we only care about the users own folders
-                    return folders.length - 4;
-                })
-            }).then((result: { unreadArticleCount: number, folderCount: number }) => {
-                // We only want to log changes, not the same count every time.
-                var telemetrySettings = new Settings.TelemetrySettings();
-                if (telemetrySettings.lastFolderCountSeen != result.folderCount) {
-                    Telemetry.instance.track("FolderCountChanged", toPropertySet({ count: result.folderCount }));
-                    telemetrySettings.lastFolderCountSeen = result.folderCount;
-                }
+        private async _logTotalHomeAndFoldersForTelemetry(): Promise<void> {
+            const [unreadArticles, folders] = await Promise.all([
+                this._instapaperDB.listCurrentBookmarks(this._instapaperDB.commonFolderDbIds.unread),
+                this._instapaperDB.listCurrentFolders()
+            ]);
 
-                if (telemetrySettings.lastHomeArticleCountSeen != result.unreadArticleCount) {
-                    Telemetry.instance.track("UnreadArticleCountChanged", toPropertySet({ count: result.unreadArticleCount }));
-                    telemetrySettings.lastHomeArticleCountSeen = result.unreadArticleCount;
-                }
-            });
+            const folderCount = folders.length - 4; // There are 4 fixed folders; we only care about the users own folders
+
+            // We only want to log changes, not the same count every time.
+            var telemetrySettings = new Settings.TelemetrySettings();
+            if (telemetrySettings.lastFolderCountSeen != folderCount) {
+                Telemetry.instance.track("FolderCountChanged", toPropertySet({ count: folderCount }));
+                telemetrySettings.lastFolderCountSeen = folderCount;
+            }
+
+            if (telemetrySettings.lastHomeArticleCountSeen != unreadArticles.length) {
+                Telemetry.instance.track("UnreadArticleCountChanged", toPropertySet({ count: unreadArticles.length }));
+                telemetrySettings.lastHomeArticleCountSeen = unreadArticles.length;
+            }
         }
 
-        public initializeDB(): PromiseLike<void> {
+        public async initializeDB(): Promise<void> {
             if (this._dbOpened) {
-                return Codevoid.Utilities.as(null);
+                return;
             }
 
             if (this._pendingDbOpen) {
@@ -483,7 +480,8 @@
             this._whatToRead = new WhatToRead(this._instapaperDB);
             this._jumpListIdleWriter = new Utilities.Debounce(() => this._whatToRead.refreshJumplists(), 1_000);
 
-            this._instapaperDB.initialize().then((result) => {
+            try {
+                await this._instapaperDB.initialize();
                 this._dbOpened = true;
                 this._currentFolderDbId = this.commonFolderDbIds.unread;
 
@@ -492,12 +490,10 @@
                 this._pendingDbOpen = null;
 
                 this._listenForDbSyncNeeded();
-            }, (e) => {
+            } catch (e) {
                 this._pendingDbOpen.error(e);
                 this._pendingDbOpen = null;
-            });
-
-            return this._pendingDbOpen.promise;
+            };
         }
 
         public readyForEvents(): void {
@@ -524,7 +520,7 @@
             return this._currentFolder.bookmarks.getAt(index);
         }
 
-        public signOut(clearCredentials: boolean): PromiseLike<any> {
+        public async signOut(clearCredentials: boolean): Promise<any> {
             if (this._currentSync.cancellationSource) {
                 this._currentSync.cancellationSource.cancel();
             }
@@ -548,53 +544,47 @@
                 this._autoSyncWatcher = null;
             }
 
-            var idb = new Codevoid.Storyvoid.InstapaperDB();
-            return idb.initialize().then(() => {
-                return <PromiseLike<any>>WinJS.Promise.join([
-                    idb.deleteAllData(),
-                    this._cleanupDownloadedArticles(),
-                    WhatToRead.clearJumpList(),
-                ]);
-            }).then(() => {
-                this._clientInformation = null;
+            const idb = new Codevoid.Storyvoid.InstapaperDB();
+            await idb.initialize();
 
-                var viewerSettings = new Settings.ViewerSettings();
-                viewerSettings.removeAllSettings();
+            await Promise.all([
+                idb.deleteAllData(),
+                this._cleanupDownloadedArticles(),
+                WhatToRead.clearJumpList(),
+            ]);
 
-                var syncSettings = new Settings.SyncSettings();
-                syncSettings.removeAllSettings();
+            this._clientInformation = null;
 
-                var telemetrySettings = new Settings.TelemetrySettings();
-                // Save setting about telemetery enbabled state
-                var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
-                telemetrySettings.removeAllSettings();
+            var viewerSettings = new Settings.ViewerSettings();
+            viewerSettings.removeAllSettings();
 
-                Telemetry.instance.clearSuperProperties();
+            var syncSettings = new Settings.SyncSettings();
+            syncSettings.removeAllSettings();
 
-                // Defer the the setting of the properties
-                // and dispatching the event since there is
-                // an occasional crash when clearing then
-                // setting them.
-                return <any>WinJS.Promise.timeout().then(() => {
-                    return {
-                        allowTelemetry: allowTelemetry,
-                    };
-                });
-            }).then((savedTelemetry: { allowTelemetry: boolean }) => {
-                var telemetrySettings = new Settings.TelemetrySettings();
-                // Restore telemetry enabled state
-                telemetrySettings.telemeteryCollectionEnabled = savedTelemetry.allowTelemetry;
+            var telemetrySettings = new Settings.TelemetrySettings();
+            // Save setting about telemetery enbabled state
+            var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
+            telemetrySettings.removeAllSettings();
 
-                // Dispatch event after we've told the app to sign out
-                // so that the animation plays w/ full content rather
-                // than an empty state.
-                this.events.dispatchEvent("signedout", null);
-            });
+            Telemetry.instance.clearSuperProperties();
+
+            // Defer the the setting of the properties
+            // and dispatching the event since there is
+            // an occasional crash when clearing then
+            // setting them.
+            await Codevoid.Utilities.timeout();
+            var telemetrySettings = new Settings.TelemetrySettings();
+            // Restore telemetry enabled state
+            telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
+
+            // Dispatch event after we've told the app to sign out
+            // so that the animation plays w/ full content rather
+            // than an empty state.
+            this.events.dispatchEvent("signedout", null);
         }
 
-        public signedIn(usingSavedCredentials: boolean): PromiseLike<any> {
+        public async signedIn(usingSavedCredentials: boolean): Promise<any> {
             this._clientInformation = Codevoid.Storyvoid.Authenticator.getStoredCredentials();
-            var completedSignal = new Codevoid.Utilities.Signal();
             this._wasSignedInAutomatically = usingSavedCredentials;
 
             Telemetry.initializeIdentity();
@@ -604,46 +594,40 @@
                 type: "app",
             }));
 
-            <PromiseLike<any>>WinJS.Promise.join({
-                db: this.initializeDB(),
-                uiReady: this._readyForEvents.promise,
-            }).then(() => {
-                var articleDisplay = Codevoid.Utilities.as<any>();
+            await Promise.all([
+                this.initializeDB(),
+                this._readyForEvents.promise,
+            ])
 
-                // Try showing a saved article before doing the rest of the work.
-                var transientSettings = new Settings.TransientSettings();
-                let lastViewedArticleId = transientSettings.lastViewedArticleId;
-                let originalUrl: Windows.Foundation.Uri = null;
-                if (this._app.launchInformation && this._app.launchInformation.bookmark_id) {
-                    lastViewedArticleId = this._app.launchInformation.bookmark_id;
-                    originalUrl = this._app.launchInformation.originalUrl;
-                }
+            // Try showing a saved article before doing the rest of the work.
+            var transientSettings = new Settings.TransientSettings();
+            let lastViewedArticleId = transientSettings.lastViewedArticleId;
+            let originalUrl: Windows.Foundation.Uri = null;
+            if (this._app.launchInformation && this._app.launchInformation.bookmark_id) {
+                lastViewedArticleId = this._app.launchInformation.bookmark_id;
+                originalUrl = this._app.launchInformation.originalUrl;
+            }
 
-                if (lastViewedArticleId != -1) {
-                    // Since we're restoring, we should try syncing the article progress
-                    // before showing it. We're trading off time/jank for correct state.
-                    // Note, that the article could have gone away, so we need to handle
-                    // the errors by dropping them silently.
-                    articleDisplay = this.externallyInintiatedDisplayArticle(lastViewedArticleId, true, originalUrl);
-                }
+            if (lastViewedArticleId != -1) {
+                // Since we're restoring, we should try syncing the article progress
+                // before showing it. We're trading off time/jank for correct state.
+                // Note, that the article could have gone away, so we need to handle
+                // the errors by dropping them silently.
+                await this.externallyInitiatedDisplayArticle(lastViewedArticleId, true, originalUrl);
+            }
 
-                return articleDisplay;
-            }).then(() => {
+            try {
+                this.refreshCurrentFolder();
+
                 // We just signed in, we should probably start a sync.
                 // Probably need to factor something in w/ startup
                 if (!usingSavedCredentials) {
-                    this.startSync(SyncReason.Initial, { dontWaitForDownloads: true }).then(() => {
-                        completedSignal.complete();
-                    });
+                    await this.startSync(SyncReason.Initial, { dontWaitForDownloads: true });
                 } else {
                     this.startSync(SyncReason.Launched);
-                    completedSignal.complete();
                 }
 
-                this.refreshCurrentFolder();
-            }, () => { });
-
-            return completedSignal.promise;
+            } catch (e) { }
         }
 
         public processLaunchInformation(launchInformation: IAppLaunchInformation): void {
@@ -651,7 +635,7 @@
                 return;
             }
 
-            this.externallyInintiatedDisplayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
+            this.externallyInitiatedDisplayArticle(launchInformation.bookmark_id, false, launchInformation.originalUrl);
         }
 
         public get wasAutomaticallySignedIn(): boolean {
@@ -660,65 +644,12 @@
 
         private _externallyInitiatedDisplayArticle: Utilities.CancellationSource;
 
-        private externallyInintiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): PromiseLike<any> {
+        private async externallyInitiatedDisplayArticle(bookmark_id: number, isRestoring: boolean, originalUrl?: Windows.Foundation.Uri): Promise<void> {
             if (this._externallyInitiatedDisplayArticle) {
                 this._externallyInitiatedDisplayArticle.cancel();
             }
 
             const localCancellationSource = this._externallyInitiatedDisplayArticle = new Utilities.CancellationSource();
-
-            let completionHandler: () => void;
-
-            return this._instapaperDB.getBookmarkByBookmarkId(bookmark_id).then(bookmark => {
-                if (!bookmark) {
-                    // Attempt to download it from the service, but do not
-                    // allow the promise chain to wait on it, so if the download
-                    // takes a really long time we're not sat at the splasyscreen
-                    const downloadResult = this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl, localCancellationSource);
-
-                    isRestoring = false;
-                    completionHandler = downloadResult.displayComplete;
-
-                    return downloadResult.downloaded;
-                }
-
-                return this.refreshBookmarkWithLatestReadProgress(bookmark);
-            }).then((bookmarkToShow) => {
-                if (localCancellationSource.cancelled) {
-                    return null;
-                }
-
-                return this.showArticle(bookmarkToShow, isRestoring);
-            }).then(null, () => { }).then(() => { // Mask any errors
-                if (completionHandler) {
-                    completionHandler();
-                }
-                if (this._externallyInitiatedDisplayArticle === localCancellationSource) {
-                    this._externallyInitiatedDisplayArticle = null;
-                }
-            });
-        }
-
-        private refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): PromiseLike<IBookmark> {
-            var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
-            // By updating with that we have, it'll return us a new one if there is one, otherwise
-            // it'll just give us back the same item again.
-            return bookmarkApi.updateReadProgress({
-                bookmark_id: bookmark.bookmark_id,
-                progress: bookmark.progress,
-                // We might not have had any progress yet, but the service might have had some
-                // but we can't say 0 for timestamp, so we need to send a low number so as not
-                // to accidently update the progress with our 0 value.
-                progress_timestamp: bookmark.progress_timestamp || 1
-            }).then((updatedBookmark) => {
-                bookmark.progress = updatedBookmark.progress;
-                bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
-                return this._instapaperDB.updateBookmark(bookmark);
-            }, () => bookmark);
-        }
-
-        private downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, cancellationSource: Utilities.CancellationSource): { downloaded: PromiseLike<IBookmark>; displayComplete(): void } {
-            const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
             const spinner = new Codevoid.Storyvoid.UI.FullscreenSpinnerViewModel();
             spinner.show({ after: 2000 });
 
@@ -731,44 +662,96 @@
                 }
 
                 // If it's not successful, dismiss the spinner
-                cancellationSource.cancel();
+                localCancellationSource.cancel();
             });
 
+            let bookmark = await this._instapaperDB.getBookmarkByBookmarkId(bookmark_id);
+            if (!bookmark) {
+                // Attempt to download it from the service, but do not
+                // allow the promise chain to wait on it, so if the download
+                // takes a really long time we're not sat at the splashscreen
+                this.downloadFromServiceOrFallbackToUrl(bookmark_id, originalUrl, spinner, localCancellationSource);
+                await Promise.race([
+                    spinner.waitForCompletion(),
+                    spinner.waitForVisible(),
+                ]);
+                return;
+            } else {
+                bookmark = await this.refreshBookmarkWithLatestReadProgress(bookmark);
+            }
+
+            return this.completExternallyInitiatedArticleDisplay(bookmark, true, spinner, localCancellationSource);
+        }
+
+        private async downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource): Promise<void> {
+            const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+
             // Get the article state from the service
-            let downloadAndOpen = bookmarksApi.updateReadProgress({
+            let bookmark = await bookmarksApi.updateReadProgress({
                 bookmark_id: bookmark_id,
                 progress: 0.0,
                 progress_timestamp: 1,
-            }).then((result: IBookmark) => {
-                // Insert it as an orphan into the DB
-                result.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
-                return this._instapaperDB.addBookmark(result);
-            }).then((result: IBookmark) => {
-                // Get The content from the service using the orphan bookmark we added
-                return this.syncSingleArticle(result);
-            }, (e) => {
+            });
+
+            // Insert it as an orphan into the DB
+            bookmark.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
+            bookmark = await this._instapaperDB.addBookmark(bookmark);
+
+            try {
+                bookmark = await this.syncSingleArticle(bookmark);
+            } catch (e) {
                 if ((!e || (e.name !== "Canceled")) && originalUrl) {
                     // If there was an error downloading the article but not a cancellation
                     // then prompt to open in a browser
                     this.promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl);
                 }
 
-                spinner.complete(false);
-                return null;
-            }).then((r) => {
+                bookmark = null;
+            }
+
+            // We were cancelled, clear anything so we don't present
+            // the article to the user by accident.
+            if (cancellationSource.cancelled) {
+                bookmark = null;
+            }
+
+            await this.completExternallyInitiatedArticleDisplay(bookmark, false, spinner, cancellationSource);
+        }
+
+        private async completExternallyInitiatedArticleDisplay(article: IBookmark, isRestoring: boolean, spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource) {
+            try {
                 if (cancellationSource.cancelled) {
-                    return null;
+                    return;
                 }
 
-                return r;
+                try {
+                    await this.showArticle(article, isRestoring);
+                } catch (e) { }
+
+            } finally {
+                spinner.complete(true);
+                if (this._externallyInitiatedDisplayArticle === cancellationSource) {
+                    this._externallyInitiatedDisplayArticle = null;
+                }
+            }
+        }
+
+        private async refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): Promise<IBookmark> {
+            var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+            // By updating with that we have, it'll return us a new one if there is one, otherwise
+            // it'll just give us back the same item again.
+            const updatedBookmark = await bookmarkApi.updateReadProgress({
+                bookmark_id: bookmark.bookmark_id,
+                progress: bookmark.progress,
+                // We might not have had any progress yet, but the service might have had some
+                // but we can't say 0 for timestamp, so we need to send a low number so as not
+                // to accidently update the progress with our 0 value.
+                progress_timestamp: bookmark.progress_timestamp || 1
             });
-
-            return {
-                downloaded: downloadAndOpen,
-                displayComplete() {
-                    spinner.complete(true);
-                }
-            };
+            
+            bookmark.progress = updatedBookmark.progress;
+            bookmark.progress_timestamp = updatedBookmark.progress_timestamp;
+            return this._instapaperDB.updateBookmark(bookmark);
         }
 
         private promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl: Windows.Foundation.Uri): void {
@@ -1060,15 +1043,16 @@
             this.refreshCurrentFolder();
         }
 
-        public refreshCurrentFolder(): void {
+        public async refreshCurrentFolder(): Promise<void> {
             this._eventSource.dispatchEvent("folderchanging", null);
 
-            this.getDetailsForFolder(this._currentFolderDbId).then((result) => {
+            try {
+                const result = await this.getDetailsForFolder(this._currentFolderDbId);
                 this._currentFolder = result;
                 this._eventSource.dispatchEvent("folderchanged", result);
-            }, () => {
+            } catch (e) {
                 this._currentFolderDbId = -1;
-            });
+            }
         }
 
         public changeSortTo(newSort: SortOption): void {

@@ -654,7 +654,7 @@
                     // Default to the article template, but if the article has images,
                     // then use the iamge template instead.
                     let renderer = this._articleTemplate;
-                    if (item.data.hasImages) {
+                    if (item.data.hasImages && item.data.firstImagePath) {
                         renderer = this._imageArticleTemplate;
                     }
 

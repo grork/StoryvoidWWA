@@ -49,6 +49,7 @@
             this.element.classList.remove("hide");
 
             await WinJS.UI.Animation.slideUp(this.element);
+            this.viewModel.nowVisible();
             // Capture previously focused element so we focus it when the
             // spinner closed.
             this._previouslyFocusedElement = <HTMLElement>document.activeElement;
@@ -77,6 +78,7 @@
 
         private displayDelay: Utilities.Debounce;
         private completionSignal = new Utilities.Signal();
+        private visibleSignal = new Utilities.Signal();
 
         public dispose() { }
 
@@ -105,6 +107,14 @@
 
         public waitForCompletion(): PromiseLike<boolean> {
             return this.completionSignal.promise;
+        }
+
+        public waitForVisible(): PromiseLike<boolean> {
+            return this.visibleSignal.promise;
+        }
+
+        public nowVisible(): void {
+            this.visibleSignal.complete();
         }
 
         public show(params: { after: number }): void {
