@@ -34,10 +34,12 @@
             }));
         }
 
-        public startLogin(): void {
-            this.viewModel.startLogin().then(null, () => {
+        public async startLogin(): Promise<void> {
+            try {
+                await this.viewModel.startLogin();
+            } catch(e) {
                 this._loginButton.innerText = "Failed";
-            });
+            }
         }
     }
 
@@ -48,11 +50,10 @@
             this.authenticator.holdWorkingStateOnSuccess = true;
         }
 
-        public startLogin(): PromiseLike<void> {
-            return this.authenticator.authenticate(500).then((tokenDetails: InstapaperApi.IAccessTokenInformation) => {
-                var clientInfo = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenDetails);
-                this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);
-            });
+        public async startLogin(): Promise<void> {
+            const tokenDetails = await this.authenticator.authenticate(500);
+            const clientInfo = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenDetails);
+            this._app.signedIn(clientInfo, false/*usingSavedCredentials*/);
         }
     }
 
