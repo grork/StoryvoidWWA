@@ -1,5 +1,5 @@
 ﻿module Codevoid.Storyvoid.UI {
-    var ARTICLES_FOLDER_NAME = "Articles";
+    const ARTICLES_FOLDER_NAME = "Articles";
 
     function logArticleDownloadTime(e: Utilities.EventObject<{ bookmark_id: number; articleDownloadDuration: number }>) {
         Telemetry.instance.track("ArticleBodyDownloaded", toPropertySet({ duration: e.detail.articleDownloadDuration }));
@@ -47,6 +47,7 @@
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
+        hasBookmarks?: boolean;
     }
 
     export enum SortOption {
@@ -191,7 +192,7 @@
                 return;
             }
 
-            var folderId = detail.sourcefolder_dbid || detail.bookmark.folder_dbid;
+            const folderId = detail.sourcefolder_dbid || detail.bookmark.folder_dbid;
             // Only care if the folder for this bookmark is of interest
             if (folderId != this._currentFolderDbId) {
                 return;
@@ -247,8 +248,8 @@
                     return;
             }
 
-            var indexOfBookmark: number;
-            var boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
+            let indexOfBookmark: number;
+            const boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
                 if (bookmark.bookmark_id === detail.bookmark_id) {
                     indexOfBookmark = index;
                     return true;
@@ -281,8 +282,8 @@
                 return;
             }
 
-            var indexOfBookmark: number;
-            var boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
+            let indexOfBookmark: number;
+            const boomarkWereLookingFor = this._currentBookmarks.some((bookmark: IBookmark, index: number) => {
                 if (bookmark.bookmark_id === detail.bookmark_id) {
                     indexOfBookmark = index;
                     return true;
@@ -309,7 +310,7 @@
         }
 
         private _listenForDbSyncNeeded() {
-            var internetProfile = Windows.Networking.Connectivity.NetworkInformation;
+            const internetProfile = Windows.Networking.Connectivity.NetworkInformation;
             this._autoSyncWatcher = new AutoSyncWatcher(
                 <Utilities.EventSource><any>this._instapaperDB,
                 <Utilities.EventSource><any>Windows.UI.WebUI.WebUIApplication,
@@ -348,24 +349,24 @@
         }
 
         private _startTrackingSyncForTelemetry(sync: InstapaperSync, reason: SyncReason): void {
-            var foldersAdded = 0;
-            var foldersRemoved = 0;
-            var bookmarksAdded = 0;
-            var bookmarksRemoved = 0;
-            var vimeoLinksAdded = 0;
-            var youtubeLinksAdded = 0;
+            let foldersAdded = 0;
+            let foldersRemoved = 0;
+            let bookmarksAdded = 0;
+            let bookmarksRemoved = 0;
+            let vimeoLinksAdded = 0;
+            let youtubeLinksAdded = 0;
 
             // Start timing the sync event
             Telemetry.instance.startTimedEvent("SyncCompleted");
 
-            var dbEvents = Utilities.addEventListeners(this._instapaperDB, {
+            const dbEvents = Utilities.addEventListeners(this._instapaperDB, {
                 bookmarkschanged: (eventData: Utilities.EventObject<IBookmarksChangedEvent>) => {
                     switch (eventData.detail.operation) {
                         case InstapaperDBBookmarkChangeTypes.ADD:
                             bookmarksAdded++;
 
                             try {
-                                var uri = new Windows.Foundation.Uri(eventData.detail.bookmark.url);
+                                const uri = new Windows.Foundation.Uri(eventData.detail.bookmark.url);
                                 if (uri.host.indexOf("youtube.com") > -1) {
                                     youtubeLinksAdded++;
                                 }
@@ -400,7 +401,7 @@
                 },
             });
 
-            var syncEvents = Utilities.addEventListeners(sync, {
+            const syncEvents = Utilities.addEventListeners(sync, {
                 syncstatusupdate: (eventData: Utilities.EventObject<ISyncStatusUpdate>) => {
                     switch (eventData.detail.operation) {
                         case Codevoid.Storyvoid.InstapaperSyncStatus.end:
@@ -449,7 +450,7 @@
             const folderCount = folders.length - 4; // There are 4 fixed folders; we only care about the users own folders
 
             // We only want to log changes, not the same count every time.
-            var telemetrySettings = new Settings.TelemetrySettings();
+            const telemetrySettings = new Settings.TelemetrySettings();
             if (telemetrySettings.lastFolderCountSeen != folderCount) {
                 Telemetry.instance.track("FolderCountChanged", toPropertySet({ count: folderCount }));
                 telemetrySettings.lastFolderCountSeen = folderCount;
@@ -564,15 +565,15 @@
 
             this._clientInformation = null;
 
-            var viewerSettings = new Settings.ViewerSettings();
+            const viewerSettings = new Settings.ViewerSettings();
             viewerSettings.removeAllSettings();
 
-            var syncSettings = new Settings.SyncSettings();
+            const syncSettings = new Settings.SyncSettings();
             syncSettings.removeAllSettings();
 
-            var telemetrySettings = new Settings.TelemetrySettings();
+            let telemetrySettings = new Settings.TelemetrySettings();
             // Save setting about telemetery enbabled state
-            var allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
+            const allowTelemetry = telemetrySettings.telemeteryCollectionEnabled;
             telemetrySettings.removeAllSettings();
 
             Telemetry.instance.clearSuperProperties();
@@ -582,7 +583,7 @@
             // an occasional crash when clearing then
             // setting them.
             await Codevoid.Utilities.timeout();
-            var telemetrySettings = new Settings.TelemetrySettings();
+            telemetrySettings = new Settings.TelemetrySettings();
             // Restore telemetry enabled state
             telemetrySettings.telemeteryCollectionEnabled = allowTelemetry;
 
@@ -609,7 +610,7 @@
             ])
 
             // Try showing a saved article before doing the rest of the work.
-            var transientSettings = new Settings.TransientSettings();
+            const transientSettings = new Settings.TransientSettings();
             let lastViewedArticleId = transientSettings.lastViewedArticleId;
             let originalUrl: Windows.Foundation.Uri = null;
             if (this._app.launchInformation && this._app.launchInformation.bookmark_id) {
@@ -743,7 +744,7 @@
         }
 
         private async refreshBookmarkWithLatestReadProgress(bookmark: IBookmark): Promise<IBookmark> {
-            var bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
+            const bookmarkApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
             // By updating with that we have, it'll return us a new one if there is one, otherwise
             // it'll just give us back the same item again.
             const updatedBookmark = await bookmarkApi.updateReadProgress({
@@ -761,11 +762,11 @@
         }
 
         private promptToOpenArticleThatCouldntBeFoundOnTheService(originalUrl: Windows.Foundation.Uri): void {
-            var prompt = new Windows.UI.Popups.MessageDialog("We couldn't download the article you wanted to open, would you like to open it in a web browser instead?", "Open in a web browser?");
-            var commands = prompt.commands;
+            const prompt = new Windows.UI.Popups.MessageDialog("We couldn't download the article you wanted to open, would you like to open it in a web browser instead?", "Open in a web browser?");
+            const commands = prompt.commands;
             commands.clear();
 
-            var open = new Windows.UI.Popups.UICommand();
+            const open = new Windows.UI.Popups.UICommand();
             open.label = "Open";
             open.invoked = (command: Windows.UI.Popups.UICommand) => {
                 Windows.System.Launcher.launchUriAsync(originalUrl);
@@ -783,23 +784,21 @@
             this.events.dispatchEvent("signincomplete", null);
         }
 
-        public startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): PromiseLike<any> {
+        public async startSync(reason: SyncReason, parameters?: { skipArticleDownload?: boolean, noEvents?: boolean, dontWaitForDownloads?: boolean }): Promise<void> {
             if (this._currentSync.signal) {
                 return this._currentSync.signal.promise;
             }
 
             // Don't try to sync if we're offline
-            var internetProfile = Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
+            const internetProfile = Windows.Networking.Connectivity.NetworkInformation.getInternetConnectionProfile();
             if (!internetProfile || internetProfile.getNetworkConnectivityLevel() != Windows.Networking.Connectivity.NetworkConnectivityLevel.internetAccess) {
-                return Codevoid.Utilities.as();
+                return;
             }
 
             parameters = parameters || {};
 
-            var sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
-            var folderOperation = Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
-            var articleSync: Codevoid.Storyvoid.InstapaperArticleSync;
-            var syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
+            const sync = new Codevoid.Storyvoid.InstapaperSync(this._clientInformation);
+            const syncSettings = new Codevoid.Storyvoid.Settings.SyncSettings();
             this._currentSync = {
                 signal: new Codevoid.Utilities.Signal(),
                 cancellationSource: new Codevoid.Utilities.CancellationSource()
@@ -862,22 +861,25 @@
                 }
             });
 
-            <PromiseLike<any>>WinJS.Promise.join({
-                sync: sync.sync({
+            const [_, folder] = await Promise.all([
+                sync.sync({
                     dbInstance: this._instapaperDB,
                     folders: true,
                     bookmarks: true,
                     cancellationSource: cancellationSource
                 }),
-                folder: folderOperation,
-            }).then((result) => {
-                if (parameters.dontWaitForDownloads) {
-                    if (this._currentSync && this._currentSync.signal) {
-                        this._currentSync.signal.complete();
-                    }
+                Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists),
+            ]);
+        
+        
+            if (parameters.dontWaitForDownloads) {
+                if (this._currentSync && this._currentSync.signal) {
+                    this._currentSync.signal.complete();
                 }
+            }
 
-                articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, result.folder);
+            try {
+                const articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
 
                 Codevoid.Utilities.addEventListeners(articleSync.events, {
                     syncingarticlestarting: (e: Utilities.EventObject<{ title: string }>) => {
@@ -893,13 +895,13 @@
                 });
 
                 if (!parameters.skipArticleDownload && this._instapaperDB) {
-                    return articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancellationSource);
+                    await articleSync.syncAllArticlesNotDownloaded(this._instapaperDB, cancellationSource);
                 }
-            }).then(() => {
+
                 if (this._instapaperDB) {
-                    return articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
+                    await articleSync.removeFilesForNotPresentArticles(this._instapaperDB);
                 }
-            }).then(() => {
+
                 Utilities.Logging.instance.log("Completed Sync");
 
                 if (!parameters.noEvents) {
@@ -909,7 +911,7 @@
                 if (!parameters.dontWaitForDownloads && this._currentSync && this._currentSync.signal) {
                     this._currentSync.signal.complete();
                 }
-            }, (e) => {
+            } catch (e) {
                 if (!parameters.dontWaitForDownloads && this._currentSync && this._currentSync.signal) {
                     this._currentSync.signal.error(e);
                 }
@@ -921,111 +923,112 @@
 
                 Utilities.Logging.instance.log("Failed Sync:");
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
-            }).then(() => this._clearCurrentSync());
+            }
+
+            this._clearCurrentSync();
 
             return this._currentSync.signal.promise;
         }
 
-        public clearDb(): PromiseLike<any> {
+        public async clearDb(): Promise<void> {
             this.disposeDB();
-            var idb = new Codevoid.Storyvoid.InstapaperDB();
+            const idb = new Codevoid.Storyvoid.InstapaperDB();
 
-            return idb.initialize().then(() => {
-            }, () => {
-            }).then(() => {
-                idb.deleteAllData();
-            });
+            try {
+                await idb.initialize();
+            } catch (e) { }
+
+            idb.deleteAllData();
         }
 
-        public dumpDb(): PromiseLike<any> {
-            let database: Server;
+        public async dumpDb(): Promise<string> {
             let dumpData = {};
 
-            return db.open({
+            const database = await db.open({
                 server: Codevoid.Storyvoid.InstapaperDB.DBName,
                 version: Codevoid.Storyvoid.InstapaperDB.DBVersion,
-            }).then((openedDb) => {
-                database = openedDb;
-
-                const tablePromises: PromiseLike<any>[] = [];
-
-                for (let i = 0; i < database.objectStoreNames.length; i++) {
-                    let tableName = database.objectStoreNames[i];
-                    tablePromises.push(
-                        database.query(tableName).execute<any>().then((results) => dumpData[tableName] = results)
-                    );
-                }
-
-                return <PromiseLike<any>>WinJS.Promise.join(tablePromises);
-            }).then(() => {
-                return JSON.stringify(dumpData, null, 2);
             });
+
+            const tablePromises: PromiseLike<any>[] = [];
+
+            for (let i = 0; i < database.objectStoreNames.length; i++) {
+                let tableName = database.objectStoreNames[i];
+                tablePromises.push(
+                    database.query(tableName).execute<any>().then((results) => dumpData[tableName] = results)
+                );
+            }
+
+            await Promise.all(tablePromises);
+            return JSON.stringify(dumpData, null, 2);
         }
 
         public showDbFiddler(): void {
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(new DbFiddlerViewModel(this._instapaperDB));
         }
 
-        public listFolders(): PromiseLike<Codevoid.Storyvoid.IFolder[]> {
-            return this._instapaperDB.listCurrentFolders().then((folders: IFolder[]) => {
-                return folders.filter((item) => {
-                    if (item.localOnly) {
-                        return false;
-                    }
+        public async listFolders(): Promise<Codevoid.Storyvoid.IFolder[]> {
+            let folders = await this._instapaperDB.listCurrentFolders();
+            folders = folders.filter((item) => {
+                if (item.localOnly) {
+                    return false;
+                }
 
-                    return true;
-                }).sort((firstFolder: IFolder, secondFolder: IFolder): number => {
-                    if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
-                        // Assume we're sorting pre-canned folders. Sort by "id"
-                        if (firstFolder.id < secondFolder.id) {
-                            return -1;
-                        } else if (firstFolder.id > secondFolder.id) {
-                            return 1;
-                        } else {
-                            return;
-                        }
-                    }
+                return true;
+            });
 
-                    if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
-                        // Assume it's a pre-canned folder against a user folder. Pre-canned
-                        // always go first
+            folders.sort((firstFolder: IFolder, secondFolder: IFolder): number => {
+                if ((firstFolder.position === undefined) && (secondFolder.position === undefined)) {
+                    // Assume we're sorting pre-canned folders. Sort by "id"
+                    if (firstFolder.id < secondFolder.id) {
                         return -1;
-                    }
-
-                    if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
-                        // Assume it's a user folder against a pre-canned folder. User folders
-                        // always come after.
-                        return 1;
-                    }
-
-                    // Since we've got user folders, sort soley by the users ordering preference
-                    if (firstFolder.position < secondFolder.position) {
-                        return -1;
-                    } else if (firstFolder.position > secondFolder.position) {
+                    } else if (firstFolder.id > secondFolder.id) {
                         return 1;
                     } else {
-                        return 1;
+                        return;
                     }
-                });
+                }
+
+                if ((firstFolder.position === undefined) && (secondFolder.position !== undefined)) {
+                    // Assume it's a pre-canned folder against a user folder. Pre-canned
+                    // always go first
+                    return -1;
+                }
+
+                if ((firstFolder.position !== undefined) && (secondFolder.position === undefined)) {
+                    // Assume it's a user folder against a pre-canned folder. User folders
+                    // always come after.
+                    return 1;
+                }
+
+                // Since we've got user folders, sort soley by the users ordering preference
+                if (firstFolder.position < secondFolder.position) {
+                    return -1;
+                } else if (firstFolder.position > secondFolder.position) {
+                    return 1;
+                } else {
+                    return 1;
+                }
             });
+
+            return folders;
         }
 
-        public getDetailsForFolder(folderId: number): PromiseLike<IFolderDetails> {
-            return <PromiseLike<any>>WinJS.Promise.join({
-                folder: this._instapaperDB.getFolderByDbId(folderId),
-                bookmarks: this._instapaperDB.listCurrentBookmarks(folderId),
-            }).then((result) => {
-                // Save base list of bookmarks locally so we can mutate it based
-                // on change notifications.
-                this._currentBookmarks = new WinJS.Binding.List<IBookmark>(result.bookmarks);
+        public async getDetailsForFolder(folderId: number): Promise<IFolderDetails> {
+            const [folder, bookmarks] = await Promise.all([
+                this._instapaperDB.getFolderByDbId(folderId),
+                this._instapaperDB.listCurrentBookmarks(folderId),
+            ]);
 
-                // However, return the projection to the person asking for the *sorted* list of bookmarks.
-                return {
-                    folder: result.folder,
-                    bookmarks: this._currentBookmarks.createSorted(SignedInViewModel.sorts[this._currentSort].comparer),
-                    hasBookmarks: (result.bookmarks.length > 0)
-                };
-            });
+            // Save base list of bookmarks locally so we can mutate it based
+            // on change notifications.
+            this._currentBookmarks = new WinJS.Binding.List<IBookmark>(bookmarks);
+
+            // However, return the projection to the person asking for the *sorted* list of bookmarks.
+            return {
+                folder: folder,
+                bookmarks: this._currentBookmarks.createSorted(SignedInViewModel.sorts[this._currentSort].comparer),
+                hasBookmarks: (bookmarks.length > 0)
+            };
         }
 
         public get events(): Utilities.EventSource {
@@ -1072,22 +1075,21 @@
             this.refreshCurrentFolder();
         }
 
-        private syncSingleArticle(bookmark: IBookmark): PromiseLike<IBookmark> {
-            return Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists).then((folder) => {
-                var articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
-                Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
-                return <any>articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource());
-            }).then((bookmark: IBookmark) => {
-                Utilities.Logging.instance.log("File saved to: " + bookmark.localFolderRelativePath);
-                return bookmark;
-            });
+        private async syncSingleArticle(bookmark: IBookmark): Promise<IBookmark> {
+            const folder = await Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists);
+            const articleSync = new Codevoid.Storyvoid.InstapaperArticleSync(this._clientInformation, folder);
+            Utilities.addEventListeners(articleSync.events, { syncarticlebodycompleted: logArticleDownloadTime });
+
+            const syncdBookmark = await articleSync.syncSingleArticle(bookmark.bookmark_id, this._instapaperDB, new Utilities.CancellationSource());
+            Utilities.Logging.instance.log("File saved to: " + syncdBookmark.localFolderRelativePath);
+            return syncdBookmark;
         }
 
         public getCommandInformationForBookmarks(bookmarks: IBookmark[]): ICommandOptions[] {
-            var commands: ICommandOptions[] = [];
+            const commands: ICommandOptions[] = [];
 
             if (bookmarks.length === 1) {
-                var openInBrowser = {
+                const openInBrowser = {
                     label: "Open in browser",
                     icon: "globe",
                     tooltip: "Open article in your browser (V)",
@@ -1111,7 +1113,7 @@
                     commands.push(openInBrowser);
                 }
 
-                var downloadCommand = {
+                const downloadCommand = {
                     label: "Download",
                     icon: "download",
                     tooltip: "Download article (D)",
@@ -1132,7 +1134,7 @@
             }
 
             if (this._currentFolderDbId === this.commonFolderDbIds.liked) {
-                var unlikeCommand = {
+                const unlikeCommand = {
                     label: "Unlike",
                     icon: "\uEA92",
                     tooltip: "Unlike article(s) (L)",
@@ -1145,7 +1147,7 @@
 
                 commands.push(unlikeCommand);
             } else {
-                var deleteCommand = {
+                const deleteCommand = {
                     label: "Delete",
                     icon: "delete",
                     tooltip: "Delete article(s) (Delete)",
@@ -1160,21 +1162,20 @@
                 commands.push(deleteCommand);
             }
 
-            var moveCommand = {
+            const moveCommand = {
                 label: "Move",
                 icon: "movetofolder",
                 tooltip: "Move to another folder (M)",
-                onclick: (e: UIEvent) => {
-                    var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
-                    moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget).then((result: boolean) => {
-                        if (!result) {
-                            return;
-                        }
-
-                        Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "ArticleList" }));
-                    });
-
+                onclick: async (e: UIEvent) => {
+                    const moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
+                    const result = await moveViewModel.move(bookmarks, <HTMLElement>e.currentTarget);
                     this.raiseCommandInvokedEvent();
+
+                    if (!result) {
+                        return;
+                    }
+
+                    Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "ArticleList" }));
                 },
                 keyCode: WinJS.Utilities.Key.m,
             };
@@ -1182,7 +1183,7 @@
             commands.push(moveCommand);
 
             if (this._currentFolderDbId !== this.commonFolderDbIds.archive) {
-                var archiveCommand = {
+                const archiveCommand = {
                     label: "Archive",
                     icon: "\uE7B8",
                     tooltip: "Archive article(s) (A)",
@@ -1202,9 +1203,9 @@
         }
 
         public getCommandsForSelection(bookmarks: IBookmark[]): WinJS.UI.ICommand[] {
-            var commandInfo = this.getCommandInformationForBookmarks(bookmarks);
-            var commands = commandInfo.map((options: any) => {
-                var instance = new WinJS.UI.Command(null, options);
+            const commandInfo = this.getCommandInformationForBookmarks(bookmarks);
+            const commands = commandInfo.map((options: any) => {
+                const instance = new WinJS.UI.Command(null, options);
                 return instance;
             });
             
@@ -1234,7 +1235,7 @@
             // handle it by no-oping after clearing the saved article ID.
             if (!bookmark) {
                 (new Settings.TransientSettings()).clearLastViewedArticleId();
-                return Codevoid.Utilities.as();
+                return Promise.resolve();
             }
 
             // if the local file path has gone AWOL, lets not load, and complete silently.
@@ -1242,7 +1243,7 @@
                 return this._promptToOpenBrowser(bookmark);
             }
 
-            var viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark,
+            const viewer = new Codevoid.Storyvoid.UI.ArticleViewerViewModel(bookmark,
                 this._instapaperDB);
             viewer.isRestoring = restoring;
             Codevoid.UICore.Experiences.currentHost.addExperienceForModel(viewer);
@@ -1263,8 +1264,8 @@
         }
 
         private _promptToOpenBrowser(bookmark: IBookmark): PromiseLike<any> {
-            var prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser, or attempt to download it?", "Open in a web browser?");
-            var commands = prompt.commands;
+            const prompt = new Windows.UI.Popups.MessageDialog("This article wasn't able to be downloaded, would you like to open it in a web browser, or attempt to download it?", "Open in a web browser?");
+            const commands = prompt.commands;
 
             let isValidUri = true;
             try {
@@ -1282,7 +1283,7 @@
 
             commands.clear();
 
-            var open = new Windows.UI.Popups.UICommand();
+            const open = new Windows.UI.Popups.UICommand();
             open.label = "Open";
             open.invoked = (command: Windows.UI.Popups.UICommand) => {
                 Windows.System.Launcher.launchUriAsync(new Windows.Foundation.Uri(bookmark.url));
@@ -1290,7 +1291,7 @@
 
             commands.push(open);
 
-            var download = new Windows.UI.Popups.UICommand();
+            const download = new Windows.UI.Popups.UICommand();
             download.label = "Download";
             download.invoked = (command: Windows.UI.Popups.UICommand) => {
                 this.syncSingleArticle(bookmark);
@@ -1306,17 +1307,15 @@
             return prompt.showAsync();
         }
 
-        public showSettings(): void {
-            var settingsAvailable = !!WinJS.Utilities.getMember("Codevoid.Storyvoid.UI.SettingsPopupExperience");
-            var settingsScripts = Codevoid.Utilities.as();
+        public async showSettings(): Promise<void> {
+            const settingsAvailable = !!WinJS.Utilities.getMember("Codevoid.Storyvoid.UI.SettingsPopupExperience");
 
             // If settings namespace wasn't available, then we can assume
             // that the script file needs to be added in.
             if (!settingsAvailable) {
-                var signal = new Codevoid.Utilities.Signal();
-                settingsScripts = signal.promise;
+                const signal = new Codevoid.Utilities.Signal();
 
-                var scriptTag = document.createElement("script");
+                const scriptTag = document.createElement("script");
                 scriptTag.addEventListener("load", () => {
                     signal.complete();
                 });
@@ -1324,12 +1323,13 @@
                 scriptTag.src = "/js/ui/SettingsPopupExperience.js";
 
                 document.head.appendChild(scriptTag);
+
+                await signal.promise;
             }
 
-            settingsScripts.then(() => {
-                var settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
-                Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
-            });
+
+            const settings = new Codevoid.Storyvoid.UI.SettingsPopupViewModel(this);
+            Codevoid.UICore.Experiences.currentHost.addExperienceForModel(settings);
         }
 
         public uiPresented(): void {
