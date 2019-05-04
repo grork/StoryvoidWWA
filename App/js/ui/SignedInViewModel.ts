@@ -35,6 +35,15 @@
         }
     }
 
+    async function cancelCancellationSourceWhenSpinnerCanceled(spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource): Promise<void> {
+        const successful = await spinner.waitForCompletion();
+        if (successful) {
+            return;
+        }
+
+        cancellationSource.cancel();
+    }
+
     export interface IFolderDetails {
         folder: IFolder;
         bookmarks: WinJS.Binding.ListBase<IBookmark>;
@@ -613,7 +622,10 @@
                 // before showing it. We're trading off time/jank for correct state.
                 // Note, that the article could have gone away, so we need to handle
                 // the errors by dropping them silently.
-                await this.externallyInitiatedDisplayArticle(lastViewedArticleId, true, originalUrl);
+                try {
+                    await this.externallyInitiatedDisplayArticle(lastViewedArticleId, true, originalUrl);
+                } catch (e) { }
+                transientSettings.lastViewedArticleId = -1;
             }
 
             try {
@@ -656,14 +668,7 @@
             // If the spinner is dismissed for cancellation reasons,
             // we need to cancel any more work, since we don't want
             // to show if the customer has given up
-            spinner.waitForCompletion().then((successful: boolean) => {
-                if (successful) {
-                    return;
-                }
-
-                // If it's not successful, dismiss the spinner
-                localCancellationSource.cancel();
-            });
+            cancelCancellationSourceWhenSpinnerCanceled(spinner, localCancellationSource);
 
             let bookmark = await this._instapaperDB.getBookmarkByBookmarkId(bookmark_id);
             if (!bookmark) {
@@ -680,24 +685,25 @@
                 bookmark = await this.refreshBookmarkWithLatestReadProgress(bookmark);
             }
 
-            return this.completExternallyInitiatedArticleDisplay(bookmark, true, spinner, localCancellationSource);
+            return this.completeExternallyInitiatedArticleDisplay(bookmark, true, spinner, localCancellationSource);
         }
 
         private async downloadFromServiceOrFallbackToUrl(bookmark_id: number, originalUrl: Windows.Foundation.Uri, spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource): Promise<void> {
             const bookmarksApi = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(Codevoid.Storyvoid.Authenticator.getStoredCredentials());
 
             // Get the article state from the service
-            let bookmark = await bookmarksApi.updateReadProgress({
-                bookmark_id: bookmark_id,
-                progress: 0.0,
-                progress_timestamp: 1,
-            });
-
-            // Insert it as an orphan into the DB
-            bookmark.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
-            bookmark = await this._instapaperDB.addBookmark(bookmark);
-
+            let bookmark: IBookmark;
             try {
+                bookmark = await bookmarksApi.updateReadProgress({
+                    bookmark_id: bookmark_id,
+                    progress: 0.0,
+                    progress_timestamp: 1,
+                });
+
+                // Insert it as an orphan into the DB
+                bookmark.folder_dbid = this._instapaperDB.commonFolderDbIds.orphaned;
+                bookmark = await this._instapaperDB.addBookmark(bookmark);
+
                 bookmark = await this.syncSingleArticle(bookmark);
             } catch (e) {
                 if ((!e || (e.name !== "Canceled")) && originalUrl) {
@@ -715,10 +721,10 @@
                 bookmark = null;
             }
 
-            await this.completExternallyInitiatedArticleDisplay(bookmark, false, spinner, cancellationSource);
+            await this.completeExternallyInitiatedArticleDisplay(bookmark, false, spinner, cancellationSource);
         }
 
-        private async completExternallyInitiatedArticleDisplay(article: IBookmark, isRestoring: boolean, spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource) {
+        private async completeExternallyInitiatedArticleDisplay(article: IBookmark, isRestoring: boolean, spinner: FullscreenSpinnerViewModel, cancellationSource: Utilities.CancellationSource) {
             try {
                 if (cancellationSource.cancelled) {
                     return;
