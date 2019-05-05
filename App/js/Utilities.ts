@@ -438,8 +438,8 @@ namespace Codevoid.Utilities {
     }
 
     export interface IEventSource {
-        addEventListener: any;
-        removeEventListener: any
+        addEventListener(type: string, listener: Function, useCapture?: boolean): void;
+        removeEventListener(type: string, listener: Function, useCapture?: boolean): void
     }
 
     class CancellableImpl implements ICancellable {
