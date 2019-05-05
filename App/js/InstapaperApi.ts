@@ -68,10 +68,19 @@ namespace Codevoid.Storyvoid.InstapaperApi {
         reduceToSingleItem,
     }
 
+    function localAssert(condition: boolean, message: string) {
+        if (condition) {
+            return;
+        }
+
+        debugger;
+        console.debug(message);
+    }
+
     function extractSingleItemFromJSONArray(data: string, resultProcessing?: ResultProcessing): any {
         let objectData = (data) ? JSON.parse(data) : "";
-        window.appassert(!!objectData, "didn't parse object data");
-        window.appassert(Array.isArray(objectData), "Wasn't an array");
+        localAssert(!!objectData, "didn't parse object data");
+        localAssert(Array.isArray(objectData), "Wasn't an array");
 
         if (objectData.length === 1) {
             if (objectData[0].type === "error") {
@@ -179,7 +188,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             ];
 
             const responseData = await request.send();
-            window.appassert(!!responseData, "Didn't get response data");
+            localAssert(!!responseData, "Didn't get response data");
             const nameValuePairs = responseData.split("&");
             const result: IAccessTokenInformation = {
                 oauth_token: null,
@@ -213,7 +222,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             const currentTimeInNyc = new Date(Date.now() + (3 * 60 * 60 * 1000));
             let previousStoredDateInInNyc = current["date"];
             if (!previousStoredDateInInNyc) {
-                window.appfail("You should stop this run, and wait for the roaming setting to roam");
+                alert("You should stop this run, and wait for the roaming setting to roam");
                 previousStoredDateInInNyc = Date.now() - (24 * 60 * 60 * 1000);
             }
 
@@ -233,7 +242,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
             store.values[this._clientInformation.clientToken] = current;
 
             console.log("Current daily add count: " + current["count"]);
-            window.appassert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
+            localAssert(current["count"] < 121, "Too many adds. Change account, or give up for the day");
         }
 
         public async list(parameters?: IBookmarkListParameters): Promise<IBookmarkListResult> {
@@ -248,12 +257,12 @@ namespace Codevoid.Storyvoid.InstapaperApi {
                 }
 
                 if (parameters.have && parameters.have.length) {
-                    window.appassert(Array.isArray(parameters.have), "expected 'have' parameter to be an array");
-                    window.appassert(parameters.have.length > 0, "didn't actually supply any parameters");
+                    localAssert(Array.isArray(parameters.have), "expected 'have' parameter to be an array");
+                    localAssert(parameters.have.length > 0, "didn't actually supply any parameters");
 
                     const haveStrings = parameters.have.map((have) => Codevoid.Storyvoid.InstapaperApi.Bookmarks.haveToString(have));
 
-                    window.appassert(haveStrings.length > 0, "didn't get any have strings to send");
+                    localAssert(haveStrings.length > 0, "didn't get any have strings to send");
                     data.push({ key: "have", value: haveStrings.join(",") });
                 }
             }
@@ -457,7 +466,7 @@ namespace Codevoid.Storyvoid.InstapaperApi {
 
             const have = <IHaveStatus>haveParameter;
 
-            window.appassert(!!have.id, "Needs an ID at minimum");
+            localAssert(!!have.id, "Needs an ID at minimum");
             let haveString: string = have.id.toString();
             if (have.hash) {
                 haveString += ":" + have.hash;

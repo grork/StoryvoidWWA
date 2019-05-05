@@ -1,9 +1,4 @@
-﻿interface Window {
-    appassert(assertion: boolean, message: string): void;
-    appfail(message: string): void;
-}
-
-namespace Codevoid.Utilities {
+﻿namespace Codevoid.Utilities {
     function getCancelledError(): Error {
         const error = new Error("Canceled");
         error.name = "Canceled";
@@ -162,22 +157,6 @@ namespace Codevoid.Utilities {
                 showPendingAlerts();
             };
         })();
-    }
-
-    if (!window.appassert) {
-        window.appassert = function appassert(assertion, message) {
-            if (!assertion) {
-                debugger;
-                alert(message);
-            }
-        };
-    }
-
-    if (!window.appfail) {
-        window.appfail = function appfail(message) {
-            debugger;
-            alert(message);
-        };
     }
 
     export interface ICancellable {
@@ -479,7 +458,8 @@ namespace Codevoid.Utilities.DOM {
         try {
             element.winControl.dispose();
         } catch (e) {
-            window.appfail(`Failed to unload control:\n${e.toString()}\nStack:\n${e.stack}`);
+            debugger;
+            console.debug(`Failed to unload control:\n${e.toString()}\nStack:\n${e.stack}`);
         }
     }
 
@@ -500,7 +480,6 @@ namespace Codevoid.Utilities.DOM {
     }
 
     export function empty(element: HTMLElement): void {
-        window.appassert(!!element, "no element provided");
         if (!element) {
             return;
         }

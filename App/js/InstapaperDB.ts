@@ -105,6 +105,15 @@ namespace Codevoid.Storyvoid {
         readonly unlikes: IBookmarkPendingEdit[];
     }
 
+    function localAssert(condition: boolean, message: string) {
+        if (condition) {
+            return;
+        }
+
+        debugger;
+        console.debug(message);
+    }
+
     export class InstapaperDB extends Utilities.EventSource {
         public static readonly DBName = "Storyvoid";
         public static readonly DBVersion = 1;
@@ -337,7 +346,7 @@ namespace Codevoid.Storyvoid {
             const pendingEdits = await this._db.index(InstapaperDBTableNames.FolderUpdates, "folder_dbid").only<IFolderPendingEdit>(folderDbId);
             if (pendingEdits && pendingEdits.length) {
                 wasUnsyncedEdit = true;
-                window.appassert(pendingEdits.length === 1, "Didn't expect to find more than one pending edit for this folder");
+                localAssert(pendingEdits.length === 1, "Didn't expect to find more than one pending edit for this folder");
                 await this.deletePendingFolderEdit(pendingEdits[0].id);
             }
 
@@ -397,7 +406,7 @@ namespace Codevoid.Storyvoid {
             for (let pendingEdit of pendingEdits) {
                 switch (pendingEdit.type) {
                     case InstapaperDBBookmarkChangeTypes.ADD:
-                        window.appassert(!folderDbId, "Don't support folder specific adds");
+                        localAssert(!folderDbId, "Don't support folder specific adds");
                         adds.push(pendingEdit);
                         break;
                     case InstapaperDBBookmarkChangeTypes.DELETE:
@@ -417,7 +426,8 @@ namespace Codevoid.Storyvoid {
                         break;
 
                     default:
-                        window.appfail("Unsupported edit type");
+                        debugger;
+                        console.debug("Unsupported edit type");
                         break;
                 }
             }
@@ -477,7 +487,7 @@ namespace Codevoid.Storyvoid {
         }
 
         public async addBookmark(bookmark: IBookmark): Promise<IBookmark> {
-            window.appassert(!!bookmark.folder_dbid, "No Folder DB ID provided");
+            localAssert(!!bookmark.folder_dbid, "No Folder DB ID provided");
 
             if (!this._db) {
                 noDbError();
@@ -530,7 +540,7 @@ namespace Codevoid.Storyvoid {
             }
 
             var resultsOfType = results.filter((item) => item.type === type);
-            window.appassert(resultsOfType.length < 2, "Should have only found one edit of specified type");
+            localAssert(resultsOfType.length < 2, "Should have only found one edit of specified type");
             return resultsOfType[0];
         }
 

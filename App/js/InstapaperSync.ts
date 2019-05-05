@@ -191,7 +191,8 @@
                         break;
 
                     default:
-                        window.appfail("Shouldn't see other edit types");
+                        debugger;
+                        console.debug("Shouldn't see other edit types");
                         break;
                 }
 
@@ -304,7 +305,8 @@
                     const edit = edits.filter((e) => e.folder_dbid === folder.id)[0];
 
                     if (!edit) {
-                        window.appfail("Even though the folder had no folder ID, it had no pending edit either...");
+                        debugger;
+                        console.debug("Even though the folder had no folder ID, it had no pending edit either...");
                         throw new Error("No pending edit for a folder with no folder ID");
                     }
 

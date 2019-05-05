@@ -1,7 +1,16 @@
 ﻿namespace Codevoid.OAuth {
+    function localAssert(condition: boolean, message: string) {
+        if (condition) {
+            return;
+        }
+
+        debugger;
+        console.debug(message);
+    }
+
     function stringKeySorter(first: NameValuePair, second: NameValuePair): number {
-        window.appassert(!!(first && first.key), "first param was falsey");
-        window.appassert(!!(second && second.key), "second param was falsey");
+        localAssert(!!(first && first.key), "first param was falsey");
+        localAssert(!!(second && second.key), "second param was falsey");
 
         return first.key.localeCompare(second.key);
     }
@@ -12,10 +21,10 @@
     }
 
     function _encodeKeyValuePairAndInsert(item: NameValuePair, destination: NameValuePair[]): void {
-        window.appassert(!!item, "No item provided");
-        window.appassert(!!destination, "no destination provided");
-        window.appassert(Array.isArray(destination), "destination wasn't an array");
-        window.appassert(!!item.key, "Item didn't have key");
+        localAssert(!!item, "No item provided");
+        localAssert(!!destination, "no destination provided");
+        localAssert(Array.isArray(destination), "destination wasn't an array");
+        localAssert(!!item.key, "Item didn't have key");
 
         destination.push({ key: rfc3986encodeURIComponent(item.key), value: rfc3986encodeURIComponent(<string>item.value) });
     }
@@ -83,8 +92,8 @@
         }
 
         private _mergeAndEncode(source: NameValuePair[], destination: NameValuePair[]): void {
-            window.appassert(source && Array.isArray(source), "Source wasn't an array");
-            window.appassert(destination && Array.isArray(destination), "destination isn't array");
+            localAssert(source && Array.isArray(source), "Source wasn't an array");
+            localAssert(destination && Array.isArray(destination), "destination isn't array");
 
             for (let item of source) {
                 _encodeKeyValuePairAndInsert(item, destination);
@@ -161,8 +170,8 @@
         public _timestamp: number;
 
         constructor(private _clientInformation: ClientInformation, private _url: string, operation?: Operations) {
-            window.appassert(!!clientInformation, "no client information supplied");
-            window.appassert(!!_url, "No URL Supplied");
+            localAssert(!!clientInformation, "no client information supplied");
+            localAssert(!!_url, "No URL Supplied");
 
             if (operation === Codevoid.OAuth.Operations.GET) {
                 this._operation = Windows.Web.Http.HttpMethod.get;
