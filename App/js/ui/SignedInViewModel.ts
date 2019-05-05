@@ -340,10 +340,15 @@
                 return;
             }
 
-            this._currentSync.signal.promise.then(
-                () => e.detail.complete(),
-                () => e.detail.complete()
-            );
+            const w = async () => {
+                try {
+                    await this._currentSync.signal.promise;
+                } catch (e) { }
+
+                e.detail.complete();
+            };
+
+            w();
 
             this._currentSync.cancellationSource.cancel();
         }
@@ -951,11 +956,13 @@
 
             const tablePromises: PromiseLike<any>[] = [];
 
+            const w = async (table: string): Promise<void> => {
+                dumpData[table] = await database.query(table).execute<any>();
+            };
+
             for (let i = 0; i < database.objectStoreNames.length; i++) {
                 let tableName = database.objectStoreNames[i];
-                tablePromises.push(
-                    database.query(tableName).execute<any>().then((results) => dumpData[tableName] = results)
-                );
+                tablePromises.push(w(tableName));
             }
 
             await Promise.all(tablePromises);
