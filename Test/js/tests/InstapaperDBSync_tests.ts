@@ -22,12 +22,12 @@
     let addedRemoteBookmarks: IBookmark[];
     let sourceUrls: Codevoid.Storyvoid.InstapaperApi.IBookmarkAddParameters[];
 
-    function destroyRemoteAccountData(this: Mocha.Context): PromiseLike<void> {
+    function destroyRemoteAccountData(this: Mocha.Context): Promise<void> {
         this.timeout(60000);
         return InstapaperTestUtilities.destroyRemoteAccountData(clientInformation);
     }
 
-    function testDelay(): PromiseLike<void> {
+    function testDelay(): Promise<void> {
         return Codevoid.Utilities.timeout(DEFAULT_TEST_DELAY);
     }
     
@@ -979,7 +979,7 @@
         it("ensureHaveEnoughRemotebookmarks", addDefaultBookmarks.bind(null, 0));
         it("deleteLocalDbBeforeDeletes", deleteDb.bind(null, null));
 
-        function addLocalOnlyFakeBookmark(instapaperDB: InstapaperDB): PromiseLike<IBookmark> {
+        function addLocalOnlyFakeBookmark(instapaperDB: InstapaperDB): Promise<IBookmark> {
             const fakeBookmarkToAdd = {
                 bookmark_id: Date.now(),
                 url: "http://notreal.com",

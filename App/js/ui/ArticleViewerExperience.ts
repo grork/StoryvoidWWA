@@ -312,7 +312,7 @@
             this._keyDownMap[e.keyCode] = true;
         }
 
-        private _showToolbarIfNotVisible(): PromiseLike<any> {
+        private _showToolbarIfNotVisible(): Promise<any> {
             if (this._toolbarVisible) {
                 return Promise.resolve();
             }

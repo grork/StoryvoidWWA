@@ -420,7 +420,7 @@
             }
         }
 
-        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): PromiseLike<void> {
+        private _showSyncProgress(initialMessage: string, cancelCallback: () => void): Promise<void> {
             const headerContainer = document.createElement("div");
             const syncProgress = new SyncProgressControl(headerContainer, {
                 initialMessage: initialMessage,
