@@ -28,7 +28,7 @@
     }
 
     function testDelay(): PromiseLike<void> {
-        return WinJS.Promise.timeout(DEFAULT_TEST_DELAY);
+        return Codevoid.Utilities.timeout(DEFAULT_TEST_DELAY);
     }
     
     function setSampleFolders(): void {

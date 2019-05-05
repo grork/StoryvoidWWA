@@ -62,56 +62,35 @@
         it("can be constructed", () => {
             const signal = new Signal();
             assert.ok(signal, "Didn't get a valid signal");
-            assert.ok(WinJS.Promise.is(signal.promise), "Signal didn't have a valid promise on it");
+            assert.ok(signal.promise && typeof signal.promise === "object" && typeof signal.promise.then === "function", "Signal didn't have a valid promise on it");
         });
 
-        it("can be explicitly cancelled", () => {
+        it("can be explicitly cancelled", async () => {
             const signal = new Signal();
-            const p = signal.promise.then(() => {
-                assert.ok(false, "Promise was not cancelled");
-            }, (e) => {
-                assert.strictEqual(e.name, "Canceled", "Promise wasn't cancelled");
-            });
-
             signal.cancel();
 
-            return p;
-        });
-
-        it("can be completed", () => {
-            const signal = new Signal();
-            let completed = false;
-            signal.promise.then(() => completed = true);
-
-            signal.complete();
-
-            assert.ok(completed, "Signal didn't complete");
-        });
-
-        it("includes value when completed", () => {
-            const signal = new Signal();
-            let completed = false;
-            signal.promise.then((data) => {
-                assert.ok(data, "didn't get data");
-                assert.ok(data.isComplete, "Should have had complete property");
-            });
-
-            signal.complete({ isComplete: true });
-        });
-
-        it("can't be completed more than once", () => {
-            const signal = new Signal();
-            let completed = 0;
-            signal.promise.then(() => completed++);
-
-            signal.complete();
-
             try {
-                signal.complete();
+                await signal.promise;
+                assert.ok(false, "Promise was not cancelled");
             } catch (e) {
+                assert.strictEqual(e.name, "Canceled", "Promise wasn't cancelled");
             }
+        });
 
-            assert.strictEqual(completed, 1, "Shouldn't complete more than once");
+        it("can be completed", async () => {
+            const signal = new Signal();
+            signal.complete();
+
+            await signal.promise;
+        });
+
+        it("includes value when completed", async () => {
+            const signal = new Signal();
+            signal.complete({ isComplete: true });
+
+            const data = await signal.promise;
+            assert.ok(data, "didn't get data");
+            assert.ok(data.isComplete, "Should have had complete property");
         });
 
         it("signal throws when completeing a second time", () => {
@@ -126,26 +105,54 @@
             }
         });
 
-        it("calling error propagates to the promise", () => {
+        it("can't be completed more than once", async () => {
+            const signal = new Signal();
+            let completed = 0;
+
+            const completion = (async () => {
+                await signal.promise;
+                completed++;
+            })();
+
+            signal.complete();
+            try {
+                signal.complete();
+            } catch (e) {
+            }
+
+            await completion;
+
+            assert.strictEqual(completed, 1, "Shouldn't complete more than once");
+        });
+
+        it("calling error propagates to the promise", async () => {
             const signal = new Signal();
             let errorCalled = false;
-            signal.promise.then(() => assert.ok(false, "shouldn't be called"), () => errorCalled = true);
 
             signal.error();
+
+            try {
+                await signal.promise;
+                assert.ok(false, "shouldn't be called")
+            } catch (e) {
+                errorCalled = true;
+            }
 
             assert.ok(errorCalled, "Error wasn't called");
         });
 
-        it("error info is supplied to the promise error handler", () => {
+        it("error info is supplied to the promise error handler", async () => {
             const signal = new Signal();
             let errorCalled = false;
-            signal.promise.then(() => assert.ok(false, "shouldn't be called"), (errorInfo) => {
+            signal.error({ errorDetail: "detail" });
+            try {
+                await signal.promise;
+                assert.ok(false, "shouldn't be called");
+            } catch (errorInfo) {
                 errorCalled = true;
                 assert.ok(errorInfo, "no error info");
                 assert.ok(errorInfo.errorDetail, "No error details");
-            });
-
-            signal.error({ errorDetail: "detail" });
+            }
 
             assert.ok(errorCalled, "Error wasn't called");
         });
@@ -206,7 +213,7 @@
 
             return Codevoid.Utilities.serialize(data, async () => {
                 promiseExecuting++;
-                assert.ok(promiseExecuting < 3, "Only expected up to to promises");
+                assert.ok(promiseExecuting < 3, `Only expected up to 2 promises, saw ${promiseExecuting}`);
 
                 await Codevoid.Utilities.timeout(10);
 
@@ -227,7 +234,7 @@
                         throw "Failure!";
                     }
 
-                    return WinJS.Promise.timeout();
+                    return Codevoid.Utilities.timeout();
                 });
 
                 assert.ok(false, "Shouldn't succeed");
@@ -260,7 +267,7 @@
                         return;
                     }
 
-                    return WinJS.Promise.timeout();
+                    return Codevoid.Utilities.timeout();
                 }, 0, cancel);
 
                 assert.ok(false, "shouldn't succeed");
@@ -718,7 +725,7 @@
         it("operation isn't executed if never bounced", async () => {
             let completeCallback = null;
             let wasCalled = false;
-            const completionPromise = new WinJS.Promise((c, e, p) => {
+            const completionPromise = new Promise((c, e) => {
                 completeCallback = () => {
                     wasCalled = true;
                     c();
@@ -728,7 +735,7 @@
             const bouncer = new Codevoid.Utilities.Debounce(() => completeCallback(), 1);
 
             await Promise.race([
-                WinJS.Promise.timeout(10),
+                Codevoid.Utilities.timeout(10),
                 completionPromise
             ]);
 
@@ -738,7 +745,7 @@
         it("bouncing once executes operation", async () => {
             let completeCallback = null;
             let wasCalled = false;
-            const completionPromise = new WinJS.Promise((c, e, p) => {
+            const completionPromise = new Promise((c, e) => {
                 completeCallback = () => {
                     wasCalled = true;
                     c(1);
@@ -748,8 +755,8 @@
             const bouncer = new Codevoid.Utilities.Debounce(() => completeCallback(), 1);
             bouncer.bounce();
 
-            const result: number = await Promise.race([
-                WinJS.Promise.timeout(100),
+            const result = await Promise.race([
+                Codevoid.Utilities.timeout(100),
                 completionPromise
             ]);
 
@@ -761,7 +768,7 @@
             let end = -1;
             let completeCallback = null;
             let wasCalled = false;
-            const completionPromise = new WinJS.Promise((c, e, p) => {
+            const completionPromise = new Promise((c, e) => {
                 completeCallback = () => {
                     end = Date.now() - start;
                     wasCalled = true;
@@ -778,7 +785,7 @@
             setTimeout(resetBounce, 45); // Bounce to 65ms
 
             await Promise.all([
-                WinJS.Promise.timeout(20),
+                Codevoid.Utilities.timeout(20),
                 completionPromise
             ]);
 
@@ -791,7 +798,7 @@
             let completionCount = 0;
             let completeCallback = null;
             let wasCalled = false;
-            const completionPromise = new WinJS.Promise((c, e, p) => {
+            const completionPromise = new Promise((c, e) => {
                 completeCallback = () => {
                     completionCount += 1;
                     wasCalled = true;
@@ -806,7 +813,7 @@
             setTimeout(() => bouncer.bounce(), 10)
 
             await Promise.all([
-                WinJS.Promise.timeout(30),
+                Codevoid.Utilities.timeout(30),
                 completionPromise
             ]);
             
@@ -817,7 +824,7 @@
             let completionCount = 0;
             let completeCallback = null;
             let wasCalled = false;
-            let completionPromise = new WinJS.Promise((c, e, p) => {
+            let completionPromise = new Promise((c, e) => {
                 completeCallback = () => {
                     completionCount += 1;
                     wasCalled = true;
@@ -830,7 +837,7 @@
             setTimeout(() => bouncer.bounce(), 10)
 
             await Promise.all([
-                WinJS.Promise.timeout(30),
+                Codevoid.Utilities.timeout(30),
                 completionPromise
             ]);
             
@@ -840,7 +847,7 @@
         it("triggering bounce before interval completes operation immediately", async () => {
             let completeCallback = null;
             let wasCalled = false;
-            const completionPromise = new WinJS.Promise((c, e, p) => {
+            const completionPromise = new Promise<number>((c, e) => {
                 completeCallback = () => {
                     wasCalled = true;
                     c(1);
@@ -854,8 +861,8 @@
                 bouncer.triggerNow();
             }, 50);
 
-            const result: number = await Promise.race([
-                WinJS.Promise.timeout(100),
+            const result = await Promise.race([
+                Codevoid.Utilities.timeout(100),
                 completionPromise
             ]);
 
@@ -874,7 +881,7 @@
             await Codevoid.Utilities.timeout(100);
 
             const duration = Date.now() - start;
-            assert.ok((duration > 99) && (duration < 120), `Timeout was too short or too long ${duration}`);
+            assert.ok((duration > 99) && (duration < 150), `Timeout was too short or too long ${duration}`);
         });
 
         it("cancelling cancellation source cancels timeout & errors promise", () => {

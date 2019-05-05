@@ -247,7 +247,7 @@ namespace Codevoid.Utilities {
             var that = this;
             // This uses the "that" pattern 'c ause it's called from a constructor, and
             // I don't want to mess with anything weird to upset the promise gods.
-            this._wrappedPromise = new WinJS.Promise(function (c, e) {
+            this._wrappedPromise = new Promise(function (c, e) {
                 that._complete = c;
                 that._error = e;
             });
@@ -401,6 +401,7 @@ namespace Codevoid.Utilities {
                     return;
                 }
 
+                numberInFlight++;
                 signal.complete();
             }
         }
@@ -413,8 +414,8 @@ namespace Codevoid.Utilities {
             signals.push(signal);
 
             results.push(signal.promise.then(() => {
-                numberInFlight++;
-                return work(item, index);
+                const r = work(item, index);
+                return r;
             }).then((value) => {
                 numberInFlight--;
                 doWork();
@@ -422,13 +423,13 @@ namespace Codevoid.Utilities {
             }, (error) => {
                 numberInFlight--;
                 doWork();
-                return WinJS.Promise.wrapError(error);
+                return Promise.reject(error);
             }));
         });
 
         doWork();
 
-        return <PromiseLike<any>>WinJS.Promise.join(results);
+        return Promise.all(results);
     }
 
     interface EventHandlerEntry {

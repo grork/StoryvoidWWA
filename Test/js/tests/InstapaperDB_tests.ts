@@ -1149,13 +1149,13 @@
             const unreadFolderDbId = unreadFolder.id;
             const archiveFolderDbId = archiveFolder.id;
 
-            const operations = [
+            const operations: Promise<any>[] = [
                 instapaperDB.unlikeBookmark(sampleBookmarks[0].bookmark_id),
                 instapaperDB.likeBookmark(sampleBookmarks[1].bookmark_id),
                 instapaperDB.moveBookmark(sampleBookmarks[2].bookmark_id, sampleFolders[0].id),
                 instapaperDB.removeBookmark(sampleBookmarks[3].bookmark_id),
                 instapaperDB.moveBookmark(sampleBookmarks[4].bookmark_id, instapaperDB.commonFolderDbIds.unread),
-                WinJS.Promise.timeout(),
+                Codevoid.Utilities.timeout(),
             ];
 
             await Promise.all(operations);

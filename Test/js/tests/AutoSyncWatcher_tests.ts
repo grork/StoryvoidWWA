@@ -117,10 +117,10 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             w.watcher.pauseWatching();
 
             // Reset the timer
-            await WinJS.Promise.timeout(75);
+            await Codevoid.Utilities.timeout(75);
             w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
 
-            await WinJS.Promise.timeout(75);
+            await Codevoid.Utilities.timeout(75);
             // Reset the timer again
             w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
             secondEventDispatched = true;
@@ -157,7 +157,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             w.watcher.resumeWatching();
 
             // wait to make sure the event isn't some how raised
-            await WinJS.Promise.timeout(100);
+            await Codevoid.Utilities.timeout(100);
 
             // Dispatch the event to start the timer
             w.dbEventSource.dispatchEvent("bookmarkschanged", { operation: Codevoid.Storyvoid.InstapaperDBBookmarkChangeTypes.ADD });
@@ -175,7 +175,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
 
             w.appEventSource.dispatchEvent("enteredbackground", getFakeEnteredBackgroundEventArgs(enteredBackgroundCompleteSignal));
 
-            await WinJS.Promise.timeout(50);
+            await Codevoid.Utilities.timeout(50);
             util.addEventListeners(w.watcher.eventSource, {
                 syncneeded: (data: util.EventObject<sv.ISyncNeededEventArgs>) => {
                     assert.ok(!syncEventSeen, "Sync event already seen");

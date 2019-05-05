@@ -11,7 +11,7 @@
                 // We really need to yield to the browser before we go lala on getting
                 // data and potentially doing any more operations, so bounce around a timeout.
                 await Promise.all([
-                    WinJS.Promise.timeout(),
+                    Codevoid.Utilities.timeout(),
                     telemetryInit
                 ]);
 
