@@ -48,77 +48,80 @@
         constructor(element: HTMLElement, options: any) {
             super(element, options);
 
+            this._initialize();
+        }
+
+        private async _initialize(): Promise<void> {
             this._navigationManager = Windows.UI.Core.SystemNavigationManager.getForCurrentView();
 
-            WinJS.Utilities.addClass(element, "articleViewer-dialog");
-            WinJS.Utilities.addClass(element, "dialog");
-            WinJS.Utilities.addClass(element, "win-disposable");
-            WinJS.Utilities.addClass(element, "hide");
+            WinJS.Utilities.addClass(this.element, "articleViewer-dialog");
+            WinJS.Utilities.addClass(this.element, "dialog");
+            WinJS.Utilities.addClass(this.element, "win-disposable");
+            WinJS.Utilities.addClass(this.element, "hide");
 
             // Update the titlebar style to match the document
             // NB: Must be done before setting theme;
             this._saveCurrentTitleBarColours();
 
-            DOM.loadTemplate("/HtmlTemplates.html", "articleViewer").then((template) => {
-                return template.render({}, element);
-            }).then(() => {
-                DOM.setControlAttribute(element, "Codevoid.Storyvoid.UI.ArticleViewerExperience");
-                this._handlersToCleanup.push(DOM.marryEventsToHandlers(element, this));
-                DOM.marryPartsToControl(element, this);
+            const template = await DOM.loadTemplate("/HtmlTemplates.html", "articleViewer");
+            await template.render({}, this.element);
+
+            DOM.setControlAttribute(this.element, "Codevoid.Storyvoid.UI.ArticleViewerExperience");
+            this._handlersToCleanup.push(DOM.marryEventsToHandlers(this.element, this));
+            DOM.marryPartsToControl(this.element, this);
 
 
-                // Create the webview programmatically, because when it was created in markup
-                // via the template, there are some really f'up things going on with transitioning
-                // in and out of tablet mode *WHEN REMOVING THE PHYSICAL KEYBOARD*. Not just
-                // when you transition through sofware, but requiring a physical removal & re-attachcment
-                //
-                // E.g Remove keyboard,
-                //     attach keyboard
-                //     spin for ever and eat all the cpu.
-                this._content = <MSHTMLWebViewElement>document.createElement("x-ms-webview");
-                this._content.className = "articleViewer-content";
-                this._container.insertBefore(this._content, this._lastDiv);
+            // Create the webview programmatically, because when it was created in markup
+            // via the template, there are some really f'up things going on with transitioning
+            // in and out of tablet mode *WHEN REMOVING THE PHYSICAL KEYBOARD*. Not just
+            // when you transition through sofware, but requiring a physical removal & re-attachcment
+            //
+            // E.g Remove keyboard,
+            //     attach keyboard
+            //     spin for ever and eat all the cpu.
+            this._content = <MSHTMLWebViewElement>document.createElement("x-ms-webview");
+            this._content.className = "articleViewer-content";
+            this._container.insertBefore(this._content, this._lastDiv);
 
-                // Attach a handler so we can prevent the default link handling behaviour.
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._content, {
-                    MSWebViewNavigationStarting: this._preventNavigations.bind(this),
-                    MSWebViewContainsFullScreenElementChanged: () => {
-                        // When the hosted content switches full screen state (E.g. YouTube video), then
-                        // we need to also transition our fullscreen state
-                        if (this._content.containsFullScreenElement) {
-                            this.viewModel.videoContentFillsWindow();
-                        } else {
-                            this.viewModel.videoContentInline();
-                        }
+            // Attach a handler so we can prevent the default link handling behaviour.
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this._content, {
+                MSWebViewNavigationStarting: this._preventNavigations.bind(this),
+                MSWebViewContainsFullScreenElementChanged: () => {
+                    // When the hosted content switches full screen state (E.g. YouTube video), then
+                    // we need to also transition our fullscreen state
+                    if (this._content.containsFullScreenElement) {
+                        this.viewModel.videoContentFillsWindow();
+                    } else {
+                        this.viewModel.videoContentInline();
                     }
-                }));
+                }
+            }));
 
-                // Attach handlers for cross-page messaging
-                this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
+            // Attach handlers for cross-page messaging
+            this._messenger = new Codevoid.Utilities.WebViewMessenger(this._content);
 
-                this._openPage();
+            this._openPage();
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
-                    removed: () => this.closeArticle(),
-                    dismiss: () => this.closeArticle(),
-                    showMove: () => this.toolbar.close(),
-                }));
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.eventSource, {
+                removed: () => this.closeArticle(),
+                dismiss: () => this.closeArticle(),
+                showMove: () => this.toolbar.close(),
+            }));
 
-                this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
-                    settheme: this._handleThemeChange.bind(this),
-                    articlewidthchanged: this._handleArticleWidthChanged.bind(this),
-                }));
+            this._handlersToCleanup.push(Codevoid.Utilities.addEventListeners(this.viewModel.displaySettings.eventSource, {
+                settheme: this._handleThemeChange.bind(this),
+                articlewidthchanged: this._handleArticleWidthChanged.bind(this),
+            }));
 
-                document.body.appendChild(this._displaySettingsFlyout.element);
-                this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
+            document.body.appendChild(this._displaySettingsFlyout.element);
+            this.viewModel.setDisplaySettingsFlyout(this._displaySettingsFlyout);
 
-                // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
-                // Doesn't really need to do anything, except be initialized
-                var kbhelper = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
+            // Use internal class from WinJS to give me win-keyboard on the buttons in this tree
+            // Doesn't really need to do anything, except be initialized
+            var kbhelper = new (<any>WinJS.UI)._WinKeyboard(this._displaySettingsFlyout.element);
 
-                var viewerSettings = new Settings.ViewerSettings();
-                this._setToolbar(viewerSettings.toolbarVisible);
-            });
+            var viewerSettings = new Settings.ViewerSettings();
+            this._setToolbar(viewerSettings.toolbarVisible);
 
             this._handlersToCleanup.push(Utilities.addEventListeners(window, {
                 resize: this._handleResize.bind(this)
@@ -193,18 +196,17 @@
             this._content.navigate("ms-appdata:///local" + this.viewModel.bookmark.localFolderRelativePath);
         }
 
-        private _handleReady(): void {
+        private async _handleReady(): Promise<void> {
             this._pageReady = true;
 
-            <PromiseLike<any>>WinJS.Promise.join([
+            await Promise.all([
                 this._messenger.addStyleSheet("ms-appx-web:///css/viewer.css"),
                 this._messenger.addStyleSheet("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.css"),
                 this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///OverlayScrollbars/OverlayScrollbars.js")
-            ]).then(() => {
-                return this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js");
-            }).then(() => {
-                this._afterReady();
-            });
+            ]);
+
+            await this._messenger.addAdditionalScriptInsideWebView("ms-appx-web:///js/ui/ArticleViewer_client.js");
+            this._afterReady();
         }
 
         private _afterReady(): void {
@@ -236,10 +238,13 @@
                     this._firstDivFocused();
                 }, 20);
             } else {
-                WinJS.UI.Animation.slideUp(this.element).then(() => {
+                const w = async () => {
+                    await WinJS.UI.Animation.slideUp(this.element);
                     this._firstDivFocused();
                     this.viewModel.signalArticleDisplayed();
-                });
+                };
+
+                w();
             }
 
             // Set the toolbar state in the viewer. This is to ensure
@@ -335,9 +340,12 @@
 
                 case WinJS.Utilities.Key.d:
                     shortcutInvoked = "ShowDisplaySettings";
-                    this._showToolbarIfNotVisible().then(() => {
+                    const w = async () => {
+                        await this._showToolbarIfNotVisible();
                         this.viewModel.displaySettingsCommand.flyout.show(this.viewModel.displaySettingsCommand.element, "autovertical");
-                    });
+                    }
+
+                    w();
                     break;
 
                 case WinJS.Utilities.Key.m:
@@ -352,9 +360,12 @@
 
                 case WinJS.Utilities.Key.t:
                     shortcutInvoked = "FocusToolbar";
-                    this._showToolbarIfNotVisible().then(() => {
+                    const y = async () => {
+                        await this._showToolbarIfNotVisible();
                         this._lastDivFocused();
-                    });
+                    };
+
+                    y();
                     break;
 
                 case WinJS.Utilities.Key.w:
@@ -452,13 +463,11 @@
             }
         }
 
-        private _toggleToolbar(): PromiseLike<any> {
+        private async _toggleToolbar(): Promise<void> {
             var offset = {
                 top: null,
                 left: "0px",
             };
-
-            var signal = new Utilities.Signal();
 
             // Adjust the multiplier for the offset depending on if we're at the bottom
             // or the top of the screen (as determined by window width
@@ -470,24 +479,19 @@
             }
 
             if (this._toolbarVisible) {
-                var hidden = Codevoid.Utilities.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
-                    hidden = <PromiseLike<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
+                    await Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
                 }
 
-                hidden.then(() => {
-                    offset.top = (directionMultiplier * (this._toolbarContainer.clientHeight + topOffset)) + "px";
+                offset.top = (directionMultiplier * (this._toolbarContainer.clientHeight + topOffset)) + "px";
 
-                    WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset).then(() => {
-                        WinJS.Utilities.addClass(this._toolbarContainer, "hide");
-                        (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
-                        signal.complete();
-                    });
+                // Toggle the state to play our own animation. Needs to happen
+                // after we start the other one for them to run concurrently
+                this._messenger.invokeForResult("settoolbarstate", false);
 
-                    // Toggle the state to play our own animation. Needs to happen
-                    // after we start the other one for them to run concurrently
-                    this._messenger.invokeForResult("settoolbarstate", false);
-                });
+                await WinJS.UI.Animation.hideEdgeUI(this._toolbarContainer, offset);
+                WinJS.Utilities.addClass(this._toolbarContainer, "hide");
+                (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = false;
             } else {
                 // Remove the class before getting the client width, otherwise it'll
                 // be a big fat 0.
@@ -495,25 +499,17 @@
                 this._updateToolbarPaddingToKeepToolbarBelowTitle();
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight + topOffset) + "px";
 
-                var shown = Codevoid.Utilities.as<void>();
                 if (Windows.UI.ViewManagement.StatusBar) {
-                    shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
+                    await Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
                 }
 
-                shown.then(() => {
-                    WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).then(() => {
-                        (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
-                        
-                        signal.complete();
-                    });
+                // Toggle the state to play our own animation. Needs to happen
+                // after we start the other one for them to run concurrently
+                this._messenger.invokeForResult("settoolbarstate", true);
 
-                    // Toggle the state to play our own animation. Needs to happen
-                    // after we start the other one for them to run concurrently
-                    this._messenger.invokeForResult("settoolbarstate", true);
-                });
+                await WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset);
+                (new Settings.ViewerSettings()).toolbarVisible = this._toolbarVisible = true;
             }
-
-            return signal.promise;
         }
 
         public fontSelectionChanged(e: UIEvent): void {
@@ -550,7 +546,7 @@
             this.closeArticle();
         }
 
-        private closeArticle(): void {
+        private async closeArticle(): Promise<void> {
             if (this._closed) {
                 return;
             }
@@ -576,20 +572,19 @@
             Codevoid.Utilities.DOM.removeChild(this._displaySettingsFlyout.element.parentElement,
                 this._displaySettingsFlyout.element);
 
-            WinJS.UI.Animation.slideDown(this.element).then(() => {
-                // Flip this flag to allow the next navigate to complete, because
-                // we're normally supressing navigations after the first load.
-                this._pageReady = false;
+            await WinJS.UI.Animation.slideDown(this.element);
+            // Flip this flag to allow the next navigate to complete, because
+            // we're normally supressing navigations after the first load.
+            this._pageReady = false;
 
-                // Navigate blank to immediately stop the audio from a video
-                // that might be playing, otherwise it'll wait till it gets
-                // GC'd. :(
-                this._content.navigate("about:blank");
+            // Navigate blank to immediately stop the audio from a video
+            // that might be playing, otherwise it'll wait till it gets
+            // GC'd. :(
+            this._content.navigate("about:blank");
 
-                Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
-                this.viewModel.eventSource.dispatchEvent("closed", null);
-                this.viewModel = null;
-            });
+            Codevoid.UICore.Experiences.currentHost.removeExperienceForModel(this.viewModel);
+            this.viewModel.eventSource.dispatchEvent("closed", null);
+            this.viewModel = null;
         }
 
         public dispose(): void {
@@ -749,7 +744,7 @@
             Sharing.instance.bookmarkToShare = bookmark;
         }
 
-        public dispose(): void {
+        public async dispose(): Promise<void> {
             if (this._remoteEventHandlers) {
                 this._remoteEventHandlers.cancel();
                 this._remoteEventHandlers = null;
@@ -775,11 +770,13 @@
 
                 // Push the update, but who cares if it poops the bed?
                 // We already have the data locally in the DB
-                bookmarkApi.updateReadProgress({
-                    bookmark_id: this.bookmark.bookmark_id,
-                    progress: this.bookmark.progress,
-                    progress_timestamp: this.bookmark.progress_timestamp
-                }).then(() => { }, () => { });
+                try {
+                    await bookmarkApi.updateReadProgress({
+                        bookmark_id: this.bookmark.bookmark_id,
+                        progress: this.bookmark.progress,
+                        progress_timestamp: this.bookmark.progress_timestamp
+                    });
+                } catch (e) { }
             }
 
             // When cleaning up, make sure we remove the reference to ourselves
@@ -822,7 +819,7 @@
             return this._pictureInPictureCommand;
         }
 
-        public signalArticleDisplayed(): void {
+        public async signalArticleDisplayed(): Promise<void> {
             let activityStart = this._activity.start();
             Telemetry.instance.updateProfile(Utilities.Mixpanel.UserProfileOperation.add, toPropertySet({
                 viewedArticleCount: 1,
@@ -840,9 +837,10 @@
 
             // This is dependent on an OS API that is not widely used, so lets be safe, and eat
             // all errors from it, so we can still show the article
-            activityStart.then(null, () => { }).then(() => {
-                this._displayedSignal.complete();
-            });
+            try {
+                await activityStart;
+            } catch (e) { }
+            this._displayedSignal.complete();
         }
 
         public articleClosed(): void {
@@ -889,16 +887,15 @@
             ArticleViewerViewModel._currentArticle = article;
         }
 
-        public updateProgress(progress: number): void {
+        public async updateProgress(progress: number): Promise<void> {
             // When viewing an article that is now orphaned, don't
             // try to update the progress for it.
             if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.orphaned) {
                 return;
             }
 
-            this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress).then((bookmark) => {
-                this.bookmark = bookmark;
-            });
+            const bookmark = await this._instapaperDB.updateReadProgress(this.bookmark.bookmark_id, progress);
+            this.bookmark = bookmark;
         }
 
         public getCommands(): WinJS.Binding.List<WinJS.UI.ICommand> {
@@ -959,49 +956,44 @@
             this._toggleLikeCommand.icon = "\uE006";
         }
 
-        private _toggleLike(): void {
-            var updateBookmark;
-
+        private async _toggleLike(): Promise<void> {
             if (this.bookmark.starred === 1) {
-                updateBookmark = this._instapaperDB.unlikeBookmark(this.bookmark.bookmark_id);
+                this.bookmark = await this._instapaperDB.unlikeBookmark(this.bookmark.bookmark_id);
             } else {
-                updateBookmark = this._instapaperDB.likeBookmark(this.bookmark.bookmark_id);
+                this.bookmark = await this._instapaperDB.likeBookmark(this.bookmark.bookmark_id);
             }
 
-            updateBookmark.then((bookmark: IBookmark) => {
-                this.bookmark = bookmark;
-                let liked = false;
+            let liked = false;
 
-                if (this.bookmark.starred === 1) {
-                    liked = true;
-                    Telemetry.instance.track("LikedArticle", null);
-                    this._setToggleLikeToUnlike();
-                } else {
-                    Telemetry.instance.track("UnlikedArticle", null);
-                    this._setToggleLikeToLike();
-                }
+            if (this.bookmark.starred === 1) {
+                liked = true;
+                Telemetry.instance.track("LikedArticle", null);
+                this._setToggleLikeToUnlike();
+            } else {
+                Telemetry.instance.track("UnlikedArticle", null);
+                this._setToggleLikeToLike();
+            }
 
-                this._messenger.invokeForResult("articlepropertychanged", getLikeAndArchiveForBookmark(bookmark));
-            });
+            this._messenger.invokeForResult("articlepropertychanged", getLikeAndArchiveForBookmark(this.bookmark));
         }
 
-        private _delete(): void {
+        private async _delete(): Promise<void> {
             Telemetry.instance.track("DeletedBookmark", toPropertySet({ location: "Article" }));
-            this._instapaperDB.removeBookmark(this.bookmark.bookmark_id).then(() => {
-                this._eventSource.dispatchEvent("removed", null);
-            });
+            await this._instapaperDB.removeBookmark(this.bookmark.bookmark_id);
+            this._eventSource.dispatchEvent("removed", null);
         }
 
-        private _move(e: UIEvent): void {
+        private async _move(e: UIEvent): Promise<void> {
             this.eventSource.dispatchEvent("showMove", null);
-            var moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
-            moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget).then((result: boolean) => {
-                if (!result) {
-                    return;
-                }
-                Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "Article" }));
-                this._eventSource.dispatchEvent("removed", null);
-            });
+            const moveViewModel = new MoveToFolderViewModel(this._instapaperDB);
+
+            const result = await moveViewModel.move([this.bookmark], <HTMLElement>e.currentTarget);
+            if (!result) {
+                return;
+            }
+
+            Telemetry.instance.track("MovedBookmark", toPropertySet({ location: "Article" }));
+            this._eventSource.dispatchEvent("removed", null);
         }
 
         private _initializeArchiveCommand(): void {
@@ -1019,8 +1011,8 @@
             }
         }
 
-        private _archive(): void {
-            var destinationFolder: number;
+        private async _archive(): Promise<void> {
+            let destinationFolder: number;
             if (this.bookmark.folder_dbid === this._instapaperDB.commonFolderDbIds.archive) {
                 destinationFolder = this._instapaperDB.commonFolderDbIds.unread;
             } else {
@@ -1029,9 +1021,8 @@
 
             Telemetry.instance.track("ArchiveBookmark", toPropertySet({ location: "Article" }));
 
-            this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder).then(() => {
-                this._eventSource.dispatchEvent("removed", null);
-            });
+            await this._instapaperDB.moveBookmark(this.bookmark.bookmark_id, destinationFolder);
+            this._eventSource.dispatchEvent("removed", null);
         }
 
         public refreshStateDueToSizeChange(): void {
@@ -1124,7 +1115,12 @@
                     break;
 
                 case ScreenMode.PictureInPicture:
-                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay, this._getPictureInPictureSize()).then(null, () => { });
+                    const w = async () => {
+                        try {
+                            await view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.compactOverlay, this._getPictureInPictureSize());
+                        } catch (e) { }
+                    };
+                    w();
                     break;
 
                 case ScreenMode.Normal:
@@ -1209,7 +1205,13 @@
                     break;
 
                 case ScreenMode.PictureInPicture:
-                    view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.default).then(null, () => {});
+                    const w = async () => {
+                        try {
+                            await view.tryEnterViewModeAsync(Windows.UI.ViewManagement.ApplicationViewMode.default);
+                        } catch (e) { }
+                    };
+
+                    w();
                     break;
             }
 
