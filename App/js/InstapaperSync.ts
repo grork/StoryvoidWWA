@@ -266,7 +266,6 @@
 
         private async _syncBookmarks(db: InstapaperDB, options: IFolderSyncOptions): Promise<void> {
             let folders: IFolder[];
-            let promise = Codevoid.Utilities.as();
             this.dispatchEvent(SYNC_STATUS_UPDATE_EVENT_NAME, { operation: Codevoid.Storyvoid.InstapaperSyncStatus.bookmarksStart });
 
             if (!options.singleFolder) {

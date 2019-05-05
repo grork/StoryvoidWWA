@@ -326,7 +326,6 @@ namespace Codevoid.Storyvoid {
                 noDbError();
             }
 
-            let completePromise: PromiseLike<any> = Codevoid.Utilities.as();
             let wasUnsyncedEdit = false;
 
             let folderBeingRemoved: IFolder;

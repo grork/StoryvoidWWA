@@ -314,7 +314,7 @@
 
         private _showToolbarIfNotVisible(): PromiseLike<any> {
             if (this._toolbarVisible) {
-                return Codevoid.Utilities.as();
+                return Promise.resolve();
             }
 
             return this._toggleToolbar();

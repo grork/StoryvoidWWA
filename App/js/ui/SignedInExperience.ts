@@ -431,7 +431,7 @@
 
             if (this._notificationBeingDisplayed()) {
                 this._switchNotificationElement(headerContainer);
-                return Codevoid.Utilities.as();
+                return Promise.resolve();
             }
 
             return this._addNotificationElement(headerContainer);

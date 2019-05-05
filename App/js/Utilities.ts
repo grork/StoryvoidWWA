@@ -188,10 +188,6 @@ namespace Codevoid.Utilities {
         detail: T;
     }
 
-    export function as<T>(value?: T): PromiseLike<T> {
-        return WinJS.Promise.as<T>(value);
-    }
-
     export class Debounce {
         private completed: boolean = false;
         private timeoutId: number = null;
@@ -418,7 +414,7 @@ namespace Codevoid.Utilities {
 
             results.push(signal.promise.then(() => {
                 numberInFlight++;
-                return Codevoid.Utilities.as(work(item, index));
+                return work(item, index);
             }).then((value) => {
                 numberInFlight--;
                 doWork();
