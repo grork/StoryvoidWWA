@@ -871,7 +871,6 @@
                 Windows.Storage.ApplicationData.current.localFolder.createFolderAsync("Articles", Windows.Storage.CreationCollisionOption.openIfExists),
             ]);
         
-        
             if (parameters.dontWaitForDownloads) {
                 if (this._currentSync && this._currentSync.signal) {
                     this._currentSync.signal.complete();
@@ -925,9 +924,10 @@
                 Utilities.Logging.instance.log(JSON.stringify(e, null, 2), true);
             }
 
+            const completionPromise = this._currentSync.signal.promise;
             this._clearCurrentSync();
 
-            return this._currentSync.signal.promise;
+            return completionPromise;
         }
 
         public async clearDb(): Promise<void> {
