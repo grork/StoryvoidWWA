@@ -6,11 +6,50 @@
     const tokenSettingName = "token";
     const tokenSecretSettingName = "secret";
 
-    export const _tokenSettingInformation = {
-        root: tokenInformationSettingName,
-        token: tokenSettingName,
-        secret: tokenSecretSettingName,
-    };
+    export class AuthenticationSettings extends Utilities.SettingsCore {
+        constructor() {
+            super("AuthenticationSettings",
+                Windows.Storage.ApplicationData.current.localSettings,
+                {
+                    token: null,
+                    secret: null
+                });
+
+            this.migrateLegacySettingsIfNeeded();
+        }
+
+        private migrateLegacySettingsIfNeeded(): void {
+            const store = Windows.Storage.ApplicationData.current.localSettings;
+            const tokens: Windows.Foundation.Collections.IPropertySet = store.values[tokenInformationSettingName];
+
+            if (!tokens
+                || !tokens.hasKey(tokenSettingName)
+                || !tokens.hasKey(tokenSecretSettingName)) {
+                return;
+            }
+
+            this.token = tokens[tokenSettingName];
+            this.secret = tokens[tokenSecretSettingName];
+
+            store.values.remove(tokenInformationSettingName);
+        }
+
+        public get token(): string {
+            return this.getValueOrDefault("token");
+        }
+
+        public set token(value: string) {
+            this.setValue("token", value);
+        }
+
+        public get secret(): string {
+            return this.getValueOrDefault("secret");
+        }
+
+        public set secret(value: string) {
+            this.setValue("secret", value);
+        }
+    }
 
     export function applyUserAgentSettings(clientInformation: Codevoid.OAuth.ClientInformation): Codevoid.OAuth.ClientInformation {
         var packageVersion = Windows.ApplicationModel.Package.current.id.version;
@@ -23,32 +62,41 @@
     }
 
     export function getStoredCredentials(): Codevoid.OAuth.ClientInformation {
-        const store = Windows.Storage.ApplicationData.current.localSettings;
-        const tokens = store.values[tokenInformationSettingName];
+        const settings = new AuthenticationSettings();
 
-        if (tokens
-            && tokens.hasKey(tokenSettingName)
-            && tokens.hasKey(tokenSecretSettingName)) {
-            return Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, tokens[tokenSettingName], tokens[tokenSecretSettingName]));
+        if (settings.token && settings.secret) {
+            return Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(
+                new Codevoid.OAuth.ClientInformation(
+                    clientID,
+                    clientSecret,
+                    settings.token,
+                    settings.secret
+                )
+            );
         }
 
         return null;
     }
 
     export function saveAccessToken(tokenDetails: Codevoid.Storyvoid.InstapaperApi.IAccessTokenInformation): Codevoid.OAuth.ClientInformation {
-        const store = Windows.Storage.ApplicationData.current.localSettings;
-        const userTokens = new Windows.Storage.ApplicationDataCompositeValue();
+        const settings = new AuthenticationSettings();
 
-        userTokens[tokenSettingName] = tokenDetails.oauth_token;
-        userTokens[tokenSecretSettingName] = tokenDetails.oauth_token_secret;
-        store.values[tokenInformationSettingName] = userTokens;
+        settings.token = tokenDetails.oauth_token;
+        settings.secret = tokenDetails.oauth_token_secret;
 
-        return Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(new Codevoid.OAuth.ClientInformation(clientID, clientSecret, userTokens[tokenSettingName], userTokens[tokenSecretSettingName]));
+        return Codevoid.Storyvoid.Authenticator.applyUserAgentSettings(
+            new Codevoid.OAuth.ClientInformation(
+                clientID,
+                clientSecret,
+                settings.token,
+                settings.secret
+            )
+        );
     }
 
     export function clearClientInformation(): void {
-        const storage = Windows.Storage.ApplicationData.current.localSettings;
-        storage.values.remove(tokenInformationSettingName);
+        const settings = new AuthenticationSettings();
+        settings.removeAllSettings();
     }
 
     export function friendlyMessageForError(code: number): string {

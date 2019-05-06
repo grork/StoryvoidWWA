@@ -61,10 +61,9 @@
             const fakeToken = "fakeToken";
             const fakeSecret = "fakeSecret";
 
-            const values = new Windows.Storage.ApplicationDataCompositeValue();
-            values[authenticator._tokenSettingInformation.token] = fakeToken;
-            values[authenticator._tokenSettingInformation.secret] = fakeSecret;
-            Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
+            const settings = new authenticator.AuthenticationSettings();
+            settings.token = fakeToken;
+            settings.secret = fakeSecret;
 
             const clientInformation = authenticator.getStoredCredentials();
             assert.ok(clientInformation, "Didn't get client information");
@@ -77,14 +76,13 @@
             const fakeToken = "fakeToken";
             const fakeSecret = "fakeSecret";
 
-            const values = new Windows.Storage.ApplicationDataCompositeValue();
-            values[authenticator._tokenSettingInformation.token] = fakeToken;
-            values[authenticator._tokenSettingInformation.secret] = fakeSecret;
-            Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root] = values;
+            const settings = new authenticator.AuthenticationSettings();
+            settings.token = fakeToken;
+            settings.secret = fakeSecret;
 
             authenticator.clearClientInformation();
 
-            assert.ok(!Windows.Storage.ApplicationData.current.localSettings.values.hasKey(authenticator._tokenSettingInformation.root), "Shouldn't find settings");
+            assert.ok(!settings.token && !settings.secret, "Shouldn't find settings");
         });
     });
 
@@ -201,14 +199,14 @@
 
             const tokenResult = await vm.authenticate();
             const clientInformation = Codevoid.Storyvoid.Authenticator.saveAccessToken(tokenResult);
-            const tokenInformation = Windows.Storage.ApplicationData.current.localSettings.values[authenticator._tokenSettingInformation.root];
+            const tokenInformation = new authenticator.AuthenticationSettings();
 
             assert.ok(clientInformation, "No client information");
             assert.ok(clientInformation.clientToken, "No token information");
             assert.ok(clientInformation.clientTokenSecret, "No secret information");
 
-            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.token], clientInformation.clientToken, "Token saved doesn't match the one from the service");
-            assert.strictEqual(tokenInformation[authenticator._tokenSettingInformation.secret], clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation.token, clientInformation.clientToken, "Token saved doesn't match the one from the service");
+            assert.strictEqual(tokenInformation.secret, clientInformation.clientTokenSecret, "Secret saved doesn't match the one from the service");
 
             authenticator.clearClientInformation();
         });
