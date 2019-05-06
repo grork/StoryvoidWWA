@@ -1,8 +1,8 @@
 ﻿namespace Codevoid.Utilities {
     interface IMessageDetails {
-        message: string;
-        responseId: number;
-        payload: any;
+        readonly message: string;
+        readonly responseId: number;
+        readonly payload: any;
     }
 
     export class WebViewMessenger_Client {

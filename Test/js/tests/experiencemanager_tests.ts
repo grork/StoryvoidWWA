@@ -4,8 +4,8 @@
 
 namespace CodevoidTests {
     export interface ExperienceInformation {
-        model: Codevoid.UICore.ViewModel;
-        view: any;
+        readonly model: Codevoid.UICore.ViewModel;
+        readonly view: any;
     }
 
     export class UnitTestExperienceHost implements Codevoid.UICore.ExperienceHost {

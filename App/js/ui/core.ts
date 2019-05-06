@@ -3,7 +3,7 @@
 
 namespace Codevoid.UICore {
     export interface ViewModel {
-        experience: any;
+        readonly experience: any;
     }
 
     export interface HTMLControlElement extends HTMLElement {
@@ -11,11 +11,11 @@ namespace Codevoid.UICore {
     }
 
     export interface ExperienceCreationOptions {
-        viewModel: ViewModel;
+        readonly viewModel: ViewModel;
     }
 
     export interface ExperienceInformation {
-        identifier: string;
+        readonly identifier: string;
         ctor: (container: any, options: ExperienceCreationOptions) => void;
     }
 

@@ -309,7 +309,7 @@
 
         it("sameFolderRemoteAndLocalButUnsynced", async () => {
             interface ISpecialFolder extends IFolder {
-                cookie: boolean;
+                readonly cookie: boolean;
             }
 
             let local: ISpecialFolder = {

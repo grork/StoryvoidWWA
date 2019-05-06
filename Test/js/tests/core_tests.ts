@@ -1,7 +1,7 @@
 ﻿declare namespace Codevoid.UICore {
     export interface Control {
-        value: string;
-        anotherValue: string;
+        readonly value: string;
+        readonly anotherValue: string;
     }
 }
 namespace CodevoidTests {

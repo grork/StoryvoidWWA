@@ -117,8 +117,8 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     }
 
     export interface IAccessTokenInformation {
-        oauth_token: string;
-        oauth_token_secret: string;
+        readonly oauth_token: string;
+        readonly oauth_token_secret: string;
     }
 
     export interface IUserInformation {
@@ -160,9 +160,9 @@ namespace Codevoid.Storyvoid.InstapaperApi {
     }
 
     export interface IBookmarkUpdateReadProgressParameters {
-        bookmark_id: number;
-        progress: number;
-        progress_timestamp: number;
+        readonly bookmark_id: number;
+        readonly progress: number;
+        readonly progress_timestamp: number;
     }
 
     export function getCurrentTimeAsUnixTimestamp(): number {

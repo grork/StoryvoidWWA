@@ -164,7 +164,7 @@
     }
 
     export interface EventObject<T> {
-        detail: T;
+        readonly detail: T;
     }
 
     export class Debounce {
@@ -285,8 +285,8 @@
     }
 
     export interface ILogMessage {
-        message: string;
-        useFixedLayout: boolean;
+        readonly message: string;
+        readonly useFixedLayout: boolean;
     }
 
     /// <summary>
@@ -412,8 +412,8 @@
     }
 
     interface EventHandlerEntry {
-        event: string;
-        handler: Function;
+        readonly event: string;
+        readonly handler: Function;
     }
 
     export interface IEventSource {

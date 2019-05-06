@@ -13,8 +13,8 @@
     }
 
     export interface ISyncNeededEventArgs {
-        reason: SyncReason;
-        showEvents: boolean;
+        readonly reason: SyncReason;
+        readonly showEvents: boolean;
         complete(): void;
     }
 

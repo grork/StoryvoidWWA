@@ -35,8 +35,8 @@
     }
 
     export interface IRequestError {
-        status: Windows.Web.Http.HttpStatusCode;
-        response: string;
+        readonly status: Windows.Web.Http.HttpStatusCode;
+        readonly response: string;
     }
 
     export interface IParameterEncoderOptions {
@@ -47,8 +47,8 @@
     type NameValuePairValueType = string | number | boolean;
 
     export interface NameValuePair {
-        key: string;
-        value: NameValuePairValueType;
+        readonly key: string;
+        readonly value: NameValuePairValueType;
     }
 
     export class ParameterEncoder {

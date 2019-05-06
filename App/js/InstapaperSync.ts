@@ -36,19 +36,19 @@
     }
 
     export interface ISyncStatusUpdate {
-        operation: string;
-        title?: string;
+        readonly operation: string;
+        readonly title?: string;
     }
 
     export interface ISyncOptions {
-        dbInstance?: InstapaperDB;
-        folders?: boolean,
-        bookmarks?: boolean,
-        singleFolder?: boolean,
-        folder?: number,
-        cancellationSource?: Codevoid.Utilities.CancellationSource;
-        skipOrphanCleanup?: boolean;
-        _testPerFolderCallback?: any;
+        readonly dbInstance?: InstapaperDB;
+        readonly folders?: boolean,
+        readonly bookmarks?: boolean,
+        readonly singleFolder?: boolean,
+        readonly folder?: number,
+        readonly cancellationSource?: Codevoid.Utilities.CancellationSource;
+        readonly skipOrphanCleanup?: boolean;
+        readonly _testPerFolderCallback?: any;
     }
 
     export enum InstapaperSyncStatus {

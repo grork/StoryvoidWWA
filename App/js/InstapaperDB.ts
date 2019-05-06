@@ -65,18 +65,18 @@ namespace Codevoid.Storyvoid {
     }
 
     export interface IFoldersChangedEvent {
-        operation: string;
-        folder_dbid: number;
-        title: string;
-        folder: IFolder;
+        readonly operation: string;
+        readonly folder_dbid: number;
+        readonly title: string;
+        readonly folder: IFolder;
     }
 
     export interface IBookmarksChangedEvent {
         operation: string;
-        bookmark_id: number;
-        bookmark: IBookmark;
-        destinationfolder_dbid: number;
-        sourcefolder_dbid: number;
+        readonly bookmark_id: number;
+        readonly bookmark: IBookmark;
+        readonly destinationfolder_dbid: number;
+        readonly sourcefolder_dbid: number;
     }
 
     export interface IFolderPendingEdit {

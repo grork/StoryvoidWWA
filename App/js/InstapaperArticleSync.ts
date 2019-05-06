@@ -7,17 +7,17 @@
     import c = Windows.Foundation.Collections;
 
     interface IFirstImageInformation {
-        localPath: string;
-        originalUrl: string;
+        readonly localPath: string;
+        readonly originalUrl: string;
     }
 
     interface IProcessedArticleInformation {
-        relativePath: string;
         hasImages: boolean;
         firstImageInformation: IFirstImageInformation,
         extractedDescription: string;
-        failedToDownload: boolean;
-        articleUnavailable: boolean;
+        readonly relativePath: string;
+        readonly failedToDownload: boolean;
+        readonly articleUnavailable: boolean;
     }
 
     interface IBookmarkHash { [id: number]: string };

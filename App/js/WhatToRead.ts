@@ -63,7 +63,7 @@ namespace Codevoid.Storyvoid {
 
     export interface IJumpListItem {
         removedByUser: boolean;
-        arguments: string;
+        readonly arguments: string;
     }
 
     export class WhatToRead {
