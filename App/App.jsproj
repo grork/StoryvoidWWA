@@ -227,11 +227,11 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Uap.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.jsproj.targets')" />
-  <Import Project="..\packages\Codevoid.Utilities.Mixpanel.1.3.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets" Condition="Exists('..\packages\Codevoid.Utilities.Mixpanel.1.3.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" />
+  <Import Project="..\packages\Codevoid.Utilities.Mixpanel.1.3.1\build\uap10.0\Codevoid.Utilities.Mixpanel.targets" Condition="Exists('..\packages\Codevoid.Utilities.Mixpanel.1.3.1\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Codevoid.Utilities.Mixpanel.1.3.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Codevoid.Utilities.Mixpanel.1.3.0\build\uap10.0\Codevoid.Utilities.Mixpanel.targets'))" />
+    <Error Condition="!Exists('..\packages\Codevoid.Utilities.Mixpanel.1.3.1\build\uap10.0\Codevoid.Utilities.Mixpanel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Codevoid.Utilities.Mixpanel.1.3.1\build\uap10.0\Codevoid.Utilities.Mixpanel.targets'))" />
   </Target>
 </Project>
