@@ -49,7 +49,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).props" />
   <PropertyGroup>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformVersion>10.0.17763.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
     <PackageCertificateKeyFile>StoryVoidTest.pfx</PackageCertificateKeyFile>
@@ -164,7 +164,7 @@
     <TypeScriptCompile Include="..\App\js\WhatToRead.ts">
       <Link>js\WhatToRead.ts</Link>
     </TypeScriptCompile>
-        <TypeScriptCompile Include="..\App\js\Deeplinking.ts">
+    <TypeScriptCompile Include="..\App\js\Deeplinking.ts">
       <Link>js\Deeplinking.ts</Link>
     </TypeScriptCompile>
     <TypeScriptCompile Include="..\App\js\ui\core.ts">
