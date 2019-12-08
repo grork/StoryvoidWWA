@@ -20,10 +20,6 @@
     background-color: rgba(255, 0, 0, 0.54);
 }
 
-.signedIn-content-root {
-    background-color: orange;
-}
-
 .signedIn-content {
     background-color: white;
 }
@@ -33,38 +29,17 @@
 }
 
 .signedIn-header {
-    background-color: #BC0000;
-    color: white;
+    background-color: #E9E9E9;
+}
+
+.win-ui-dark .signedIn-header {
+    background-color: #352626;
 }
 
 button.win-splitviewpanetoggle[aria-expanded=false] {
-    color: white;
     border-color: transparent;
     border-style: solid;
     border-width: 1px;
-}
-
-.signedIn-container button.win-splitviewpanetoggle.win-keyboard:focus {
-    border-color: white;
-}
-
-
-html.win-hoverable button.win-splitviewpanetoggle[aria-expanded=false]:hover {
-    border-color: white;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.34);
-}
-
-html.win-hoverable .header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph,
-html.win-hoverable .header-commadns button.win-command .win-commandicon .win-commandimage.win-commandglyph:hover,
-.header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph,
-.header-commands button.win-command .win-commandicon .win-commandimage.win-commandglyph:hover {
-    color: white;
-}
-
-.header-commands button.win-command:focus,
-.header-commands button.win-command:hover {
-    border-color: white;
 }
 
 html.win-hoverable .header-commands button:enabled.win-command:hover {
@@ -109,16 +84,12 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
     color: white;
 }   
 
-.folderlist-current .win-splitviewcommand-button.win-keyboard:focus::before {
-    border-color: white;
-}
-
 .win-splitviewcommand.folderlist-current {
-    background-color: #BC0000;
+    background-color: #E9E9E9;
 }
 
-.win-splitviewcommand.folderlist-current > .win-splitviewcommand-button {
-    color: white;
+.win-ui-dark .win-splitviewcommand.folderlist-current {
+    background-color: darkslategray;
 }
 
 .signedOut-container {
@@ -128,16 +99,24 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 
     .signedOut-container a {
         color: white;
-        background-color: #BC0000;
+        background-color: #352626;
     }
 
-    .win-ui-dark .signedOut-container {
-        background-color: #212121;
-        color: white;
+.win-ui-dark .signedOut-container {
+    background-color: #352626;
+    color: white;
+}
+
+    .win-ui-dark .signedOut-container a {
+        color: #352626;
+        background-color: white;
     }
 
 .signedOut-welcome {
-    background-color: #BC0000;
+    color: #352626;
+}
+
+.win-ui-dark .signedOut-welcome {
     color: white;
 }
 
@@ -152,8 +131,12 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
     color: white;
 }
 
+.commands-sort {
+    color: black;
+}
+
     .commands-sort:hover {
-        border-color: white;
+        border-color: black;
         background-color: transparent;
     }
 
@@ -166,12 +149,18 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
         background-color: transparent;
     }
 
-    .commands-sort::-ms-expand,
+    .commands-sort::-ms-expand {
+        color: black;
+    }
+
     .win-ui-dark .commands-sort::-ms-expand {
         color: white;
     }
 
-    .commands-sort:focus,
+    .commands-sort:focus {
+        border-color: black;
+    }
+
     .win-ui-dark .commands-sort:focus {
         border-color: white;
     }
@@ -193,15 +182,15 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 
 .win-focused .article-title-text,
 .win-container:hover .article-title-text {
-    background-color: #BC0000;
-    border-bottom-color: #BC0000;
-    box-shadow: 8px 0px 0px 1px #BC0000, -8px 0px 0px 0px #BC0000;
+    background-color: #c7c7c7;
+    border-bottom-color: #c7c7c7;
+    box-shadow: 8px 0px 0px 1px #c7c7c7, -8px 0px 0px 0px #c7c7c7;
 }
 
 .win-focused .article-title-begin-blur-shadow-fix,
 .win-container:hover .article-title-begin-blur-shadow-fix {
-    background-color: #BC0000;
-    box-shadow: 0px 0px 0px 1px #BC0000;
+    background-color: #c7c7c7;
+    box-shadow: 0px 0px 0px 1px #c7c7c7;
 }
 
 .article-title-begin-blur-shadow-fix {
@@ -230,11 +219,11 @@ progress.article-progress,
 }
 
     .authenticator input:hover {
-        border-color: #BC0000;
+        border-color: #c7c7c7;
     }
 
     .authenticator input:focus {
-        border-color: #BC0000 !important;
+        border-color: #c7c7c7 !important;
     }
 
     .authenticator input:not(:focus) {
@@ -253,16 +242,31 @@ progress.article-progress,
     color: grey;
 }
 
+.win-ui-dark .authenticator input:not(:focus) {
+    color: whitesmoke;
+}
+
 .authenticator .authenticateButton {
     color: black;
     border-color: black;
     background-color: transparent;
 }
 
+.win-ui-dark .authenticator .authenticateButton {
+    color: #E9E9E9;
+    border-color: #E9E9E9;
+}
+
+.win-ui-dark .authenticator .authenticateButton:focus,
+.win-ui-dark .authenticator .authenticateButton:hover {
+    color: #352626;
+    border-color: #352626;
+}
+
 .authenticator .authenticateButton:focus,
 .authenticator .authenticateButton:hover {
-    background-color: #BC0000;
-    border-color: #BC0000;
+    background-color: #c7c7c7;
+    border-color: #c7c7c7;
     color: white;
 }
 
@@ -276,7 +280,7 @@ progress.article-progress,
 }
 
     .authenticator > .workingContainer > progress {
-        color: #BC0000;
+        color: #352626;
     }
 
 .codevoid-logviewer {
@@ -298,9 +302,15 @@ progress.article-progress,
 
 
 .share-article-title-text {
-    background-color: red;
-    border-bottom-color: red;
+    background-color: #352626;
+    border-bottom-color: #352626;
     color: white;
+}
+
+.win-ui-dark .share-article-title-text {
+    background-color: whitesmoke;
+    border-bottom-color: whitesmoke;
+    color: #352626;
 }
 
 .share-article-url {
@@ -495,7 +505,7 @@ html.win-hoverable [data-theme='night'].articleViewer-toolbar button:enabled.win
 
 .settingsPopup-dialog > .settingsPopup-container {
     background-color: white;
-    border-color: #BC0000;
+    border-color: #E9E9E9;
     box-shadow: var(--floating-element-shadow);
 }
 
@@ -524,5 +534,5 @@ html.win-hoverable [data-theme='night'].articleViewer-toolbar button:enabled.win
 }
 
 .fullscreenspinner-dialog progress {
-    color: #BC0000;
+    color: #E9E9E9;
 }
