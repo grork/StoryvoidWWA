@@ -51,7 +51,7 @@
             var titleBar = applicationView.titleBar;
 
             var primaryColour = Windows.UI.Colors.transparent;
-            var textColour = Windows.UI.Colors.black;
+            var textColour = Windows.UI.Colors.gray;
 
             titleBar.backgroundColor = primaryColour;
             titleBar.buttonBackgroundColor = primaryColour;
