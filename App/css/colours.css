@@ -16,6 +16,11 @@
     }
 }
 
+:root {
+    --article-title-colour: #352626;
+    --article-title-hover-colour: slategrey;
+}
+
 .dialog {
     background-color: rgba(255, 0, 0, 0.54);
 }
@@ -175,27 +180,16 @@ html.win-hoverable .header-commands button:enabled.win-command:hover {
 
 .article-title-text {
     color: white;
-    background-color: red;
-    border-bottom-color: red;
-    box-shadow: 8px 0px 0px 1px red, -8px 0px 0px 0px red;
+    background-color: var(--article-title-colour);
+    border-bottom-color: var(--article-title-colour);
+    box-shadow: 8px 0px 0px 1px var(--article-title-colour), -8px 0px 0px 1px var(--article-title-colour);
 }
 
 .win-focused .article-title-text,
 .win-container:hover .article-title-text {
-    background-color: #c7c7c7;
-    border-bottom-color: #c7c7c7;
-    box-shadow: 8px 0px 0px 1px #c7c7c7, -8px 0px 0px 0px #c7c7c7;
-}
-
-.win-focused .article-title-begin-blur-shadow-fix,
-.win-container:hover .article-title-begin-blur-shadow-fix {
-    background-color: #c7c7c7;
-    box-shadow: 0px 0px 0px 1px #c7c7c7;
-}
-
-.article-title-begin-blur-shadow-fix {
-    background-color: red;
-    box-shadow: 0px 0px 0px 1px red;
+    background-color: var(--article-title-hover-colour);
+    border-bottom-color: var(--article-title-hover-colour);
+    box-shadow: 8px 0px 0px 1px var(--article-title-hover-colour), -8px 0px 0px 1px var(--article-title-hover-colour);
 }
 
 .article-footer {
