@@ -1058,7 +1058,11 @@ button.margin-increase .win-commandimage {
     line-height: 48px;
     border-bottom-width: 4px;
     border-bottom-style: solid;
-    box-shadow: 8px 0px 0px red, -8px 0px 0px red;
+    box-shadow: 8px 0px 0px #352626, -8px 0px 0px #252626;
+}
+
+.win-ui-dark .share-article-title-text {
+    box-shadow: 8px 0px 0px whitesmoke, -8px 0px 0px whitesmoke;
 }
 
 .share-article-url {

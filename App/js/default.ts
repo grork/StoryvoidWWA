@@ -51,7 +51,7 @@
             var titleBar = applicationView.titleBar;
 
             var primaryColour = Windows.UI.Colors.transparent;
-            var textColour = Windows.UI.Colors.white;
+            var textColour = Windows.UI.Colors.black;
 
             titleBar.backgroundColor = primaryColour;
             titleBar.buttonBackgroundColor = primaryColour;
@@ -60,15 +60,8 @@
             titleBar.inactiveBackgroundColor = primaryColour;
             titleBar.buttonInactiveBackgroundColor = primaryColour;
 
-            titleBar.buttonHoverBackgroundColor = Windows.UI.Colors.red;
-            titleBar.buttonHoverForegroundColor = textColour;
-
-            if (Windows.UI.ViewManagement.StatusBar) {
-                var statusBar = Windows.UI.ViewManagement.StatusBar.getForCurrentView();
-                statusBar.showAsync();
-                statusBar.backgroundColor = Windows.UI.Colors.red;
-                statusBar.backgroundOpacity = 1.0;
-            }
+            titleBar.buttonHoverBackgroundColor = Windows.UI.ColorHelper.fromArgb(255, 53, 38, 38);
+            titleBar.buttonHoverForegroundColor = Windows.UI.Colors.white;
 
             Codevoid.Utilities.HiddenApiHelper.extendIntoTitleBar();
         }
