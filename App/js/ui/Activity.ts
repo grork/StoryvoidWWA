@@ -43,7 +43,6 @@
 
             let channel = ua.UserActivityChannel.getDefault();
             return channel.getOrCreateUserActivityAsync(`article:${this._bookmark.bookmark_id}`).then((activity) => {
-                this._started = true;
                 this._activity = activity;
 
                 // Activation URI is what the OS will invoke to reopen the activity
@@ -65,6 +64,8 @@
                         args.detail.request.setUserActivity(this._activity);
                     }
                 });
+
+                this._started = true;
             });
         }
 
@@ -73,10 +74,16 @@
                 return;
             }
 
-            this._requestEvents.cancel();
-            this._requestEvents = null;
-            this._session.close();
-            this._session = null;
+            if (this._requestEvents) {
+                this._requestEvents.cancel();
+                this._requestEvents = null;
+            }
+
+            if (this._session) {
+                this._session.close();
+                this._session = null;
+            }
+
             this._activity = null;
             this._started = false;
         }
