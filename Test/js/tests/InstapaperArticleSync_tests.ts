@@ -17,9 +17,9 @@ module CodevoidTests.InstapaperArticleSyncTests {
     clientInformation.productName = "Codevoid InstapaperArticleSync Tests";
 
     // Sample, known articles
-    var normalArticleUrl = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
+    var normalArticleUrl = "https://www.codevoid.net/articlevoidtest/_TestPage1.html";
     var normalArticleId: number;
-    var articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage11.html";
+    var articleWithImageUrl = "https://www.codevoid.net/articlevoidtest/TestPageWithImage.html";
     var articleWithImageId: number;
     var youTubeArticleUrl = "https://www.youtube.com/watch?v=qZRsVqOIWms";
     var youTubeArticleId: number;
@@ -148,7 +148,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
             assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
             assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
-            assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
+            assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/SampleImage1.png", "Incorrect first image path");
 
             return articlesFolder.getFolderAsync(articleWithImageId.toString());
         }).then((imagesSubFolder: st.StorageFolder) => {
@@ -171,10 +171,10 @@ module CodevoidTests.InstapaperArticleSyncTests {
             assert.strictEqual(images.length, 2, "Wrong number of images compared to filename");
 
             var packageName = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
-            var expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/0.png";
+            var expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/SampleImage1.png";
             assert.strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
-            expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/1.jpg";
+            expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/SampleImage2.jpg";
             assert.strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
     });
@@ -253,7 +253,7 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
         stateConfigured = false;
 
-        var setupCompleted = bookmarksApi.add({url: "http://codevoid.net/articlevoidtest/foo.html"}).then((bookmark: av.IBookmark) => {
+        var setupCompleted = bookmarksApi.add({url: "http://codevoid.net/articlevoidtest/_foo.html"}).then((bookmark: av.IBookmark) => {
             badBookmarkId = bookmark.bookmark_id;
 
             return setupLocalAndRemoteState();

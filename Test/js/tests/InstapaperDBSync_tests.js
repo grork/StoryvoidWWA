@@ -38,15 +38,15 @@
 
     function resetSourceUrls() {
         sourceUrls = [
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage1.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage2.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage3.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage4.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage5.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage6.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage7.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage8.html" },
-            { url: "http://www.codevoid.net/articlevoidtest/TestPage9.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage1.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage2.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage3.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage4.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage5.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage6.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage7.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage8.html" },
+            { url: "https://www.codevoid.net/articlevoidtest/_TestPage9.html" },
         ];
     }
 
