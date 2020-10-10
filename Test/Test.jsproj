@@ -76,9 +76,6 @@
       <Link>power-assert.js</Link>
     </Content>
     <Content Include="tests_mocha.html" />
-    <Content Include="StoryVoidTest.cer" />
-    <None Include="StoryVoidTest.pfx" />
-    <Content Include="StoryVoidTest.pvk" />
     <Content Include="tsconfig.json" />
     <Content Include="RemoteTestContent\SampleImage1.png" />
     <Content Include="RemoteTestContent\SampleImage2.jpg" />

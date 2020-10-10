@@ -108,10 +108,6 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="StoryVoidCert.cer" />
-    <None Include="StoryVoidCert.pfx" />
-    <None Include="StoryVoidCert.pvk" />
-    <None Include="App_StoreKey.pfx" />
     <Content Include="HtmlTemplates.html" />
     <Content Include="images\Article44x44.targetsize-16.png" />
     <Content Include="images\Article44x44.targetsize-24.png" />
