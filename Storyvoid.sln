@@ -9,6 +9,13 @@ Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "Test", "Test\Test.jsproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Codevoid", "NativeInfrastructure\NativeInfrastructure.vcxproj", "{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9800DE49-7CFF-4657-8EF1-7CD4995530C2}"
+	ProjectSection(SolutionItems) = preProject
+		App_Keys_Template.ts = App_Keys_Template.ts
+		readme.md = readme.md
+		Test_Keys_Template.ts = Test_Keys_Template.ts
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AMD64 = Debug|AMD64
@@ -19,24 +26,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.ActiveCfg = Debug|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.Build.0 = Debug|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.Deploy.0 = Debug|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.ActiveCfg = Debug|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.Build.0 = Debug|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.Deploy.0 = Debug|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.ActiveCfg = Debug|x86
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.Build.0 = Debug|x86
-		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.Deploy.0 = Debug|x86
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.ActiveCfg = Release|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.Build.0 = Release|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.Deploy.0 = Release|x64
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.ActiveCfg = Release|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.Build.0 = Release|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.Deploy.0 = Release|ARM
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.ActiveCfg = Release|x86
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.Build.0 = Release|x86
-		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.Deploy.0 = Release|x86
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Debug|AMD64.ActiveCfg = Debug|x64
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Debug|AMD64.Build.0 = Debug|x64
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Debug|AMD64.Deploy.0 = Debug|x64
@@ -55,6 +44,24 @@ Global
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.ActiveCfg = Release|x86
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.Build.0 = Release|x86
 		{84FD802D-0F7C-4B15-A01A-8CD4377EB8FE}.Release|x86.Deploy.0 = Release|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.ActiveCfg = Debug|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.Build.0 = Debug|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|AMD64.Deploy.0 = Debug|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.ActiveCfg = Debug|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.Build.0 = Debug|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|ARM.Deploy.0 = Debug|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.ActiveCfg = Debug|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.Build.0 = Debug|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Debug|x86.Deploy.0 = Debug|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.ActiveCfg = Release|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.Build.0 = Release|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|AMD64.Deploy.0 = Release|x64
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.ActiveCfg = Release|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.Build.0 = Release|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|ARM.Deploy.0 = Release|ARM
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.ActiveCfg = Release|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.Build.0 = Release|x86
+		{75649025-5099-4C32-9F57-084461404DDF}.Release|x86.Deploy.0 = Release|x86
 		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|AMD64.ActiveCfg = Debug|x64
 		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|AMD64.Build.0 = Debug|x64
 		{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}.Debug|ARM.ActiveCfg = Debug|ARM
