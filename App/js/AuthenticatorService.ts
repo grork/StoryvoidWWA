@@ -1,6 +1,6 @@
 ﻿namespace Codevoid.Storyvoid.Authenticator {
-    const clientID = "PLACEHOLDER";
-    const clientSecret = "PLACEHOLDER";
+    const clientID = Codevoid.Storyvoid.INSTAPAPER_CLIENT_ID;
+    const clientSecret = Codevoid.Storyvoid.INSTAPAPER_CLIENT_SECRET;
 
     const tokenInformationSettingName = "usertokens";
     const tokenSettingName = "token";

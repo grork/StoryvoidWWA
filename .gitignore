@@ -290,3 +290,7 @@ sysinfo.txt
 
 # Crashlytics generated file
 Assets/StreamingAssets/crashlytics-build.properties
+
+# Ignore Key files
+App/Keys.ts
+Test/Keys.ts

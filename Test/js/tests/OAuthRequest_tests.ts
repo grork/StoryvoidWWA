@@ -4,10 +4,10 @@
                                                              "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb", /* Token */
                                                              "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"); /* Token Secret */
 
-    const realClientInfo = new Codevoid.OAuth.ClientInformation("PLACEHOLDER", /* client id */
-                                                             "PLACEHOLDER", /* Client secret */
-                                                             "PLACEHOLDER", /* access token */
-                                                             "PLACEHOLDER" /* token secret */);
+    const realClientInfo = new Codevoid.OAuth.ClientInformation(CodevoidTests.TWITTER_CLIENT_ID, /* client id */
+                                                                CodevoidTests.TWITTER_CLIENT_SECRET, /* Client secret */
+                                                                CodevoidTests.TWITTER_ACCESS_TOKEN, /* access token */
+                                                                CodevoidTests.TWITTER_ACCESS_TOKEN_SECRET /* token secret */);
 
     interface OAuthRequestPrivates {
         _generateAuthHeader(): string;

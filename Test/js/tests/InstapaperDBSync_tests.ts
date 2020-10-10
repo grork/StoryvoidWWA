@@ -8,11 +8,11 @@
     import IBookmark = Codevoid.Storyvoid.IBookmark;
 
     const DEFAULT_TEST_DELAY = 250;
-    const clientID = "PLACEHOLDER";
-    const clientSecret = "PLACEHOLDER";
+    const clientID = CodevoidTests.INSTAPAPER_CLIENT_ID;
+    const clientSecret = CodevoidTests.INSTAPAPER_CLIENT_SECRET;
 
-    const token = "PLACEHOLDER";
-    const secret = "PLACEHOLDER";
+    const token = CodevoidTests.INSTAPAPER_TOKEN;
+    const secret = CodevoidTests.INSTAPAPER_TOKEN_SECRET;
 
     const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperSync Tests";

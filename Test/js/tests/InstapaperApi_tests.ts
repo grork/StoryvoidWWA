@@ -1,9 +1,9 @@
 ﻿namespace CodevoidTests {
-    const clientID = "PLACEHOLDER";
-    const clientSecret = "PLACEHOLDER";
+    const clientID = CodevoidTests.INSTAPAPER_CLIENT_ID;
+    const clientSecret = CodevoidTests.INSTAPAPER_CLIENT_SECRET;
 
-    const token = "PLACEHOLDER";
-    const secret = "PLACEHOLDER";
+    const token = CodevoidTests.INSTAPAPER_TOKEN;
+    const secret = CodevoidTests.INSTAPAPER_TOKEN_SECRET;
 
     const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperApi Tests";
@@ -37,7 +37,7 @@
                 const clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-                const tokenInfo = await accounts.getAccessToken("PLACEHOLDER", "PLACEHOLDER");
+                const tokenInfo = await accounts.getAccessToken(CodevoidTests.INSTAPAPER_ACCOUNT, CodevoidTests.INSTAPAPER_PASSWORD);
                 assert.ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
                 assert.strictEqual(tokenInfo.oauth_token, token, "token didn't match");
 
@@ -50,7 +50,7 @@
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
                 try {
-                    await accounts.getAccessToken("PLACEHOLDER", "IncorrectPassword");
+                    await accounts.getAccessToken(CodevoidTests.INSTAPAPER_ACCOUNT, "IncorrectPassword");
                     assert.ok(false, "shouldn't succeed");
                 } catch (err) {
                     assert.ok(true, "Should have errored");
@@ -62,8 +62,8 @@
                 const accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
                 const verifiedCreds = await accounts.verifyCredentials();
                 assert.strictEqual(verifiedCreds.type, "user");
-                assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
-                assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
+                assert.strictEqual(verifiedCreds.user_id, CodevoidTests.INSTAPAPER_ACCOUNT_ID);
+                assert.strictEqual(verifiedCreds.username, CodevoidTests.INSTAPAPER_ACCOUNT);
             });
 
             it("verifyingBadCredentialsFails", async () => {

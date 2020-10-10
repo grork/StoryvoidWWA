@@ -6,8 +6,8 @@
     import cleanupExperienceHost = InstapaperTestUtilities.cleanupExperienceHost;
     import authenticator = Codevoid.Storyvoid.Authenticator;
     const testCredentials = {
-        user: "PLACEHOLDER",
-        password: "PLACEHOLDER"
+        user: CodevoidTests.INSTAPAPER_ACCOUNT,
+        password: CodevoidTests.INSTAPAPER_PASSWORD
     };
 
     class AuthenticatorTestUI {

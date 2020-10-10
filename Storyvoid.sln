@@ -9,6 +9,12 @@ Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "Test", "Test\Test.jsproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Codevoid", "NativeInfrastructure\NativeInfrastructure.vcxproj", "{95ACA049-0CF6-4361-9AA3-AB16EF0F6F9E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7B59561C-B2CD-455D-8C2C-B786C30E39BC}"
+	ProjectSection(SolutionItems) = preProject
+		App_Keys_Template.ts = App_Keys_Template.ts
+		Test_Keys_Template.ts = Test_Keys_Template.ts
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AMD64 = Debug|AMD64

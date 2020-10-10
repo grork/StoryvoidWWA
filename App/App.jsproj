@@ -177,6 +177,7 @@
     <Content Include="WinJS\js\ui.js" />
     <Content Include="WinJS\js\base.js" />
     <Content Include="WinJS\js\intrinsics.js" />
+    <TypeScriptCompile Include="Keys.ts" />
     <TypeScriptCompile Include="js\Utilities.ts" />
     <TypeScriptCompile Include="js\SettingsCore.ts" />
     <TypeScriptCompile Include="js\Telemetry.ts" />
