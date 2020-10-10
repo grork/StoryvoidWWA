@@ -156,13 +156,13 @@
 
             it("addAddsUrlReturnsCorrectObject", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
+                const urlToAdd = "https://www.codevoid.net/articlevoidtest/_TestPage1.html";
 
                 const data = await bookmarks.add({ url: urlToAdd });
                 assert.strictEqual(data.type, "bookmark");
                 assert.strictEqual(data.url, urlToAdd, "url wasn't the same");
                 assert.strictEqual(data.title, "TestPage1", "title wasn't expected");
-                assert.strictEqual(data.hash, "ZB6AejJM");
+                assert.strictEqual(data.hash, "ZijlgcUD");
                 assert.strictEqual(data.starred, "0");
                 assert.strictEqual(data.progress, 0);
 
@@ -179,9 +179,9 @@
                 // Validate the only bookmark
                 const bookmarkData = data.bookmarks[0];
                 assert.strictEqual(bookmarkData.type, "bookmark");
-                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.url, "https://www.codevoid.net/articlevoidtest/_TestPage1.html", "url wasn't the same");
                 assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
-                assert.strictEqual(bookmarkData.hash, "ZB6AejJM");
+                assert.strictEqual(bookmarkData.hash, "ZijlgcUD");
                 assert.strictEqual(bookmarkData.starred, "0");
                 assert.strictEqual(bookmarkData.progress, 0);
                 assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
@@ -284,7 +284,7 @@
                 // Validate the only bookmark
                 const bookmarkData = data.bookmarks[0];
                 assert.strictEqual(bookmarkData.type, "bookmark");
-                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.url, "https://www.codevoid.net/articlevoidtest/_TestPage1.html", "url wasn't the same");
                 assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
                 assert.strictEqual(bookmarkData.starred, "1");
                 assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
@@ -322,7 +322,7 @@
                 // Validate the only bookmark
                 const bookmarkData = data.bookmarks[0];
                 assert.strictEqual(bookmarkData.type, "bookmark");
-                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage1.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.url, "https://www.codevoid.net/articlevoidtest/_TestPage1.html", "url wasn't the same");
                 assert.strictEqual(bookmarkData.title, "TestPage1", "title wasn't expected");
                 assert.strictEqual(bookmarkData.starred, "0");
                 assert.strictEqual(bookmarkData.bookmark_id, justAddedId, "Bookmark didn't match");
@@ -374,7 +374,7 @@
                 let badBookmarkId: number;
                 let targetFileName: string;
 
-                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" });
+                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/_foo.html" });
                 targetFileName = bookmark.bookmark_id + ".html";
                 badBookmarkId = bookmark.bookmark_id;
 
@@ -430,7 +430,7 @@
                 let badBookmarkId: number;
 
                 // This URL isn't actually a valid URL, so should fail
-                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/foo.html" });
+                const bookmark = await bookmarks.add({ url: "http://codevoid.net/articlevoidtest/_foo.html" });
                 badBookmarkId = bookmark.bookmark_id;
 
                 try {
@@ -445,7 +445,7 @@
 
             it("addWithAdditionalParameters", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage2.html";
+                const urlToAdd = "https://www.codevoid.net/articlevoidtest/_TestPage2.html";
                 let bookmarkToCleanup: number;
 
                 const data = await bookmarks.add({ url: urlToAdd, title: "Custom Title", description: "Custom Description" });
@@ -522,7 +522,7 @@
 
             it("addToFolder", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage3.html";
+                const urlToAdd = "https://www.codevoid.net/articlevoidtest/_TestPage3.html";
 
                 const data = await bookmarks.add({ url: urlToAdd, folder_id: addedFolderId });
                 assert.strictEqual(data.type, "bookmark");
@@ -536,7 +536,7 @@
 
             it("moveBookmarkIntoFolder", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+                const urlToAdd = "https://www.codevoid.net/articlevoidtest/_TestPage4.html";
 
                 const data = await bookmarks.add({ url: urlToAdd });
                 assert.strictEqual(data.type, "bookmark");
@@ -576,19 +576,19 @@
 
                 // Validate the only bookmark
                 assert.strictEqual(bookmarkData.type, "bookmark");
-                assert.strictEqual(bookmarkData.url, "http://www.codevoid.net/articlevoidtest/TestPage3.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData.url, "https://www.codevoid.net/articlevoidtest/_TestPage3.html", "url wasn't the same");
                 assert.strictEqual(bookmarkData.title, "TestPage3", "title wasn't expected");
                 assert.strictEqual(bookmarkData.bookmark_id, bookmarkAddedToFolderId, "Bookmark didn't match");
 
                 assert.strictEqual(bookmarkData2.type, "bookmark");
-                assert.strictEqual(bookmarkData2.url, "http://www.codevoid.net/articlevoidtest/TestPage4.html", "url wasn't the same");
+                assert.strictEqual(bookmarkData2.url, "https://www.codevoid.net/articlevoidtest/_TestPage4.html", "url wasn't the same");
                 assert.strictEqual(bookmarkData2.title, "TestPage4", "title wasn't expected");
                 assert.strictEqual(bookmarkData2.bookmark_id, bookmarkAddedToFolderId2, "Bookmark didn't match");
             });
 
             it("moveBookmarkToUnread", async () => {
                 const bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
-                const urlToAdd = "http://www.codevoid.net/articlevoidtest/TestPage4.html";
+                const urlToAdd = "https://www.codevoid.net/articlevoidtest/_TestPage4.html";
 
                 await bookmarks.archive(bookmarkAddedToFolderId2);
                 await bookmarks.add({ url: urlToAdd });

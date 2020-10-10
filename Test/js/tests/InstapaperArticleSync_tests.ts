@@ -22,9 +22,9 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
     clientInformation.productName = "Codevoid InstapaperArticleSync Tests";
 
     // Sample, known articles
-    const normalArticleUrl = "http://www.codevoid.net/articlevoidtest/TestPage1.html";
+    const normalArticleUrl = "https://www.codevoid.net/articlevoidtest/_TestPage1.html";
     let normalArticleId: number;
-    const articleWithImageUrl = "http://www.codevoid.net/articlevoidtest/TestPage11.html";
+    const articleWithImageUrl = "https://www.codevoid.net/articlevoidtest/TestPageWithImage.html";
     let articleWithImageId: number;
     const youTubeArticleUrl = "https://www.youtube.com/watch?v=qZRsVqOIWms";
     let youTubeArticleId: number;
@@ -119,7 +119,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             assert.strictEqual(syncedBookmark.contentAvailableLocally, true, "Expected bookmark to be available locally");
             assert.strictEqual(syncedBookmark.localFolderRelativePath, "/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + ".html", "File path incorrect");
             assert.strictEqual(syncedBookmark.hasImages, true, "Expected images");
-            assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/0.png", "Incorrect first image path");
+            assert.strictEqual(syncedBookmark.firstImagePath, "ms-appdata:///local/" + articlesFolder.name + "/" + syncedBookmark.bookmark_id + "/SampleImage1.png", "Incorrect first image path");
 
             const imagesSubFolder = await articlesFolder.getFolderAsync(articleWithImageId.toString());
             const files = await imagesSubFolder.getFilesAsync();
@@ -138,10 +138,10 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
             assert.strictEqual(images.length, 2, "Wrong number of images compared to filename");
 
             const packageName = Windows.ApplicationModel.Package.current.id.name.toLowerCase();
-            let expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/0.png";
+            let expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/SampleImage1.png";
             assert.strictEqual((<HTMLImageElement>images[0]).src, expectedPath, "Incorrect path for the image URL");
 
-            expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/1.jpg";
+            expectedPath = "ms-appx://" + packageName + "/" + articleWithImageId + "/SampleImage2.jpg";
             assert.strictEqual((<HTMLImageElement>images[1]).src, expectedPath, "Incorrect path for the image URL");
         });
 
@@ -196,7 +196,7 @@ namespace CodevoidTests.InstapaperArticleSyncTests {
         it("syncingUnavailableItemSetsDBCorrectly", async () => {
             stateConfigured = false; // Reset state so we rebuild it all
             const bookmarksApi = new av.InstapaperApi.Bookmarks(clientInformation);
-            const badBookmark = await bookmarksApi.add({ url: "http://codevoid.net/articlevoidtest/foo.html" });
+            const badBookmark = await bookmarksApi.add({ url: "http://codevoid.net/articlevoidtest/_foo.html" });
             await setupLocalAndRemoteState();
             const instapaperDB = new av.InstapaperDB();
             await instapaperDB.initialize();
