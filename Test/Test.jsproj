@@ -60,9 +60,6 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="StoryVoidTest.cer" />
-    <None Include="StoryVoidTest.pfx" />
-    <Content Include="StoryVoidTest.pvk" />
     <Content Include="tsconfig.json" />
     <Content Include="css\tests\qunit.css" />
     <Content Include="RemoteTestContent\SampleImage1.png" />
