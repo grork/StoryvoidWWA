@@ -10,6 +10,9 @@
  */
 
 /** Font Family and Sizes */
+body {
+    overflow-y: auto;
+}
 
 #qunit-tests, #qunit-header, #qunit-banner, #qunit-testrunner-toolbar, #qunit-filteredTest, #qunit-userAgent, #qunit-testresult {
 	font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica, Arial, sans-serif;
