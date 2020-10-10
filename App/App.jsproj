@@ -46,6 +46,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <WinRt2TsOutputDir>$(BaseIntermediateOutputPath)winrtrefs</WinRt2TsOutputDir>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <TypeScriptCompileOnSaveEnabled>false</TypeScriptCompileOnSaveEnabled>
