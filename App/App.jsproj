@@ -85,8 +85,6 @@
     <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>$(VersionNumberMajor).$(VersionNumberMinor)</MinimumVisualStudioVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>StoryVoidCert.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>98D72A881A9C7C5B1EA08D08CF411AEC994C01E4</PackageCertificateThumbprint>
     <!-- Store Submission -->
     <!-- PackageCertificateKeyFile>App_StoreKey.pfx</PackageCertificateKeyFile -->
     <!-- PackageCertificateThumbprint>BF0C23D168CFD65D2EB27BCF7F8179B96B043B28</PackageCertificateThumbprint -->
