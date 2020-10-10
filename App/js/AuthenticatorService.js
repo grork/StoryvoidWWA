@@ -2,8 +2,8 @@
     "use strict";
     var property = Codevoid.Utilities.property;
 
-    var clientID = "PLACEHOLDER";
-    var clientSecret = "PLACEHOLDER";
+    var clientID = Codevoid.Storyvoid.INSTAPAPER_CLIENT_ID;
+    var clientSecret = Codevoid.Storyvoid.INSTAPAPER_CLIENT_SECRET;
 
     var tokenInformationSettingName = "usertokens";
     var tokenSettingName = "token";

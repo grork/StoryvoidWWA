@@ -105,6 +105,7 @@
     <TypeScriptCompile Include="js\tests\Settings_Tests.ts" />
     <TypeScriptCompile Include="js\tests\WebViewMessengerTests.ts" />
     <TypeScriptCompile Include="js\tests\WhatToRead_tests.ts" />
+    <TypeScriptCompile Include="Keys.ts" />
     <TypeScriptCompile Include="tsc\libs\codevoidtest.d.ts" />
     <TypeScriptCompile Include="tsc\libs\qunit.d.ts" />
     <TypeScriptCompile Include="js\tests\AutoSyncWatcher_tests.ts" />

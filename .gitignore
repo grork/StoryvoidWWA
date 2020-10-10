@@ -290,3 +290,7 @@ sysinfo.txt
 
 # Crashlytics generated file
 Assets/StreamingAssets/crashlytics-build.properties
+
+# Protect Keys from being added when updated in the future
+App/Keys.ts
+Test/Keys.ts

@@ -7,8 +7,8 @@
     var cleanupExperienceHost = InstapaperTestUtilities.cleanupExperienceHost;
     var authenticator = Codevoid.Storyvoid.Authenticator;
     var testCredentials = {
-        user: "PLACEHOLDER",
-        password: "PLACEHOLDER"
+        user: CodevoidTests.INSTAPAPER_ACCOUNT,
+        password: CodevoidTests.INSTAPAPER_PASSWORD
     };
 
     WinJS.Namespace.define("CodevoidTests", {

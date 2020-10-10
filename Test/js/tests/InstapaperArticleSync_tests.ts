@@ -7,11 +7,11 @@ module CodevoidTests.InstapaperArticleSyncTests {
 
     var promiseTest = InstapaperTestUtilities.promiseTest;
 
-    var clientID = "PLACEHOLDER";
-    var clientSecret = "PLACEHOLDER";
+    var clientID = CodevoidTests.INSTAPAPER_CLIENT_ID;
+    var clientSecret = CodevoidTests.INSTAPAPER_CLIENT_SECRET;
 
-    var token = "PLACEHOLDER";
-    var secret = "PLACEHOLDER";
+    var token = CodevoidTests.INSTAPAPER_TOKEN;
+    var secret = CodevoidTests.INSTAPAPER_TOKEN_SECRET;
 
     var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperArticleSync Tests";

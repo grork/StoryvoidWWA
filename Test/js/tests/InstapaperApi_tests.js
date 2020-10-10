@@ -1,11 +1,11 @@
 ﻿(function () {
     "use strict";
 
-    var clientID = "PLACEHOLDER";
-    var clientSecret = "PLACEHOLDER";
+    var clientID = CodevoidTests.INSTAPAPER_CLIENT_ID;
+    var clientSecret = CodevoidTests.INSTAPAPER_CLIENT_SECRET;
 
-    var token = "PLACEHOLDER";
-    var secret = "PLACEHOLDER";
+    var token = CodevoidTests.INSTAPAPER_TOKEN;
+    var secret = CodevoidTests.INSTAPAPER_TOKEN_SECRET;
 
     var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret, token, secret);
     clientInformation.productName = "Codevoid InstapaperApi Tests";
@@ -37,7 +37,7 @@
         var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
         const complete = assert.async();
-        accounts.getAccessToken("PLACEHOLDER", "PLACEHOLDER").done(function (tokenInfo) {
+        accounts.getAccessToken(CodevoidTests.INSTAPAPER_ACCOUNT, CodevoidTests.INSTAPAPER_PASSWORD).done(function (tokenInfo) {
             assert.ok(tokenInfo.hasOwnProperty("oauth_token"), "no auth token property found");
             assert.strictEqual(tokenInfo.oauth_token, token, "token didn't match");
 
@@ -53,8 +53,8 @@
         const complete = assert.async();
         accounts.verifyCredentials().done(function (verifiedCreds) {
             assert.strictEqual(verifiedCreds.type, "user");
-            assert.strictEqual(verifiedCreds.user_id, PLACEHOLDER);
-            assert.strictEqual(verifiedCreds.username, "PLACEHOLDER");
+            assert.strictEqual(verifiedCreds.user_id, CodevoidTests.INSTAPAPER_ACCOUNT_ID);
+            assert.strictEqual(verifiedCreds.username, CodevoidTests.INSTAPAPER_ACCOUNT);
             complete();
         }, getFailedPromiseHandler(assert, complete));
     }
@@ -65,7 +65,7 @@
         var clientInformation = new Codevoid.OAuth.ClientInformation(clientID, clientSecret);
         var accounts = new Codevoid.Storyvoid.InstapaperApi.Accounts(clientInformation);
 
-        return accounts.getAccessToken("PLACEHOLDER", "IncorrectPassword").then(function () {
+        return accounts.getAccessToken(CodevoidTests.INSTAPAPER_ACCOUNT, "IncorrectPassword").then(function () {
             assert.ok(false, "shouldn't succeed");
         }, function (err) {
             assert.ok(true, "Should have errored");
