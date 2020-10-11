@@ -392,7 +392,7 @@
                 const imagesFolderName = file.name.replace(file.fileType, "")
 
                 // The <any> cast here is because of the lack of a meaingful
-                // covariance of the types in TypeScript. Or another way: I got this , yo.
+                // covariance of the types in TypeScript. Or another way: I got this, yo.
                 this._eventSource.dispatchEvent("processingimagesstarting", { bookmark_id: bookmark.bookmark_id });
                 const firstImagePath = await this._processImagesInArticle(images, imagesFolderName, bookmark.bookmark_id, cancellationSource);
                 if (firstImagePath) {
