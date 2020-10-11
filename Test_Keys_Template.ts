@@ -5,9 +5,6 @@ module CodevoidTests {
     // portal: https://developer.twitter.com/en/docs/developer-portal/overview
     export var TWITTER_CLIENT_ID: string = "PLACEHOLDER";
     export var TWITTER_CLIENT_SECRET: string = "PLACEHOLDER";
-
-    // These are tokens generated for a specific account for
-    // a specific app ID.
     export var TWITTER_ACCESS_TOKEN: string = "PLACEHOLDER";
     export var TWITTER_ACCESS_TOKEN_SECRET: string = "PLACEHOLDER";
 
@@ -17,13 +14,13 @@ module CodevoidTests {
     export var INSTAPAPER_ACCOUNT: string = "PLACEHOLDER";
     export var INSTAPAPER_PASSWORD: string = "PLACEHOLDER";
     export var INSTAPAPER_ACCOUNT_ID: number = -1;
+    export var INSTAPAPER_CLIENT_ID = "PLACEHOLDER";
+    export var INSTAPAPER_CLIENT_SECRET = "PLACEHOLDER";
 
     // These are for a specific account login instance, and
     // need to be captured by following the OAuth flow. The
     // easiest way is to run canGetAccessToken in InstapaperApiTests
     // and look at the results to capture specific values.
-    export var INSTAPAPER_CLIENT_ID = "PLACEHOLDER";
-    export var INSTAPAPER_CLIENT_SECRET = "PLACEHOLDER";
     export var INSTAPAPER_TOKEN = "PLACEHOLDER";
     export var INSTAPAPER_TOKEN_SECRET = "PLACEHOLDER";
 }
