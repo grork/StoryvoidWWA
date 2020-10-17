@@ -1,4 +1,5 @@
-# Storyvoid
+Storyvoid
+=========
 Storyvoid is an application for reading, syncing, and adding article in an
 Instapaper account. This repo is for the Typescript/UWP version.
 
@@ -72,6 +73,16 @@ will get packaging warnings on build such as:
 > Certificate file 'StoryVoidTest.pfx' not found
 
 These can safely be ignored unless you are shipping.
+
+## Running Tests
+Running the tests for this project is easy -- just run the 'Test' project. This
+will present an app with options for running all tests, groups of tests or
+an individual test.
+
+The groups of tests are intended to be independent of state, but over time this
+has become harder to enforce, due to the daily limits on 'Adding' URLs to an
+instapaper account, and the need to maintain a specific state on the service for
+those tests that manipulate server state.
 
 ## Releasing
 This is a some-what manual process because of the support for having the store
