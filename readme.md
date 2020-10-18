@@ -7,6 +7,8 @@ Instapaper account. This repo is for the Typescript/UWP version.
 - Windows 10
 - Visual Studio **2017**
 - Windows 10 SDK 10.0.17763.0 (Typescript, C++, Windows tools)
+- C++ tools inc. UWP support
+- TypeScript 2.8
 
 ## Building
 ### Looking around, but not building
