@@ -434,12 +434,6 @@
             titleBar.foregroundColor = textColour;
             titleBar.inactiveBackgroundColor = backgroundColour;
             titleBar.buttonInactiveBackgroundColor = backgroundColour;
-
-            if (Windows.UI.ViewManagement.StatusBar) {
-                var statusBar = Windows.UI.ViewManagement.StatusBar.getForCurrentView();
-                statusBar.backgroundColor = backgroundColour;
-                statusBar.foregroundColor = textColour;
-            }
         }
 
         private _setToolbar(state: boolean): void {
@@ -471,9 +465,6 @@
 
             if (this._toolbarVisible) {
                 var hidden = WinJS.Promise.as<void>();
-                if (Windows.UI.ViewManagement.StatusBar) {
-                    hidden = <WinJS.Promise<void>>Windows.UI.ViewManagement.StatusBar.getForCurrentView().hideAsync();
-                }
 
                 hidden.done(() => {
                     offset.top = (directionMultiplier * (this._toolbarContainer.clientHeight + topOffset)) + "px";
@@ -496,9 +487,6 @@
                 offset.top = (directionMultiplier * this._toolbarContainer.clientHeight + topOffset) + "px";
 
                 var shown = WinJS.Promise.as<void>();
-                if (Windows.UI.ViewManagement.StatusBar) {
-                    shown = Windows.UI.ViewManagement.StatusBar.getForCurrentView().showAsync();
-                }
 
                 shown.done(() => {
                     WinJS.UI.Animation.showEdgeUI(this._toolbarContainer, offset).done(() => {
