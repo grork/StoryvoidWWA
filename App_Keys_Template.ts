@@ -5,4 +5,5 @@ module Codevoid.Storyvoid {
     // access: https://www.instapaper.com/main/request_oauth_consumer_token
     export var INSTAPAPER_CLIENT_ID: string = "PLACEHOLDER";
     export var INSTAPAPER_CLIENT_SECRET: string = "PLACEHOLDER";
+    export var MIXPANEL_KEY: string = "PLACEHOLDER";
 }
