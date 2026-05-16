@@ -310,6 +310,15 @@
 
             return cancellation;
         },
+        getCurrentTimeAsUnixTimestamp: function getCurrentTimeAsUnixTimestamp() {
+            var timestampInMilliseconds = Date.now();
+            var timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
+
+            return timestampInSeconds;
+        },
+        toUnixEpoch: function toUnixEpoch(from) {
+            return (from > 1e12) ? Math.floor(from / 1000) : from;
+        }
     });
 
     var fragmentCache = {};

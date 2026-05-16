@@ -188,7 +188,7 @@
                 return bookmarks.updateReadProgress({
                     bookmark_id: rb.bookmark_id,
                     progress: 0.0,
-                    progress_timestamp: Date.now(),
+                    progress_timestamp: Codevoid.Utilities.toUnixEpoch(Date.now()),
                 });
             });
 

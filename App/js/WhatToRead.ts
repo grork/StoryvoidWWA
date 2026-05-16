@@ -36,15 +36,18 @@ module Codevoid.Storyvoid {
             return -1; // Sort the first higher
         }
 
+        let firstProgressTimestamp = Codevoid.Utilities.toUnixEpoch(first.progress_timestamp);
+        let secondProgressTimestamp = Codevoid.Utilities.toUnixEpoch(second.progress_timestamp);
+
         // Since neither or both are complete, we have to fallback
         // to the progress updated time. This also handles the case
         // that one or both don't have _any_ progress, and those need
         // to go to the end.
-        if (first.progress_timestamp > second.progress_timestamp) {
+        if (firstProgressTimestamp > secondProgressTimestamp) {
             return -1;
         }
 
-        if (first.progress_timestamp < second.progress_timestamp) {
+        if (firstProgressTimestamp < secondProgressTimestamp) {
             return 1;
         }
 

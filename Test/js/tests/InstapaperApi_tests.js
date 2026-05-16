@@ -262,7 +262,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
         const complete = assert.async();
 
-        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() - 50 }).done(function (data) {
+        bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 0.2, progress_timestamp: Codevoid.Utilities.getCurrentTimeAsUnixTimestamp() - 50 }).done(function (data) {
             assert.strictEqual(data.type, "bookmark");
             assert.equal(data.progress, 0.2);
             updatedProgressHash = data.hash;
@@ -284,7 +284,7 @@
                 hash: "X", // Set hash to something random that causes the service to give us back the new hash.
                            // If we don't do this and hand up the "current" hash that we currently have, it updates
                            // the current state, but doesn't tell us that it recomputed the hash.
-                progressLastChanged: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + 50
+                progressLastChanged: Codevoid.Utilities.getCurrentTimeAsUnixTimestamp() + 50
             }]
         }).done(function (data) {
             assert.ok(Array.isArray(data.bookmarks), "Expected an array of data")
@@ -307,7 +307,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         assert.raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: 1.1, progress_timestamp: Codevoid.Utilities.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
@@ -317,7 +317,7 @@
         var bookmarks = new Codevoid.Storyvoid.InstapaperApi.Bookmarks(clientInformation);
 
         assert.raises(function () {
-            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() });
+            bookmarks.updateReadProgress({ bookmark_id: justAddedId, progress: -0.1, progress_timestamp: Codevoid.Utilities.getCurrentTimeAsUnixTimestamp() });
         }, function (ex) {
             return ex.message === "Must have valid progress between 0.0 and 1.0";
         }, "Should have failed with error on progress value");
@@ -633,7 +633,7 @@
 
         const complete = assert.async();
 
-        var title = Codevoid.Storyvoid.InstapaperApi.getCurrentTimeAsUnixTimestamp() + "";
+        var title = Codevoid.Utilities.getCurrentTimeAsUnixTimestamp() + "";
 
         folders.add(title).then(function () {
             return folders.add(title);

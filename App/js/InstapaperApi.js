@@ -75,12 +75,6 @@
             error: 0,
             message: String.empty,
         }),
-        getCurrentTimeAsUnixTimestamp: function getCurrentTimeAsUnixTimestamp() {
-            var timestampInMilliseconds = Date.now();
-            var timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
-
-            return timestampInSeconds;
-        },
         Accounts: WinJS.Class.define(function Accounts_Constructor(clientInformation) {
             this._clientInformation = clientInformation;
         },
@@ -265,7 +259,7 @@
 
                 var data = [{ key: "bookmark_id", value: parameters.bookmark_id },
                            { key: "progress", value: parameters.progress },
-                           { key: "progress_timestamp", value: parameters.progress_timestamp }];
+                           { key: "progress_timestamp", value: Codevoid.Utilities.toUnixEpoch(parameters.progress_timestamp) }];
 
                 var request = new Codevoid.OAuth.OAuthRequest(this._clientInformation, BookmarksEndPoints.updateReadProgress);
                 request.data = data;
@@ -384,7 +378,7 @@
                     }
 
                     if (have.progressLastChanged) {
-                        haveString += ":" + have.progress + ":" + have.progressLastChanged;
+                        haveString += ":" + have.progress + ":" + Codevoid.Utilities.toUnixEpoch(have.progressLastChanged);
                     }
                 }
 
